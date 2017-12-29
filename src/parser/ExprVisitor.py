@@ -2,11 +2,12 @@ import re
 
 from antlr4 import *
 
-from .SystemRDLVisitor import SystemRDLVisitor
 from .SystemRDLParser import SystemRDLParser
+
+from .BaseVisitor import BaseVisitor
 from . import expressions as e
 
-class ExprVisitor(SystemRDLVisitor):
+class ExprVisitor(BaseVisitor):
     
     #---------------------------------------------------------------------------
     # Numerical Expressions

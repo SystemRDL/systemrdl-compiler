@@ -9,13 +9,68 @@ else:
 
 class SystemRDLVisitor(ParseTreeVisitor):
 
-    # Visit a parse tree produced by SystemRDLParser#prog.
-    def visitProg(self, ctx:SystemRDLParser.ProgContext):
+    # Visit a parse tree produced by SystemRDLParser#root.
+    def visitRoot(self, ctx:SystemRDLParser.RootContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by SystemRDLParser#dummy.
-    def visitDummy(self, ctx:SystemRDLParser.DummyContext):
+    # Visit a parse tree produced by SystemRDLParser#root_elem.
+    def visitRoot_elem(self, ctx:SystemRDLParser.Root_elemContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_def.
+    def visitComponent_def(self, ctx:SystemRDLParser.Component_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_named_def.
+    def visitComponent_named_def(self, ctx:SystemRDLParser.Component_named_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_anon_def.
+    def visitComponent_anon_def(self, ctx:SystemRDLParser.Component_anon_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_body.
+    def visitComponent_body(self, ctx:SystemRDLParser.Component_bodyContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_body_elem.
+    def visitComponent_body_elem(self, ctx:SystemRDLParser.Component_body_elemContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_insts.
+    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_inst.
+    def visitComponent_inst(self, ctx:SystemRDLParser.Component_instContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#param_def.
+    def visitParam_def(self, ctx:SystemRDLParser.Param_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#param_def_elem.
+    def visitParam_def_elem(self, ctx:SystemRDLParser.Param_def_elemContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#param_inst.
+    def visitParam_inst(self, ctx:SystemRDLParser.Param_instContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#param_assignment.
+    def visitParam_assignment(self, ctx:SystemRDLParser.Param_assignmentContext):
         return self.visitChildren(ctx)
 
 
@@ -71,6 +126,26 @@ class SystemRDLVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by SystemRDLParser#cast_width_expr.
     def visitCast_width_expr(self, ctx:SystemRDLParser.Cast_width_exprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#range_suffix.
+    def visitRange_suffix(self, ctx:SystemRDLParser.Range_suffixContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#array_suffix.
+    def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#array_type_suffix.
+    def visitArray_type_suffix(self, ctx:SystemRDLParser.Array_type_suffixContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#data_type.
+    def visitData_type(self, ctx:SystemRDLParser.Data_typeContext):
         return self.visitChildren(ctx)
 
 
@@ -151,6 +226,21 @@ class SystemRDLVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by SystemRDLParser#reference.
     def visitReference(self, ctx:SystemRDLParser.ReferenceContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_inst_type.
+    def visitComponent_inst_type(self, ctx:SystemRDLParser.Component_inst_typeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_type.
+    def visitComponent_type(self, ctx:SystemRDLParser.Component_typeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_type_primary.
+    def visitComponent_type_primary(self, ctx:SystemRDLParser.Component_type_primaryContext):
         return self.visitChildren(ctx)
 
 

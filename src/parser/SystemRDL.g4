@@ -1,8 +1,62 @@
 grammar SystemRDL;
 
-prog: dummy+;
+root: (root_elem ';')* EOF;
 
-dummy : expr SEMI ;
+root_elem : component_def
+// TODO   | enum_def
+// TODO   | property_def
+// TODO   | struct_def
+// TODO   | constraint_def
+// TODO   | explicit_component_inst
+// TODO   | property_assignment
+          ;
+
+//------------------------------------------------------------------------------
+// Components
+//------------------------------------------------------------------------------
+
+component_def : component_named_def ( (component_inst_type component_insts)
+                | component_insts?
+                )
+              | component_anon_def ( (component_inst_type component_insts)
+                | component_insts
+                )
+              | component_inst_type component_named_def component_insts
+              | component_inst_type component_anon_def component_insts
+              ;
+
+
+component_named_def : component_type ID param_def? component_body;
+component_anon_def  : component_type component_body;
+
+component_body: '{' (component_body_elem ';')* '}';
+
+component_body_elem : component_def
+// TODO             | enum_def
+// TODO             | struct_def
+// TODO             | constraint_def
+// TODO             | explicit_component_inst
+// TODO             | property_assignment
+                    ;
+
+component_insts: param_inst? component_inst (',' component_inst)*;
+component_inst: ID ( array_suffix+ | range_suffix )?
+                (EQ expr)?
+                (AT expr)?
+                (INC expr)?
+                (ALIGN expr)?
+              ;
+
+//------------------------------------------------------------------------------
+// Parameters
+//------------------------------------------------------------------------------
+// Parameter definition
+param_def: '#' '(' param_def_elem (',' param_def_elem)* ')';
+param_def_elem : data_type ID array_type_suffix? (EQ expr)?;
+
+// Parameter assignment list in instantiation
+param_inst: '#' '(' param_assignment (',' param_assignment)* ')';
+param_assignment: '.' ID '(' expr ')';
 
 //------------------------------------------------------------------------------
 // Expressions
@@ -49,6 +103,18 @@ cast_width_expr : literal
                 ;
 
 //------------------------------------------------------------------------------
+// Array and Range
+//------------------------------------------------------------------------------
+range_suffix: '[' expr ':' expr ']';
+array_suffix:  '[' expr ']';
+array_type_suffix: '[' ']';
+
+//------------------------------------------------------------------------------
+// Data Types
+//------------------------------------------------------------------------------
+data_type: TODO_kw;
+
+//------------------------------------------------------------------------------
 // Literals
 //------------------------------------------------------------------------------
 
@@ -79,19 +145,36 @@ struct_kv : ID ':' expr ;
 
 enum_literal : ID '::' ID;
 
-accesstype_literal : NA_kw|RW_kw|WR_kw|R_kw|W_kw|RW1_kw|W1_kw;
-onreadtype_literal : RCLR_kw|RSET_kw|RUSER_kw;
-onwritetype_literal : WOSET_kw|WOCLR_kw|WOT_kw|WZS_kw|WZC_kw|WZT_kw|WCLR_kw|WSET_kw|WUSER_kw;
-addressingtype_literal : COMPACT_kw|REGALIGN_kw|FULLALIGN_kw;
-precedencetype_literal : HW_kw|SW_kw;
-
+accesstype_literal : kw=(NA_kw|RW_kw|WR_kw|R_kw|W_kw|RW1_kw|W1_kw);
+onreadtype_literal : kw=(RCLR_kw|RSET_kw|RUSER_kw);
+onwritetype_literal : kw=(WOSET_kw|WOCLR_kw|WOT_kw|WZS_kw|WZC_kw|WZT_kw|WCLR_kw|WSET_kw|WUSER_kw);
+addressingtype_literal : kw=(COMPACT_kw|REGALIGN_kw|FULLALIGN_kw);
+precedencetype_literal : kw=(HW_kw|SW_kw);
 
 //------------------------------------------------------------------------------
 // References
 //------------------------------------------------------------------------------
-reference   : ID
+reference   : ID // TODO
             ;
 
+//==============================================================================
+// Keyword Groups
+//==============================================================================
+
+component_inst_type : kw=(EXTERNAL_kw | INTERNAL_kw);
+
+component_type: component_type_primary
+              | kw=SIGNAL_kw
+              ;
+
+component_type_primary: kw=( ADDRMAP_kw
+                           | REGFILE_kw
+                           | REG_kw
+                           | FIELD_kw
+                           | MEM_kw
+                           )
+                      ;
+                      
 //==============================================================================
 // Lexer
 //==============================================================================
@@ -99,6 +182,8 @@ reference   : ID
 SL_COMMENT : ( '//' ~[\r\n]* '\r'? '\n') -> skip;
 ML_COMMENT : ( '/*' .*? '*/' ) -> skip;
 
+//------------------------------------------------------------------------------
+// Keywords
 //------------------------------------------------------------------------------
 BOOLEAN_kw          : 'boolean';
 BIT_kw              : 'bit';
@@ -110,27 +195,19 @@ ADDRESSINGTYPE_kw   : 'addressingtype';
 ONREADTYPE_kw       : 'onreadtype';
 ONWRITETYPE_kw      : 'onwritetype';
 
-//------------------------------------------------------------------------------
-// Literals
-//------------------------------------------------------------------------------
 
-// Numbers
-fragment NUM_BIN : [0-1] [0-1_]* ;
-fragment NUM_DEC : [0-9] [0-9_]* ;
-fragment NUM_HEX : [0-9a-fA-F] [0-9a-fA-F_]* ;
 
-INT     : NUM_DEC ;
-HEX_INT : ('0x'|'0X') NUM_HEX ;
-VLOG_INT: [0-9]+ '\'' ( ([bB] NUM_BIN)
-                      | ([dD] NUM_DEC)
-                      | ([hH] NUM_HEX)
-                      )
-        ;
+EXTERNAL_kw : 'external';
+INTERNAL_kw : 'internal';
 
-fragment ESC : '\\"' | '\\\\' ;
-STRING :  '"' (ESC | ~('"'|'\\'))* '"' ;
+ADDRMAP_kw  : 'addrmap';
+REGFILE_kw  : 'regfile';
+REG_kw      : 'reg';
+FIELD_kw    : 'field';
+MEM_kw      : 'mem';
+SIGNAL_kw   : 'signal';
 
-// Boolean
+// Boolean Literals
 TRUE_kw : 'true';
 FALSE_kw : 'false';
 
@@ -159,6 +236,28 @@ REGALIGN_kw  : 'regalign';
 FULLALIGN_kw : 'fullalign';
 HW_kw        : 'hw';
 SW_kw        : 'sw';
+
+TODO_kw : 'TODO';
+
+//------------------------------------------------------------------------------
+// Literals
+//------------------------------------------------------------------------------
+
+// Numbers
+fragment NUM_BIN : [0-1] [0-1_]* ;
+fragment NUM_DEC : [0-9] [0-9_]* ;
+fragment NUM_HEX : [0-9a-fA-F] [0-9a-fA-F_]* ;
+
+INT     : NUM_DEC ;
+HEX_INT : ('0x'|'0X') NUM_HEX ;
+VLOG_INT: [0-9]+ '\'' ( ([bB] NUM_BIN)
+                      | ([dD] NUM_DEC)
+                      | ([hH] NUM_HEX)
+                      )
+        ;
+
+fragment ESC : '\\"' | '\\\\' ;
+STRING :  '"' (ESC | ~('"'|'\\'))* '"' ;
 
 //------------------------------------------------------------------------------
 // Operators
@@ -189,11 +288,9 @@ LT      : '<' ;
 GEQ     : '>=' ;
 GT      : '>' ;
 
-//------------------------------------------------------------------------------
-// Misc symbols
-//------------------------------------------------------------------------------
-
-SEMI    : ';';
+AT    : '@';
+INC   : '+=';
+ALIGN : '%=';
 
 //------------------------------------------------------------------------------
 WS  :   [ \t\r\n]+ -> skip ;
