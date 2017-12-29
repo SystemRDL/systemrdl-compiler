@@ -1,0 +1,27 @@
+--------------------------------------------------------------------------------
+Phases of compilation
+--------------------------------------------------------------------------------
+- Lex & Parse
+    - Handled by Antlr
+    - Creates a parse tree
+    
+- Compile
+    - Walks the parse tree and creates our Python class objects
+    - As types/parameters/etc are defined, a namespace stack is maintained
+    - identifiers are always resolved immediately
+        - If an id token is not within any available namespace, then throw an error immediately
+    - Instance tree is created
+    - All expressions are left unresolved
+        - Class representation of the expression is kept so that any parameters
+          in it can be fully resolved later.
+    - Dynamic property assignments replace property expressions as they are seen.
+
+          
+- Elaborate
+    - User specifies a single top-level component from root
+        - Specifies any parameters where applicable
+    - All expressions are resolved to their resulting values
+        - Parameters should all be known at this point, so they can be resolved.
+    
+- Validate
+    Perform structural validation checks
