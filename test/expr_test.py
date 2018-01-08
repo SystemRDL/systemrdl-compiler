@@ -11,7 +11,7 @@ from antlr4 import *
 
 from src.parser.SystemRDLLexer import SystemRDLLexer
 from src.parser.SystemRDLParser import SystemRDLParser
-from src.parser.ExprVisitor import ExprVisitor
+from src.compiler.ExprVisitor import ExprVisitor
 
 
 def eval_RDL_expr(expr_text):

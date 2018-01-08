@@ -10,7 +10,7 @@ from antlr4 import *
 
 from src.parser.SystemRDLLexer import SystemRDLLexer
 from src.parser.SystemRDLParser import SystemRDLParser
-from src.parser.RootVisitor import RootVisitor
+from src.compiler.RootVisitor import RootVisitor
 
 
 input_stream = FileStream("test.rdl")

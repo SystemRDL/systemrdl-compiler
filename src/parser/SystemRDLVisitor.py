@@ -54,6 +54,21 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SystemRDLParser#component_inst_type.
+    def visitComponent_inst_type(self, ctx:SystemRDLParser.Component_inst_typeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_type.
+    def visitComponent_type(self, ctx:SystemRDLParser.Component_typeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_type_primary.
+    def visitComponent_type_primary(self, ctx:SystemRDLParser.Component_type_primaryContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SystemRDLParser#param_def.
     def visitParam_def(self, ctx:SystemRDLParser.Param_defContext):
         return self.visitChildren(ctx)
@@ -149,6 +164,11 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SystemRDLParser#basic_data_type.
+    def visitBasic_data_type(self, ctx:SystemRDLParser.Basic_data_typeContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SystemRDLParser#literal.
     def visitLiteral(self, ctx:SystemRDLParser.LiteralContext):
         return self.visitChildren(ctx)
@@ -226,21 +246,6 @@ class SystemRDLVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by SystemRDLParser#reference.
     def visitReference(self, ctx:SystemRDLParser.ReferenceContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by SystemRDLParser#component_inst_type.
-    def visitComponent_inst_type(self, ctx:SystemRDLParser.Component_inst_typeContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by SystemRDLParser#component_type.
-    def visitComponent_type(self, ctx:SystemRDLParser.Component_typeContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by SystemRDLParser#component_type_primary.
-    def visitComponent_type_primary(self, ctx:SystemRDLParser.Component_type_primaryContext):
         return self.visitChildren(ctx)
 
 

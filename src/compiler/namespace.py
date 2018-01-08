@@ -8,12 +8,12 @@ class NamespaceRegistry():
     
     def register_type(self, name:str, ref):
         if(name in self.type_ns_stack[-1]):
-            raise ValueError
+            raise ValueError("Multiple declarations of type '%s'" % name)
         self.type_ns_stack[-1][name] = ref
         
     def register_element(self, name:str, ref):
         if(name in self.element_ns_stack[-1]):
-            raise ValueError
+            raise ValueError("Multiple declarations of instance '%s'" % name)
         self.element_ns_stack[-1][name] = ref
     
     def register_property(self, name:str, ref):
@@ -47,7 +47,7 @@ class NamespaceRegistry():
         print("TODO: Filter out any non-signal elements in element_ns_stack prior to push")
         TODO = None # <-- Just need to replace a type here...
         keep_scope = {}
-        for k,v in self.element_ns_stack.items()
+        for k,v in self.element_ns_stack[-1].items():
             if(type(v) == TODO):
                 keep_scope[k] = v
         self.element_ns_stack[-1] = keep_scope

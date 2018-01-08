@@ -47,6 +47,19 @@ component_inst: ID ( array_suffix+ | range_suffix )?
                 (ALIGN expr)?
               ;
 
+component_inst_type : kw=(EXTERNAL_kw | INTERNAL_kw);
+
+component_type: component_type_primary
+              | kw=SIGNAL_kw
+              ;
+
+component_type_primary: kw=( ADDRMAP_kw
+                           | REGFILE_kw
+                           | REG_kw
+                           | FIELD_kw
+                           | MEM_kw
+                           )
+                      ;
 //------------------------------------------------------------------------------
 // Parameters
 //------------------------------------------------------------------------------
@@ -112,7 +125,13 @@ array_type_suffix: '[' ']';
 //------------------------------------------------------------------------------
 // Data Types
 //------------------------------------------------------------------------------
-data_type: TODO_kw;
+data_type : basic_data_type
+          | kw=(ACCESSTYPE_kw|ADDRESSINGTYPE_kw|ONREADTYPE_kw|ONWRITETYPE_kw)
+          ;
+
+basic_data_type : kw=(BIT_kw|LONGINT_kw) UNSIGNED_kw?
+                | kw=(STRING_kw|BOOLEAN_kw|ID)
+                ;
 
 //------------------------------------------------------------------------------
 // Literals
@@ -157,24 +176,6 @@ precedencetype_literal : kw=(HW_kw|SW_kw);
 reference   : ID // TODO
             ;
 
-//==============================================================================
-// Keyword Groups
-//==============================================================================
-
-component_inst_type : kw=(EXTERNAL_kw | INTERNAL_kw);
-
-component_type: component_type_primary
-              | kw=SIGNAL_kw
-              ;
-
-component_type_primary: kw=( ADDRMAP_kw
-                           | REGFILE_kw
-                           | REG_kw
-                           | FIELD_kw
-                           | MEM_kw
-                           )
-                      ;
-                      
 //==============================================================================
 // Lexer
 //==============================================================================

@@ -22,6 +22,8 @@ Phases of compilation
         - Specifies any parameters where applicable
     - All expressions are resolved to their resulting values
         - Parameters should all be known at this point, so they can be resolved.
+    - All derived ComponentDef instances are found and any duplicates are merged
+    - ComponentDef type names are uniquified according to RDL rules in section 5.1.1.4
     
 - Validate
     Perform structural validation checks

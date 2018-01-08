@@ -1,8 +1,8 @@
 
 from antlr4 import *
 
-from .SystemRDLParser import SystemRDLParser
-from .SystemRDLVisitor import SystemRDLVisitor
+from ..parser.SystemRDLParser import SystemRDLParser
+from ..parser.SystemRDLVisitor import SystemRDLVisitor
 
 class BaseVisitor(SystemRDLVisitor):
     pass
@@ -31,3 +31,8 @@ class BaseVisitor(SystemRDLVisitor):
     def visitComponent_type_primary(self, ctx:SystemRDLParser.Component_type_primaryContext):
         return(self.passthru_kw_token(ctx))
     
+    def visitData_type(self, ctx:SystemRDLParser.Data_typeContext):
+        return(self.passthru_kw_token(ctx))
+
+    def visitBasic_data_type(self, ctx:SystemRDLParser.Basic_data_typeContext):
+        return(self.passthru_kw_token(ctx))

@@ -2,13 +2,16 @@ import re
 
 from antlr4 import *
 
-from .SystemRDLParser import SystemRDLParser
+from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
 from . import expressions as e
 
 class ExprVisitor(BaseVisitor):
     
+    def __init__(self, ns):
+        self.NS = ns
+        
     #---------------------------------------------------------------------------
     # Numerical Expressions
     #---------------------------------------------------------------------------
