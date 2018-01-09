@@ -17,6 +17,9 @@ class ComponentDef:
         
         # Child elements instantiated inside this component
         self.children = []
+        
+        # Parameters of this definitions
+        self.parameters = []
     
     def create_derived_def(self):
         """
@@ -32,11 +35,11 @@ class ComponentDef:
             # unique.
             return(self)
         
+        # TODO: Implement create_derived_def
         # Deepcopy self
         # - all properties, and their expressions
         # - all parameters
         # - all children
-        #++ TODO
         
         # Link new copy to original
         # XXX.derived_from_def = self

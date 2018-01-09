@@ -1,3 +1,4 @@
+from .. import model
 
 class NamespaceRegistry():
     
@@ -44,11 +45,9 @@ class NamespaceRegistry():
     def enter_scope(self):
         self.type_ns_stack.append({})
         
-        print("TODO: Filter out any non-signal elements in element_ns_stack prior to push")
-        TODO = None # <-- Just need to replace a type here...
         keep_scope = {}
         for k,v in self.element_ns_stack[-1].items():
-            if(type(v) == TODO):
+            if(type(v) == model.Signal):
                 keep_scope[k] = v
         self.element_ns_stack[-1] = keep_scope
         

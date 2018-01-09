@@ -1,4 +1,5 @@
 from antlr4 import *
+import sys
 
 from ..parser.SystemRDLParser import SystemRDLParser
 
@@ -6,8 +7,10 @@ from .BaseVisitor import BaseVisitor
 from .ExprVisitor import ExprVisitor
 from .namespace import NamespaceRegistry
 from .parameter import Parameter
+from . import type_placeholders
 
 from ..model import component as comp
+from ..model import rdl_types
 
 #===============================================================================
 # Base visitor
@@ -24,12 +27,27 @@ class ComponentVisitor(BaseVisitor):
         if(self.comp_type is not None):
             self.component = self.comp_type()
             self.component.name = def_name
+            self.component.parameters = param_defs
         else:
             self.component = None
     
     #---------------------------------------------------------------------------
     # Component Definitions & Instantiations
     #---------------------------------------------------------------------------
+    def visitComponent_body(self, ctx:SystemRDLParser.Component_bodyContext):
+        self.NS.enter_scope()
+        
+        # Re-Load any parameters into the local scope
+        for param in self.component.parameters:
+            self.NS.register_element(param.name, param)
+        
+        # Visit all component elements.
+        # Their visitors will apply changes to the current component
+        self.visitChildren(ctx)
+        
+        self.NS.exit_scope()
+        return(self.component)
+    
     def visitComponent_def(self, ctx:SystemRDLParser.Component_defContext):
         """
         Create, and possibly instantiate a component
@@ -54,12 +72,6 @@ class ComponentVisitor(BaseVisitor):
             self.visit(ctx.component_insts())
             
         return(None)
-    
-    
-    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
-        comp_def, inst_type = self._tmp
-        print("TODO: Instantiate stuff")
-    
     
     def visitComponent_named_def(self, ctx:SystemRDLParser.Component_named_defContext):
         type_token = self.visit(ctx.component_type())
@@ -109,8 +121,15 @@ class ComponentVisitor(BaseVisitor):
                 return(visitor.visit(body))
         else:
             raise RuntimeError
-            
-    def visitParam_def(self, ctx:SystemRDLParser.Param_defContext):
+    
+    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        comp_def, inst_type = self._tmp
+        print("TODO: Instantiate stuff")
+    
+    #---------------------------------------------------------------------------
+    # Parameters
+    #---------------------------------------------------------------------------
+        def visitParam_def(self, ctx:SystemRDLParser.Param_defContext):
         """
         Parameter Definition block
         """
@@ -128,37 +147,69 @@ class ComponentVisitor(BaseVisitor):
         """
         Individual parameter definition elements
         """
-        param_data_type = self.visit(ctx.data_type())
+        
+        # Construct parameter type
+        data_type_token = self.visit(ctx.data_type())
+        param_data_type = self.datatype_from_token(data_type_token)
         if(ctx.array_type_suffix() is None):
             # Non-array type
-            param_type = None
-            raise NotImplementedError("TODO")
+            param_type = param_data_type
         else:
             # Array-like type
-            param_type = None
-            raise NotImplementedError("TODO")
+            param_type = type_placeholders.Array(param_data_type)
         
+        # Get parameter name
         param_name = ctx.ID().getText()
         
+        # Get expression for parameter default, if any
         if(ctx.expr() is not None):
             visitor = ExprVisitor(self.NS)
             default_expr = visitor.visit(ctx.expr())
         else:
             default_expr = None
         
-        return(Parameter(param_type, param_name, default_expr))
+        # Create Parameter object
+        param = Parameter(param_type, param_name, default_expr)
+        
+        # Register it in the parameter def namespace scope
+        self.NS.register_element(param_name, param)
+        
+        return(param)
     
-    def visitComponent_body(self, ctx:SystemRDLParser.Component_bodyContext):
-        self.NS.enter_scope()
+    #---------------------------------------------------------------------------
+    # Type Handling
+    #---------------------------------------------------------------------------
+    _DataType_Map = {
+        SystemRDLParser.BIT_kw              : type_placeholders.Bit,
+        SystemRDLParser.LONGINT_kw          : int,
+        SystemRDLParser.ACCESSTYPE_kw       : rdl_types.AccessType,
+        SystemRDLParser.ADDRESSINGTYPE_kw   : rdl_types.AddressingType,
+        SystemRDLParser.ONREADTYPE_kw       : rdl_types.OnReadType,
+        SystemRDLParser.ONWRITETYPE_kw      : rdl_types.OnWriteType,
+        SystemRDLParser.STRING_kw           : str,
+        SystemRDLParser.BOOLEAN_kw          : bool
+    }
+    def datatype_from_token(self, token):
+        """
+        Given a SystemRDLParser token, lookup the type
+        This only includes types under the "data_type" grammar rule
+        """
         
-        # Visit all component elements.
-        # Their visitors will apply changes to the current component
-        self.visitChildren(ctx)
+        if(token.type == SystemRDLParser.ID):
+            # Is an identifier for either an enum or struct type
+            
+            typ = self.NS.lookup_type(token.text)
+            if(typ is None):
+                raise ValueError("Type '%s' is not defined" % token.text)
+            
+            if(issubclass(typ, rdl_types.UserEnum) or issubclass(typ, rdl_types.UserStruct)):
+                return(typ)
+            else:
+                raise ValueError("Type '%s' is not a struct or enum" % token.text)
+            
+        else:
+            return(_DataType_Map[token.type])
         
-        self.NS.exit_scope()
-        return(self.component)
-
-
 
 #===============================================================================
 # Field Component visitor
