@@ -44,7 +44,7 @@ class ComponentDef:
         # Link new copy to original
         # XXX.derived_from_def = self
         
-        pass
+        raise NotImplementedError
         # return(XXX)
 
 
@@ -77,6 +77,9 @@ class Inst:
         # Component type definition that this instantiates
         self.typ = typ
         
+        # If internal vs external. None if undefined (will inherit default)
+        self.external = None
+        
         # Instance name
         self.name = None
         
@@ -94,6 +97,9 @@ class AddressableInst(Inst):
         
         # Relative address offset from the parent component
         self.addr_offset = None
+        
+        # Alignment
+        self.addr_align = None
         
         #------------------------------
         # Array Properties
@@ -116,4 +122,9 @@ class VectorInst(Inst):
     """
     def __init__(self, typ:ComponentDef):
         super().__init__(typ)
-        # TODO Add bitfield info here?
+        
+        # Bit width and low-offset
+        self.width = None
+        self.offset = None
+        self.msb = None
+        self.lsb = None

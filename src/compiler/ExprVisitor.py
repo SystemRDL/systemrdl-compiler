@@ -5,12 +5,16 @@ from antlr4 import *
 from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
+from .namespace import NamespaceRegistry
 from . import expressions as e
 
 class ExprVisitor(BaseVisitor):
     
-    def __init__(self, ns):
-        self.NS = ns
+    def __init__(self, ns=None):
+        if(ns is None):
+            self.NS = NamespaceRegistry()
+        else:
+            self.NS = ns
         
     #---------------------------------------------------------------------------
     # Numerical Expressions
@@ -124,15 +128,19 @@ class ExprVisitor(BaseVisitor):
     # Cast
     #---------------------------------------------------------------------------
     _CastWidth_map = {
-        SystemRDLParser.BOOLEAN_kw  : 1,
         SystemRDLParser.BIT_kw      : 1,
         SystemRDLParser.LONGINT_kw  : 64,
     }
     # Visit a parse tree produced by SystemRDLParser#CastType.
     def visitCastType(self, ctx:SystemRDLParser.CastTypeContext):
-        w = _CastWidth_map[ctx.typ.type]
-        return(e.WidthCast(self.visit(ctx.expr()), w_int=w))
-
+        if(ctx.typ.type in _CastWidth_map):
+            w = _CastWidth_map[ctx.typ.type]
+            return(e.WidthCast(self.visit(ctx.expr()), w_int=w))
+        elif(ctx.typ.type == SystemRDLParser.BOOLEAN_kw):
+            # Cast to Boolean is equivalent to an OR reduction
+            return(e.OrReduce(self.visit(ctx.expr())))
+        else:
+            raise RuntimeError
 
     # Visit a parse tree produced by SystemRDLParser#CastWidth.
     def visitCastWidth(self, ctx:SystemRDLParser.CastWidthContext):

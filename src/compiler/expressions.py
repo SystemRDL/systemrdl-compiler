@@ -1,5 +1,6 @@
 
-
+from . import type_placeholders as tp
+from ..model import rdl_types
 
 class _Expr:
     def __init__(self):
@@ -28,8 +29,12 @@ class _Expr:
         """
         Each integer-like expression context is evaluated in a self-determined
         bit width.
+        
         This function is called for the top-node of each expression context
         in order to determine, and propagate the context's expression width
+        - Determine the context's expression width from all
+          operands that do not define their own context.
+        - Propagate resulting width back to those same ops
         """
         self.expr_eval_width = 1
         for op in self.op:
@@ -94,7 +99,7 @@ class _BinaryIntExpr(_Expr):
         
     def predict_type(self):
         for op in self.op:
-            if(op.predict_type() not in [int, bool]):
+            if(op.predict_type() not in [int, bool, tp.Bit]):
                 raise TypeError
         return(int)
     
@@ -165,7 +170,7 @@ class _UnaryIntExpr(_Expr):
         
     def predict_type(self):
         for op in self.op:
-            if(op.predict_type() not in [int, bool]):
+            if(op.predict_type() not in [int, bool, tp.Bit]):
                 raise TypeError
         return(int)
     
@@ -206,7 +211,7 @@ class _RelationalExpr(_Expr):
         
     def predict_type(self):
         for op in self.op:
-            if(op.predict_type() not in [int, bool]):
+            if(op.predict_type() not in [int, bool, tp.Bit]):
                 raise TypeError
         return(bool)
     
@@ -266,7 +271,7 @@ class _ReductionExpr(_Expr):
     
     def predict_type(self):
         for op in self.op:
-            if(op.predict_type() not in [int, bool]):
+            if(op.predict_type() not in [int, bool, tp.Bit]):
                 raise TypeError
         return(int)
     
@@ -335,14 +340,17 @@ class BoolNot(_ReductionExpr):
 class _BoolExpr(_Expr):
     def __init__(self, l, r):
         super().__init__()
-        self.op_l = l
-        self.op_r = r
+        self.op = [l,r]
     
     def predict_type(self):
         for op in self.op:
-            if(op.predict_type() not in [int, bool]):
+            if(op.predict_type() not in [int, bool, tp.Bit]):
                 raise TypeError
         return(bool)
+    
+    def resolve_expr_width(self):
+        # All operands are self determined. Do nothing
+        pass
     
     def get_min_eval_width(self):
         return(1)
@@ -352,12 +360,12 @@ class _BoolExpr(_Expr):
         Eval width is ignored. Trigger expression width
         resolution for both operand since they are self-determined
         """
-        self.op_l.resolve_expr_width()
-        self.op_r.resolve_expr_width()
+        self.op[0].resolve_expr_width()
+        self.op[1].resolve_expr_width()
     
     def get_ops(self):
-        l = bool(self.op_l.get_value())
-        r = bool(self.op_r.get_value())
+        l = bool(self.op[0].get_value())
+        r = bool(self.op[1].get_value())
         return(l,r)
         
 class BoolAnd(_BoolExpr):
@@ -377,15 +385,21 @@ class BoolOr(_BoolExpr):
 class _ExpShiftExpr(_Expr):
     def __init__(self, l, r):
         super().__init__()
-        self.op = [l]
-        self.op_r = r
+        self.op = [l,r]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool]):
+        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
             raise TypeError
-        if(self.op_r.predict_type() not in [int, bool]):
+        if(self.op[1].predict_type() not in [int, bool, tp.Bit]):
             raise TypeError
         return(int)
+    
+    def resolve_expr_width(self):
+        """
+        Eval width only depends on the first operand
+        """
+        self.expr_eval_width = self.op[0].get_min_eval_width()
+        self.op[0].propagate_eval_width(self.expr_eval_width)
     
     def get_min_eval_width(self):
         # Righthand op has no influence in evaluation context
@@ -396,12 +410,14 @@ class _ExpShiftExpr(_Expr):
         Propagate eval width as usual, but also trigger expression width
         resolution for righthand operand since it is self-determined
         """
-        super().propagate_eval_width(w)
-        self.op_r.resolve_expr_width()
+        self.expr_eval_width = w
+        self.op[0].propagate_eval_width(w)
+        
+        self.op[1].resolve_expr_width()
     
     def get_ops(self):
         l = int(self.op[0].get_value())
-        r = int(self.op_r.get_value())
+        r = int(self.op[1].get_value())
         return(l,r)
     
 class Exponent(_ExpShiftExpr):
@@ -427,16 +443,15 @@ class RShift(_ExpShiftExpr):
 class TernaryExpr(_Expr):
     def __init__(self, i, j, k):
         super().__init__()
-        self.op = [j, k]
-        self.op_i = i
+        self.op = [i, j, k]
     
     def predict_type(self):
-        if(self.op_i.predict_type() not in [int, bool]):
+        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
             raise TypeError
         
         # Type of j and k shall be compatible
-        t_j = self.op[0].predict_type()
-        t_k = self.op[1].predict_type()
+        t_j = self.op[1].predict_type()
+        t_k = self.op[2].predict_type()
         
         num_t = [int, bool]
         if((t_j in num_t) and (t_k in num_t)):
@@ -448,11 +463,19 @@ class TernaryExpr(_Expr):
                 raise TypeError
             return(t_j)
     
+    def resolve_expr_width(self):
+        wj = self.op[1].get_min_eval_width()
+        wk = self.op[2].get_min_eval_width()
+        self.expr_eval_width = max(1, wj, wk)
+        
+        self.op[1].propagate_eval_width(self.expr_eval_width)
+        self.op[2].propagate_eval_width(self.expr_eval_width)
+    
     def get_min_eval_width(self):
         # Truth operand has no influence in evaluation context
         return(max(
-            self.op[0].get_min_eval_width(),
-            self.op[1].get_min_eval_width()
+            self.op[1].get_min_eval_width(),
+            self.op[2].get_min_eval_width()
         ))
     
     def propagate_eval_width(self, w):
@@ -460,13 +483,16 @@ class TernaryExpr(_Expr):
         Propagate eval width as usual, but also trigger expression width
         resolution for truth operand since it is self-determined
         """
-        super().propagate_eval_width(w)
-        self.op_i.resolve_expr_width()
+        self.expr_eval_width = w
+        self.op[1].propagate_eval_width(w)
+        self.op[2].propagate_eval_width(w)
+        
+        self.op[0].resolve_expr_width()
     
     def get_value(self):
-        i = bool(self.op_i.get_value())
-        j = self.op[0].get_value()
-        k = self.op[1].get_value()
+        i = bool(self.op[0].get_value())
+        j = self.op[1].get_value()
+        k = self.op[2].get_value()
         
         if(i):
             return(j)
@@ -483,39 +509,31 @@ class WidthCast(_Expr):
         super().__init__()
         
         if(w_expr is not None):
-            self.op_w = w_expr
+            self.op = [v, w_expr]
             self.cast_width = None
         else:
-            self.op_w = None
+            self.op = [v]
             self.cast_width = w_int
         
-        self.op_v = v
-    
     def predict_type(self):
-        if(self.op_w is not None):
-            if(self.op_w.predict_type() not in [int, bool]):
+        if(self.cast_width is None):
+            if(self.op[1].predict_type() not in [int, bool, tp.Bit]):
                 raise TypeError
-        if(self.op_v.predict_type() not in [int, bool]):
+        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
             raise TypeError
         
         return(int)
     
-    def resolve_cast_width(self):
-        if(self.cast_width is None):
-            # Need to force evaluation of the width value in order to proceed
-            self.op_w.resolve_expr_width()
-            self.cast_width = self.op_w.get_value()
+    def resolve_expr_width(self):
+        self.resolve_cast_width()
+        self.expr_eval_width = self.cast_width
+        w = self.op[0].get_min_eval_width()
+        self.expr_eval_width = max(self.expr_eval_width, w)
+        self.op[0].propagate_eval_width(self.expr_eval_width)
     
     def get_min_eval_width(self):
         self.resolve_cast_width()
         return(self.cast_width)
-    
-    def resolve_expr_width(self):
-        self.resolve_cast_width()
-        self.expr_eval_width = self.cast_width
-        w = self.op_v.get_min_eval_width()
-        self.expr_eval_width = max(self.expr_eval_width, w)
-        self.op_v.propagate_eval_width(self.expr_eval_width)
         
     def propagate_eval_width(self, w):
         """
@@ -524,9 +542,69 @@ class WidthCast(_Expr):
         """
         self.resolve_expr_width()
     
+    def resolve_cast_width(self):
+        if(self.cast_width is None):
+            # Need to force evaluation of the width value in order to proceed
+            self.op[1].resolve_expr_width()
+            self.cast_width = self.op[1].get_value()
+    
     def get_value(self):
         # Truncate to cast width instead of eval width
-        n = int(self.op_v.get_value())
+        n = int(self.op[0].get_value())
         self.expr_eval_width = self.cast_width
         return(self.trunc(n))
 
+#-------------------------------------------------------------------------------
+# Assignment cast
+# This is a wrapper expression that normalizes the expression result
+# to the expected data type
+# This wrapper forces the operand to be evaluated in a self-determined context
+# The cast type has no effect on expression evaluation
+# During post-compile:
+#   Checks that the expression result is of a compatible type
+#
+# When getting value:
+#   Ensures that the expression result gets converted to the resulting type
+class AssignmentCast(_Expr):
+    def __init__(self, v, dest_type):
+        super().__init__()
+        
+        self.op = [v]
+        self.dest_type = dest_type
+    
+    def predict_type(self):
+        
+        op_type = self.op[0].predict_type()
+        
+        if(self.dest_type in [int, bool, tp.Bit]):
+            # Number-like types are compatible to each-other
+            if(op_type not in [int, bool, tp.Bit]):
+                raise TypeError
+        elif(self.dest_type == tp.Array):
+            if(op_type != tp.Array):
+                raise TypeError
+            
+            # TODO: Check that array size and element types also match
+            raise NotImplementedError
+            
+        elif(self.dest_type != op_type):
+            # Otherwise, type shall match exactly
+            raise TypeError
+        
+        return(self.dest_type)
+    
+    def get_min_eval_width(self):
+        return(self.op[0].get_min_eval_width())
+    
+    def propagate_eval_width(self, w):
+        self.resolve_expr_width()
+    
+    def get_value(self):
+        v = self.op[0].get_value()
+        
+        if(self.dest_type == bool):
+            return(bool(v))
+        elif(self.dest_type == tp.Bit):
+            return(int(v) & 1)
+        else:
+            return(v)

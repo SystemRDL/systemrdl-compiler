@@ -54,6 +54,26 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SystemRDLParser#field_inst_reset.
+    def visitField_inst_reset(self, ctx:SystemRDLParser.Field_inst_resetContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#inst_addr_fixed.
+    def visitInst_addr_fixed(self, ctx:SystemRDLParser.Inst_addr_fixedContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#inst_addr_stride.
+    def visitInst_addr_stride(self, ctx:SystemRDLParser.Inst_addr_strideContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#inst_addr_align.
+    def visitInst_addr_align(self, ctx:SystemRDLParser.Inst_addr_alignContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SystemRDLParser#component_inst_type.
     def visitComponent_inst_type(self, ctx:SystemRDLParser.Component_inst_typeContext):
         return self.visitChildren(ctx)

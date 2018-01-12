@@ -1,4 +1,4 @@
-from .. import model
+from ..model import component as comp
 
 class NamespaceRegistry():
     
@@ -47,7 +47,7 @@ class NamespaceRegistry():
         
         keep_scope = {}
         for k,v in self.element_ns_stack[-1].items():
-            if(type(v) == model.Signal):
+            if(type(v) == comp.Signal):
                 keep_scope[k] = v
         self.element_ns_stack[-1] = keep_scope
         

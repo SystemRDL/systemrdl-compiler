@@ -40,12 +40,16 @@ component_body_elem : component_def
                     ;
 
 component_insts: param_inst? component_inst (',' component_inst)*;
-component_inst: ID ( array_suffix+ | range_suffix )?
-                (EQ expr)?
-                (AT expr)?
-                (INC expr)?
-                (ALIGN expr)?
+component_inst: ID ( array_suffix+ | range_suffix )? field_inst_reset?
+                inst_addr_fixed?
+                inst_addr_stride?
+                inst_addr_align?
               ;
+
+field_inst_reset: ASSIGN expr;
+inst_addr_fixed : AT expr;
+inst_addr_stride: INC expr;
+inst_addr_align:  ALIGN expr;
 
 component_inst_type : kw=(EXTERNAL_kw | INTERNAL_kw);
 
@@ -107,8 +111,8 @@ replicate     : '{' expr concatenate '}';
 
 paren_expr: '(' expr ')';
 
-cast  : typ=(BOOLEAN_kw|BIT_kw|LONGINT_kw) '\'(' expr ')' #CastType
-      | cast_width_expr '\'(' expr ')'               #CastWidth
+cast  : typ=(BOOLEAN_kw|BIT_kw|LONGINT_kw) '\'' '(' expr ')' #CastType
+      | cast_width_expr '\'' '(' expr ')'               #CastWidth
       ;
 
 cast_width_expr : literal
@@ -157,9 +161,9 @@ string_literal  : STRING;
 
 boolean_literal : val=(TRUE_kw|FALSE_kw);
 
-array_literal : '\'{' expr (',' expr )* '}';
+array_literal : '\'' '{' expr (',' expr )* '}';
 
-struct_literal : ID '\'{' struct_kv (',' struct_kv)* '}';
+struct_literal : ID '\'' '{' struct_kv (',' struct_kv)* '}';
 struct_kv : ID ':' expr ;
 
 enum_literal : ID '::' ID;
@@ -283,6 +287,7 @@ EXP     : '**' ;
 DIV     : '/' ;
 MOD     : '%' ;
 EQ      : '==' ;
+ASSIGN  : '=' ;
 NEQ     : '!=' ;
 LEQ     : '<=' ;
 LT      : '<' ;

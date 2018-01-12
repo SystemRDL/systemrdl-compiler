@@ -1,5 +1,6 @@
 from antlr4 import *
 import sys
+import inspect
 
 from ..parser.SystemRDLParser import SystemRDLParser
 
@@ -8,6 +9,7 @@ from .ExprVisitor import ExprVisitor
 from .namespace import NamespaceRegistry
 from .parameter import Parameter
 from . import type_placeholders
+from . import expressions
 
 from ..model import component as comp
 from ..model import rdl_types
@@ -32,7 +34,7 @@ class ComponentVisitor(BaseVisitor):
             self.component = None
     
     #---------------------------------------------------------------------------
-    # Component Definitions & Instantiations
+    # Component Definitions
     #---------------------------------------------------------------------------
     def visitComponent_body(self, ctx:SystemRDLParser.Component_bodyContext):
         self.NS.enter_scope()
@@ -68,6 +70,7 @@ class ComponentVisitor(BaseVisitor):
             else:
                 inst_type = None
             
+            # Pass some temporary info to visitComponent_insts
             self._tmp = (comp_def, inst_type)
             self.visit(ctx.component_insts())
             
@@ -122,14 +125,167 @@ class ComponentVisitor(BaseVisitor):
         else:
             raise RuntimeError
     
+    #---------------------------------------------------------------------------
+    # Component Instantiation
+    #---------------------------------------------------------------------------
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        # Unpack instance def info from parent
         comp_def, inst_type = self._tmp
-        print("TODO: Instantiate stuff")
+        
+        # Get a dictionary of parameter assignments
+        if(ctx.param_inst() is not None):
+            param_assigns = self.visit(ctx.param_inst())
+        else:
+            param_assigns = {}
+        
+        if(len(param_assigns)):
+            # Instance is overriding parameters.
+            
+            # Uniquify the comp_def by making a derived version
+            comp_def = comp_def.create_derived_def()
+            
+            # Assign parameter overrides
+            for param_name, assign_expr in param_assigns.items():
+                # Lookup corresponding parameter in component
+                for cparam in comp_def.parameters:
+                    if(cparam.name == param_name):
+                        param = cparam
+                        break
+                else:
+                    raise ValueError("Parameter '%s' not found in definition for component '%s'" % (param_name, comp_def.name))
+                
+                # Override the value
+                param.set_inst_value(assign_expr)
+        
+        # Do instantiations
+        for inst in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
+            # Pass some temporary info to visitComponent_inst
+            self._tmp = comp_def, inst_type
+            self.visit(inst)
+        
+        return(None)
+
+    def visitField_inst_reset(self, ctx:SystemRDLParser.Field_inst_resetContext):
+        return(self.get_instance_assignment(ctx))
+
+    def visitInst_addr_fixed(self, ctx:SystemRDLParser.Inst_addr_fixedContext):
+        return(self.get_instance_assignment(ctx))
     
+    def visitInst_addr_stride(self, ctx:SystemRDLParser.Inst_addr_strideContext):
+        return(self.get_instance_assignment(ctx))
+
+    def visitInst_addr_align(self, ctx:SystemRDLParser.Inst_addr_alignContext):
+        return(self.get_instance_assignment(ctx))
+    
+    def get_instance_assignment(self, ctx):
+        """
+        Gets the integer expression in any of the four instance assignment
+        operators ('=' '@' '+=' '%=')
+        """
+        if(ctx is None):
+            return(None)
+        
+        visitor = ExprVisitor(self.NS)
+        expr = visitor.visit(ctx.expr())
+        expr = expressions.AssignmentCast(expr, int)
+        return(expr)
+        
+    def visitComponent_inst(self, ctx:SystemRDLParser.Component_instContext):
+        # Unpack instance def info from parent
+        comp_def, inst_type = self._tmp
+        
+        inst_name = ctx.ID().getText()
+        
+        # Get array or range suffix
+        array_suffixes = []
+        for as_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Array_suffixContext):
+            array_suffixes.append(self.visit(as_ctx))
+        
+        if(ctx.range_suffix() is not None):
+            range_suffix = self.visit(ctx.range_suffix())
+        else:
+            range_suffix = None
+        
+        # Check for invalid usage of array or range suffix
+        if(type(comp_def) == comp.Field):
+            # field can use a range, or a single array suffix
+            if(len(array_suffixes) > 1):
+                raise ValueError("Instances of a field can only use one array suffix")
+        elif(type(comp_def) == comp.Signal):
+            # signal can use a single array suffix
+            if(len(array_suffixes) > 1):
+                raise ValueError("Instances of a signal can only use one array suffix")
+            if(range_suffix is not None):
+                raise ValueError("Unexpected range suffix after signal instance")
+        else:
+            # Everything else can use any number of array suffixes
+            if(range_suffix is not None):
+                raise ValueError("Unexpected range suffix after instance")
+        
+        # Get all instance assignment expressions
+        field_inst_reset = self.get_instance_assignment(ctx.field_inst_reset())
+        inst_addr_fixed = self.get_instance_assignment(ctx.inst_addr_fixed())
+        inst_addr_stride = self.get_instance_assignment(ctx.inst_addr_stride())
+        inst_addr_align = self.get_instance_assignment(ctx.inst_addr_align())
+        
+        # Check for assignment expression incompatibility
+        if(type(comp_def) == comp.Field):
+            # field_inst_reset is the only thing allowed for fields
+            # All others are invalid
+            if(any([inst_addr_fixed, inst_addr_stride, inst_addr_align])):
+                raise ValueError("Unexpected address allocation operator for field instance")
+        elif(type(comp_def) == comp.Field):
+            # none of these are allowed for signals
+            if(field_inst_reset is not None):
+                raise ValueError("Unexpected field reset assignment for non-field instance")
+            if(any([inst_addr_fixed, inst_addr_stride, inst_addr_align])):
+                raise ValueError("Unexpected address allocation operator for signal instance")
+        else:
+            # Otherwise, inst_addr_fixed and inst_addr_align are mutually exclusive
+            if(field_inst_reset is not None):
+                raise ValueError("Unexpected field reset assignment for non-field instance")
+            
+            if(all([inst_addr_fixed, inst_addr_align])):
+                raise ValueError("Fixed address allocator '@' cannot be used along with an alignment allocator '%='")
+        
+        # Specifying stride is only allowed if an array suffix is used
+        if((inst_addr_stride is not None) and (len(array_suffixes) == 0)):
+            raise ValueError("Unexpected address stride allocator '%=' on non-array instance")
+        
+        # Assign instantiation info
+        if(type(comp_def) in [comp.Field, comp.Signal]):
+            inst = comp.VectorInst(comp_def)
+            if(range_suffix is not None):
+                inst.msb, inst.lsb = range_suffix
+            if(len(array_suffixes) != 0):
+                inst.width = array_suffixes[0]
+        else:
+            inst = comp.AddressableInst(comp_def)
+            inst.addr_offset = inst_addr_fixed
+            inst.addr_align = inst_addr_align
+            if(len(array_suffixes) != 0):
+                inst.is_array = True
+                inst.array_size = array_suffixes
+                inst.array_stride = inst_addr_stride
+                
+        if(inst_type == SystemRDLParser.EXTERNAL_kw):
+            inst.external = True
+        elif(inst_type == SystemRDLParser.INTERNAL_kw):
+            inst.external = False
+        
+        inst.name = inst_name
+        
+        self.NS.register_element(inst_name, inst)
+        
+        if(self.component is not None):
+            self.component.children.append(inst)
+        
+        return(None)
+        
     #---------------------------------------------------------------------------
     # Parameters
     #---------------------------------------------------------------------------
-        def visitParam_def(self, ctx:SystemRDLParser.Param_defContext):
+    def visitParam_def(self, ctx:SystemRDLParser.Param_defContext):
         """
         Parameter Definition block
         """
@@ -176,6 +332,42 @@ class ComponentVisitor(BaseVisitor):
         
         return(param)
     
+    def visitParam_inst(self, ctx:SystemRDLParser.Param_instContext):
+        param_assigns = {}
+        for assignment in ctx.getTypedRuleContexts(SystemRDLParser.Param_assignmentContext):
+            param_name, assign_expr = self.visit(assignment)
+            
+            if(param_name in param_assigns):
+                raise ValueError("Duplicate parameter assignment to '%s'" % param_name)
+            
+            param_assigns[param_name] = assign_expr
+        return(param_assigns)
+
+    def visitParam_assignment(self, ctx:SystemRDLParser.Param_assignmentContext):
+        param_name = ctx.ID().getText()
+        
+        visitor = ExprVisitor(self.NS)
+        assign_expr = visitor.visit(ctx.expr())
+        return(param_name, assign_expr)
+    
+    #---------------------------------------------------------------------------
+    # Array and Range suffixes
+    #---------------------------------------------------------------------------
+    def visitRange_suffix(self, ctx:SystemRDLParser.Range_suffixContext):
+        visitor = ExprVisitor(self.NS)
+        expr1 = visitor.visit(ctx.expr(0))
+        expr1 = expressions.AssignmentCast(expr1, int)
+        expr2 = visitor.visit(ctx.expr(1))
+        expr2 = expressions.AssignmentCast(expr2, int)
+        
+        return(expr1, expr2)
+
+    def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
+        visitor = ExprVisitor(self.NS)
+        expr = visitor.visit(ctx.expr())
+        expr = expressions.AssignmentCast(expr, int)
+        return(expr)
+    
     #---------------------------------------------------------------------------
     # Type Handling
     #---------------------------------------------------------------------------
@@ -202,13 +394,16 @@ class ComponentVisitor(BaseVisitor):
             if(typ is None):
                 raise ValueError("Type '%s' is not defined" % token.text)
             
-            if(issubclass(typ, rdl_types.UserEnum) or issubclass(typ, rdl_types.UserStruct)):
-                return(typ)
+            if(inspect.isclass(typ)):
+                if(issubclass(typ, rdl_types.UserEnum) or issubclass(typ, rdl_types.UserStruct)):
+                    return(typ)
+                else:
+                    raise ValueError("Type '%s' is not a struct or enum" % token.text)
             else:
                 raise ValueError("Type '%s' is not a struct or enum" % token.text)
             
         else:
-            return(_DataType_Map[token.type])
+            return(self._DataType_Map[token.type])
         
 
 #===============================================================================
