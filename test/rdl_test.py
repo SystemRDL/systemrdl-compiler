@@ -10,14 +10,22 @@ from antlr4 import *
 
 from src.parser.SystemRDLLexer import SystemRDLLexer
 from src.parser.SystemRDLParser import SystemRDLParser
-from src.compiler.RootVisitor import RootVisitor
-
+from src.compiler.RootVisitor import *
+from src.compiler.errors import *
 
 input_stream = FileStream("test.rdl")
 lexer = SystemRDLLexer(input_stream)
 token_stream = CommonTokenStream(lexer)
 parser = SystemRDLParser(token_stream)
+
+parser.removeErrorListeners()
+err_listener = ContextErrorListener()
+parser.addErrorListener(err_listener)
+
 tree = parser.root()
 
 visitor = RootVisitor()
-result = visitor.visit(tree)
+try:
+    result = visitor.visit(tree)
+except RDLCompileError as e:
+    e.print()

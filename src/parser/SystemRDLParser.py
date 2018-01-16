@@ -112,7 +112,7 @@ def serializedATN():
         buf.write("\2\2\2\u00d7\u00d9\3\2\2\2\u00d8\u00d6\3\2\2\2\u00d9\u00da")
         buf.write("\7\t\2\2\u00da#\3\2\2\2\u00db\u00dc\5> \2\u00dc\u00de")
         buf.write("\7`\2\2\u00dd\u00df\5<\37\2\u00de\u00dd\3\2\2\2\u00de")
-        buf.write("\u00df\3\2\2\2\u00df\u00e2\3\2\2\2\u00e0\u00e1\7U\2\2")
+        buf.write("\u00df\3\2\2\2\u00df\u00e2\3\2\2\2\u00e0\u00e1\7V\2\2")
         buf.write("\u00e1\u00e3\5*\26\2\u00e2\u00e0\3\2\2\2\u00e2\u00e3\3")
         buf.write("\2\2\2\u00e3%\3\2\2\2\u00e4\u00e5\7\7\2\2\u00e5\u00e6")
         buf.write("\7\b\2\2\u00e6\u00eb\5(\25\2\u00e7\u00e8\7\6\2\2\u00e8")
@@ -1432,8 +1432,8 @@ class SystemRDLParser ( Parser ):
             return self.getTypedRuleContext(SystemRDLParser.Array_type_suffixContext,0)
 
 
-        def EQ(self):
-            return self.getToken(SystemRDLParser.EQ, 0)
+        def ASSIGN(self):
+            return self.getToken(SystemRDLParser.ASSIGN, 0)
 
         def expr(self):
             return self.getTypedRuleContext(SystemRDLParser.ExprContext,0)
@@ -1473,9 +1473,9 @@ class SystemRDLParser ( Parser ):
             self.state = 224
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==SystemRDLParser.EQ:
+            if _la==SystemRDLParser.ASSIGN:
                 self.state = 222
-                self.match(SystemRDLParser.EQ)
+                self.match(SystemRDLParser.ASSIGN)
                 self.state = 223
                 self.expr(0)
 

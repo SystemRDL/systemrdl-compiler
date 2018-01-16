@@ -10,6 +10,7 @@ from .namespace import NamespaceRegistry
 from .parameter import Parameter
 from . import type_placeholders
 from . import expressions
+from .errors import RDLCompileError
 
 from ..model import component as comp
 from ..model import rdl_types
@@ -152,7 +153,11 @@ class ComponentVisitor(BaseVisitor):
                         param = cparam
                         break
                 else:
-                    raise ValueError("Parameter '%s' not found in definition for component '%s'" % (param_name, comp_def.name))
+                    raise RDLCompileError(
+                        "Parameter '%s' not found in definition for component '%s'" 
+                        % (param_name, comp_def.name),
+                        ctx.param_inst()
+                    )
                 
                 # Override the value
                 param.set_inst_value(assign_expr)
@@ -210,17 +215,29 @@ class ComponentVisitor(BaseVisitor):
         if(type(comp_def) == comp.Field):
             # field can use a range, or a single array suffix
             if(len(array_suffixes) > 1):
-                raise ValueError("Instances of a field can only use one array suffix")
+                raise RDLCompileError(
+                    "Instances of a field can only use one array suffix",
+                    ctx.array_suffix(1)
+                )
         elif(type(comp_def) == comp.Signal):
             # signal can use a single array suffix
             if(len(array_suffixes) > 1):
-                raise ValueError("Instances of a signal can only use one array suffix")
+                raise RDLCompileError(
+                    "Instances of a signal can only use one array suffix",
+                    ctx.array_suffix(1)
+                )
             if(range_suffix is not None):
-                raise ValueError("Unexpected range suffix after signal instance")
+                raise RDLCompileError(
+                    "Unexpected range suffix after signal instance",
+                    ctx.range_suffix()
+                )
         else:
             # Everything else can use any number of array suffixes
             if(range_suffix is not None):
-                raise ValueError("Unexpected range suffix after instance")
+                raise RDLCompileError(
+                    "Unexpected range suffix after instance",
+                    ctx.range_suffix()
+                )
         
         # Get all instance assignment expressions
         field_inst_reset = self.get_instance_assignment(ctx.field_inst_reset())
@@ -233,24 +250,37 @@ class ComponentVisitor(BaseVisitor):
             # field_inst_reset is the only thing allowed for fields
             # All others are invalid
             if(any([inst_addr_fixed, inst_addr_stride, inst_addr_align])):
-                raise ValueError("Unexpected address allocation operator for field instance")
-        elif(type(comp_def) == comp.Field):
+                raise RDLCompileError("Unexpected address allocation operator for field instance", ctx.ID())
+        elif(type(comp_def) == comp.Signal):
             # none of these are allowed for signals
             if(field_inst_reset is not None):
-                raise ValueError("Unexpected field reset assignment for non-field instance")
+                raise RDLCompileError(
+                    "Unexpected field reset assignment for non-field instance",
+                    ctx.field_inst_reset().start
+                )
             if(any([inst_addr_fixed, inst_addr_stride, inst_addr_align])):
-                raise ValueError("Unexpected address allocation operator for signal instance")
+                raise RDLCompileError("Unexpected address allocation operator for signal instance", ctx.ID())
         else:
             # Otherwise, inst_addr_fixed and inst_addr_align are mutually exclusive
-            if(field_inst_reset is not None):
-                raise ValueError("Unexpected field reset assignment for non-field instance")
-            
             if(all([inst_addr_fixed, inst_addr_align])):
-                raise ValueError("Fixed address allocator '@' cannot be used along with an alignment allocator '%='")
+                raise RDLCompileError(
+                    "Fixed address allocator '@' cannot be used along with an alignment allocator '%='",
+                    ctx.inst_addr_fixed().start
+                )
+            
+            if(field_inst_reset is not None):
+                raise RDLCompileError(
+                    "Unexpected field reset assignment for non-field instance",
+                    ctx.field_inst_reset().start
+                )
+            
         
         # Specifying stride is only allowed if an array suffix is used
         if((inst_addr_stride is not None) and (len(array_suffixes) == 0)):
-            raise ValueError("Unexpected address stride allocator '%=' on non-array instance")
+            raise RDLCompileError(
+                "Unexpected address stride allocator '%=' on non-array instance",
+                ctx.inst_addr_stride().start
+            )
         
         # Assign instantiation info
         if(type(comp_def) in [comp.Field, comp.Signal]):
@@ -338,7 +368,10 @@ class ComponentVisitor(BaseVisitor):
             param_name, assign_expr = self.visit(assignment)
             
             if(param_name in param_assigns):
-                raise ValueError("Duplicate parameter assignment to '%s'" % param_name)
+                raise RDLCompileError(
+                    "Duplicate assignment to parameter '%s'" % param_name,
+                    assignment.ID()
+                )
             
             param_assigns[param_name] = assign_expr
         return(param_assigns)
@@ -392,15 +425,24 @@ class ComponentVisitor(BaseVisitor):
             
             typ = self.NS.lookup_type(token.text)
             if(typ is None):
-                raise ValueError("Type '%s' is not defined" % token.text)
+                raise RDLCompileError(
+                    "Type '%s' is not defined" % token.text,
+                    token
+                )
             
             if(inspect.isclass(typ)):
                 if(issubclass(typ, rdl_types.UserEnum) or issubclass(typ, rdl_types.UserStruct)):
                     return(typ)
                 else:
-                    raise ValueError("Type '%s' is not a struct or enum" % token.text)
+                    raise RDLCompileError(
+                        "Type '%s' is not a struct or enum" % token.text,
+                        token
+                    )
             else:
-                raise ValueError("Type '%s' is not a struct or enum" % token.text)
+                raise RDLCompileError(
+                    "Type '%s' is not a struct or enum" % token.text,
+                    token
+                )
             
         else:
             return(self._DataType_Map[token.type])

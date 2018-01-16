@@ -3,6 +3,7 @@ import re
 from antlr4 import *
 
 from ..parser.SystemRDLParser import SystemRDLParser
+from ..model import rdl_types
 
 from .BaseVisitor import BaseVisitor
 from .namespace import NamespaceRegistry
@@ -125,6 +126,24 @@ class ExprVisitor(BaseVisitor):
             return(e.IntLiteral(0, 1))
         
     #---------------------------------------------------------------------------
+    # Built-in RDL Enumeration literals
+    #---------------------------------------------------------------------------
+    def visitAccesstype_literal(self, ctx:SystemRDLParser.Accesstype_literalContext):
+        return(e.BuiltinEnumLiteral(rdl_types.AccessType[ctx.kw.text]))
+
+    def visitOnreadtype_literal(self, ctx:SystemRDLParser.Onreadtype_literalContext):
+        return(e.BuiltinEnumLiteral(rdl_types.OnReadType[ctx.kw.text]))
+
+    def visitOnwritetype_literal(self, ctx:SystemRDLParser.Onwritetype_literalContext):
+        return(e.BuiltinEnumLiteral(rdl_types.OnWriteType[ctx.kw.text]))
+
+    def visitAddressingtype_literal(self, ctx:SystemRDLParser.Addressingtype_literalContext):
+        return(e.BuiltinEnumLiteral(rdl_types.AddressingType[ctx.kw.text]))
+
+    def visitPrecedencetype_literal(self, ctx:SystemRDLParser.Precedencetype_literalContext):
+        return(e.BuiltinEnumLiteral(rdl_types.PrecedenceType[ctx.kw.text]))
+    
+    #---------------------------------------------------------------------------
     # Cast
     #---------------------------------------------------------------------------
     _CastWidth_map = {
@@ -137,8 +156,7 @@ class ExprVisitor(BaseVisitor):
             w = _CastWidth_map[ctx.typ.type]
             return(e.WidthCast(self.visit(ctx.expr()), w_int=w))
         elif(ctx.typ.type == SystemRDLParser.BOOLEAN_kw):
-            # Cast to Boolean is equivalent to an OR reduction
-            return(e.OrReduce(self.visit(ctx.expr())))
+            return(e.BoolCast(self.visit(ctx.expr())))
         else:
             raise RuntimeError
 
@@ -146,7 +164,6 @@ class ExprVisitor(BaseVisitor):
     def visitCastWidth(self, ctx:SystemRDLParser.CastWidthContext):
         w = self.visit(ctx.cast_width_expr())
         return(e.WidthCast(self.visit(ctx.expr()), w_expr=w))
-    
     
     #---------------------------------------------------------------------------
     # TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
@@ -168,31 +185,6 @@ class ExprVisitor(BaseVisitor):
 
     # Visit a parse tree produced by SystemRDLParser#enum_literal.
     def visitEnum_literal(self, ctx:SystemRDLParser.Enum_literalContext):
-        raise NotImplementedError
-
-
-    # Visit a parse tree produced by SystemRDLParser#accesstype_literal.
-    def visitAccesstype_literal(self, ctx:SystemRDLParser.Accesstype_literalContext):
-        raise NotImplementedError
-
-
-    # Visit a parse tree produced by SystemRDLParser#onreadtype_literal.
-    def visitOnreadtype_literal(self, ctx:SystemRDLParser.Onreadtype_literalContext):
-        raise NotImplementedError
-
-
-    # Visit a parse tree produced by SystemRDLParser#onwritetype_literal.
-    def visitOnwritetype_literal(self, ctx:SystemRDLParser.Onwritetype_literalContext):
-        raise NotImplementedError
-
-
-    # Visit a parse tree produced by SystemRDLParser#addressingtype_literal.
-    def visitAddressingtype_literal(self, ctx:SystemRDLParser.Addressingtype_literalContext):
-        raise NotImplementedError
-
-
-    # Visit a parse tree produced by SystemRDLParser#precedencetype_literal.
-    def visitPrecedencetype_literal(self, ctx:SystemRDLParser.Precedencetype_literalContext):
         raise NotImplementedError
 
 

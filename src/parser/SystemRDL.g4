@@ -69,7 +69,7 @@ component_type_primary: kw=( ADDRMAP_kw
 //------------------------------------------------------------------------------
 // Parameter definition
 param_def: '#' '(' param_def_elem (',' param_def_elem)* ')';
-param_def_elem : data_type ID array_type_suffix? (EQ expr)?;
+param_def_elem : data_type ID array_type_suffix? (ASSIGN expr)?;
 
 // Parameter assignment list in instantiation
 param_inst: '#' '(' param_assignment (',' param_assignment)* ')';

@@ -87,7 +87,26 @@ class IntLiteral(_Expr):
     
     def get_value(self):
         return(self.val)
+
+#-------------------------------------------------------------------------------
+class BuiltinEnumLiteral(_Expr):
+    """
+    Expr wrapper for builtin RDL enumeration types:
+    AccessType, OnReadType, OnWriteType, AddressingType, PrecedenceType
+    """
+    def __init__(self, val):
+        super().__init__()
+        self.val = val
     
+    def predict_type(self):
+        return(type(self.val))
+        
+    def get_min_eval_width(self):
+        return(1) # dont care
+    
+    def get_value(self):
+        return(self.val)
+
 #-------------------------------------------------------------------------------
 # Integer binary operators:
 #   +  -  *  /  %  &  |  ^  ^~  ~^
@@ -371,12 +390,12 @@ class _BoolExpr(_Expr):
 class BoolAnd(_BoolExpr):
     def get_value(self):
         l,r = self.get_ops()
-        return(self.trunc(l and r))
+        return(l and r)
         
 class BoolOr(_BoolExpr):
     def get_value(self):
         l,r = self.get_ops()
-        return(self.trunc(l or r))
+        return(l or r)
         
 #-------------------------------------------------------------------------------
 # Exponent & shift operators:
@@ -553,6 +572,33 @@ class WidthCast(_Expr):
         n = int(self.op[0].get_value())
         self.expr_eval_width = self.cast_width
         return(self.trunc(n))
+
+#-------------------------------------------------------------------------------
+# Boolean cast operator
+
+class BoolCast(_Expr):
+    def __init__(self, n):
+        super().__init__()
+        self.op = [n]
+    
+    def predict_type(self):
+        for op in self.op:
+            if(op.predict_type() not in [int, bool, tp.Bit]):
+                raise TypeError
+        return(bool)
+    
+    def get_min_eval_width(self):
+        return(1)
+        
+    def propagate_eval_width(self, w):
+        """
+        Ignore parent's width and start a new expression context
+        """
+        self.resolve_expr_width()
+        
+    def get_value(self):
+        n = int(self.op[0].get_value())
+        return(n != 0)
 
 #-------------------------------------------------------------------------------
 # Assignment cast
