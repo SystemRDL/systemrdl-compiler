@@ -24,6 +24,16 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SystemRDLParser#explicit_component_inst.
+    def visitExplicit_component_inst(self, ctx:SystemRDLParser.Explicit_component_instContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#component_inst_alias.
+    def visitComponent_inst_alias(self, ctx:SystemRDLParser.Component_inst_aliasContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SystemRDLParser#component_named_def.
     def visitComponent_named_def(self, ctx:SystemRDLParser.Component_named_defContext):
         return self.visitChildren(ctx)

@@ -8,6 +8,7 @@ from ..model import rdl_types
 from .BaseVisitor import BaseVisitor
 from .namespace import NamespaceRegistry
 from . import expressions as e
+from .errors import RDLCompileError
 
 class ExprVisitor(BaseVisitor):
     
@@ -61,14 +62,14 @@ class ExprVisitor(BaseVisitor):
         l = self.visit(ctx.expr(0))
         r = self.visit(ctx.expr(1))
         expr_class = self._BinaryExpr_map[ctx.op.type]
-        return(expr_class(l,r))
+        return(expr_class(ctx.op,l,r))
 
 
     # Visit a parse tree produced by SystemRDLParser#UnaryExpr.
     def visitUnaryExpr(self, ctx:SystemRDLParser.UnaryExprContext):
         n = self.visit(ctx.expr_primary())
         expr_class = self._UnaryExpr_map[ctx.op.type]
-        return(expr_class(n))
+        return(expr_class(ctx.op,n))
 
 
     # Visit a parse tree produced by SystemRDLParser#TernaryExpr.
@@ -76,7 +77,7 @@ class ExprVisitor(BaseVisitor):
         i = self.visit(ctx.expr(0))
         j = self.visit(ctx.expr(1))
         k = self.visit(ctx.expr(2))
-        return(e.TernaryExpr(i,j,k))
+        return(e.TernaryExpr(ctx.op,i,j,k))
     
     
     # Visit a parse tree produced by SystemRDLParser#paren_expr.
@@ -90,14 +91,14 @@ class ExprVisitor(BaseVisitor):
     def visitNumberInt(self, ctx:SystemRDLParser.NumberIntContext):
         s = ctx.INT().getText()
         s.replace("_","")
-        return(e.IntLiteral(int(s)))
+        return(e.IntLiteral(ctx.INT(), int(s)))
     
     
     # Visit a parse tree produced by SystemRDLParser#NumberHex.
     def visitNumberHex(self, ctx:SystemRDLParser.NumberHexContext):
         s = ctx.HEX_INT().getText()
         s.replace("_","")
-        return(e.IntLiteral(int(s,16)))
+        return(e.IntLiteral(ctx.HEX_INT(), int(s,16)))
     
     
     # Visit a parse tree produced by SystemRDLParser#NumberVerilog.
@@ -115,33 +116,55 @@ class ExprVisitor(BaseVisitor):
             base = 16
         
         val = int(m.group(3), base)
-        return(e.IntLiteral(val, width))
+        
+        if(val >= (1 << width)):
+            raise RDLCompileError(
+                "Value of integer literal exceeds the specified width",
+                ctx.VLOG_INT()
+            )
+        
+        return(e.IntLiteral(ctx.VLOG_INT(), val, width))
         
     
     # Visit a parse tree produced by SystemRDLParser#boolean_literal.
     def visitBoolean_literal(self, ctx:SystemRDLParser.Boolean_literalContext):
         if(ctx.val.type == SystemRDLParser.TRUE_kw):
-            return(e.IntLiteral(1, 1))
+            return(e.IntLiteral(ctx.val, 1, 1))
         else:
-            return(e.IntLiteral(0, 1))
+            return(e.IntLiteral(ctx.val, 0, 1))
         
     #---------------------------------------------------------------------------
     # Built-in RDL Enumeration literals
     #---------------------------------------------------------------------------
     def visitAccesstype_literal(self, ctx:SystemRDLParser.Accesstype_literalContext):
-        return(e.BuiltinEnumLiteral(rdl_types.AccessType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.AccessType[ctx.kw.text]))
 
     def visitOnreadtype_literal(self, ctx:SystemRDLParser.Onreadtype_literalContext):
-        return(e.BuiltinEnumLiteral(rdl_types.OnReadType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.OnReadType[ctx.kw.text]))
 
     def visitOnwritetype_literal(self, ctx:SystemRDLParser.Onwritetype_literalContext):
-        return(e.BuiltinEnumLiteral(rdl_types.OnWriteType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.OnWriteType[ctx.kw.text]))
 
     def visitAddressingtype_literal(self, ctx:SystemRDLParser.Addressingtype_literalContext):
-        return(e.BuiltinEnumLiteral(rdl_types.AddressingType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.AddressingType[ctx.kw.text]))
 
     def visitPrecedencetype_literal(self, ctx:SystemRDLParser.Precedencetype_literalContext):
-        return(e.BuiltinEnumLiteral(rdl_types.PrecedenceType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.PrecedenceType[ctx.kw.text]))
+    
+    #---------------------------------------------------------------------------
+    # Misc other literals
+    #---------------------------------------------------------------------------
+    def visitString_literal(self, ctx:SystemRDLParser.String_literalContext):
+        string = ctx.STRING().getText()
+        
+        # Remove leading and trailing quotes (guaranteed to exist)
+        string = string [1:-1]
+        
+        # Remove backslashes from any escaped characters
+        string = re.sub(r'\\(.)', r'\1', string)
+        
+        return(e.StringLiteral(ctx.STRING(), string))
+        
     
     #---------------------------------------------------------------------------
     # Cast
@@ -154,24 +177,20 @@ class ExprVisitor(BaseVisitor):
     def visitCastType(self, ctx:SystemRDLParser.CastTypeContext):
         if(ctx.typ.type in _CastWidth_map):
             w = _CastWidth_map[ctx.typ.type]
-            return(e.WidthCast(self.visit(ctx.expr()), w_int=w))
+            return(e.WidthCast(ctx.op, self.visit(ctx.expr()), w_int=w))
         elif(ctx.typ.type == SystemRDLParser.BOOLEAN_kw):
-            return(e.BoolCast(self.visit(ctx.expr())))
+            return(e.BoolCast(ctx.op, self.visit(ctx.expr())))
         else:
             raise RuntimeError
 
     # Visit a parse tree produced by SystemRDLParser#CastWidth.
     def visitCastWidth(self, ctx:SystemRDLParser.CastWidthContext):
         w = self.visit(ctx.cast_width_expr())
-        return(e.WidthCast(self.visit(ctx.expr()), w_expr=w))
+        return(e.WidthCast(ctx.op, self.visit(ctx.expr()), w_expr=w))
     
     #---------------------------------------------------------------------------
     # TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
     #---------------------------------------------------------------------------
-    # Visit a parse tree produced by SystemRDLParser#string_literal.
-    def visitString_literal(self, ctx:SystemRDLParser.String_literalContext):
-        raise NotImplementedError
-    
 
     # Visit a parse tree produced by SystemRDLParser#array_literal.
     def visitArray_literal(self, ctx:SystemRDLParser.Array_literalContext):

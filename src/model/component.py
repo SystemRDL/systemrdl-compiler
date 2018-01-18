@@ -18,7 +18,7 @@ class ComponentDef:
         # Child elements instantiated inside this component
         self.children = []
         
-        # Parameters of this definitions
+        # Parameters of this definition
         self.parameters = []
     
     def create_derived_def(self):
@@ -49,6 +49,13 @@ class ComponentDef:
 
 
 #-------------------------------------------------------------------------------
+class Root(ComponentDef):
+    
+    def __init__(self):
+        
+        # Component definitions in the global root scope
+        self.comp_defs = {}
+    
 class Field(ComponentDef):
     pass
 

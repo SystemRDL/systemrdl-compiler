@@ -27,12 +27,9 @@ class ComponentVisitor(BaseVisitor):
         else:
             self.NS = ns
         
-        if(self.comp_type is not None):
-            self.component = self.comp_type()
-            self.component.name = def_name
-            self.component.parameters = param_defs
-        else:
-            self.component = None
+        self.component = self.comp_type()
+        self.component.name = def_name
+        self.component.parameters = param_defs
     
     #---------------------------------------------------------------------------
     # Component Definitions
@@ -80,6 +77,8 @@ class ComponentVisitor(BaseVisitor):
     def visitComponent_named_def(self, ctx:SystemRDLParser.Component_named_defContext):
         type_token = self.visit(ctx.component_type())
         
+        self.check_comp_def_allowed(type_token)
+        
         def_name = ctx.ID().getText()
         # Get any parameters for the component
         if(ctx.param_def() is not None):
@@ -100,11 +99,15 @@ class ComponentVisitor(BaseVisitor):
     def visitComponent_anon_def(self, ctx:SystemRDLParser.Component_anon_defContext):
         type_token = self.visit(ctx.component_type())
         
+        self.check_comp_def_allowed(type_token)
+        
         body = ctx.component_body()
         comp_def = self.define_component(body, type_token, None, [])
         
         return(comp_def)
     
+    def check_comp_def_allowed(self, type_token):
+        pass
     
     _CompType_Map = {
         SystemRDLParser.FIELD_kw    : comp.Field,
@@ -129,6 +132,26 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Component Instantiation
     #---------------------------------------------------------------------------
+    def visitExplicit_component_inst(self, ctx:SystemRDLParser.Explicit_component_instContext):
+        if(ctx.component_inst_type() is not None):
+            inst_type = self.visit(ctx.component_inst_type())
+        else:
+            inst_type = None
+        
+        if(ctx.component_inst_alias() is not None):
+            raise NotImplementedError
+        
+        comp_def = self.component_def_from_token(ctx.ID())
+        
+        # Pass some temporary info to visitComponent_insts
+        self._tmp = (comp_def, inst_type)
+        self.visit(ctx.component_insts())
+        
+        return(None)
+
+    def visitComponent_inst_alias(self, ctx:SystemRDLParser.Component_inst_aliasContext):
+        raise NotImplementedError
+    
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
         comp_def, inst_type = self._tmp
@@ -146,21 +169,23 @@ class ComponentVisitor(BaseVisitor):
             comp_def = comp_def.create_derived_def()
             
             # Assign parameter overrides
-            for param_name, assign_expr in param_assigns.items():
+            for param_name, assign_expr, err_ctx in param_assigns.items():
                 # Lookup corresponding parameter in component
-                for cparam in comp_def.parameters:
-                    if(cparam.name == param_name):
-                        param = cparam
+                for comp_param in comp_def.parameters:
+                    if(comp_param.name == param_name):
+                        param = comp_param
                         break
                 else:
                     raise RDLCompileError(
                         "Parameter '%s' not found in definition for component '%s'" 
                         % (param_name, comp_def.name),
-                        ctx.param_inst()
+                        err_ctx
                     )
                 
                 # Override the value
-                param.set_inst_value(assign_expr)
+                assign_expr = expressions.AssignmentCast(err_ctx, assign_expr, param.param_type)
+                assign_expr.predict_type()
+                param.expr = assign_expr
         
         # Do instantiations
         for inst in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
@@ -192,7 +217,8 @@ class ComponentVisitor(BaseVisitor):
         
         visitor = ExprVisitor(self.NS)
         expr = visitor.visit(ctx.expr())
-        expr = expressions.AssignmentCast(expr, int)
+        expr = expressions.AssignmentCast(ctx.op, expr, int)
+        expr.predict_type()
         return(expr)
         
     def visitComponent_inst(self, ctx:SystemRDLParser.Component_instContext):
@@ -246,21 +272,29 @@ class ComponentVisitor(BaseVisitor):
         inst_addr_align = self.get_instance_assignment(ctx.inst_addr_align())
         
         # Check for assignment expression incompatibility
-        if(type(comp_def) == comp.Field):
-            # field_inst_reset is the only thing allowed for fields
-            # All others are invalid
-            if(any([inst_addr_fixed, inst_addr_stride, inst_addr_align])):
-                raise RDLCompileError("Unexpected address allocation operator for field instance", ctx.ID())
-        elif(type(comp_def) == comp.Signal):
+        if(type(comp_def) in [comp.Field, comp.Signal]):
+            err_ctx = None
+            if(inst_addr_fixed is not None):
+                err_ctx = ctx.inst_addr_fixed().start
+            elif(inst_addr_stride is not None):
+                err_ctx = ctx.inst_addr_stride().start
+            elif(inst_addr_align is not None):
+                err_ctx = ctx.inst_addr_align().start
+            
+            if(err_ctx is not None):
+                raise RDLCompileError(
+                    "Unexpected address allocation operator for non-addressable instance",
+                    err_ctx
+                )
+            
+        if(type(comp_def) == comp.Signal):
             # none of these are allowed for signals
             if(field_inst_reset is not None):
                 raise RDLCompileError(
                     "Unexpected field reset assignment for non-field instance",
                     ctx.field_inst_reset().start
                 )
-            if(any([inst_addr_fixed, inst_addr_stride, inst_addr_align])):
-                raise RDLCompileError("Unexpected address allocation operator for signal instance", ctx.ID())
-        else:
+        elif(type(comp_def) != comp.Field):
             # Otherwise, inst_addr_fixed and inst_addr_align are mutually exclusive
             if(all([inst_addr_fixed, inst_addr_align])):
                 raise RDLCompileError(
@@ -304,11 +338,11 @@ class ComponentVisitor(BaseVisitor):
             inst.external = False
         
         inst.name = inst_name
+        inst.parent = self.component
+        comp_def.instances.append(inst)
+        self.component.children.append(inst)
         
         self.NS.register_element(inst_name, inst)
-        
-        if(self.component is not None):
-            self.component.children.append(inst)
         
         return(None)
         
@@ -351,6 +385,8 @@ class ComponentVisitor(BaseVisitor):
         if(ctx.expr() is not None):
             visitor = ExprVisitor(self.NS)
             default_expr = visitor.visit(ctx.expr())
+            default_expr = expressions.AssignmentCast(ctx.ID(), default_expr, param_type)
+            default_expr.predict_type()
         else:
             default_expr = None
         
@@ -373,13 +409,14 @@ class ComponentVisitor(BaseVisitor):
                     assignment.ID()
                 )
             
-            param_assigns[param_name] = assign_expr
+            param_assigns[param_name] = (assign_expr, assignment.ID())
         return(param_assigns)
 
     def visitParam_assignment(self, ctx:SystemRDLParser.Param_assignmentContext):
         param_name = ctx.ID().getText()
         
         visitor = ExprVisitor(self.NS)
+        # Note: AssignmentCast is handled in the visitComponent_insts Visitor
         assign_expr = visitor.visit(ctx.expr())
         return(param_name, assign_expr)
     
@@ -389,16 +426,20 @@ class ComponentVisitor(BaseVisitor):
     def visitRange_suffix(self, ctx:SystemRDLParser.Range_suffixContext):
         visitor = ExprVisitor(self.NS)
         expr1 = visitor.visit(ctx.expr(0))
-        expr1 = expressions.AssignmentCast(expr1, int)
+        expr1 = expressions.AssignmentCast(ctx.expr(0), expr1, int)
+        expr1.predict_type()
+        
         expr2 = visitor.visit(ctx.expr(1))
-        expr2 = expressions.AssignmentCast(expr2, int)
+        expr2 = expressions.AssignmentCast(ctx.expr(1), expr2, int)
+        expr2.predict_type()
         
         return(expr1, expr2)
 
     def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
         visitor = ExprVisitor(self.NS)
         expr = visitor.visit(ctx.expr())
-        expr = expressions.AssignmentCast(expr, int)
+        expr = expressions.AssignmentCast(ctx.expr(), expr, int)
+        expr.predict_type()
         return(expr)
     
     #---------------------------------------------------------------------------
@@ -446,41 +487,180 @@ class ComponentVisitor(BaseVisitor):
             
         else:
             return(self._DataType_Map[token.type])
+    
+    def component_def_from_token(self, id_token):
+        def_name = id_token.getText()
+        comp_def = self.NS.lookup_type(def_name)
+        if(comp_def is None):
+            raise RDLCompileError(
+                "Type '%s' is not defined" % def_name,
+                id_token
+            )
+        if(not issubclass(type(comp_def), comp.ComponentDef)):
+            raise RDLCompileError(
+                "Type '%s' is not a component type" % def_name,
+                id_token
+            )
         
-
+        return(comp_def)
+        
+#===============================================================================
+# Root meta-component visitor
+#===============================================================================
+class RootVisitor(ComponentVisitor):
+    comp_type = comp.Root
+    
+    def visitRoot(self, ctx:SystemRDLParser.RootContext):
+        self.visitChildren(ctx)
+        return(self.component)
+    
+    
+    def define_component(self, body, type_token, def_name, param_defs):
+        comp_def = super().define_component(body, type_token, def_name, param_defs)
+        
+        if(def_name is not None):
+            self.component.comp_defs[def_name] = comp_def
+        
+        return(comp_def)
+    
+    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        # Unpack instance def info from parent
+        comp_def, inst_type = self._tmp
+        
+        if(type(comp_def) != comp.Signal):
+            raise RDLCompileError(
+                "Instantiation of '%s' components not allowed in the root namespace" % type(comp_def).__name__.lower(),
+                ctx.component_inst(0).ID()
+            )
+        
+        return(super().visitComponent_insts(ctx))
+    
 #===============================================================================
 # Field Component visitor
 #===============================================================================
 class FieldComponentVisitor(ComponentVisitor):
     comp_type = comp.Field
-
+    
+    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        raise RDLCompileError(
+            "Instantiation of components not allowed inside a field definition",
+            ctx.component_inst(0).ID()
+        )
+        return(super().visitComponent_insts(ctx))
+    
+    def check_comp_def_allowed(self, type_token):
+        raise RDLCompileError(
+            "Definitions of components not allowed inside a reg definition",
+            type_token
+        )
 #===============================================================================
 # Reg Component visitor
 #===============================================================================
 class RegComponentVisitor(ComponentVisitor):
     comp_type = comp.Reg
+    
+    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        # Unpack instance def info from parent
+        comp_def, inst_type = self._tmp
+        
+        if(type(comp_def) not in [comp.Signal, comp.Field]):
+            raise RDLCompileError(
+                "Instantiation of '%s' components not allowed inside a reg definition" % type(comp_def).__name__.lower(),
+                ctx.component_inst(0).ID()
+            )
+        return(super().visitComponent_insts(ctx))
+    
+    def check_comp_def_allowed(self, type_token):
+        comp_type = self._CompType_Map[type_token.type]
+        
+        if(comp_type not in [comp.Signal, comp.Field]):
+            raise RDLCompileError(
+                "Definitions of '%s' components not allowed inside a reg definition" % comp_type.__name__.lower(),
+                type_token
+            )
 
 #===============================================================================
 # Regfile Component visitor
 #===============================================================================
 class RegfileComponentVisitor(ComponentVisitor):
     comp_type = comp.Regfile
-
+    
+    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        # Unpack instance def info from parent
+        comp_def, inst_type = self._tmp
+        
+        if(type(comp_def) not in [comp.Signal, comp.Reg, comp.Regfile]):
+            raise RDLCompileError(
+                "Instantiation of '%s' components not allowed inside a regfile definition" % type(comp_def).__name__.lower(),
+                ctx.component_inst(0).ID()
+            )
+        return(super().visitComponent_insts(ctx))
+    
+    def check_comp_def_allowed(self, type_token):
+        comp_type = self._CompType_Map[type_token.type]
+        
+        if(comp_type in [comp.Addrmap, comp.Mem]):
+            raise RDLCompileError(
+                "Definitions of '%s' components not allowed inside a regfile definition" % comp_type.__name__.lower(),
+                type_token
+            )
 #===============================================================================
 # Addrmap Component visitor
 #===============================================================================
 class AddrmapComponentVisitor(ComponentVisitor):
     comp_type = comp.Addrmap
+    
+    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        # Unpack instance def info from parent
+        comp_def, inst_type = self._tmp
+        
+        if(type(comp_def) == comp.Field):
+            raise RDLCompileError(
+                "Instantiation of 'field' components not allowed inside a addrmap definition",
+                ctx.component_inst(0).ID()
+            )
+        return(super().visitComponent_insts(ctx))
 
 #===============================================================================
 # Mem Component visitor
 #===============================================================================
 class MemComponentVisitor(ComponentVisitor):
     comp_type = comp.Mem
-
+    
+    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        # Unpack instance def info from parent
+        comp_def, inst_type = self._tmp
+        
+        if(type(comp_def) != comp.Reg):
+            raise RDLCompileError(
+                "Instantiation of '%s' components not allowed inside a mem definition" % type(comp_def).__name__.lower(),
+                ctx.component_inst(0).ID()
+            )
+        return(super().visitComponent_insts(ctx))
+        
+    def check_comp_def_allowed(self, type_token):
+        comp_type = self._CompType_Map[type_token.type]
+        
+        if(comp_type in [comp.Field, comp.Reg]):
+            raise RDLCompileError(
+                "Definitions of '%s' components not allowed inside a mem definition" % comp_type.__name__.lower(),
+                type_token
+            )
 #===============================================================================
 # Signal Component visitor
 #===============================================================================
 class SignalComponentVisitor(ComponentVisitor):
     comp_type = comp.Signal
-
+    
+    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        raise RDLCompileError(
+            "Instantiation of components not allowed inside a signal definition",
+            ctx.component_inst(0).ID()
+        )
+        return(super().visitComponent_insts(ctx))
+    
+    def check_comp_def_allowed(self, type_token):
+        raise RDLCompileError(
+            "Definitions of components not allowed inside a signal definition",
+            type_token
+        )

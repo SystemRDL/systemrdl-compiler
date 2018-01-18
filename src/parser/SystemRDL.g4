@@ -7,7 +7,7 @@ root_elem : component_def
 // TODO   | property_def
 // TODO   | struct_def
 // TODO   | constraint_def
-// TODO   | explicit_component_inst
+          | explicit_component_inst
 // TODO   | property_assignment
           ;
 
@@ -25,6 +25,9 @@ component_def : component_named_def ( (component_inst_type component_insts)
               | component_inst_type component_anon_def component_insts
               ;
 
+explicit_component_inst : component_inst_type? component_inst_alias? ID component_insts;
+
+component_inst_alias: ALIAS_kw ID;
 
 component_named_def : component_type ID param_def? component_body;
 component_anon_def  : component_type component_body;
@@ -35,9 +38,10 @@ component_body_elem : component_def
 // TODO             | enum_def
 // TODO             | struct_def
 // TODO             | constraint_def
-// TODO             | explicit_component_inst
+                    | explicit_component_inst
 // TODO             | property_assignment
                     ;
+
 
 component_insts: param_inst? component_inst (',' component_inst)*;
 component_inst: ID ( array_suffix+ | range_suffix )? field_inst_reset?
@@ -46,10 +50,10 @@ component_inst: ID ( array_suffix+ | range_suffix )? field_inst_reset?
                 inst_addr_align?
               ;
 
-field_inst_reset: ASSIGN expr;
-inst_addr_fixed : AT expr;
-inst_addr_stride: INC expr;
-inst_addr_align:  ALIGN expr;
+field_inst_reset: op=ASSIGN expr;
+inst_addr_fixed : op=AT expr;
+inst_addr_stride: op=INC expr;
+inst_addr_align:  op=ALIGN expr;
 
 component_inst_type : kw=(EXTERNAL_kw | INTERNAL_kw);
 
@@ -91,7 +95,7 @@ expr: op=(PLUS|MINUS|BNOT|NOT|AND|NAND|OR|NOR|XOR|XNOR) expr_primary  #UnaryExpr
     | expr op=OR expr               #BinaryExpr
     | expr op=BAND expr             #BinaryExpr
     | expr op=BOR expr              #BinaryExpr
-    | expr '?' expr ':' expr        #TernaryExpr
+    | expr op='?' expr ':' expr        #TernaryExpr
     | expr_primary                  #NOP
     ;
 
@@ -111,8 +115,8 @@ replicate     : '{' expr concatenate '}';
 
 paren_expr: '(' expr ')';
 
-cast  : typ=(BOOLEAN_kw|BIT_kw|LONGINT_kw) '\'' '(' expr ')' #CastType
-      | cast_width_expr '\'' '(' expr ')'               #CastWidth
+cast  : typ=(BOOLEAN_kw|BIT_kw|LONGINT_kw) op='\'' '(' expr ')' #CastType
+      | cast_width_expr op='\'' '(' expr ')'               #CastWidth
       ;
 
 cast_width_expr : literal
@@ -201,7 +205,7 @@ ONREADTYPE_kw       : 'onreadtype';
 ONWRITETYPE_kw      : 'onwritetype';
 
 
-
+ALIAS_kw    : 'alias';
 EXTERNAL_kw : 'external';
 INTERNAL_kw : 'internal';
 

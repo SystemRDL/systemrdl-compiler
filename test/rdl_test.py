@@ -10,7 +10,7 @@ from antlr4 import *
 
 from src.parser.SystemRDLLexer import SystemRDLLexer
 from src.parser.SystemRDLParser import SystemRDLParser
-from src.compiler.RootVisitor import *
+from src.compiler.ComponentVisitor import RootVisitor
 from src.compiler.errors import *
 
 input_stream = FileStream("test.rdl")
@@ -27,5 +27,7 @@ tree = parser.root()
 visitor = RootVisitor()
 try:
     result = visitor.visit(tree)
+    print(result.comp_defs)
 except RDLCompileError as e:
     e.print()
+
