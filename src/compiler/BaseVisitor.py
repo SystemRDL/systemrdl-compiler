@@ -4,8 +4,15 @@ from antlr4 import *
 from ..parser.SystemRDLParser import SystemRDLParser
 from ..parser.SystemRDLVisitor import SystemRDLVisitor
 
+from .namespace import NamespaceRegistry
+
 class BaseVisitor(SystemRDLVisitor):
-    pass
+    
+    def __init__(self, ns=None):
+        if(ns is None):
+            self.NS = NamespaceRegistry()
+        else:
+            self.NS = ns
 
     #---------------------------------------------------------------------------
     # Keyword passthrough visitors
@@ -35,4 +42,7 @@ class BaseVisitor(SystemRDLVisitor):
         return(self.passthru_kw_token(ctx))
 
     def visitBasic_data_type(self, ctx:SystemRDLParser.Basic_data_typeContext):
+        return(self.passthru_kw_token(ctx))
+    
+    def visitProp_keyword(self, ctx:SystemRDLParser.Prop_keywordContext):
         return(self.passthru_kw_token(ctx))

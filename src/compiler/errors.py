@@ -90,3 +90,9 @@ class RDLCompileError(RDLException):
     def print(self):
         ec = ErrorContext.from_antlr_obj(self.antlr_obj)
         ec.print_error(self.msg)
+
+class RDLNotSupportedYet(RDLCompileError):
+    """
+    Error thrown for any RDL features that I do not plan on supporting quite yet
+    """
+    pass

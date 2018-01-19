@@ -274,8 +274,23 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by SystemRDLParser#reference.
-    def visitReference(self, ctx:SystemRDLParser.ReferenceContext):
+    # Visit a parse tree produced by SystemRDLParser#instance_ref.
+    def visitInstance_ref(self, ctx:SystemRDLParser.Instance_refContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#instance_ref_element.
+    def visitInstance_ref_element(self, ctx:SystemRDLParser.Instance_ref_elementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#prop_ref.
+    def visitProp_ref(self, ctx:SystemRDLParser.Prop_refContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#prop_keyword.
+    def visitProp_keyword(self, ctx:SystemRDLParser.Prop_keywordContext):
         return self.visitChildren(ctx)
 
 

@@ -95,7 +95,7 @@ expr: op=(PLUS|MINUS|BNOT|NOT|AND|NAND|OR|NOR|XOR|XNOR) expr_primary  #UnaryExpr
     | expr op=OR expr               #BinaryExpr
     | expr op=BAND expr             #BinaryExpr
     | expr op=BOR expr              #BinaryExpr
-    | expr op='?' expr ':' expr        #TernaryExpr
+    | expr op='?' expr ':' expr     #TernaryExpr
     | expr_primary                  #NOP
     ;
 
@@ -104,7 +104,8 @@ expr_primary  : literal
               | replicate
               | paren_expr
               | cast
-              | reference
+              | prop_ref
+              | instance_ref
               | struct_literal
               | array_literal
               ;
@@ -181,8 +182,16 @@ precedencetype_literal : kw=(HW_kw|SW_kw);
 //------------------------------------------------------------------------------
 // References
 //------------------------------------------------------------------------------
-reference   : ID // TODO
-            ;
+instance_ref: instance_ref_element ('.' instance_ref_element)*;
+
+instance_ref_element: ID array_suffix*;
+
+prop_ref: instance_ref '->' (prop_keyword | ID);
+
+//------------------------------------------------------------------------------
+// Properties
+//------------------------------------------------------------------------------
+prop_keyword: kw=(SW_kw|HW_kw|RCLR_kw|RSET_kw|WOCLR_kw|WOSET_kw);
 
 //==============================================================================
 // Lexer

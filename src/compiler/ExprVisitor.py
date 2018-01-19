@@ -8,15 +8,14 @@ from ..model import rdl_types
 from .BaseVisitor import BaseVisitor
 from .namespace import NamespaceRegistry
 from . import expressions as e
-from .errors import RDLCompileError
+from .errors import RDLCompileError, RDLNotSupportedYet
+from .parameter import Parameter
+from ..model import component as comp
 
 class ExprVisitor(BaseVisitor):
     
     def __init__(self, ns=None):
-        if(ns is None):
-            self.NS = NamespaceRegistry()
-        else:
-            self.NS = ns
+        super().__init__(ns)
         
     #---------------------------------------------------------------------------
     # Numerical Expressions
@@ -90,14 +89,14 @@ class ExprVisitor(BaseVisitor):
     # Visit a parse tree produced by SystemRDLParser#NumberInt.
     def visitNumberInt(self, ctx:SystemRDLParser.NumberIntContext):
         s = ctx.INT().getText()
-        s.replace("_","")
+        s = s.replace("_","")
         return(e.IntLiteral(ctx.INT(), int(s)))
     
     
     # Visit a parse tree produced by SystemRDLParser#NumberHex.
     def visitNumberHex(self, ctx:SystemRDLParser.NumberHexContext):
         s = ctx.HEX_INT().getText()
-        s.replace("_","")
+        s = s.replace("_","")
         return(e.IntLiteral(ctx.HEX_INT(), int(s,16)))
     
     
@@ -189,6 +188,81 @@ class ExprVisitor(BaseVisitor):
         return(e.WidthCast(ctx.op, self.visit(ctx.expr()), w_expr=w))
     
     #---------------------------------------------------------------------------
+    # References
+    #---------------------------------------------------------------------------
+    def visitInstance_ref(self, ctx:SystemRDLParser.Instance_refContext):
+        
+        # Get each ref element in a hierarchical chain. Each element is a tuple:
+        #   (name_token, [index_expr, ...])
+        ref_elements = []
+        for ref_elem in ctx.getTypedRuleContexts(SystemRDLParser.Instance_ref_elementContext):
+            ref_elements.append(self.visit(ref_elem))
+        
+        # Resolve reference of first element, since it is in the local scope
+        name_token, array_suffixes = ref_elements.pop(0)
+        name = name_token.getText()
+        inst = self.NS.lookup_element(name)
+        if(inst is None):
+            raise RDLCompileError(
+                "Reference to '%s' not found" % name,
+                name_token
+            )
+        elif(type(inst) == Parameter):
+            ref_expr = e.ParameterRef(name_token, inst)
+        elif(issubclass(type(inst), comp.Inst)):
+            ref_expr = e.InstRef(name_token, inst)
+        else:
+            raise RuntimeError
+        
+        for array_suffix in array_suffixes:
+            # Dereference the first element's array
+            # TODO
+            raise RDLNotSupportedYet(
+                "Indexing references is not supported yet. Coming soon!",
+                array_suffix.err_ctx
+            )
+        
+        
+        # Build a reference tree for all remaining hierarchical references
+        for name_token, array_suffixes in ref_elements:
+            # TODO
+            raise RDLNotSupportedYet(
+                "Hierarchical references are not supported yet. Coming soon!",
+                name_token
+            )
+            
+        return(ref_expr)
+
+    def visitInstance_ref_element(self, ctx:SystemRDLParser.Instance_ref_elementContext):
+        name_token = ctx.ID()
+        
+        array_suffixes = []
+        for as_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Array_suffixContext):
+            array_suffixes.append(self.visit(as_ctx))
+        
+        return(name_token, array_suffixes)
+
+    def visitProp_ref(self, ctx:SystemRDLParser.Prop_refContext):
+        ref_expr = self.visit(ctx.instance_ref())
+        
+        if(ctx.prop_keyword() is not None):
+            prop_token = self.visit(ctx.prop_keyword())
+        else:
+            prop_token = ctx.ID()
+        
+        # TODO
+        raise RDLNotSupportedYet(
+            "Expressions that use property references are not supported yet.",
+            prop_token
+        )
+    
+    def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
+        expr = self.visit(ctx.expr())
+        expr = e.AssignmentCast(ctx.expr(), expr, int)
+        expr.predict_type()
+        return(expr)
+    
+    #---------------------------------------------------------------------------
     # TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
     #---------------------------------------------------------------------------
 
@@ -206,19 +280,12 @@ class ExprVisitor(BaseVisitor):
     def visitEnum_literal(self, ctx:SystemRDLParser.Enum_literalContext):
         raise NotImplementedError
 
-
-    # Visit a parse tree produced by SystemRDLParser#reference.
-    def visitReference(self, ctx:SystemRDLParser.ReferenceContext):
-        raise NotImplementedError
-    
-
     # Visit a parse tree produced by SystemRDLParser#concatenate.
     def visitConcatenate(self, ctx:SystemRDLParser.ConcatenateContext):
         raise NotImplementedError
-
 
     # Visit a parse tree produced by SystemRDLParser#replicate.
     def visitReplicate(self, ctx:SystemRDLParser.ReplicateContext):
         raise NotImplementedError
     
-    
+

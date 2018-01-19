@@ -620,6 +620,41 @@ class BoolCast(_Expr):
         return(n != 0)
 
 #-------------------------------------------------------------------------------
+# References
+
+class ParameterRef(_Expr):
+    def __init__(self, err_ctx, param):
+        super().__init__(err_ctx)
+        self.param = param
+    
+    def predict_type(self):
+        return(self.param.expr.predict_type())
+    
+    def resolve_expr_width(self):
+        self.op = [self.param.expr]
+        super().resolve_expr_width()
+    
+    def get_min_eval_width(self):
+        return(self.param.expr.get_min_eval_width())
+    
+    def get_value(self):
+        return(self.param.expr.get_value())
+    
+class InstRef(_Expr):
+    def __init__(self, err_ctx, inst):
+        super().__init__(err_ctx)
+        self.inst = inst
+    
+    def predict_type(self):
+        return(tp.Ref)
+    
+    def get_min_eval_width(self):
+        return(1) # Don't care
+    
+    def get_value(self):
+        return(self.inst)
+
+#-------------------------------------------------------------------------------
 # Assignment cast
 # This is a wrapper expression that normalizes the expression result
 # to the expected data type

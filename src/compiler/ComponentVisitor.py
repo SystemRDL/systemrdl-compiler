@@ -22,10 +22,7 @@ class ComponentVisitor(BaseVisitor):
     comp_type = None
     
     def __init__(self, ns=None, def_name=None, param_defs=[]):
-        if(ns is None):
-            self.NS = NamespaceRegistry()
-        else:
-            self.NS = ns
+        super().__init__(ns)
         
         self.component = self.comp_type()
         self.component.name = def_name

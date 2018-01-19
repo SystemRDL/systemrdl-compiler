@@ -52,7 +52,7 @@ class ComponentDef:
 class Root(ComponentDef):
     
     def __init__(self):
-        
+        super().__init__()
         # Component definitions in the global root scope
         self.comp_defs = {}
     

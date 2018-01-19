@@ -30,9 +30,17 @@ class NamespaceRegistry():
             return(None)
     
     def lookup_element(self, name:str):
-        for scope in reversed(self.element_ns_stack):
+        for idx, scope in enumerate(reversed(self.element_ns_stack)):
             if(name in scope):
-                return(scope[name])
+                el = scope[name]
+                if(idx == 0):
+                    # Return anything from local namespace
+                    return(el)
+                elif((type(el) == comp.VectorInst) and (type(el.typ) == comp.Signal)):
+                    # Signals are allowed to be found in parent namespaces
+                    return(el)
+                else:
+                    return(None)
         else:
             return(None)
     
@@ -44,13 +52,6 @@ class NamespaceRegistry():
     
     def enter_scope(self):
         self.type_ns_stack.append({})
-        
-        keep_scope = {}
-        for k,v in self.element_ns_stack[-1].items():
-            if(type(v) == comp.Signal):
-                keep_scope[k] = v
-        self.element_ns_stack[-1] = keep_scope
-        
         self.element_ns_stack.append({})
         
     def exit_scope(self):
