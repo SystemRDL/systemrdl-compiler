@@ -135,3 +135,6 @@ class VectorInst(Inst):
         self.offset = None
         self.msb = None
         self.lsb = None
+        
+        # Instance reset value (for Fields only)
+        self.reset_value = None

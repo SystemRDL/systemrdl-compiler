@@ -21,17 +21,19 @@ Phases of compilation
     In the following order:
     - User specifies a single top-level component from root
         - Specifies any parameters where applicable
-    - User-specified default properties are propagated
+    
     - All expressions are resolved to their resulting values
         - Parameters
         - Properties
         - Instance addressing expressions
         - Instance array sizes
         
-    - All derived ComponentDef instances are found and any duplicates are merged
-    - ComponentDef type names are uniquified according to RDL rules in section 5.1.1.4
+    - User-specified default properties are propagated
     - Propagate addressing mode rules
     - Resolve item addresses
+    
+    - All derived ComponentDef instances are found and any duplicates are merged
+    - ComponentDef type names are uniquified according to RDL rules in section 5.1.1.4
     
 - Validate
     Perform structural validation checks

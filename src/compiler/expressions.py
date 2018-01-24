@@ -3,7 +3,7 @@ from . import type_placeholders as tp
 from ..model import rdl_types
 from .errors import RDLCompileError
 
-class _Expr:
+class Expr:
     def __init__(self, err_ctx):
         
         # Number of bits to use for this expression's evaluation
@@ -77,7 +77,7 @@ class _Expr:
         raise NotImplementedError
     
 #-------------------------------------------------------------------------------
-class IntLiteral(_Expr):
+class IntLiteral(Expr):
     def __init__(self, err_ctx, val, width=64):
         super().__init__(err_ctx)
         self.val = val
@@ -93,7 +93,7 @@ class IntLiteral(_Expr):
         return(self.val)
 
 #-------------------------------------------------------------------------------
-class BuiltinEnumLiteral(_Expr):
+class BuiltinEnumLiteral(Expr):
     """
     Expr wrapper for builtin RDL enumeration types:
     AccessType, OnReadType, OnWriteType, AddressingType, PrecedenceType
@@ -112,7 +112,7 @@ class BuiltinEnumLiteral(_Expr):
         return(self.val)
 
 #-------------------------------------------------------------------------------
-class StringLiteral(_Expr):
+class StringLiteral(Expr):
     def __init__(self, err_ctx, val):
         super().__init__(err_ctx)
         self.val = val
@@ -130,7 +130,7 @@ class StringLiteral(_Expr):
 # Integer binary operators:
 #   +  -  *  /  %  &  |  ^  ^~  ~^
 # Normal expression context rules
-class _BinaryIntExpr(_Expr):
+class _BinaryIntExpr(Expr):
     def __init__(self, err_ctx, l, r):
         super().__init__(err_ctx)
         self.op = [l, r]
@@ -171,11 +171,21 @@ class Mult(_BinaryIntExpr):
 class Div(_BinaryIntExpr):
     def get_value(self):
         l,r = self.get_ops()
+        if(r == 0):
+            raise RDLCompileError(
+                "Division by zero",
+                self.err_ctx
+            )
         return(self.trunc(l // r))
 
 class Mod(_BinaryIntExpr):
     def get_value(self):
         l,r = self.get_ops()
+        if(r == 0):
+            raise RDLCompileError(
+                "Modulo by zero",
+                self.err_ctx
+            )
         return(self.trunc(l % r))
         
 class BitwiseAnd(_BinaryIntExpr):
@@ -202,7 +212,7 @@ class BitwiseXnor(_BinaryIntExpr):
 # Integer unary operators:
 #   +  -  ~
 # Normal expression context rules
-class _UnaryIntExpr(_Expr):
+class _UnaryIntExpr(Expr):
     def __init__(self, err_ctx, n):
         super().__init__(err_ctx)
         self.op = [n]
@@ -241,7 +251,7 @@ class BitwiseInvert(_UnaryIntExpr):
 # Creates a new evaluation context
 # Child operands are evaluated in the same width context, sized to the max
 # of either op.
-class _RelationalExpr(_Expr):
+class _RelationalExpr(Expr):
     def __init__(self, err_ctx, l, r):
         super().__init__(err_ctx)
         self.op = [l, r]
@@ -303,7 +313,7 @@ class Geq(_RelationalExpr):
 #   &  ~&  |  ~|  ^  ^~  !
 # Result is always 1 bit bool
 # Creates a new evaluation context
-class _ReductionExpr(_Expr):
+class _ReductionExpr(Expr):
     def __init__(self, err_ctx, n):
         super().__init__(err_ctx)
         self.op = [n]
@@ -375,7 +385,7 @@ class BoolNot(_ReductionExpr):
 # Logical boolean operators:
 #   && ||
 # Both operands are self-determined
-class _BoolExpr(_Expr):
+class _BoolExpr(Expr):
     def __init__(self, err_ctx, l, r):
         super().__init__(err_ctx)
         self.op = [l,r]
@@ -421,7 +431,7 @@ class BoolOr(_BoolExpr):
 # Exponent & shift operators:
 #   **  <<  >>
 # Righthand operand is self-determined
-class _ExpShiftExpr(_Expr):
+class _ExpShiftExpr(Expr):
     def __init__(self, err_ctx, l, r):
         super().__init__(err_ctx)
         self.op = [l,r]
@@ -479,7 +489,7 @@ class RShift(_ExpShiftExpr):
 #   i ? j : k
 # Truth expression is self-determined and does not contribute to context
 
-class TernaryExpr(_Expr):
+class TernaryExpr(Expr):
     def __init__(self, err_ctx, i, j, k):
         super().__init__(err_ctx)
         self.op = [i, j, k]
@@ -543,7 +553,7 @@ class TernaryExpr(_Expr):
 # the cast type informs the parser what width to cast to
 # The cast width determines the result's width
 # Also influences the min eval width of the value expression
-class WidthCast(_Expr):
+class WidthCast(Expr):
     def __init__(self, err_ctx, v, w_expr=None, w_int=64):
         super().__init__(err_ctx)
         
@@ -591,12 +601,17 @@ class WidthCast(_Expr):
         # Truncate to cast width instead of eval width
         n = int(self.op[0].get_value())
         self.expr_eval_width = self.cast_width
+        if(self.expr_eval_width == 0):
+            raise RDLCompileError(
+                "Cannot cast to width of zero",
+                self.err_ctx
+            )
         return(self.trunc(n))
 
 #-------------------------------------------------------------------------------
 # Boolean cast operator
 
-class BoolCast(_Expr):
+class BoolCast(Expr):
     def __init__(self, err_ctx, n):
         super().__init__(err_ctx)
         self.op = [n]
@@ -622,25 +637,38 @@ class BoolCast(_Expr):
 #-------------------------------------------------------------------------------
 # References
 
-class ParameterRef(_Expr):
+class ParameterRef(Expr):
     def __init__(self, err_ctx, param):
         super().__init__(err_ctx)
         self.param = param
     
     def predict_type(self):
-        return(self.param.expr.predict_type())
+        return(self.param.param_type)
     
     def resolve_expr_width(self):
+        if(self.param.expr is None):
+            raise RDLCompileError(
+                "Value for parameter '%s' was never assigned" % self.param.name,
+                self.err_ctx
+            )
         self.op = [self.param.expr]
         super().resolve_expr_width()
     
     def get_min_eval_width(self):
+        if(self.param.expr is None):
+            raise RDLCompileError(
+                "Value for parameter '%s' was never assigned" % self.param.name,
+                self.err_ctx
+            )
         return(self.param.expr.get_min_eval_width())
     
+    def propagate_eval_width(self, w):
+        self.resolve_expr_width()
+        
     def get_value(self):
         return(self.param.expr.get_value())
     
-class InstRef(_Expr):
+class InstRef(Expr):
     def __init__(self, err_ctx, inst):
         super().__init__(err_ctx)
         self.inst = inst
@@ -665,7 +693,7 @@ class InstRef(_Expr):
 #
 # When getting value:
 #   Ensures that the expression result gets converted to the resulting type
-class AssignmentCast(_Expr):
+class AssignmentCast(Expr):
     def __init__(self, err_ctx, v, dest_type):
         super().__init__(err_ctx)
         
@@ -673,7 +701,6 @@ class AssignmentCast(_Expr):
         self.dest_type = dest_type
     
     def predict_type(self):
-        
         op_type = self.op[0].predict_type()
         
         if(self.dest_type in [int, bool, tp.Bit]):

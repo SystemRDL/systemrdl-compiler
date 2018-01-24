@@ -7,17 +7,3 @@ class Parameter:
         
         self.expr = default_expr
         
-    def set_inst_value(self, expr):
-        """
-        During an instantiation, set the override for the parameter
-        """
-        # wrap expression in assignment cast
-        expr = expressions.AssignmentCast(expr, param_type)
-        expr.predict_type()
-        
-        self.expr = expr
-        
-    def get_value(self):
-        raise NotImplementedError
-        return(None)
-        

@@ -1,0 +1,15 @@
+
+
+reg my_reg #(bit MY_PARAM = 1){
+    field my_field {};
+    
+    my_field asdf[2] = 1;
+    my_field foo = 1 / MY_PARAM;
+};
+
+
+addrmap my_design {
+    my_reg reg_a;
+    my_reg reg_b;
+    my_reg reg_c;
+};

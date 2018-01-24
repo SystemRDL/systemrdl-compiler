@@ -8,11 +8,42 @@ from antlr4.tree.Tree import TerminalNodeImpl
 import colorama
 from colorama import Fore, Back, Style
 
-class ContextErrorListener(ErrorListener) :
+#===============================================================================
+# Antlr error listener
+#===============================================================================
+class RDLParserErrorListener(ErrorListener) :
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        ec = ErrorContext.from_antlr_obj(offendingSymbol)
-        ec.print_error(msg)
+        raise RDLCompileError(
+            msg,
+            offendingSymbol
+        )
 
+#===============================================================================
+class RDLErrorHandler:
+    """
+    Template class for any error handlers
+    """
+    def __init__(self):
+        pass
+    
+    def handle_exception(self, e):
+        """
+        Implements error handling for any RDLException raised
+        """
+        raise NotImplementedError
+        
+    
+class ConsoleErrorPrinter(RDLErrorHandler):
+    def handle_exception(self, e):
+        if(issubclass(type(e), RDLCompileError)):
+            self.print_compile_error(e)
+        else:
+            print(e)
+    
+    def print_compile_error(self, e):
+        ec = ErrorContext.from_antlr_obj(e.antlr_obj)
+        ec.print_error(e.msg)
+    
 
 class ErrorContext:
     def __init__(self):
@@ -41,7 +72,10 @@ class ErrorContext:
         ec.column = token.column
         inputStream = token.getInputStream()
         ec.filename = inputStream.fileName
-        ec.line_text = inputStream.strdata.splitlines()[ec.line-1]
+        
+        file_lines = inputStream.strdata.splitlines()
+        file_lines.append("") # append an empty line just in case error is at EOF
+        ec.line_text = file_lines[ec.line-1]
         ec.width = token.stop - token.start + 1
         return(ec)
         
@@ -56,23 +90,27 @@ class ErrorContext:
             file=sys.stderr
         )
         
-        print(
-            self.line_text[:self.column] 
-            + Fore.RED + Style.BRIGHT + self.line_text[self.column:self.column+self.width] + Style.RESET_ALL 
-            + self.line_text[self.column+self.width:],
-            file=sys.stderr
-        )
-        
-        print(
-            " "*self.column 
-            + Fore.RED + Style.BRIGHT + "^"*self.width + Style.RESET_ALL,
-            file=sys.stderr
-        )
+        if(self.width != 0):
+            print(
+                self.line_text[:self.column] 
+                + Fore.RED + Style.BRIGHT + self.line_text[self.column:self.column+self.width] + Style.RESET_ALL 
+                + self.line_text[self.column+self.width:],
+                file=sys.stderr
+            )
+            
+            print(
+                " "*self.column 
+                + Fore.RED + Style.BRIGHT + "^"*self.width + Style.RESET_ALL,
+                file=sys.stderr
+            )
 
 #===============================================================================
 # Exceptions
 #===============================================================================
 class RDLException(Exception):
+    """
+    Base class for all RDL user exceptions
+    """
     pass
 
 class RDLCompileError(RDLException):
@@ -87,10 +125,6 @@ class RDLCompileError(RDLException):
         self.antlr_obj = antlr_obj
         self.msg = msg
     
-    def print(self):
-        ec = ErrorContext.from_antlr_obj(self.antlr_obj)
-        ec.print_error(self.msg)
-
 class RDLNotSupportedYet(RDLCompileError):
     """
     Error thrown for any RDL features that I do not plan on supporting quite yet

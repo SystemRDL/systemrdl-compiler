@@ -320,6 +320,8 @@ class ComponentVisitor(BaseVisitor):
                 inst.msb, inst.lsb = range_suffix
             if(len(array_suffixes) != 0):
                 inst.width = array_suffixes[0]
+            
+            inst.reset_value = field_inst_reset
         else:
             inst = comp.AddressableInst(comp_def)
             inst.addr_offset = inst_addr_fixed
