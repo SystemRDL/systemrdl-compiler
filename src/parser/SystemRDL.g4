@@ -110,7 +110,7 @@ expr_primary  : literal
               | array_literal
               ;
 
-concatenate   : '{' expr (',' expr)*'}';
+concatenate   : '{' expr (',' expr)* '}';
 
 replicate     : '{' expr concatenate '}';
 
@@ -255,7 +255,38 @@ FULLALIGN_kw : 'fullalign';
 HW_kw        : 'hw';
 SW_kw        : 'sw';
 
-TODO_kw : 'TODO';
+// Other keywords from 4.4 not covered by above
+ABSTRACT_kw       : 'abstract';
+ALL_kw            : 'all';
+BOTHEDGE_kw       : 'bothedge';
+COMPONENT_kw      : 'component';
+COMPONENTWIDTH_kw : 'componentwidth';
+CONSTRAINT_kw     : 'constraint';
+DEFAULT_kw        : 'default';
+ENUM_kw           : 'enum';
+INSIDE_kw         : 'inside';
+LEVEL_kw          : 'level';
+NEGEDGE_kw        : 'negedge';
+NONSTICKY_kw      : 'nonsticky';
+NUMBER_kw         : 'number';
+POSEDGE_kw        : 'posedge';
+PROPERTY_kw       : 'property';
+REF_kw            : 'ref';
+STRUCT_kw         : 'struct';
+THIS_kw           : 'this';
+TYPE_kw           : 'type';
+
+// Reserved keywords from Annex D
+ALTERNATE_kw      : 'alternate';
+BYTE_kw           : 'byte';
+INT_kw            : 'int';
+PRECEDENCETYPE_kw : 'precedencetype';
+REAL_kw           : 'real';
+SHORTINT_kw       : 'shortint';
+SHORTREAL_kw      : 'shortreal';
+SIGNED_kw         : 'signed';
+WITH_kw           : 'with';
+WITHIN_kw         : 'within';
 
 //------------------------------------------------------------------------------
 // Literals
@@ -314,4 +345,3 @@ ALIGN : '%=';
 //------------------------------------------------------------------------------
 WS  :   [ \t\r\n]+ -> skip ;
 ID  :   ('\\')? [a-zA-Z_] [a-zA-Z0-9_]* ;
-
