@@ -52,13 +52,13 @@ def serializedATN():
         buf.write("\3\66\3\66\3\66\3\67\3\67\3\67\3\67\3\67\38\38\38\38\3")
         buf.write("8\39\39\39\39\39\39\3:\3:\3:\3:\3:\3:\3:\3:\3;\3;\3;\3")
         buf.write(";\3;\3;\3;\3;\3;\3<\3<\3<\3<\3<\3<\3<\3<\3<\3<\3=\3=\3")
-        buf.write("=\3>\3>\3>\3?\3?\3?\3?\3?\3?\3?\3?\3?\3@\3@\3@\3@\3A\3")
-        buf.write("A\3A\3A\3A\3A\3A\3A\3A\3B\3B\3B\3B\3B\3B\3B\3B\3B\3B\3")
-        buf.write("C\3C\3C\3C\3C\3C\3C\3C\3C\3C\3C\3C\3C\3C\3C\3D\3D\3D\3")
-        buf.write("D\3D\3D\3D\3D\3D\3D\3D\3E\3E\3E\3E\3E\3E\3E\3E\3F\3F\3")
-        buf.write("F\3F\3F\3G\3G\3G\3G\3G\3G\3G\3H\3H\3H\3H\3H\3H\3I\3I\3")
-        buf.write("I\3I\3I\3I\3I\3I\3J\3J\3J\3J\3J\3J\3J\3J\3J\3J\3K\3K\3")
-        buf.write("K\3K\3K\3K\3K\3L\3L\3L\3L\3L\3L\3L\3L\3M\3M\3M\3M\3M\3")
+        buf.write("=\3>\3>\3>\3?\3?\3?\3?\3?\3?\3?\3?\3@\3@\3@\3@\3@\3@\3")
+        buf.write("@\3@\3A\3A\3A\3A\3A\3A\3A\3A\3A\3B\3B\3B\3B\3B\3B\3C\3")
+        buf.write("C\3C\3C\3C\3C\3C\3C\3C\3C\3D\3D\3D\3D\3D\3D\3D\3D\3D\3")
+        buf.write("E\3E\3E\3E\3F\3F\3F\3F\3F\3F\3F\3F\3F\3F\3G\3G\3G\3G\3")
+        buf.write("G\3G\3G\3G\3G\3G\3G\3G\3G\3G\3G\3H\3H\3H\3H\3H\3H\3H\3")
+        buf.write("H\3H\3H\3H\3I\3I\3I\3I\3I\3I\3I\3I\3J\3J\3J\3J\3J\3K\3")
+        buf.write("K\3K\3K\3K\3K\3K\3L\3L\3L\3L\3L\3L\3L\3M\3M\3M\3M\3M\3")
         buf.write("M\3M\3M\3M\3N\3N\3N\3N\3O\3O\3O\3O\3O\3O\3O\3P\3P\3P\3")
         buf.write("P\3P\3Q\3Q\3Q\3Q\3Q\3R\3R\3R\3R\3R\3R\3R\3R\3R\3R\3S\3")
         buf.write("S\3S\3S\3S\3T\3T\3T\3T\3U\3U\3U\3U\3U\3U\3U\3U\3U\3U\3")
@@ -142,11 +142,11 @@ def serializedATN():
         buf.write("\2\2\2i\u0216\3\2\2\2k\u021a\3\2\2\2m\u021e\3\2\2\2o\u0223")
         buf.write("\3\2\2\2q\u0228\3\2\2\2s\u022e\3\2\2\2u\u0236\3\2\2\2")
         buf.write("w\u023f\3\2\2\2y\u0249\3\2\2\2{\u024c\3\2\2\2}\u024f\3")
-        buf.write("\2\2\2\177\u0258\3\2\2\2\u0081\u025c\3\2\2\2\u0083\u0265")
-        buf.write("\3\2\2\2\u0085\u026f\3\2\2\2\u0087\u027e\3\2\2\2\u0089")
-        buf.write("\u0289\3\2\2\2\u008b\u0291\3\2\2\2\u008d\u0296\3\2\2\2")
-        buf.write("\u008f\u029d\3\2\2\2\u0091\u02a3\3\2\2\2\u0093\u02ab\3")
-        buf.write("\2\2\2\u0095\u02b5\3\2\2\2\u0097\u02bc\3\2\2\2\u0099\u02c4")
+        buf.write("\2\2\2\177\u0257\3\2\2\2\u0081\u025f\3\2\2\2\u0083\u0268")
+        buf.write("\3\2\2\2\u0085\u026e\3\2\2\2\u0087\u0278\3\2\2\2\u0089")
+        buf.write("\u0281\3\2\2\2\u008b\u0285\3\2\2\2\u008d\u028f\3\2\2\2")
+        buf.write("\u008f\u029e\3\2\2\2\u0091\u02a9\3\2\2\2\u0093\u02b1\3")
+        buf.write("\2\2\2\u0095\u02b6\3\2\2\2\u0097\u02bd\3\2\2\2\u0099\u02c4")
         buf.write("\3\2\2\2\u009b\u02cd\3\2\2\2\u009d\u02d1\3\2\2\2\u009f")
         buf.write("\u02d8\3\2\2\2\u00a1\u02dd\3\2\2\2\u00a3\u02e2\3\2\2\2")
         buf.write("\u00a5\u02ec\3\2\2\2\u00a7\u02f1\3\2\2\2\u00a9\u02f5\3")
@@ -279,45 +279,45 @@ def serializedATN():
         buf.write("\7i\2\2\u0247\u0248\7p\2\2\u0248x\3\2\2\2\u0249\u024a")
         buf.write("\7j\2\2\u024a\u024b\7y\2\2\u024bz\3\2\2\2\u024c\u024d")
         buf.write("\7u\2\2\u024d\u024e\7y\2\2\u024e|\3\2\2\2\u024f\u0250")
-        buf.write("\7c\2\2\u0250\u0251\7d\2\2\u0251\u0252\7u\2\2\u0252\u0253")
-        buf.write("\7v\2\2\u0253\u0254\7t\2\2\u0254\u0255\7c\2\2\u0255\u0256")
-        buf.write("\7e\2\2\u0256\u0257\7v\2\2\u0257~\3\2\2\2\u0258\u0259")
-        buf.write("\7c\2\2\u0259\u025a\7n\2\2\u025a\u025b\7n\2\2\u025b\u0080")
-        buf.write("\3\2\2\2\u025c\u025d\7d\2\2\u025d\u025e\7q\2\2\u025e\u025f")
-        buf.write("\7v\2\2\u025f\u0260\7j\2\2\u0260\u0261\7g\2\2\u0261\u0262")
-        buf.write("\7f\2\2\u0262\u0263\7i\2\2\u0263\u0264\7g\2\2\u0264\u0082")
-        buf.write("\3\2\2\2\u0265\u0266\7e\2\2\u0266\u0267\7q\2\2\u0267\u0268")
-        buf.write("\7o\2\2\u0268\u0269\7r\2\2\u0269\u026a\7q\2\2\u026a\u026b")
-        buf.write("\7p\2\2\u026b\u026c\7g\2\2\u026c\u026d\7p\2\2\u026d\u026e")
-        buf.write("\7v\2\2\u026e\u0084\3\2\2\2\u026f\u0270\7e\2\2\u0270\u0271")
-        buf.write("\7q\2\2\u0271\u0272\7o\2\2\u0272\u0273\7r\2\2\u0273\u0274")
-        buf.write("\7q\2\2\u0274\u0275\7p\2\2\u0275\u0276\7g\2\2\u0276\u0277")
-        buf.write("\7p\2\2\u0277\u0278\7v\2\2\u0278\u0279\7y\2\2\u0279\u027a")
-        buf.write("\7k\2\2\u027a\u027b\7f\2\2\u027b\u027c\7v\2\2\u027c\u027d")
-        buf.write("\7j\2\2\u027d\u0086\3\2\2\2\u027e\u027f\7e\2\2\u027f\u0280")
-        buf.write("\7q\2\2\u0280\u0281\7p\2\2\u0281\u0282\7u\2\2\u0282\u0283")
-        buf.write("\7v\2\2\u0283\u0284\7t\2\2\u0284\u0285\7c\2\2\u0285\u0286")
-        buf.write("\7k\2\2\u0286\u0287\7p\2\2\u0287\u0288\7v\2\2\u0288\u0088")
-        buf.write("\3\2\2\2\u0289\u028a\7f\2\2\u028a\u028b\7g\2\2\u028b\u028c")
-        buf.write("\7h\2\2\u028c\u028d\7c\2\2\u028d\u028e\7w\2\2\u028e\u028f")
-        buf.write("\7n\2\2\u028f\u0290\7v\2\2\u0290\u008a\3\2\2\2\u0291\u0292")
-        buf.write("\7g\2\2\u0292\u0293\7p\2\2\u0293\u0294\7w\2\2\u0294\u0295")
-        buf.write("\7o\2\2\u0295\u008c\3\2\2\2\u0296\u0297\7k\2\2\u0297\u0298")
-        buf.write("\7p\2\2\u0298\u0299\7u\2\2\u0299\u029a\7k\2\2\u029a\u029b")
-        buf.write("\7f\2\2\u029b\u029c\7g\2\2\u029c\u008e\3\2\2\2\u029d\u029e")
-        buf.write("\7n\2\2\u029e\u029f\7g\2\2\u029f\u02a0\7x\2\2\u02a0\u02a1")
-        buf.write("\7g\2\2\u02a1\u02a2\7n\2\2\u02a2\u0090\3\2\2\2\u02a3\u02a4")
-        buf.write("\7p\2\2\u02a4\u02a5\7g\2\2\u02a5\u02a6\7i\2\2\u02a6\u02a7")
-        buf.write("\7g\2\2\u02a7\u02a8\7f\2\2\u02a8\u02a9\7i\2\2\u02a9\u02aa")
-        buf.write("\7g\2\2\u02aa\u0092\3\2\2\2\u02ab\u02ac\7p\2\2\u02ac\u02ad")
-        buf.write("\7q\2\2\u02ad\u02ae\7p\2\2\u02ae\u02af\7u\2\2\u02af\u02b0")
-        buf.write("\7v\2\2\u02b0\u02b1\7k\2\2\u02b1\u02b2\7e\2\2\u02b2\u02b3")
-        buf.write("\7m\2\2\u02b3\u02b4\7{\2\2\u02b4\u0094\3\2\2\2\u02b5\u02b6")
-        buf.write("\7p\2\2\u02b6\u02b7\7w\2\2\u02b7\u02b8\7o\2\2\u02b8\u02b9")
-        buf.write("\7d\2\2\u02b9\u02ba\7g\2\2\u02ba\u02bb\7t\2\2\u02bb\u0096")
-        buf.write("\3\2\2\2\u02bc\u02bd\7r\2\2\u02bd\u02be\7q\2\2\u02be\u02bf")
-        buf.write("\7u\2\2\u02bf\u02c0\7g\2\2\u02c0\u02c1\7f\2\2\u02c1\u02c2")
-        buf.write("\7i\2\2\u02c2\u02c3\7g\2\2\u02c3\u0098\3\2\2\2\u02c4\u02c5")
+        buf.write("\7r\2\2\u0250\u0251\7q\2\2\u0251\u0252\7u\2\2\u0252\u0253")
+        buf.write("\7g\2\2\u0253\u0254\7f\2\2\u0254\u0255\7i\2\2\u0255\u0256")
+        buf.write("\7g\2\2\u0256~\3\2\2\2\u0257\u0258\7p\2\2\u0258\u0259")
+        buf.write("\7g\2\2\u0259\u025a\7i\2\2\u025a\u025b\7g\2\2\u025b\u025c")
+        buf.write("\7f\2\2\u025c\u025d\7i\2\2\u025d\u025e\7g\2\2\u025e\u0080")
+        buf.write("\3\2\2\2\u025f\u0260\7d\2\2\u0260\u0261\7q\2\2\u0261\u0262")
+        buf.write("\7v\2\2\u0262\u0263\7j\2\2\u0263\u0264\7g\2\2\u0264\u0265")
+        buf.write("\7f\2\2\u0265\u0266\7i\2\2\u0266\u0267\7g\2\2\u0267\u0082")
+        buf.write("\3\2\2\2\u0268\u0269\7n\2\2\u0269\u026a\7g\2\2\u026a\u026b")
+        buf.write("\7x\2\2\u026b\u026c\7g\2\2\u026c\u026d\7n\2\2\u026d\u0084")
+        buf.write("\3\2\2\2\u026e\u026f\7p\2\2\u026f\u0270\7q\2\2\u0270\u0271")
+        buf.write("\7p\2\2\u0271\u0272\7u\2\2\u0272\u0273\7v\2\2\u0273\u0274")
+        buf.write("\7k\2\2\u0274\u0275\7e\2\2\u0275\u0276\7m\2\2\u0276\u0277")
+        buf.write("\7{\2\2\u0277\u0086\3\2\2\2\u0278\u0279\7c\2\2\u0279\u027a")
+        buf.write("\7d\2\2\u027a\u027b\7u\2\2\u027b\u027c\7v\2\2\u027c\u027d")
+        buf.write("\7t\2\2\u027d\u027e\7c\2\2\u027e\u027f\7e\2\2\u027f\u0280")
+        buf.write("\7v\2\2\u0280\u0088\3\2\2\2\u0281\u0282\7c\2\2\u0282\u0283")
+        buf.write("\7n\2\2\u0283\u0284\7n\2\2\u0284\u008a\3\2\2\2\u0285\u0286")
+        buf.write("\7e\2\2\u0286\u0287\7q\2\2\u0287\u0288\7o\2\2\u0288\u0289")
+        buf.write("\7r\2\2\u0289\u028a\7q\2\2\u028a\u028b\7p\2\2\u028b\u028c")
+        buf.write("\7g\2\2\u028c\u028d\7p\2\2\u028d\u028e\7v\2\2\u028e\u008c")
+        buf.write("\3\2\2\2\u028f\u0290\7e\2\2\u0290\u0291\7q\2\2\u0291\u0292")
+        buf.write("\7o\2\2\u0292\u0293\7r\2\2\u0293\u0294\7q\2\2\u0294\u0295")
+        buf.write("\7p\2\2\u0295\u0296\7g\2\2\u0296\u0297\7p\2\2\u0297\u0298")
+        buf.write("\7v\2\2\u0298\u0299\7y\2\2\u0299\u029a\7k\2\2\u029a\u029b")
+        buf.write("\7f\2\2\u029b\u029c\7v\2\2\u029c\u029d\7j\2\2\u029d\u008e")
+        buf.write("\3\2\2\2\u029e\u029f\7e\2\2\u029f\u02a0\7q\2\2\u02a0\u02a1")
+        buf.write("\7p\2\2\u02a1\u02a2\7u\2\2\u02a2\u02a3\7v\2\2\u02a3\u02a4")
+        buf.write("\7t\2\2\u02a4\u02a5\7c\2\2\u02a5\u02a6\7k\2\2\u02a6\u02a7")
+        buf.write("\7p\2\2\u02a7\u02a8\7v\2\2\u02a8\u0090\3\2\2\2\u02a9\u02aa")
+        buf.write("\7f\2\2\u02aa\u02ab\7g\2\2\u02ab\u02ac\7h\2\2\u02ac\u02ad")
+        buf.write("\7c\2\2\u02ad\u02ae\7w\2\2\u02ae\u02af\7n\2\2\u02af\u02b0")
+        buf.write("\7v\2\2\u02b0\u0092\3\2\2\2\u02b1\u02b2\7g\2\2\u02b2\u02b3")
+        buf.write("\7p\2\2\u02b3\u02b4\7w\2\2\u02b4\u02b5\7o\2\2\u02b5\u0094")
+        buf.write("\3\2\2\2\u02b6\u02b7\7k\2\2\u02b7\u02b8\7p\2\2\u02b8\u02b9")
+        buf.write("\7u\2\2\u02b9\u02ba\7k\2\2\u02ba\u02bb\7f\2\2\u02bb\u02bc")
+        buf.write("\7g\2\2\u02bc\u0096\3\2\2\2\u02bd\u02be\7p\2\2\u02be\u02bf")
+        buf.write("\7w\2\2\u02bf\u02c0\7o\2\2\u02c0\u02c1\7d\2\2\u02c1\u02c2")
+        buf.write("\7g\2\2\u02c2\u02c3\7t\2\2\u02c3\u0098\3\2\2\2\u02c4\u02c5")
         buf.write("\7r\2\2\u02c5\u02c6\7t\2\2\u02c6\u02c7\7q\2\2\u02c7\u02c8")
         buf.write("\7r\2\2\u02c8\u02c9\7g\2\2\u02c9\u02ca\7t\2\2\u02ca\u02cb")
         buf.write("\7v\2\2\u02cb\u02cc\7{\2\2\u02cc\u009a\3\2\2\2\u02cd\u02ce")
@@ -486,20 +486,20 @@ class SystemRDLLexer(Lexer):
     FULLALIGN_kw = 59
     HW_kw = 60
     SW_kw = 61
-    ABSTRACT_kw = 62
-    ALL_kw = 63
+    POSEDGE_kw = 62
+    NEGEDGE_kw = 63
     BOTHEDGE_kw = 64
-    COMPONENT_kw = 65
-    COMPONENTWIDTH_kw = 66
-    CONSTRAINT_kw = 67
-    DEFAULT_kw = 68
-    ENUM_kw = 69
-    INSIDE_kw = 70
-    LEVEL_kw = 71
-    NEGEDGE_kw = 72
-    NONSTICKY_kw = 73
-    NUMBER_kw = 74
-    POSEDGE_kw = 75
+    LEVEL_kw = 65
+    NONSTICKY_kw = 66
+    ABSTRACT_kw = 67
+    ALL_kw = 68
+    COMPONENT_kw = 69
+    COMPONENTWIDTH_kw = 70
+    CONSTRAINT_kw = 71
+    DEFAULT_kw = 72
+    ENUM_kw = 73
+    INSIDE_kw = 74
+    NUMBER_kw = 75
     PROPERTY_kw = 76
     REF_kw = 77
     STRUCT_kw = 78
@@ -563,16 +563,16 @@ class SystemRDLLexer(Lexer):
             "'true'", "'false'", "'na'", "'rw'", "'wr'", "'r'", "'w'", "'rw1'", 
             "'w1'", "'rclr'", "'rset'", "'ruser'", "'woset'", "'woclr'", 
             "'wot'", "'wzs'", "'wzc'", "'wzt'", "'wclr'", "'wset'", "'wuser'", 
-            "'compact'", "'regalign'", "'fullalign'", "'hw'", "'sw'", "'abstract'", 
-            "'all'", "'bothedge'", "'component'", "'componentwidth'", "'constraint'", 
-            "'default'", "'enum'", "'inside'", "'level'", "'negedge'", "'nonsticky'", 
-            "'number'", "'posedge'", "'property'", "'ref'", "'struct'", 
-            "'this'", "'type'", "'alternate'", "'byte'", "'int'", "'precedencetype'", 
-            "'real'", "'shortint'", "'shortreal'", "'signed'", "'with'", 
-            "'within'", "'+'", "'-'", "'!'", "'~'", "'&&'", "'~&'", "'&'", 
-            "'|'", "'||'", "'~|'", "'^'", "'<<'", "'>>'", "'*'", "'**'", 
-            "'/'", "'%'", "'=='", "'='", "'!='", "'<='", "'<'", "'>='", 
-            "'>'", "'@'", "'+='", "'%='" ]
+            "'compact'", "'regalign'", "'fullalign'", "'hw'", "'sw'", "'posedge'", 
+            "'negedge'", "'bothedge'", "'level'", "'nonsticky'", "'abstract'", 
+            "'all'", "'component'", "'componentwidth'", "'constraint'", 
+            "'default'", "'enum'", "'inside'", "'number'", "'property'", 
+            "'ref'", "'struct'", "'this'", "'type'", "'alternate'", "'byte'", 
+            "'int'", "'precedencetype'", "'real'", "'shortint'", "'shortreal'", 
+            "'signed'", "'with'", "'within'", "'+'", "'-'", "'!'", "'~'", 
+            "'&&'", "'~&'", "'&'", "'|'", "'||'", "'~|'", "'^'", "'<<'", 
+            "'>>'", "'*'", "'**'", "'/'", "'%'", "'=='", "'='", "'!='", 
+            "'<='", "'<'", "'>='", "'>'", "'@'", "'+='", "'%='" ]
 
     symbolicNames = [ "<INVALID>",
             "SL_COMMENT", "ML_COMMENT", "BOOLEAN_kw", "BIT_kw", "LONGINT_kw", 
@@ -583,17 +583,17 @@ class SystemRDLLexer(Lexer):
             "WR_kw", "R_kw", "W_kw", "RW1_kw", "W1_kw", "RCLR_kw", "RSET_kw", 
             "RUSER_kw", "WOSET_kw", "WOCLR_kw", "WOT_kw", "WZS_kw", "WZC_kw", 
             "WZT_kw", "WCLR_kw", "WSET_kw", "WUSER_kw", "COMPACT_kw", "REGALIGN_kw", 
-            "FULLALIGN_kw", "HW_kw", "SW_kw", "ABSTRACT_kw", "ALL_kw", "BOTHEDGE_kw", 
+            "FULLALIGN_kw", "HW_kw", "SW_kw", "POSEDGE_kw", "NEGEDGE_kw", 
+            "BOTHEDGE_kw", "LEVEL_kw", "NONSTICKY_kw", "ABSTRACT_kw", "ALL_kw", 
             "COMPONENT_kw", "COMPONENTWIDTH_kw", "CONSTRAINT_kw", "DEFAULT_kw", 
-            "ENUM_kw", "INSIDE_kw", "LEVEL_kw", "NEGEDGE_kw", "NONSTICKY_kw", 
-            "NUMBER_kw", "POSEDGE_kw", "PROPERTY_kw", "REF_kw", "STRUCT_kw", 
-            "THIS_kw", "TYPE_kw", "ALTERNATE_kw", "BYTE_kw", "INT_kw", "PRECEDENCETYPE_kw", 
-            "REAL_kw", "SHORTINT_kw", "SHORTREAL_kw", "SIGNED_kw", "WITH_kw", 
-            "WITHIN_kw", "INT", "HEX_INT", "VLOG_INT", "STRING", "PLUS", 
-            "MINUS", "BNOT", "NOT", "BAND", "NAND", "AND", "OR", "BOR", 
-            "NOR", "XOR", "XNOR", "LSHIFT", "RSHIFT", "MULT", "EXP", "DIV", 
-            "MOD", "EQ", "ASSIGN", "NEQ", "LEQ", "LT", "GEQ", "GT", "AT", 
-            "INC", "ALIGN", "WS", "ID" ]
+            "ENUM_kw", "INSIDE_kw", "NUMBER_kw", "PROPERTY_kw", "REF_kw", 
+            "STRUCT_kw", "THIS_kw", "TYPE_kw", "ALTERNATE_kw", "BYTE_kw", 
+            "INT_kw", "PRECEDENCETYPE_kw", "REAL_kw", "SHORTINT_kw", "SHORTREAL_kw", 
+            "SIGNED_kw", "WITH_kw", "WITHIN_kw", "INT", "HEX_INT", "VLOG_INT", 
+            "STRING", "PLUS", "MINUS", "BNOT", "NOT", "BAND", "NAND", "AND", 
+            "OR", "BOR", "NOR", "XOR", "XNOR", "LSHIFT", "RSHIFT", "MULT", 
+            "EXP", "DIV", "MOD", "EQ", "ASSIGN", "NEQ", "LEQ", "LT", "GEQ", 
+            "GT", "AT", "INC", "ALIGN", "WS", "ID" ]
 
     ruleNames = [ "T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "T__6", 
                   "T__7", "T__8", "T__9", "T__10", "T__11", "T__12", "T__13", 
@@ -606,11 +606,11 @@ class SystemRDLLexer(Lexer):
                   "W_kw", "RW1_kw", "W1_kw", "RCLR_kw", "RSET_kw", "RUSER_kw", 
                   "WOSET_kw", "WOCLR_kw", "WOT_kw", "WZS_kw", "WZC_kw", 
                   "WZT_kw", "WCLR_kw", "WSET_kw", "WUSER_kw", "COMPACT_kw", 
-                  "REGALIGN_kw", "FULLALIGN_kw", "HW_kw", "SW_kw", "ABSTRACT_kw", 
-                  "ALL_kw", "BOTHEDGE_kw", "COMPONENT_kw", "COMPONENTWIDTH_kw", 
+                  "REGALIGN_kw", "FULLALIGN_kw", "HW_kw", "SW_kw", "POSEDGE_kw", 
+                  "NEGEDGE_kw", "BOTHEDGE_kw", "LEVEL_kw", "NONSTICKY_kw", 
+                  "ABSTRACT_kw", "ALL_kw", "COMPONENT_kw", "COMPONENTWIDTH_kw", 
                   "CONSTRAINT_kw", "DEFAULT_kw", "ENUM_kw", "INSIDE_kw", 
-                  "LEVEL_kw", "NEGEDGE_kw", "NONSTICKY_kw", "NUMBER_kw", 
-                  "POSEDGE_kw", "PROPERTY_kw", "REF_kw", "STRUCT_kw", "THIS_kw", 
+                  "NUMBER_kw", "PROPERTY_kw", "REF_kw", "STRUCT_kw", "THIS_kw", 
                   "TYPE_kw", "ALTERNATE_kw", "BYTE_kw", "INT_kw", "PRECEDENCETYPE_kw", 
                   "REAL_kw", "SHORTINT_kw", "SHORTREAL_kw", "SIGNED_kw", 
                   "WITH_kw", "WITHIN_kw", "NUM_BIN", "NUM_DEC", "NUM_HEX", 

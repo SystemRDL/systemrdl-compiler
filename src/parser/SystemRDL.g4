@@ -8,7 +8,8 @@ root_elem : component_def
 // TODO   | struct_def
 // TODO   | constraint_def
           | explicit_component_inst
-// TODO   | property_assignment
+          | local_property_assignment
+          | dynamic_property_assignment
           ;
 
 //------------------------------------------------------------------------------
@@ -39,7 +40,8 @@ component_body_elem : component_def
 // TODO             | struct_def
 // TODO             | constraint_def
                     | explicit_component_inst
-// TODO             | property_assignment
+                    | local_property_assignment
+                    | dynamic_property_assignment
                     ;
 
 
@@ -191,7 +193,23 @@ prop_ref: instance_ref '->' (prop_keyword | ID);
 //------------------------------------------------------------------------------
 // Properties
 //------------------------------------------------------------------------------
+
+local_property_assignment : DEFAULT_kw? normal_prop_assign
+                          | DEFAULT_kw? prop_mod_assign
+                          ;
+
+normal_prop_assign: (prop_keyword | ID) ( ASSIGN prop_assignment_rhs )?;
+
+prop_mod_assign   : prop_mod ID;
+
+dynamic_property_assignment : prop_ref ( ASSIGN prop_assignment_rhs )?;
+
+prop_assignment_rhs : precedencetype_literal
+                    | expr
+                    ;
+
 prop_keyword: kw=(SW_kw|HW_kw|RCLR_kw|RSET_kw|WOCLR_kw|WOSET_kw);
+prop_mod    : kw=(POSEDGE_kw|NEGEDGE_kw|BOTHEDGE_kw|LEVEL_kw|NONSTICKY_kw);
 
 //==============================================================================
 // Lexer
@@ -255,21 +273,24 @@ FULLALIGN_kw : 'fullalign';
 HW_kw        : 'hw';
 SW_kw        : 'sw';
 
+// Property Modifier keywords
+POSEDGE_kw    : 'posedge';
+NEGEDGE_kw    : 'negedge';
+BOTHEDGE_kw   : 'bothedge';
+LEVEL_kw      : 'level';
+NONSTICKY_kw  : 'nonsticky';
+
+
 // Other keywords from 4.4 not covered by above
 ABSTRACT_kw       : 'abstract';
 ALL_kw            : 'all';
-BOTHEDGE_kw       : 'bothedge';
 COMPONENT_kw      : 'component';
 COMPONENTWIDTH_kw : 'componentwidth';
 CONSTRAINT_kw     : 'constraint';
 DEFAULT_kw        : 'default';
 ENUM_kw           : 'enum';
 INSIDE_kw         : 'inside';
-LEVEL_kw          : 'level';
-NEGEDGE_kw        : 'negedge';
-NONSTICKY_kw      : 'nonsticky';
 NUMBER_kw         : 'number';
-POSEDGE_kw        : 'posedge';
 PROPERTY_kw       : 'property';
 REF_kw            : 'ref';
 STRUCT_kw         : 'struct';

@@ -147,9 +147,6 @@ class ExprVisitor(BaseVisitor):
     def visitAddressingtype_literal(self, ctx:SystemRDLParser.Addressingtype_literalContext):
         return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.AddressingType[ctx.kw.text]))
 
-    def visitPrecedencetype_literal(self, ctx:SystemRDLParser.Precedencetype_literalContext):
-        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.PrecedenceType[ctx.kw.text]))
-    
     #---------------------------------------------------------------------------
     # Misc other literals
     #---------------------------------------------------------------------------
@@ -250,9 +247,8 @@ class ExprVisitor(BaseVisitor):
         else:
             prop_token = ctx.ID()
         
-        # TODO
         raise RDLNotSupportedYet(
-            "Expressions that use property references are not supported yet.",
+            "Property references in expressions are not supported.",
             prop_token
         )
     
@@ -266,26 +262,17 @@ class ExprVisitor(BaseVisitor):
     # TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
     #---------------------------------------------------------------------------
 
-    # Visit a parse tree produced by SystemRDLParser#array_literal.
     def visitArray_literal(self, ctx:SystemRDLParser.Array_literalContext):
         raise NotImplementedError
 
-
-    # Visit a parse tree produced by SystemRDLParser#struct_literal.
     def visitStruct_literal(self, ctx:SystemRDLParser.Struct_literalContext):
         raise NotImplementedError
 
-
-    # Visit a parse tree produced by SystemRDLParser#enum_literal.
     def visitEnum_literal(self, ctx:SystemRDLParser.Enum_literalContext):
         raise NotImplementedError
 
-    # Visit a parse tree produced by SystemRDLParser#concatenate.
     def visitConcatenate(self, ctx:SystemRDLParser.ConcatenateContext):
         raise NotImplementedError
 
-    # Visit a parse tree produced by SystemRDLParser#replicate.
     def visitReplicate(self, ctx:SystemRDLParser.ReplicateContext):
         raise NotImplementedError
-    
-

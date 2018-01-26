@@ -10,7 +10,7 @@ from .namespace import NamespaceRegistry
 from .parameter import Parameter
 from . import type_placeholders
 from . import expressions
-from .errors import RDLCompileError
+from .errors import RDLCompileError, RDLNotSupportedYet
 
 from ..model import component as comp
 from ..model import rdl_types
@@ -27,6 +27,10 @@ class ComponentVisitor(BaseVisitor):
         self.component = self.comp_type()
         self.component.name = def_name
         self.component.parameters = param_defs
+        
+        # Scratchpad of property settings encountered in body of component
+        self.property_dict = {}
+        self.default_property_dict = {}
     
     #---------------------------------------------------------------------------
     # Component Definitions
@@ -41,6 +45,8 @@ class ComponentVisitor(BaseVisitor):
         # Visit all component elements.
         # Their visitors will apply changes to the current component
         self.visitChildren(ctx)
+        
+        self.apply_local_properties()
         
         self.NS.exit_scope()
         return(self.component)
@@ -418,6 +424,105 @@ class ComponentVisitor(BaseVisitor):
         # Note: AssignmentCast is handled in the visitComponent_insts Visitor
         assign_expr = visitor.visit(ctx.expr())
         return(param_name, assign_expr)
+    
+    #---------------------------------------------------------------------------
+    # Property Assignments
+    #---------------------------------------------------------------------------
+    def visitLocal_property_assignment(self, ctx:SystemRDLParser.Local_property_assignmentContext):
+        
+        default = (ctx.DEFAULT_kw() is not None)
+        
+        if(ctx.normal_prop_assign() is not None):
+            prop_token, prop_name, rhs = self.visit(ctx.normal_prop_assign())
+        else:
+            prop_token, prop_name, rhs = self.visit(ctx.prop_mod_assign())
+        
+        if(default):
+            if(prop_name in self.default_property_dict):
+                raise RDLCompileError(
+                    "Default property '%s' was already assigned in this scope" % prop_name,
+                    prop_token
+                )
+            else:
+                self.default_property_dict[prop_name] = (prop_token, rhs)
+        else:
+            if(prop_name in self.property_dict):
+                raise RDLCompileError(
+                    "Property '%s' was already assigned in this scope" % prop_name,
+                    prop_token
+                )
+            else:
+                self.property_dict[prop_name] = (prop_token, rhs)
+        
+    def visitDynamic_property_assignment(self, ctx:SystemRDLParser.Dynamic_property_assignmentContext):
+        # TODO
+        # TODO: If lhs is "encode" then enforce that rhs expr is a single ID token
+        raise NotImplementedError
+    
+    def visitNormal_prop_assign(self, ctx:SystemRDLParser.Normal_prop_assignContext):
+        
+        # Get property string
+        if(ctx.prop_keyword() is not None):
+            prop_token = self.visit(ctx.prop_keyword())
+            prop_name = prop_token.text
+        else:
+            prop_token = ctx.ID()
+            prop_name = prop_token.getText()
+        
+        if(prop_name == "encode"):
+            # TODO: If lhs is "encode" then enforce that rhs is a single ID token
+            # that references an enum type name
+            # Set rhs directly to the enum type
+            raise RDLNotSupportedYet(
+                "'encode' property not supported yet. Coming soon!",
+                prop_token
+            )
+        
+        if(ctx.prop_assignment_rhs() is not None):
+            rhs = self.visit(ctx.prop_assignment_rhs())
+        else:
+            rhs = None
+        
+        return(prop_token, prop_name, rhs)
+
+    def visitProp_mod_assign(self, ctx:SystemRDLParser.Prop_mod_assignContext):
+        prop_token = self.visit(ctx.prop_mod())
+        prop_name = prop_token.text
+        
+        signal_name = ctx.ID().getText()
+        inst = self.NS.lookup_element(signal_name)
+        if(inst is None):
+            raise RDLCompileError(
+                "Reference to '%s' not found" % signal_name,
+                ctx.ID()
+            )
+        if((type(inst) != comp.VectorInst) or (type(inst.typ) != comp.Signal)):
+            raise RDLCompileError(
+                "Reference '%s' is not a signal instance" % signal_name,
+                ctx.ID()
+            )
+            
+        rhs = inst
+        return(prop_token, prop_name, rhs)
+        
+    def visitProp_assignment_rhs(self, ctx:SystemRDLParser.Prop_assignment_rhsContext):
+        if(ctx.expr() is not None):
+            visitor = ExprVisitor(self.NS)
+            rhs = visitor.visit(ctx.expr())
+        else:
+            rhs = self.visit(ctx.precedencetype_literal())
+            
+        return(rhs)
+    
+    def visitPrecedencetype_literal(self, ctx:SystemRDLParser.Precedencetype_literalContext):
+        return(rdl_types.PrecedenceType[ctx.kw.text])
+    
+    def apply_local_properties(self):
+        # TODO
+        if(len(self.default_property_dict)):
+            raise NotImplementedError
+        if(len(self.property_dict)):
+            raise NotImplementedError
     
     #---------------------------------------------------------------------------
     # Array and Range suffixes

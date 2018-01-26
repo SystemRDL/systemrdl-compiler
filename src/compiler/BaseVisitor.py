@@ -46,3 +46,8 @@ class BaseVisitor(SystemRDLVisitor):
     
     def visitProp_keyword(self, ctx:SystemRDLParser.Prop_keywordContext):
         return(self.passthru_kw_token(ctx))
+    
+    def visitProp_mod(self, ctx:SystemRDLParser.Prop_modContext):
+        return(self.passthru_kw_token(ctx))
+        
+    

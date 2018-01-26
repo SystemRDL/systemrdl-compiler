@@ -12,4 +12,8 @@ addrmap my_design {
     my_reg reg_a;
     my_reg reg_b;
     my_reg reg_c;
+
+    signal {} sig_a;
+    
+    encode = foo;
 };
