@@ -30,7 +30,6 @@ class ComponentVisitor(BaseVisitor):
         
         # Scratchpad of property settings encountered in body of component
         self.property_dict = {}
-        self.default_property_dict = {}
     
     #---------------------------------------------------------------------------
     # Component Definitions
@@ -40,7 +39,7 @@ class ComponentVisitor(BaseVisitor):
         
         # Re-Load any parameters into the local scope
         for param in self.component.parameters:
-            self.NS.register_element(param.name, param)
+            self.NS.register_element(param.name, param, None)
         
         # Visit all component elements.
         # Their visitors will apply changes to the current component
@@ -94,7 +93,7 @@ class ComponentVisitor(BaseVisitor):
         comp_def = self.define_component(body, type_token, def_name, param_defs)
         
         # Since the definition is named, register it with the namespace
-        self.NS.register_type(def_name, comp_def)
+        self.NS.register_type(def_name, comp_def, ctx.ID())
         
         return(comp_def)
     
@@ -320,8 +319,8 @@ class ComponentVisitor(BaseVisitor):
             )
         
         # Assign instantiation info
-        if(type(comp_def) in [comp.Field, comp.Signal]):
-            inst = comp.VectorInst(comp_def)
+        if(issubclass(comp_def.INST_TYPE, comp.VectorInst)):
+            inst = comp_def.INST_TYPE(comp_def)
             if(range_suffix is not None):
                 inst.msb, inst.lsb = range_suffix
             if(len(array_suffixes) != 0):
@@ -329,7 +328,7 @@ class ComponentVisitor(BaseVisitor):
             
             inst.reset_value = field_inst_reset
         else:
-            inst = comp.AddressableInst(comp_def)
+            inst = comp_def.INST_TYPE(comp_def)
             inst.addr_offset = inst_addr_fixed
             inst.addr_align = inst_addr_align
             if(len(array_suffixes) != 0):
@@ -347,7 +346,7 @@ class ComponentVisitor(BaseVisitor):
         comp_def.instances.append(inst)
         self.component.children.append(inst)
         
-        self.NS.register_element(inst_name, inst)
+        self.NS.register_element(inst_name, inst, ctx.ID())
         
         return(None)
         
@@ -399,7 +398,7 @@ class ComponentVisitor(BaseVisitor):
         param = Parameter(param_type, param_name, default_expr)
         
         # Register it in the parameter def namespace scope
-        self.NS.register_element(param_name, param)
+        self.NS.register_element(param_name, param, ctx.ID())
         
         return(param)
     
@@ -438,13 +437,7 @@ class ComponentVisitor(BaseVisitor):
             prop_token, prop_name, rhs = self.visit(ctx.prop_mod_assign())
         
         if(default):
-            if(prop_name in self.default_property_dict):
-                raise RDLCompileError(
-                    "Default property '%s' was already assigned in this scope" % prop_name,
-                    prop_token
-                )
-            else:
-                self.default_property_dict[prop_name] = (prop_token, rhs)
+            self.NS.register_default_property(prop_name, (prop_token, rhs), prop_token)
         else:
             if(prop_name in self.property_dict):
                 raise RDLCompileError(
@@ -496,7 +489,7 @@ class ComponentVisitor(BaseVisitor):
                 "Reference to '%s' not found" % signal_name,
                 ctx.ID()
             )
-        if((type(inst) != comp.VectorInst) or (type(inst.typ) != comp.Signal)):
+        if(type(inst) != comp.SignalInst):
             raise RDLCompileError(
                 "Reference '%s' is not a signal instance" % signal_name,
                 ctx.ID()
@@ -519,8 +512,10 @@ class ComponentVisitor(BaseVisitor):
     
     def apply_local_properties(self):
         # TODO
-        if(len(self.default_property_dict)):
-            raise NotImplementedError
+        
+        # TODO: loop through all properties that apply to this component
+        # Look up each one in the default namespace and apply the value if found
+        
         if(len(self.property_dict)):
             raise NotImplementedError
     
@@ -550,7 +545,7 @@ class ComponentVisitor(BaseVisitor):
     # Type Handling
     #---------------------------------------------------------------------------
     _DataType_Map = {
-        SystemRDLParser.BIT_kw              : type_placeholders.Bit,
+        SystemRDLParser.BIT_kw              : int,
         SystemRDLParser.LONGINT_kw          : int,
         SystemRDLParser.ACCESSTYPE_kw       : rdl_types.AccessType,
         SystemRDLParser.ADDRESSINGTYPE_kw   : rdl_types.AddressingType,

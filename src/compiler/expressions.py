@@ -136,9 +136,9 @@ class _BinaryIntExpr(Expr):
         self.op = [l, r]
         
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[0].predict_type() not in [int, bool]):
             raise RDLCompileError("Left operand of expression is not a compatible numeric type", self.err_ctx)
-        if(self.op[1].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[1].predict_type() not in [int, bool]):
             raise RDLCompileError("Right operand of expression is not a compatible numeric type", self.err_ctx)
         return(int)
     
@@ -218,7 +218,7 @@ class _UnaryIntExpr(Expr):
         self.op = [n]
         
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[0].predict_type() not in [int, bool]):
             raise RDLCompileError("Operand of expression is not a compatible numeric type", self.err_ctx)
         return(int)
     
@@ -258,9 +258,9 @@ class _RelationalExpr(Expr):
         print("TODO: add support for non-numeric comparisons")
         
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[0].predict_type() not in [int, bool]):
             raise RDLCompileError("Left operand of expression is not a compatible numeric type", self.err_ctx)
-        if(self.op[1].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[1].predict_type() not in [int, bool]):
             raise RDLCompileError("Right operand of expression is not a compatible numeric type", self.err_ctx)
         return(bool)
     
@@ -319,7 +319,7 @@ class _ReductionExpr(Expr):
         self.op = [n]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[0].predict_type() not in [int, bool]):
             raise RDLCompileError("Operand of expression is not a compatible numeric type", self.err_ctx)
         return(int)
     
@@ -391,9 +391,9 @@ class _BoolExpr(Expr):
         self.op = [l,r]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[0].predict_type() not in [int, bool]):
             raise RDLCompileError("Left operand of expression is not a compatible boolean type", self.err_ctx)
-        if(self.op[1].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[1].predict_type() not in [int, bool]):
             raise RDLCompileError("Right operand of expression is not a compatible boolean type", self.err_ctx)
         return(bool)
     
@@ -437,9 +437,9 @@ class _ExpShiftExpr(Expr):
         self.op = [l,r]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[0].predict_type() not in [int, bool]):
             raise RDLCompileError("Left operand of expression is not a compatible numeric type", self.err_ctx)
-        if(self.op[1].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[1].predict_type() not in [int, bool]):
             raise RDLCompileError("Right operand of expression is not a compatible numeric type", self.err_ctx)
         return(int)
     
@@ -495,7 +495,7 @@ class TernaryExpr(Expr):
         self.op = [i, j, k]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[0].predict_type() not in [int, bool]):
             raise RDLCompileError("Conditional operand of expression is not a compatible boolean type", self.err_ctx)
         
         # Type of j and k shall be compatible
@@ -566,9 +566,9 @@ class WidthCast(Expr):
         
     def predict_type(self):
         if(self.cast_width is None):
-            if(self.op[1].predict_type() not in [int, bool, tp.Bit]):
+            if(self.op[1].predict_type() not in [int, bool]):
                 raise RDLCompileError("Width operand of cast expression is not a compatible numeric type", self.err_ctx)
-        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[0].predict_type() not in [int, bool]):
             raise RDLCompileError("Value operand of cast expression cannot be cast to an integer", self.err_ctx)
         
         return(int)
@@ -617,7 +617,7 @@ class BoolCast(Expr):
         self.op = [n]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool, tp.Bit]):
+        if(self.op[0].predict_type() not in [int, bool]):
             raise RDLCompileError("Value operand of cast expression cannot be cast to a boolean", self.err_ctx)
         return(bool)
     
@@ -703,9 +703,9 @@ class AssignmentCast(Expr):
     def predict_type(self):
         op_type = self.op[0].predict_type()
         
-        if(self.dest_type in [int, bool, tp.Bit]):
+        if(self.dest_type in [int, bool]):
             # Number-like types are compatible to each-other
-            if(op_type not in [int, bool, tp.Bit]):
+            if(op_type not in [int, bool]):
                 raise RDLCompileError("Assignment is not compatible with the destination type", self.err_ctx)
         elif(self.dest_type == tp.Array):
             if(op_type != tp.Array):
@@ -731,7 +731,5 @@ class AssignmentCast(Expr):
         
         if(self.dest_type == bool):
             return(bool(v))
-        elif(self.dest_type == tp.Bit):
-            return(int(v) & 1)
         else:
             return(v)

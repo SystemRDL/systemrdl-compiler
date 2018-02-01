@@ -1,6 +1,95 @@
+#===============================================================================
+# Instances
+#===============================================================================
 
+class Inst:
+    def __init__(self, typ):
+        
+        # Component type definition that this instantiates
+        self.typ = typ
+        
+        # If internal vs external. None if undefined (will inherit default)
+        self.external = None
+        
+        # Instance name
+        self.name = None
+        
+        # Reference to the parent component of this instance
+        self.parent = None
+        
+
+class AddressableInst(Inst):
+    """
+    Instance wrapper for addressable components:
+        reg, regfile, addrmap, mem
+    """
+    def __init__(self, typ):
+        super().__init__(typ)
+        
+        # Relative address offset from the parent component
+        self.addr_offset = None
+        
+        # Alignment
+        self.addr_align = None
+        
+        #------------------------------
+        # Array Properties
+        #------------------------------
+        # If true, then array_size and array_stride are valid
+        self.is_array = False
+        
+        # List of sizes for each array dimension.
+        # Last item in list iterates the most frequently
+        self.array_size = None
+        
+        # Address offset between array elements
+        self.array_stride = None
+
+
+class VectorInst(Inst):
+    """
+    Instance wrapper for vector-like components:
+        field, signal
+    """
+    def __init__(self, typ):
+        super().__init__(typ)
+        
+        # Bit width and low-offset
+        self.width = None
+        self.offset = None
+        self.msb = None
+        self.lsb = None
+        
+        # Instance reset value (for Fields only)
+        self.reset_value = None
+
+#-------------------------------------------------------------------------------
+class FieldInst(VectorInst):
+    pass
+
+class RegInst(AddressableInst):
+    pass
+    
+class RegfileInst(AddressableInst):
+    pass
+    
+class AddrmapInst(AddressableInst):
+    pass
+    
+class SignalInst(VectorInst):
+    pass
+    
+class MemInst(AddressableInst):
+    pass
+    
+
+#===============================================================================
+# Definitions
+#===============================================================================
 class ComponentDef:
     # field, reg, regfile, addrmap, signal, mem
+    
+    INST_TYPE = None
     
     def __init__(self):
         # Type name
@@ -50,91 +139,26 @@ class ComponentDef:
 
 #-------------------------------------------------------------------------------
 class Root(ComponentDef):
-    
     def __init__(self):
         super().__init__()
         # Component definitions in the global root scope
         self.comp_defs = {}
     
 class Field(ComponentDef):
-    pass
+    INST_TYPE = FieldInst
 
 class Reg(ComponentDef):
-    pass
+    INST_TYPE = RegInst
     
 class Regfile(ComponentDef):
-    pass
+    INST_TYPE = RegfileInst
     
 class Addrmap(ComponentDef):
-    pass
+    INST_TYPE = AddrmapInst
     
 class Signal(ComponentDef):
-    pass
+    INST_TYPE = SignalInst
     
 class Mem(ComponentDef):
-    pass
+    INST_TYPE = MemInst
 
-#===============================================================================
-# Instances
-#===============================================================================
-
-class Inst:
-    def __init__(self, typ:ComponentDef):
-        
-        # Component type definition that this instantiates
-        self.typ = typ
-        
-        # If internal vs external. None if undefined (will inherit default)
-        self.external = None
-        
-        # Instance name
-        self.name = None
-        
-        # Reference to the parent component of this instance
-        self.parent = None
-        
-
-class AddressableInst(Inst):
-    """
-    Instance wrapper for addressable components:
-        reg, regfile, addrmap, mem
-    """
-    def __init__(self, typ:ComponentDef):
-        super().__init__(typ)
-        
-        # Relative address offset from the parent component
-        self.addr_offset = None
-        
-        # Alignment
-        self.addr_align = None
-        
-        #------------------------------
-        # Array Properties
-        #------------------------------
-        # If true, then array_size and array_stride are valid
-        self.is_array = False
-        
-        # List of sizes for each array dimension.
-        # Last item in list iterates the most frequently
-        self.array_size = None
-        
-        # Address offset between array elements
-        self.array_stride = None
-
-
-class VectorInst(Inst):
-    """
-    Instance wrapper for vector-like components:
-        field, signal
-    """
-    def __init__(self, typ:ComponentDef):
-        super().__init__(typ)
-        
-        # Bit width and low-offset
-        self.width = None
-        self.offset = None
-        self.msb = None
-        self.lsb = None
-        
-        # Instance reset value (for Fields only)
-        self.reset_value = None

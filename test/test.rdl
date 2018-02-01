@@ -15,5 +15,5 @@ addrmap my_design {
 
     signal {} sig_a;
     
-    encode = foo;
+    //encode = foo;
 };

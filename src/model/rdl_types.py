@@ -35,7 +35,7 @@ class OnWriteType(AutoEnum):
 
 class AddressingType(AutoEnum):
     compact     = ()
-    realign     = ()
+    regalign    = ()
     fullalign   = ()
 
 class PrecedenceType(AutoEnum):

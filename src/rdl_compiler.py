@@ -59,7 +59,7 @@ class RDLCompiler:
         top_def = self.root.comp_defs[top_def_name]
         
         # Create a top-level instance
-        top_inst = comp.AddressableInst(top_def)
+        top_inst = top_def.INST_TYPE(top_def)
         top_inst.name = top_def.name
         
         # Override parameters as needed
@@ -88,7 +88,7 @@ class ElabExpressionsListener(walker.RDLListener):
     def enter_Component_before(self, ctx):
         
         # Evaluate instance object expressions
-        if(type(ctx.inst) == comp.AddressableInst):
+        if(issubclass(type(ctx.inst), comp.AddressableInst)):
             if(issubclass(type(ctx.inst.addr_offset), Expr)):
                 ctx.inst.addr_offset.resolve_expr_width()
                 ctx.inst.addr_offset = ctx.inst.addr_offset.get_value()
@@ -107,7 +107,7 @@ class ElabExpressionsListener(walker.RDLListener):
                 ctx.inst.array_stride.resolve_expr_width()
                 ctx.inst.array_stride = ctx.inst.array_stride.get_value()
                 
-        elif(type(ctx.inst) == comp.VectorInst):
+        elif(issubclass(type(ctx.inst), comp.VectorInst)):
             if(issubclass(type(ctx.inst.width), Expr)):
                 ctx.inst.width.resolve_expr_width()
                 ctx.inst.width = ctx.inst.width.get_value()
