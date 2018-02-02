@@ -433,6 +433,8 @@ class ComponentVisitor(BaseVisitor):
         
         if(ctx.normal_prop_assign() is not None):
             prop_token, prop_name, rhs = self.visit(ctx.normal_prop_assign())
+        elif(ctx.encode_prop_assign() is not None):
+            prop_token, prop_name, rhs = self.visit(ctx.encode_prop_assign())
         else:
             prop_token, prop_name, rhs = self.visit(ctx.prop_mod_assign())
         
@@ -449,7 +451,6 @@ class ComponentVisitor(BaseVisitor):
         
     def visitDynamic_property_assignment(self, ctx:SystemRDLParser.Dynamic_property_assignmentContext):
         # TODO
-        # TODO: If lhs is "encode" then enforce that rhs expr is a single ID token
         raise NotImplementedError
     
     def visitNormal_prop_assign(self, ctx:SystemRDLParser.Normal_prop_assignContext):
@@ -462,22 +463,30 @@ class ComponentVisitor(BaseVisitor):
             prop_token = ctx.ID()
             prop_name = prop_token.getText()
         
-        if(prop_name == "encode"):
-            # TODO: If lhs is "encode" then enforce that rhs is a single ID token
-            # that references an enum type name
-            # Set rhs directly to the enum type
-            raise RDLNotSupportedYet(
-                "'encode' property not supported yet. Coming soon!",
-                prop_token
-            )
-        
         if(ctx.prop_assignment_rhs() is not None):
             rhs = self.visit(ctx.prop_assignment_rhs())
         else:
             rhs = None
         
         return(prop_token, prop_name, rhs)
-
+    
+    def visitEncode_prop_assign(self, ctx:SystemRDLParser.Encode_prop_assignContext):
+        # Get property string
+        prop_token = ctx.ENCODE_kw()
+        prop_name = prop_token.getText()
+        
+        enum_name = ctx.ID().get_Text()
+        # TODO: Enforce that rhs references an enum type name
+        # Set rhs directly to the enum type
+        raise RDLNotSupportedYet(
+            "'encode' property not supported yet. Coming soon!",
+            prop_token
+        )
+        rhs = None
+        
+        return(prop_token, prop_name, rhs)
+        
+        
     def visitProp_mod_assign(self, ctx:SystemRDLParser.Prop_mod_assignContext):
         prop_token = self.visit(ctx.prop_mod())
         prop_name = prop_token.text

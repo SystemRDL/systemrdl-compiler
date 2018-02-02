@@ -294,18 +294,23 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SystemRDLParser#dynamic_property_assignment.
+    def visitDynamic_property_assignment(self, ctx:SystemRDLParser.Dynamic_property_assignmentContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SystemRDLParser#normal_prop_assign.
     def visitNormal_prop_assign(self, ctx:SystemRDLParser.Normal_prop_assignContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by SystemRDLParser#prop_mod_assign.
-    def visitProp_mod_assign(self, ctx:SystemRDLParser.Prop_mod_assignContext):
+    # Visit a parse tree produced by SystemRDLParser#encode_prop_assign.
+    def visitEncode_prop_assign(self, ctx:SystemRDLParser.Encode_prop_assignContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by SystemRDLParser#dynamic_property_assignment.
-    def visitDynamic_property_assignment(self, ctx:SystemRDLParser.Dynamic_property_assignmentContext):
+    # Visit a parse tree produced by SystemRDLParser#prop_mod_assign.
+    def visitProp_mod_assign(self, ctx:SystemRDLParser.Prop_mod_assignContext):
         return self.visitChildren(ctx)
 
 

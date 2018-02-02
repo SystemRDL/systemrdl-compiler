@@ -195,14 +195,19 @@ prop_ref: instance_ref '->' (prop_keyword | ID);
 //------------------------------------------------------------------------------
 
 local_property_assignment : DEFAULT_kw? normal_prop_assign
+                          | DEFAULT_kw? encode_prop_assign
                           | DEFAULT_kw? prop_mod_assign
                           ;
 
+dynamic_property_assignment : instance_ref '->' normal_prop_assign
+                            | instance_ref '->' encode_prop_assign
+                            ;
+
 normal_prop_assign: (prop_keyword | ID) ( ASSIGN prop_assignment_rhs )?;
 
-prop_mod_assign   : prop_mod ID;
+encode_prop_assign: ENCODE_kw ASSIGN ID;
 
-dynamic_property_assignment : prop_ref ( ASSIGN prop_assignment_rhs )?;
+prop_mod_assign   : prop_mod ID;
 
 prop_assignment_rhs : precedencetype_literal
                     | expr
@@ -289,6 +294,7 @@ COMPONENTWIDTH_kw : 'componentwidth';
 CONSTRAINT_kw     : 'constraint';
 DEFAULT_kw        : 'default';
 ENUM_kw           : 'enum';
+ENCODE_kw         : 'encode';
 INSIDE_kw         : 'inside';
 NUMBER_kw         : 'number';
 PROPERTY_kw       : 'property';
