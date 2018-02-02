@@ -5,32 +5,29 @@ from ..model import rdl_types as rdlt
         
 class PropertyRuleBook:
     def __init__(self):
+        pass
         
-        TODO = None
+#===============================================================================
+# Mutual Exclude property groups
+grp_A = set()
+grp_B = set()
+grp_C = set()
+grp_D = set()
+grp_E = set()
+grp_F = set()
+grp_G = set()
+grp_H = set()
+grp_I = set()
+grp_J = set()
+grp_K = set()
+grp_L = set()
+grp_M = set()
+grp_N = set()
+grp_O = set()
+grp_P = set()
+grp_Q = set()
+grp_R = set()
         
-        # Mutual Exclude property groups
-        grp_A = set()
-        grp_B = set()
-        grp_C = set()
-        grp_D = set()
-        grp_E = set()
-        grp_F = set()
-        grp_G = set()
-        grp_H = set()
-        grp_I = set()
-        grp_J = set()
-        grp_K = set()
-        grp_L = set()
-        grp_M = set()
-        grp_N = set()
-        grp_O = set()
-        grp_P = set()
-        grp_Q = set()
-        grp_R = set()
-        
-        pe = PropertyRuleEntry
-        self.rules = {}
-
 #===============================================================================
 # Base property
 #===============================================================================
@@ -65,14 +62,21 @@ class Prop_ispresent(PropertyRule):
     dyn_assign_allowed = True
     mutex_set = None
 
-class Prop_dontcompare(PropertyRule):
+class Prop_donttest(PropertyRule):
+    """
+    Indicates the component is not included in structural testing.
+    """
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile, comp.Field]
     valid_types = [bool, int]
     default = False
     dyn_assign_allowed = True
     mutex_set = grp_O
 
-class Prop_donttest(PropertyRule):
+class Prop_dontcompare(PropertyRule):
+    """
+    Indicates the components read data shall be discarded and not compared
+    against expected results.
+    """
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile, comp.Field]
     valid_types = [bool, int]
     default = False
@@ -119,20 +123,29 @@ class Prop_hdl_path_slice(PropertyRule):
 #===============================================================================
 
 class Prop_signalwidth(PropertyRule):
+    """
+    Width of the signal.
+    """
     bindable_to = [comp.Signal]
     valid_types = [int]
     default = TODO
     dyn_assign_allowed = False
     mutex_set = None
 
-class Prop_async(PropertyRule):
+class Prop_sync(PropertyRule):
+    """
+    Signal is synchronous to the clock of the component.
+    """
     bindable_to = [comp.Signal]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
     mutex_set = grp_N
 
-class Prop_sync(PropertyRule):
+class Prop_async(PropertyRule):
+    """
+    Signal is asynchronous to the clock of the component.
+    """
     bindable_to = [comp.Signal]
     valid_types = [bool]
     default = TODO
@@ -140,6 +153,11 @@ class Prop_sync(PropertyRule):
     mutex_set = grp_N
 
 class Prop_cpuif_reset(PropertyRule):
+    """
+    Default signal to use for resetting the software interface logic. If
+    cpuif_reset is not defined, this reverts to the default reset signal. This
+    parameter only controls the CPU interface of a generated slave.
+    """
     bindable_to = [comp.Signal]
     valid_types = [bool]
     default = False
@@ -147,6 +165,10 @@ class Prop_cpuif_reset(PropertyRule):
     mutex_set = None
 
 class Prop_field_reset(PropertyRule):
+    """
+    Default signal to use for resetting field implementations. If field_reset
+    is not defined, this reverts to the default reset signal.
+    """
     bindable_to = [comp.Signal]
     valid_types = [bool]
     default = False
@@ -199,15 +221,18 @@ class Prop_next(PropertyRule):
     mutex_set = None
 
 class Prop_reset(PropertyRule):
+    """
+    The reset value for the field when resetsignal is asserted.
+    """
     bindable_to = [comp.Field]
-    valid_types = [int, TODO]
-    default = TODO
+    valid_types = [int, comp.FieldInst]
+    default = None
     dyn_assign_allowed = True
     mutex_set = None
 
 class Prop_resetsignal(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [TODO]
+    valid_types = [comp.Signal]
     default = None
     dyn_assign_allowed = True
     mutex_set = None
@@ -232,8 +257,8 @@ class Prop_rset(PropertyRule):
     
 class Prop_onread(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [TODO]
-    default = TODO
+    valid_types = [rdlt.OnReadType]
+    default = None
     dyn_assign_allowed = True
     mutex_set = grp_P
     
@@ -241,21 +266,21 @@ class Prop_onread(PropertyRule):
 class Prop_woclr(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_set = grp_B
 
 class Prop_woset(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_set = grp_B
 
 class Prop_onwrite(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [TODO]
-    default = TODO
+    valid_types = [rdlt.OnWriteType]
+    default = None
     dyn_assign_allowed = True
     mutex_set = grp_B
 
@@ -276,23 +301,37 @@ class Prop_swwel(PropertyRule):
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_swmod(PropertyRule):
+    """
+    Indicates a generated output signal shall notify hardware when this field is
+    modified by software
+    """
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_set = None
 
 class Prop_swacc(PropertyRule):
+    """
+    Indicates a generated output signal shall notify hardware when this field is
+    accessed by software
+    """
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_set = None
 
 class Prop_singlepulse(PropertyRule):
+    """
+    Field asserts for one cycle when written 1 and then clears back to 0
+    on the next cycle
+    If set, field shall be instantiated with a width of 1 and the reset value
+    shall be specified as 0
+    """
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_set = None
 
