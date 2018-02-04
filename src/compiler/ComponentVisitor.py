@@ -435,8 +435,12 @@ class ComponentVisitor(BaseVisitor):
             prop_token, prop_name, rhs = self.visit(ctx.normal_prop_assign())
         elif(ctx.encode_prop_assign() is not None):
             prop_token, prop_name, rhs = self.visit(ctx.encode_prop_assign())
+        elif(ctx.prop_mod_assign() is not None):
+            prop_mod_token, prop_mod = self.visit(ctx.prop_mod_assign())
+            # TODO: Set intr property to True and apply prop_mod
+            raise NotImplementedError
         else:
-            prop_token, prop_name, rhs = self.visit(ctx.prop_mod_assign())
+            raise RuntimeError
         
         if(default):
             self.NS.register_default_property(prop_name, (prop_token, rhs), prop_token)
@@ -488,24 +492,18 @@ class ComponentVisitor(BaseVisitor):
         
         
     def visitProp_mod_assign(self, ctx:SystemRDLParser.Prop_mod_assignContext):
-        prop_token = self.visit(ctx.prop_mod())
-        prop_name = prop_token.text
+        prop_mod_token = self.visit(ctx.prop_mod())
+        prop_mod = prop_mod_token.text
         
-        signal_name = ctx.ID().getText()
-        inst = self.NS.lookup_element(signal_name)
-        if(inst is None):
+        intr_token = ctx.ID()
+        
+        if(intr_token.getText() != "intr"):
             raise RDLCompileError(
-                "Reference to '%s' not found" % signal_name,
-                ctx.ID()
+                "extraneous input '%s' expecting 'intr'" % intr_token.getText(),
+                intr_token
             )
-        if(type(inst) != comp.SignalInst):
-            raise RDLCompileError(
-                "Reference '%s' is not a signal instance" % signal_name,
-                ctx.ID()
-            )
-            
-        rhs = inst
-        return(prop_token, prop_name, rhs)
+
+        return(prop_mod_token, prop_mod)
         
     def visitProp_assignment_rhs(self, ctx:SystemRDLParser.Prop_assignment_rhsContext):
         if(ctx.expr() is not None):

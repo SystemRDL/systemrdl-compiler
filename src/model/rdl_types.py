@@ -42,6 +42,12 @@ class PrecedenceType(AutoEnum):
     hw  = ()
     sw  = ()
 
+class InterruptType(AutoEnum):
+    level  = ()
+    posedge  = ()
+    negedge  = ()
+    bothedge  = ()
+
 #===============================================================================
 class UserEnum(enum.Enum):
     """

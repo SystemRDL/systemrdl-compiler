@@ -5,28 +5,24 @@ from ..model import rdl_types as rdlt
         
 class PropertyRuleBook:
     def __init__(self):
-        pass
         
-#===============================================================================
-# Mutual Exclude property groups
-grp_A = set()
-grp_B = set()
-grp_C = set()
-grp_D = set()
-grp_E = set()
-grp_F = set()
-grp_G = set()
-grp_H = set()
-grp_I = set()
-grp_J = set()
-grp_K = set()
-grp_L = set()
-grp_M = set()
-grp_N = set()
-grp_O = set()
-grp_P = set()
-grp_Q = set()
-grp_R = set()
+        # Auto-discover all properties defined below and load into dict
+        self.rdl_properties = {}
+        for prop in PropertyRule.__subclasses__():
+            # All rule classes are named:
+            #   Prop_<prop name>
+            prop_name = prop.__name__.replace("Prop_", "")
+            self.rdl_properties[prop_name] = prop
+        
+        self.user_properties = {}
+    
+    def lookup_property(self, prop_name):
+        if(prop_name in self.rdl_properties):
+            return(self.rdl_properties[prop_name])
+        elif(prop_name in self.user_properties):
+            return(self.user_properties[prop_name])
+        else:
+            return(None)
         
 #===============================================================================
 # Base property
@@ -36,7 +32,11 @@ class PropertyRule:
     valid_types = []
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
+
+
+# Placeholder for all my todos below
+TODO = None
 
 #===============================================================================
 # General Properties
@@ -46,21 +46,21 @@ class Prop_name(PropertyRule):
     valid_types = [str]
     default = ""
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_desc(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal]
     valid_types = [str]
     default = ""
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_ispresent(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal]
     valid_types = [bool]
     default = True
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_donttest(PropertyRule):
     """
@@ -70,7 +70,7 @@ class Prop_donttest(PropertyRule):
     valid_types = [bool, int]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_O
+    mutex_group = "O"
 
 class Prop_dontcompare(PropertyRule):
     """
@@ -81,42 +81,42 @@ class Prop_dontcompare(PropertyRule):
     valid_types = [bool, int]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_O
+    mutex_group = "O"
 
 class Prop_errextbus(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 class Prop_hdl_path(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
     valid_types = [str]
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_hdl_path_gate(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
     valid_types = [str]
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_hdl_path_gate_slice(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
     valid_types = [TODO] # <-- Array of string
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_hdl_path_slice(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
     valid_types = [TODO] # <-- Array of string
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 #===============================================================================
 # Signal Properties
@@ -130,7 +130,7 @@ class Prop_signalwidth(PropertyRule):
     valid_types = [int]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 class Prop_sync(PropertyRule):
     """
@@ -140,7 +140,7 @@ class Prop_sync(PropertyRule):
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_N
+    mutex_group = "N"
 
 class Prop_async(PropertyRule):
     """
@@ -150,7 +150,7 @@ class Prop_async(PropertyRule):
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_N
+    mutex_group = "N"
 
 class Prop_cpuif_reset(PropertyRule):
     """
@@ -162,7 +162,7 @@ class Prop_cpuif_reset(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_field_reset(PropertyRule):
     """
@@ -173,21 +173,21 @@ class Prop_field_reset(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_activelow(PropertyRule):
     bindable_to = [comp.Signal]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_A
+    mutex_group = "A"
 
 class Prop_activehigh(PropertyRule):
     bindable_to = [comp.Signal]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_A
+    mutex_group = "A"
 
 #===============================================================================
 # Field Properties
@@ -201,14 +201,14 @@ class Prop_hw(PropertyRule):
     valid_types = [rdlt.AccessType]
     default = rdlt.AccessType.rw
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 class Prop_sw(PropertyRule):
     bindable_to = [comp.Field, comp.Mem]
     valid_types = [rdlt.AccessType]
     default = rdlt.AccessType.rw
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 #-------------------------------------------------------------------------------
 # Hardware Signal Properties
@@ -218,7 +218,7 @@ class Prop_next(PropertyRule):
     valid_types = [comp.FieldInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_reset(PropertyRule):
     """
@@ -228,14 +228,14 @@ class Prop_reset(PropertyRule):
     valid_types = [int, comp.FieldInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_resetsignal(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [comp.Signal]
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 #-------------------------------------------------------------------------------
 # Software access properties
@@ -246,21 +246,21 @@ class Prop_rclr(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_P
+    mutex_group = "P"
 
 class Prop_rset(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_P
+    mutex_group = "P"
     
 class Prop_onread(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [rdlt.OnReadType]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_P
+    mutex_group = "P"
     
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_woclr(PropertyRule):
@@ -268,21 +268,21 @@ class Prop_woclr(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_B
+    mutex_group = "B"
 
 class Prop_woset(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_B
+    mutex_group = "B"
 
 class Prop_onwrite(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [rdlt.OnWriteType]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_B
+    mutex_group = "B"
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_swwe(PropertyRule):
@@ -290,14 +290,14 @@ class Prop_swwe(PropertyRule):
     valid_types = [bool, TODO]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_R
+    mutex_group = "R"
 
 class Prop_swwel(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, TODO]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_R
+    mutex_group = "R"
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_swmod(PropertyRule):
@@ -309,7 +309,7 @@ class Prop_swmod(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_swacc(PropertyRule):
     """
@@ -320,7 +320,7 @@ class Prop_swacc(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_singlepulse(PropertyRule):
     """
@@ -333,7 +333,7 @@ class Prop_singlepulse(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 #-------------------------------------------------------------------------------
 # Hardware access properties
@@ -344,14 +344,14 @@ class Prop_we(PropertyRule):
     valid_types = [bool, TODO]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_C
+    mutex_group = "C"
 
 class Prop_wel(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, TODO]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_C
+    mutex_group = "C"
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_anded(PropertyRule):
@@ -359,21 +359,21 @@ class Prop_anded(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_ored(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_xored(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_fieldwidth(PropertyRule):
@@ -381,7 +381,7 @@ class Prop_fieldwidth(PropertyRule):
     valid_types = [int]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwclr(PropertyRule):
@@ -389,14 +389,14 @@ class Prop_hwclr(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_hwset(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwenable(PropertyRule):
@@ -404,14 +404,14 @@ class Prop_hwenable(PropertyRule):
     valid_types = [comp.FieldInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_D
+    mutex_group = "D"
 
 class Prop_hwmask(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [comp.FieldInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_D
+    mutex_group = "D"
 
 
 #-------------------------------------------------------------------------------
@@ -423,105 +423,105 @@ class Prop_counter(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_E
+    mutex_group = "E"
 
 class Prop_threshold(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, int TODO]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_saturate(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, int, TODO]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_incrthreshold(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, int, comp.SignalInst]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_incrsaturate(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, int, comp.SignalInst]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_overflow(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_underflow(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_incr(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [comp.SignalInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_incrvalue(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [int, comp.SignalInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_F
+    mutex_group = "F"
 
 class Prop_incrwidth(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [int]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_F
+    mutex_group = "F"
 
 class Prop_decrvalue(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [int, comp.SignalInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_G
+    mutex_group = "G"
 
 class Prop_decr(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [comp.SignalInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_decrwidth(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [int]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_G
+    mutex_group = "G"
 
 class Prop_decrsaturate(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, int, comp.SignalInst]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_decrthreshold(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, int, comp.SignalInst]
     default = False
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 #-------------------------------------------------------------------------------
 # Field access interrupt properties
@@ -534,49 +534,49 @@ class Prop_intr(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
-    mutex_set = grp_E
+    mutex_group = "E"
 
 class Prop_enable(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [comp.FieldInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_J
+    mutex_group = "J"
 
 class Prop_mask(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [comp.FieldInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_J
+    mutex_group = "J"
 
 class Prop_haltenable(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [comp.FieldInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_K
+    mutex_group = "K"
 
 class Prop_haltmask(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [comp.FieldInst]
     default = None
     dyn_assign_allowed = True
-    mutex_set = grp_K
+    mutex_group = "K"
 
 class Prop_sticky(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_I
+    mutex_group = "I"
 
 class Prop_stickybit(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_I
+    mutex_group = "I"
 
 #-------------------------------------------------------------------------------
 # Misc properties
@@ -586,21 +586,21 @@ class Prop_encode(PropertyRule):
     valid_types = [rdlt.UserEnum]
     default = None
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_precedence(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [TODO]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_paritycheck(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 #===============================================================================
 # Reg Properties
@@ -611,21 +611,21 @@ class Prop_regwidth(PropertyRule):
     valid_types = [int]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 class Prop_accesswidth(PropertyRule):
     bindable_to = [comp.Reg]
     valid_types = [int]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = None
+    mutex_group = None
 
 class Prop_shared(PropertyRule):
     bindable_to = [comp.Reg]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 #===============================================================================
 # Mem Properties
@@ -636,14 +636,14 @@ class Prop_mementries(PropertyRule):
     valid_types = [int]
     default = 1
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 class Prop_memwidth(PropertyRule):
     bindable_to = [comp.Mem]
     valid_types = [int]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 #===============================================================================
 # Register file properties
@@ -654,14 +654,14 @@ class Prop_alignment(PropertyRule):
     valid_types = [int]
     default = None
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 class Prop_sharedextbus(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Regfile]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 #===============================================================================
 # Address map properties
 #===============================================================================
@@ -671,49 +671,49 @@ class Prop_bigendian(PropertyRule):
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_L
+    mutex_group = "L"
 
 class Prop_littleendian(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = True
-    mutex_set = grp_L
+    mutex_group = "L"
 
 class Prop_addressing(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [rdlt.AddressingType]
     default = rdlt.AddressingType.regalign
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
 
 class Prop_rsvdset(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = grp_Q
+    mutex_group = "Q"
 
 class Prop_rsvdsetX(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = grp_Q
+    mutex_group = "Q"
 
 class Prop_msb0(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = grp_M
+    mutex_group = "M"
 
 class Prop_lsb0(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
     default = TODO
     dyn_assign_allowed = False
-    mutex_set = grp_M
+    mutex_group = "M"
 
 #-------------------------------------------------------------------------------
 class Prop_bridge(PropertyRule):
@@ -721,4 +721,4 @@ class Prop_bridge(PropertyRule):
     valid_types = [bool]
     default = False
     dyn_assign_allowed = False
-    mutex_set = None
+    mutex_group = None
