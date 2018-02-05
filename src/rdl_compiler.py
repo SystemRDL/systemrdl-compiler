@@ -85,59 +85,59 @@ class RDLCompiler:
 #===============================================================================
 
 class ElabExpressionsListener(walker.RDLListener):
-    def enter_Component_before(self, ctx):
+    def enter_Component_before(self, node):
         
         # Evaluate instance object expressions
-        if(issubclass(type(ctx.inst), comp.AddressableInst)):
-            if(issubclass(type(ctx.inst.addr_offset), Expr)):
-                ctx.inst.addr_offset.resolve_expr_width()
-                ctx.inst.addr_offset = ctx.inst.addr_offset.get_value()
+        if(issubclass(type(node.inst), comp.AddressableInst)):
+            if(issubclass(type(node.inst.addr_offset), Expr)):
+                node.inst.addr_offset.resolve_expr_width()
+                node.inst.addr_offset = node.inst.addr_offset.get_value()
             
-            if(issubclass(type(ctx.inst.addr_align), Expr)):
-                ctx.inst.addr_align.resolve_expr_width()
-                ctx.inst.addr_align = ctx.inst.addr_align.get_value()
+            if(issubclass(type(node.inst.addr_align), Expr)):
+                node.inst.addr_align.resolve_expr_width()
+                node.inst.addr_align = node.inst.addr_align.get_value()
             
-            if(ctx.inst.array_size is not None):
-                for i in range(len(ctx.inst.array_size)):
-                    if(issubclass(type(ctx.inst.array_size[i]), Expr)):
-                        ctx.inst.array_size[i].resolve_expr_width()
-                        ctx.inst.array_size[i] = ctx.inst.array_size[i].get_value()
+            if(node.inst.array_size is not None):
+                for i in range(len(node.inst.array_size)):
+                    if(issubclass(type(node.inst.array_size[i]), Expr)):
+                        node.inst.array_size[i].resolve_expr_width()
+                        node.inst.array_size[i] = node.inst.array_size[i].get_value()
             
-            if(issubclass(type(ctx.inst.array_stride), Expr)):
-                ctx.inst.array_stride.resolve_expr_width()
-                ctx.inst.array_stride = ctx.inst.array_stride.get_value()
+            if(issubclass(type(node.inst.array_stride), Expr)):
+                node.inst.array_stride.resolve_expr_width()
+                node.inst.array_stride = node.inst.array_stride.get_value()
                 
-        elif(issubclass(type(ctx.inst), comp.VectorInst)):
-            if(issubclass(type(ctx.inst.width), Expr)):
-                ctx.inst.width.resolve_expr_width()
-                ctx.inst.width = ctx.inst.width.get_value()
+        elif(issubclass(type(node.inst), comp.VectorInst)):
+            if(issubclass(type(node.inst.width), Expr)):
+                node.inst.width.resolve_expr_width()
+                node.inst.width = node.inst.width.get_value()
             
-            if(issubclass(type(ctx.inst.offset), Expr)):
-                ctx.inst.offset.resolve_expr_width()
-                ctx.inst.offset = ctx.inst.offset.get_value()
+            if(issubclass(type(node.inst.offset), Expr)):
+                node.inst.offset.resolve_expr_width()
+                node.inst.offset = node.inst.offset.get_value()
             
-            if(issubclass(type(ctx.inst.msb), Expr)):
-                ctx.inst.msb.resolve_expr_width()
-                ctx.inst.msb = ctx.inst.msb.get_value()
+            if(issubclass(type(node.inst.msb), Expr)):
+                node.inst.msb.resolve_expr_width()
+                node.inst.msb = node.inst.msb.get_value()
             
-            if(issubclass(type(ctx.inst.lsb), Expr)):
-                ctx.inst.lsb.resolve_expr_width()
-                ctx.inst.lsb = ctx.inst.lsb.get_value()
+            if(issubclass(type(node.inst.lsb), Expr)):
+                node.inst.lsb.resolve_expr_width()
+                node.inst.lsb = node.inst.lsb.get_value()
             
-            if(issubclass(type(ctx.inst.reset_value), Expr)):
-                ctx.inst.reset_value.resolve_expr_width()
-                ctx.inst.reset_value = ctx.inst.reset_value.get_value()
+            if(issubclass(type(node.inst.reset_value), Expr)):
+                node.inst.reset_value.resolve_expr_width()
+                node.inst.reset_value = node.inst.reset_value.get_value()
         
         # Evaluate parameters
         # Result is not saved, but will catch evaluation errors if they exist
-        for param in ctx.comp.parameters:
+        for param in node.comp.parameters:
             if(issubclass(type(param.expr), Expr)):
                 param.expr.resolve_expr_width()
                 param.expr.get_value()
         
         # Evaluate component properties
-        for prop_name, prop_value in ctx.comp.properties.items():
+        for prop_name, prop_value in node.comp.properties.items():
             if(issubclass(type(prop_value), Expr)):
                 prop_value.resolve_expr_width()
-                ctx.comp.properties[prop_name] = prop_value.get_value()
+                node.comp.properties[prop_name] = prop_value.get_value()
         
