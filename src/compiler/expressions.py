@@ -703,20 +703,11 @@ class AssignmentCast(Expr):
     def predict_type(self):
         op_type = self.op[0].predict_type()
         
-        if(self.dest_type in [int, bool]):
-            # Number-like types are compatible to each-other
-            if(op_type not in [int, bool]):
-                raise RDLCompileError("Assignment is not compatible with the destination type", self.err_ctx)
-        elif(self.dest_type == tp.Array):
-            if(op_type != tp.Array):
-                raise RDLCompileError("Assignment is not compatible with the destination type", self.err_ctx)
-            
-            # TODO: Check that array size and element types also match
-            raise NotImplementedError
-            
-        elif(self.dest_type != op_type):
-            # Otherwise, type shall match exactly
-            raise RDLCompileError("Assignment is not compatible with the destination type", self.err_ctx)
+        if(not is_type_compatible(op_type, self.dest_type)):
+            raise RDLCompileError(
+                "Assignment is not compatible with the destination type",
+                self.err_ctx
+            )
         
         return(self.dest_type)
     
@@ -733,3 +724,21 @@ class AssignmentCast(Expr):
             return(bool(v))
         else:
             return(v)
+
+
+
+#===============================================================================
+def is_type_compatible(t1, t2):
+    """
+    Checks if the two types are compatible.
+    """
+    if((t1 in [int, bool]) and (t2 in [int, bool])):
+        # Both came from number-like types.
+        return(True)
+    elif((t1 == tp.Array) and (t2 == tp.Array)):
+        # TODO: Check that array size and element types also match
+        raise NotImplementedError
+    elif(t1 == t2):
+        return(True)
+    else:
+        return(False)

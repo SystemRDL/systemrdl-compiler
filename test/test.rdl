@@ -1,10 +1,16 @@
 
 
 reg my_reg #(bit MY_PARAM = 1) {
-    field my_field {};
+    field my_field {
+        hw = rw;
+        sw = rw;
+        reset = 1 + 3;
+    };
+    
     
     my_field asdf[2] = 1;
     my_field foo = 1 / MY_PARAM + 0x100 - 16'd4;
+    
 };
 
 
@@ -15,5 +21,4 @@ addrmap my_design {
 
     signal {} sig_a;
     
-    //encode = foo;
 };

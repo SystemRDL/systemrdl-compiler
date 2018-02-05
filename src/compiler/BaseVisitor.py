@@ -5,14 +5,20 @@ from ..parser.SystemRDLParser import SystemRDLParser
 from ..parser.SystemRDLVisitor import SystemRDLVisitor
 
 from .namespace import NamespaceRegistry
+from .properties import PropertyRuleBook
 
 class BaseVisitor(SystemRDLVisitor):
     
-    def __init__(self, ns=None):
+    def __init__(self, ns=None, pr=None):
         if(ns is None):
             self.NS = NamespaceRegistry()
         else:
             self.NS = ns
+        
+        if(pr is None):
+            self.PR = PropertyRuleBook()
+        else:
+            self.PR = pr
 
     #---------------------------------------------------------------------------
     # Keyword passthrough visitors

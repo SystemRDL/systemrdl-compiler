@@ -1,6 +1,7 @@
 from antlr4 import *
 import sys
 import inspect
+from collections import OrderedDict
 
 from ..parser.SystemRDLParser import SystemRDLParser
 
@@ -21,15 +22,15 @@ from ..model import rdl_types
 class ComponentVisitor(BaseVisitor):
     comp_type = None
     
-    def __init__(self, ns=None, def_name=None, param_defs=[]):
-        super().__init__(ns)
+    def __init__(self, ns=None, pr=None, def_name=None, param_defs=[]):
+        super().__init__(ns, pr)
         
         self.component = self.comp_type()
         self.component.name = def_name
         self.component.parameters = param_defs
         
         # Scratchpad of property settings encountered in body of component
-        self.property_dict = {}
+        self.property_dict = OrderedDict()
     
     #---------------------------------------------------------------------------
     # Component Definitions
@@ -126,7 +127,7 @@ class ComponentVisitor(BaseVisitor):
         """
         for subclass in ComponentVisitor.__subclasses__():
             if(subclass.comp_type == self._CompType_Map[type_token.type]):
-                visitor = subclass(self.NS, def_name, param_defs)
+                visitor = subclass(self.NS, self.PR, def_name, param_defs)
                 return(visitor.visit(body))
         else:
             raise RuntimeError
@@ -217,7 +218,7 @@ class ComponentVisitor(BaseVisitor):
         if(ctx is None):
             return(None)
         
-        visitor = ExprVisitor(self.NS)
+        visitor = ExprVisitor(self.NS, self.PR)
         expr = visitor.visit(ctx.expr())
         expr = expressions.AssignmentCast(ctx.op, expr, int)
         expr.predict_type()
@@ -387,7 +388,7 @@ class ComponentVisitor(BaseVisitor):
         
         # Get expression for parameter default, if any
         if(ctx.expr() is not None):
-            visitor = ExprVisitor(self.NS)
+            visitor = ExprVisitor(self.NS, self.PR)
             default_expr = visitor.visit(ctx.expr())
             default_expr = expressions.AssignmentCast(ctx.ID(), default_expr, param_type)
             default_expr.predict_type()
@@ -419,7 +420,7 @@ class ComponentVisitor(BaseVisitor):
     def visitParam_assignment(self, ctx:SystemRDLParser.Param_assignmentContext):
         param_name = ctx.ID().getText()
         
-        visitor = ExprVisitor(self.NS)
+        visitor = ExprVisitor(self.NS, self.PR)
         # Note: AssignmentCast is handled in the visitComponent_insts Visitor
         assign_expr = visitor.visit(ctx.expr())
         return(param_name, assign_expr)
@@ -455,7 +456,10 @@ class ComponentVisitor(BaseVisitor):
         
     def visitDynamic_property_assignment(self, ctx:SystemRDLParser.Dynamic_property_assignmentContext):
         # TODO
-        raise NotImplementedError
+        raise RDLNotSupportedYet(
+            "Dynamic property assignments are not supported yet",
+            ctx
+        )
     
     def visitNormal_prop_assign(self, ctx:SystemRDLParser.Normal_prop_assignContext):
         
@@ -470,7 +474,8 @@ class ComponentVisitor(BaseVisitor):
         if(ctx.prop_assignment_rhs() is not None):
             rhs = self.visit(ctx.prop_assignment_rhs())
         else:
-            rhs = None
+            # No RHS implies "true" assignment
+            rhs = True
         
         return(prop_token, prop_name, rhs)
     
@@ -479,14 +484,20 @@ class ComponentVisitor(BaseVisitor):
         prop_token = ctx.ENCODE_kw()
         prop_name = prop_token.getText()
         
-        enum_name = ctx.ID().get_Text()
-        # TODO: Enforce that rhs references an enum type name
-        # Set rhs directly to the enum type
-        raise RDLNotSupportedYet(
-            "'encode' property not supported yet. Coming soon!",
-            prop_token
-        )
-        rhs = None
+        enum_name = ctx.ID().getText()
+        
+        enum_type = self.NS.lookup_type(enum_name)
+        if(enum_type is None):
+            raise RDLCompileError(
+                "Type '%s' is not defined" % enum_name,
+                ctx.ID()
+            )
+        if(not(inspect.isclass(enum_type) and (issubclass(enum_type, rdl_types.UserEnum)))):
+            raise RDLCompileError(
+                "Assignment to encode property is not an enum type",
+                ctx.ID()
+            )
+        rhs = enum_type
         
         return(prop_token, prop_name, rhs)
         
@@ -507,7 +518,7 @@ class ComponentVisitor(BaseVisitor):
         
     def visitProp_assignment_rhs(self, ctx:SystemRDLParser.Prop_assignment_rhsContext):
         if(ctx.expr() is not None):
-            visitor = ExprVisitor(self.NS)
+            visitor = ExprVisitor(self.NS, self.PR)
             rhs = visitor.visit(ctx.expr())
         else:
             rhs = self.visit(ctx.precedencetype_literal())
@@ -518,19 +529,36 @@ class ComponentVisitor(BaseVisitor):
         return(rdl_types.PrecedenceType[ctx.kw.text])
     
     def apply_local_properties(self):
-        # TODO
         
-        # TODO: loop through all properties that apply to this component
-        # Look up each one in the default namespace and apply the value if found
+        mutex_bins = {}
+        for prop_name, (prop_token, prop_rhs) in self.property_dict.items():
+            rule = self.PR.lookup_property(prop_name)
+            if(rule is None):
+                raise RDLCompileError(
+                    "Unrecognized property '%s'" % prop_name,
+                    prop_token
+                )
+            
+            # Check for mutex collisions
+            if(rule.mutex_group is not None):
+                # Is mutually exclusive with other props. Check for collision
+                if(rule.mutex_group in mutex_bins):
+                    # Already saw something in this mutex group
+                    raise RDLCompileError(
+                        "Properties '%s' and '%s' cannot be assigned in the same component" % (prop_name, mutex_bins[rule.mutex_group]),
+                        prop_token
+                    )
+                else:
+                    mutex_bins[rule.mutex_group] = prop_name
         
-        if(len(self.property_dict)):
-            raise NotImplementedError
+            # Apply property
+            rule.assign_value(self.component, prop_rhs, prop_token)
     
     #---------------------------------------------------------------------------
     # Array and Range suffixes
     #---------------------------------------------------------------------------
     def visitRange_suffix(self, ctx:SystemRDLParser.Range_suffixContext):
-        visitor = ExprVisitor(self.NS)
+        visitor = ExprVisitor(self.NS, self.PR)
         expr1 = visitor.visit(ctx.expr(0))
         expr1 = expressions.AssignmentCast(ctx.expr(0), expr1, int)
         expr1.predict_type()
@@ -542,7 +570,7 @@ class ComponentVisitor(BaseVisitor):
         return(expr1, expr2)
 
     def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
-        visitor = ExprVisitor(self.NS)
+        visitor = ExprVisitor(self.NS, self.PR)
         expr = visitor.visit(ctx.expr())
         expr = expressions.AssignmentCast(ctx.expr(), expr, int)
         expr.predict_type()

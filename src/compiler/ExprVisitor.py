@@ -14,9 +14,6 @@ from ..model import component as comp
 
 class ExprVisitor(BaseVisitor):
     
-    def __init__(self, ns=None):
-        super().__init__(ns)
-        
     #---------------------------------------------------------------------------
     # Numerical Expressions
     #---------------------------------------------------------------------------

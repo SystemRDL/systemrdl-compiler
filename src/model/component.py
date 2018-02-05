@@ -107,8 +107,11 @@ class ComponentDef:
         # Child elements instantiated inside this component
         self.children = []
         
-        # Parameters of this definition
+        # Parameters of this component definition
         self.parameters = []
+        
+        # Properties applied to this component
+        self.properties = {}
     
     def create_derived_def(self):
         """

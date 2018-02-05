@@ -8,7 +8,7 @@ from .compiler.ComponentVisitor import RootVisitor
 from .compiler.errors import RDLParserErrorListener, RDLCompileError, ConsoleErrorPrinter
 from .compiler.expressions import Expr
 from .model import component as comp
-from .util import walker
+from .model import walker
 
 class RDLCompiler:
     
@@ -136,4 +136,8 @@ class ElabExpressionsListener(walker.RDLListener):
                 param.expr.get_value()
         
         # Evaluate component properties
-        # TODO
+        for prop_name, prop_value in ctx.comp.properties.items():
+            if(issubclass(type(prop_value), Expr)):
+                prop_value.resolve_expr_width()
+                ctx.comp.properties[prop_name] = prop_value.get_value()
+        
