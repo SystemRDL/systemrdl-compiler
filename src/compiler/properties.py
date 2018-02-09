@@ -33,10 +33,12 @@ class PropertyRule:
     dyn_assign_allowed = True
     mutex_group = None
     
+    #---------------------------------------------------------------------------
     @classmethod
     def get_name(cls):
         return(cls.__name__.replace("Prop_", ""))
     
+    #---------------------------------------------------------------------------
     @classmethod
     def assign_value(cls, comp_def, value, err_ctx):
         """
@@ -85,6 +87,18 @@ class PropertyRule:
         # Store the property
         comp_def.properties[cls.get_name()] = value
     
+    #---------------------------------------------------------------------------
+    @classmethod
+    def get_default(cls, node):
+        """
+        Used when the user queries a property, and it was not explicitly set.
+        Default values are not always directly known. Sometimes they depend on
+        one or more other properties.
+        The base behavior will simply return the static variable's value.
+        Properties with more complex rules can override this to implement
+        other default value derivations
+        """
+        return(self.default)
 
 # Placeholder for all my todos below
 TODO = None

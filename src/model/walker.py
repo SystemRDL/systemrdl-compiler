@@ -56,13 +56,11 @@ class RDLListener:
 #===============================================================================
 class RDLWalker:
     
-    def walk(self, listener:RDLListener, inst:comp.Inst, parent_node=None):
-        
-        node = Node(inst, parent_node)
-        
+    def walk(self, listener:RDLListener, node):
         self.do_enter(listener, node)
-        for child in inst.typ.children:
-            self.walk(listener, child, node)
+        for child in node.inst.typ.children:
+            child_node = Node(node.compiler, child, node)
+            self.walk(listener, child_node)
         self.do_exit(listener, node)
     
     def do_enter(self, listener:RDLListener, node):

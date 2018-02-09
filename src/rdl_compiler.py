@@ -9,11 +9,13 @@ from .compiler.errors import RDLParserErrorListener, RDLCompileError, ConsoleErr
 from .compiler.expressions import Expr
 from .model import component as comp
 from .model import walker
+from .model.node import Node
 
 class RDLCompiler:
     
     def __init__(self):
         self.visitor = RootVisitor()
+        self.property_rules = self.visitor.PR
         self.root = None
         self.error_handler = ConsoleErrorPrinter()
     
@@ -45,7 +47,7 @@ class RDLCompiler:
         Elaborates the design with the specified component definition from
         the Root namespace as the top-level component.
         
-        Returns the elaborated top-level component Inst object
+        Returns the elaborated top-level component Node object
         """
         try:
             return(self._do_elaborate(top_def_name, parameters))
@@ -67,8 +69,10 @@ class RDLCompiler:
             # TODO
             raise NotImplementedError
         
+        top_node = Node(self, top_inst)
+        
         # Resolve all expressions
-        walker.RDLWalker().walk(ElabExpressionsListener(), top_inst)
+        walker.RDLWalker().walk(ElabExpressionsListener(), top_node)
         
         # TODO: Propagate defaults & addressing mode rules
         
@@ -80,7 +84,7 @@ class RDLCompiler:
         
         # TODO: Validate design
         
-        return(top_inst)
+        return(top_node)
 
 #===============================================================================
 
