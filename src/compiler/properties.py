@@ -4,6 +4,7 @@ from ..model import component as comp
 from ..model import rdl_types
 from . import expressions
 from .errors import RDLCompileError, RDLNotSupportedYet
+from . import type_placeholders as tp
         
 class PropertyRuleBook:
     def __init__(self):
@@ -11,7 +12,7 @@ class PropertyRuleBook:
         # Auto-discover all properties defined below and load into dict
         self.rdl_properties = {}
         for prop in PropertyRule.__subclasses__():
-            self.rdl_properties[prop.get_name()] = prop
+            self.rdl_properties[prop.get_name()] = prop()
         
         self.user_properties = {}
     
@@ -39,8 +40,7 @@ class PropertyRule:
         return(cls.__name__.replace("Prop_", ""))
     
     #---------------------------------------------------------------------------
-    @classmethod
-    def assign_value(cls, comp_def, value, err_ctx):
+    def assign_value(self, comp_def, value, err_ctx):
         """
         Used by the compiler for either local or dynamic prop assignments
         This does the following:
@@ -51,9 +51,9 @@ class PropertyRule:
         """
         
         # Check if property is allowed in this component
-        if(type(comp_def) not in cls.bindable_to):
+        if(type(comp_def) not in self.bindable_to):
             raise RDLCompileError(
-                "The property '%s' is not valid for '%s' components" % (cls.get_name(), type(comp_def).__name__.lower()),
+                "The property '%s' is not valid for '%s' components" % (self.get_name(), type(comp_def).__name__.lower()),
                 err_ctx
             )
         
@@ -75,21 +75,20 @@ class PropertyRule:
             raise RuntimeError
         
         # Check if value's type is compatible
-        for valid_type in cls.valid_types:
+        for valid_type in self.valid_types:
             if(expressions.is_type_compatible(assign_type, valid_type)):
                 break
         else:
             raise RDLCompileError(
-                "Incompatible assignment to property '%s'" % cls.get_name(),
+                "Incompatible assignment to property '%s'" % self.get_name(),
                 err_ctx
             )
         
         # Store the property
-        comp_def.properties[cls.get_name()] = value
+        comp_def.properties[self.get_name()] = value
     
     #---------------------------------------------------------------------------
-    @classmethod
-    def get_default(cls, node):
+    def get_default(self, node):
         """
         Used when the user queries a property, and it was not explicitly set.
         Default values are not always directly known. Sometimes they depend on
@@ -107,46 +106,69 @@ TODO = None
 # General Properties
 #===============================================================================
 class Prop_name(PropertyRule):
+    """
+    Specifies a more descriptive name
+    (5.2.1)
+    """
     bindable_to = [comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal]
     valid_types = [str]
     default = ""
     dyn_assign_allowed = True
     mutex_group = None
+    
+    def get_default(self, node):
+        """
+        If name is undefined, it is presumed to be the instance name.
+        (5.2.1.1)
+        """
+        return(node.inst.name)
+    
 
 class Prop_desc(PropertyRule):
+    """
+    Describes the component’s purpose.
+    (5.2.1)
+    """
     bindable_to = [comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal]
     valid_types = [str]
-    default = ""
+    default = None
     dyn_assign_allowed = True
     mutex_group = None
-
-class Prop_ispresent(PropertyRule):
-    bindable_to = [comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal]
-    valid_types = [bool]
-    default = True
-    dyn_assign_allowed = True
-    mutex_group = None
-
-class Prop_donttest(PropertyRule):
-    """
-    Indicates the component is not included in structural testing.
-    """
-    bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile, comp.Field]
-    valid_types = [bool, int]
-    default = False
-    dyn_assign_allowed = True
-    mutex_group = "O"
 
 class Prop_dontcompare(PropertyRule):
     """
     Indicates the components read data shall be discarded and not compared
     against expected results.
+    (5.2.2)
     """
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile, comp.Field]
     valid_types = [bool, int]
     default = False
     dyn_assign_allowed = True
     mutex_group = "O"
+
+class Prop_donttest(PropertyRule):
+    """
+    Indicates the component is not included in structural testing.
+    (5.2.2)
+    """
+    bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile, comp.Field]
+    valid_types = [bool, int]
+    default = False
+    dyn_assign_allowed = True
+    mutex_group = "O"
+
+class Prop_ispresent(PropertyRule):
+    """
+    Setting ispresent to false causes the given component instance to be removed
+    from the final specification.
+    (5.3)
+    """
+    bindable_to = [comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal]
+    valid_types = [bool]
+    default = True
+    dyn_assign_allowed = True
+    mutex_group = None
 
 class Prop_errextbus(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
@@ -171,14 +193,14 @@ class Prop_hdl_path_gate(PropertyRule):
 
 class Prop_hdl_path_gate_slice(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
-    valid_types = [TODO] # <-- Array of string
+    valid_types = [tp.Array(str)]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hdl_path_slice(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
-    valid_types = [TODO] # <-- Array of string
+    valid_types = [tp.Array(str)]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -190,38 +212,87 @@ class Prop_hdl_path_slice(PropertyRule):
 class Prop_signalwidth(PropertyRule):
     """
     Width of the signal.
+    (8.2)
     """
     bindable_to = [comp.Signal]
     valid_types = [int]
-    default = TODO
+    default = None
     dyn_assign_allowed = False
     mutex_group = None
-
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, inherits the instantiation's width
+        """
+        return(node.inst.width)
+    
 class Prop_sync(PropertyRule):
     """
     Signal is synchronous to the clock of the component.
+    (8.2)
     """
     bindable_to = [comp.Signal]
     valid_types = [bool]
-    default = TODO
+    default = True
     dyn_assign_allowed = True
     mutex_group = "N"
+    
+    def assign_value(self, comp_def, value, err_ctx):
+        """
+        Side effect: Ensure assignment of 'async' is cleared since it is being
+        overridden
+        """
+        super().assign_value(comp_def, value, err_ctx)
+        if('async' in node.comp.properties):
+            del node.comp.properties['async']
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, check if 'async' was set first before returning
+        default
+        """
+        if('async' in node.comp.properties):
+            return(not node.comp.properties['async'])
+        else:
+            return(self.default)
+        
 
 class Prop_async(PropertyRule):
     """
     Signal is asynchronous to the clock of the component.
+    (8.2)
     """
     bindable_to = [comp.Signal]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_group = "N"
+    
+    def assign_value(self, comp_def, value, err_ctx):
+        """
+        Side effect: Ensure assignment of 'sync' is cleared since it is being
+        overridden
+        """
+        super().assign_value(comp_def, value, err_ctx)
+        if('sync' in node.comp.properties):
+            del node.comp.properties['sync']
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, check if 'sync' was set first before returning
+        default
+        """
+        if('sync' in node.comp.properties):
+            return(not node.comp.properties['sync'])
+        else:
+            return(self.default)
 
 class Prop_cpuif_reset(PropertyRule):
     """
     Default signal to use for resetting the software interface logic. If
     cpuif_reset is not defined, this reverts to the default reset signal. This
     parameter only controls the CPU interface of a generated slave.
+    (8.2)
     """
     bindable_to = [comp.Signal]
     valid_types = [bool]
@@ -233,6 +304,7 @@ class Prop_field_reset(PropertyRule):
     """
     Default signal to use for resetting field implementations. If field_reset
     is not defined, this reverts to the default reset signal.
+    (8.2)
     """
     bindable_to = [comp.Signal]
     valid_types = [bool]
@@ -241,6 +313,10 @@ class Prop_field_reset(PropertyRule):
     mutex_group = None
 
 class Prop_activelow(PropertyRule):
+    """
+    Signal is active low (state of 0 means ON).
+    (8.2)
+    """
     bindable_to = [comp.Signal]
     valid_types = [bool]
     default = False
@@ -248,6 +324,10 @@ class Prop_activelow(PropertyRule):
     mutex_group = "A"
 
 class Prop_activehigh(PropertyRule):
+    """
+    Signal is active high (state of 1 means ON).
+    (8.2)
+    """
     bindable_to = [comp.Signal]
     valid_types = [bool]
     default = False
@@ -262,6 +342,10 @@ class Prop_activehigh(PropertyRule):
 # Field access Properties
 #-------------------------------------------------------------------------------
 class Prop_hw(PropertyRule):
+    """
+    Design’s ability to sample/update a field.
+    (9.4)
+    """
     bindable_to = [comp.Field]
     valid_types = [rdl_types.AccessType]
     default = rdl_types.AccessType.rw
@@ -269,6 +353,10 @@ class Prop_hw(PropertyRule):
     mutex_group = None
 
 class Prop_sw(PropertyRule):
+    """
+    Programmer’s ability to read/write a field.
+    (9.4)
+    """
     bindable_to = [comp.Field, comp.Mem]
     valid_types = [rdl_types.AccessType]
     default = rdl_types.AccessType.rw
@@ -279,6 +367,10 @@ class Prop_sw(PropertyRule):
 # Hardware Signal Properties
 #-------------------------------------------------------------------------------
 class Prop_next(PropertyRule):
+    """
+    The next value of the field; the D-input for flip-flops.
+    (9.5)
+    """
     bindable_to = [comp.Field]
     valid_types = [comp.FieldInst]
     default = None
@@ -288,14 +380,25 @@ class Prop_next(PropertyRule):
 class Prop_reset(PropertyRule):
     """
     The reset value for the field when resetsignal is asserted.
+    (9.5)
     """
     bindable_to = [comp.Field]
     valid_types = [int, comp.FieldInst]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, inherits the instantiation's reset assignment
+        """
+        return(node.inst.reset_value)
 
 class Prop_resetsignal(PropertyRule):
+    """
+    Reference to the signal used to reset the field
+    (9.5)
+    """
     bindable_to = [comp.Field]
     valid_types = [comp.Signal]
     default = None
@@ -307,6 +410,10 @@ class Prop_resetsignal(PropertyRule):
 #-------------------------------------------------------------------------------
 
 class Prop_rclr(PropertyRule):
+    """
+    Clear on read (field = 0).
+    (9.6)
+    """
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = False
@@ -314,6 +421,10 @@ class Prop_rclr(PropertyRule):
     mutex_group = "P"
 
 class Prop_rset(PropertyRule):
+    """
+    Set on read (field = all 1’s).
+    (9.6)
+    """
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = False
@@ -321,6 +432,10 @@ class Prop_rset(PropertyRule):
     mutex_group = "P"
     
 class Prop_onread(PropertyRule):
+    """
+    Read side-effect.
+    (9.6)
+    """
     bindable_to = [comp.Field]
     valid_types = [rdl_types.OnReadType]
     default = None
@@ -328,14 +443,22 @@ class Prop_onread(PropertyRule):
     mutex_group = "P"
     
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class Prop_woclr(PropertyRule):
+class Prop_woset(PropertyRule):
+    """
+    Write one to set (field = field | write_data).
+    (9.6)
+    """
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
     mutex_group = "B"
 
-class Prop_woset(PropertyRule):
+class Prop_woclr(PropertyRule):
+    """
+    Write one to clear (field = field & ~write_data).
+    (9.6)
+    """
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = False
@@ -343,6 +466,9 @@ class Prop_woset(PropertyRule):
     mutex_group = "B"
 
 class Prop_onwrite(PropertyRule):
+    """
+    (9.6)
+    """
     bindable_to = [comp.Field]
     valid_types = [rdl_types.OnWriteType]
     default = None
@@ -351,16 +477,22 @@ class Prop_onwrite(PropertyRule):
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_swwe(PropertyRule):
+    """
+    TODO: Not sure I understand the design intent of this property
+    """
     bindable_to = [comp.Field]
-    valid_types = [bool, TODO]
-    default = TODO
+    valid_types = [bool]
+    default = False
     dyn_assign_allowed = True
     mutex_group = "R"
 
 class Prop_swwel(PropertyRule):
+    """
+    TODO: Not sure I understand the design intent of this property
+    """
     bindable_to = [comp.Field]
-    valid_types = [bool, TODO]
-    default = TODO
+    valid_types = [bool]
+    default = False
     dyn_assign_allowed = True
     mutex_group = "R"
 
@@ -369,6 +501,7 @@ class Prop_swmod(PropertyRule):
     """
     Indicates a generated output signal shall notify hardware when this field is
     modified by software
+    (9.6)
     """
     bindable_to = [comp.Field]
     valid_types = [bool]
@@ -380,6 +513,7 @@ class Prop_swacc(PropertyRule):
     """
     Indicates a generated output signal shall notify hardware when this field is
     accessed by software
+    (9.6)
     """
     bindable_to = [comp.Field]
     valid_types = [bool]
@@ -393,6 +527,7 @@ class Prop_singlepulse(PropertyRule):
     on the next cycle
     If set, field shall be instantiated with a width of 1 and the reset value
     shall be specified as 0
+    (9.6)
     """
     bindable_to = [comp.Field]
     valid_types = [bool]
@@ -406,15 +541,15 @@ class Prop_singlepulse(PropertyRule):
 
 class Prop_we(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, TODO]
-    default = TODO
+    valid_types = [bool]
+    default = False
     dyn_assign_allowed = True
     mutex_group = "C"
 
 class Prop_wel(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, TODO]
-    default = TODO
+    valid_types = [bool]
+    default = False
     dyn_assign_allowed = True
     mutex_group = "C"
 
@@ -436,7 +571,7 @@ class Prop_ored(PropertyRule):
 class Prop_xored(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_group = None
 
@@ -444,10 +579,16 @@ class Prop_xored(PropertyRule):
 class Prop_fieldwidth(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [int]
-    default = TODO
+    default = None
     dyn_assign_allowed = False
     mutex_group = None
-
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, inherits the instantiation's width
+        """
+        return(node.inst.width)
+    
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwclr(PropertyRule):
     bindable_to = [comp.Field]
@@ -491,44 +632,78 @@ class Prop_counter(PropertyRule):
     mutex_group = "E"
 
 class Prop_threshold(PropertyRule):
+    """
+    alias of incrthreshold.
+    """
     bindable_to = [comp.Field]
-    valid_types = [bool, int, TODO]
-    default = TODO
+    valid_types = [bool, int, comp.SignalInst]
+    default = False
     dyn_assign_allowed = True
-    mutex_group = None
+    mutex_group = "incrthreshold alias"
+    
+    def assign_value(self, comp_def, value, err_ctx):
+        """
+        Set both alias and actual value
+        """
+        super().assign_value(comp_def, value, err_ctx)
+        comp_def.properties['incrthreshold'] = value
 
 class Prop_saturate(PropertyRule):
+    """
+    alias of incrsaturate.
+    """
     bindable_to = [comp.Field]
-    valid_types = [bool, int, TODO]
-    default = TODO
+    valid_types = [bool, int, comp.SignalInst]
+    default = False
     dyn_assign_allowed = True
-    mutex_group = None
+    mutex_group = "incrsaturate alias"
+    
+    def assign_value(self, comp_def, value, err_ctx):
+        """
+        Set both alias and actual value
+        """
+        super().assign_value(comp_def, value, err_ctx)
+        comp_def.properties['incrsaturate'] = value
 
 class Prop_incrthreshold(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, int, comp.SignalInst]
     default = False
     dyn_assign_allowed = True
-    mutex_group = None
+    mutex_group = "incrthreshold alias"
+    
+    def assign_value(self, comp_def, value, err_ctx):
+        """
+        Set both alias and actual value
+        """
+        super().assign_value(comp_def, value, err_ctx)
+        comp_def.properties['incrthreshold'] = value
 
 class Prop_incrsaturate(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool, int, comp.SignalInst]
     default = False
     dyn_assign_allowed = True
-    mutex_group = None
+    mutex_group = "incrsaturate alias"
+    
+    def assign_value(self, comp_def, value, err_ctx):
+        """
+        Set both alias and actual value
+        """
+        super().assign_value(comp_def, value, err_ctx)
+        comp_def.properties['incrsaturate'] = value
 
 class Prop_overflow(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_underflow(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_group = None
 
@@ -632,14 +807,14 @@ class Prop_haltmask(PropertyRule):
 class Prop_sticky(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_group = "I"
 
 class Prop_stickybit(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_group = "I"
 
@@ -655,15 +830,15 @@ class Prop_encode(PropertyRule):
 
 class Prop_precedence(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [TODO]
-    default = TODO
+    valid_types = [rdl_types.PrecedenceType]
+    default = rdl_types.PrecedenceType.sw
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_paritycheck(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = False
     mutex_group = None
 
@@ -672,23 +847,37 @@ class Prop_paritycheck(PropertyRule):
 #===============================================================================
 
 class Prop_regwidth(PropertyRule):
+    """
+    The bit-width of the register (power of two).
+    """
     bindable_to = [comp.Reg]
     valid_types = [int]
-    default = TODO
+    default = 32
     dyn_assign_allowed = False
     mutex_group = None
 
 class Prop_accesswidth(PropertyRule):
+    """
+    The minimum software access width (power of two) operation that may be
+    performed on the register.
+    """
     bindable_to = [comp.Reg]
     valid_types = [int]
-    default = TODO
+    default = None
     dyn_assign_allowed = True
     mutex_group = None
+    
+    def get_default(self, node):
+        """
+        1.6.1.d: The default value of the accesswidth property shall be
+        identical to the width of the register.
+        """
+        return(node.get_property('regwidth'))
 
 class Prop_shared(PropertyRule):
     bindable_to = [comp.Reg]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = False
     mutex_group = None
 
@@ -706,7 +895,7 @@ class Prop_mementries(PropertyRule):
 class Prop_memwidth(PropertyRule):
     bindable_to = [comp.Mem]
     valid_types = [int]
-    default = TODO
+    default = 32
     dyn_assign_allowed = False
     mutex_group = None
 
@@ -724,7 +913,7 @@ class Prop_alignment(PropertyRule):
 class Prop_sharedextbus(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Regfile]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = False
     mutex_group = None
 #===============================================================================
@@ -734,14 +923,14 @@ class Prop_sharedextbus(PropertyRule):
 class Prop_bigendian(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_group = "L"
 
 class Prop_littleendian(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = True
     mutex_group = "L"
 
@@ -753,30 +942,34 @@ class Prop_addressing(PropertyRule):
     mutex_group = None
 
 class Prop_rsvdset(PropertyRule):
+    """
+    If true, the read value of all fields not explicitly defined is set to 1
+    otherwise, it is set to 0.
+    """
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = False
     mutex_group = "Q"
 
 class Prop_rsvdsetX(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = False
     mutex_group = "Q"
 
 class Prop_msb0(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
-    default = TODO
+    default = False
     dyn_assign_allowed = False
     mutex_group = "M"
 
 class Prop_lsb0(PropertyRule):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
-    default = TODO
+    default = True
     dyn_assign_allowed = False
     mutex_group = "M"
 

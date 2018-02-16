@@ -64,12 +64,14 @@ class RDLCompiler:
         top_inst = top_def.INST_TYPE(top_def)
         top_inst.name = top_def.name
         
+        # TODO: Check if type is a reasonable elaboration target (Limit to addrmap, and regmap?)
+        
         # Override parameters as needed
         if(len(parameters)):
             # TODO
             raise NotImplementedError
         
-        top_node = Node(self, top_inst)
+        top_node = Node.factory(top_inst, self)
         
         # Resolve all expressions
         walker.RDLWalker().walk(ElabExpressionsListener(), top_node)

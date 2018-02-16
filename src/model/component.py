@@ -147,6 +147,9 @@ class Root(ComponentDef):
         # Component definitions in the global root scope
         self.comp_defs = {}
     
+class Signal(ComponentDef):
+    INST_TYPE = SignalInst
+    
 class Field(ComponentDef):
     INST_TYPE = FieldInst
 
@@ -158,9 +161,6 @@ class Regfile(ComponentDef):
     
 class Addrmap(ComponentDef):
     INST_TYPE = AddrmapInst
-    
-class Signal(ComponentDef):
-    INST_TYPE = SignalInst
     
 class Mem(ComponentDef):
     INST_TYPE = MemInst
