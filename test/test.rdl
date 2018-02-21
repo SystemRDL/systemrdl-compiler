@@ -15,8 +15,8 @@ reg my_reg #(bit MY_PARAM = 1) {
 
 
 addrmap my_design {
-    my_reg reg_a;
-    my_reg reg_b;
+    my_reg reg_a[2];
+    my_reg reg_b[3][2];
     my_reg reg_c;
 
     signal {} sig_a;

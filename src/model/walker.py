@@ -98,3 +98,11 @@ class RDLWalker:
             listener.exit_Signal(node)
         
         listener.exit_Component_after(node)
+
+#-------------------------------------------------------------------------------
+class RDLUnrollWalker(RDLWalker):
+    def walk(self, listener:RDLListener, node):
+        self.do_enter(listener, node)
+        for child in node.children(unroll=True):
+            self.walk(listener, child)
+        self.do_exit(listener, node)

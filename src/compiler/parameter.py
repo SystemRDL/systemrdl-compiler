@@ -1,4 +1,3 @@
-from . import expressions
 
 class Parameter:
     def __init__(self, param_type, name, default_expr=None):

@@ -1,4 +1,4 @@
-
+from copy import deepcopy
 from . import type_placeholders as tp
 from ..model import rdl_types
 from .errors import RDLCompileError
@@ -15,7 +15,22 @@ class Expr:
         
         # Handle to Antlr object to use for error context
         self.err_ctx = err_ctx
-        
+    
+    def __deepcopy__(self, memo):
+        """
+        Deepcopy all members except for ones that should be copied by reference
+        """
+        copy_by_ref = ["err_ctx"]
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if(k in copy_by_ref):
+                setattr(result, k, v)
+            else:
+                setattr(result, k, deepcopy(v, memo))
+        return(result)
+    
     def trunc(self, v):
         mask = (1 << self.expr_eval_width) - 1
         return(v & mask)

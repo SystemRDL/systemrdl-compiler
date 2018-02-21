@@ -32,8 +32,7 @@ Phases of compilation
     - Propagate addressing mode rules
     - Resolve item addresses
     
-    - All derived ComponentDef instances are found and any duplicates are merged
-    - ComponentDef type names are uniquified according to RDL rules in section 5.1.1.4
+    - Component type names are uniquified according to RDL rules in section 5.1.1.4
     
 - Validate
     Perform structural validation checks

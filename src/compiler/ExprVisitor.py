@@ -195,16 +195,16 @@ class ExprVisitor(BaseVisitor):
         # Resolve reference of first element, since it is in the local scope
         name_token, array_suffixes = ref_elements.pop(0)
         name = name_token.getText()
-        inst = self.NS.lookup_element(name)
-        if(inst is None):
+        elem = self.NS.lookup_element(name)
+        if(elem is None):
             raise RDLCompileError(
                 "Reference to '%s' not found" % name,
                 name_token
             )
-        elif(type(inst) == Parameter):
-            ref_expr = e.ParameterRef(name_token, inst)
-        elif(issubclass(type(inst), comp.Inst)):
-            ref_expr = e.InstRef(name_token, inst)
+        elif(type(elem) == Parameter):
+            ref_expr = e.ParameterRef(name_token, elem)
+        elif(issubclass(type(elem), comp.Component)):
+            ref_expr = e.InstRef(name_token, elem)
         else:
             raise RuntimeError
         

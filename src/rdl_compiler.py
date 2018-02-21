@@ -58,11 +58,11 @@ class RDLCompiler:
     def _do_elaborate(self, top_def_name, parameters):
         
         # Lookup top_def_name
-        top_def = self.root.comp_defs[top_def_name]
+        top_inst = self.root.comp_defs[top_def_name]
         
         # Create a top-level instance
-        top_inst = top_def.INST_TYPE(top_def)
-        top_inst.name = top_def.name
+        top_inst.is_instance = True
+        top_inst.inst_name = top_def_name
         
         # TODO: Check if type is a reasonable elaboration target (Limit to addrmap, and regmap?)
         
@@ -94,7 +94,7 @@ class ElabExpressionsListener(walker.RDLListener):
     def enter_Component_before(self, node):
         
         # Evaluate instance object expressions
-        if(issubclass(type(node.inst), comp.AddressableInst)):
+        if(issubclass(type(node.inst), comp.AddressableComponent)):
             if(issubclass(type(node.inst.addr_offset), Expr)):
                 node.inst.addr_offset.resolve_expr_width()
                 node.inst.addr_offset = node.inst.addr_offset.get_value()
@@ -113,7 +113,7 @@ class ElabExpressionsListener(walker.RDLListener):
                 node.inst.array_stride.resolve_expr_width()
                 node.inst.array_stride = node.inst.array_stride.get_value()
                 
-        elif(issubclass(type(node.inst), comp.VectorInst)):
+        elif(issubclass(type(node.inst), comp.VectorComponent)):
             if(issubclass(type(node.inst.width), Expr)):
                 node.inst.width.resolve_expr_width()
                 node.inst.width = node.inst.width.get_value()
@@ -136,14 +136,14 @@ class ElabExpressionsListener(walker.RDLListener):
         
         # Evaluate parameters
         # Result is not saved, but will catch evaluation errors if they exist
-        for param in node.comp.parameters:
+        for param in node.inst.parameters:
             if(issubclass(type(param.expr), Expr)):
                 param.expr.resolve_expr_width()
                 param.expr.get_value()
         
         # Evaluate component properties
-        for prop_name, prop_value in node.comp.properties.items():
+        for prop_name, prop_value in node.inst.properties.items():
             if(issubclass(type(prop_value), Expr)):
                 prop_value.resolve_expr_width()
-                node.comp.properties[prop_name] = prop_value.get_value()
+                node.inst.properties[prop_name] = prop_value.get_value()
         

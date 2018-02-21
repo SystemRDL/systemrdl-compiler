@@ -1,35 +1,73 @@
-#===============================================================================
-# Instances
-#===============================================================================
+from copy import deepcopy
 
-class Inst:
-    def __init__(self, typ):
+class Component:
+    """
+    Base class for all component types:
+        field, reg, regfile, addrmap, signal, mem
+    """
+    
+    def __init__(self):
+        #------------------------------
+        # Component definition
+        #------------------------------
+        # Named definition identifier. Remains None if declaration was anonymous
+        self.type_name = None
         
-        # Component type definition that this instantiates
-        self.typ = typ
+        # Child elements instantiated inside this component
+        self.children = []
+        
+        # Parameters of this component definition
+        self.parameters = []
+        
+        # Properties applied to this component
+        self.properties = {}
+        
+        #------------------------------
+        # Component instantiation
+        #------------------------------
+        # If instantiated, set to True
+        self.is_instance = False
+        
+        # Name of instantiated element
+        self.inst_name = None
+        
+        # Reference to original component definition this instance is derived from
+        self.original_def = None
         
         # If internal vs external. None if undefined (will inherit default)
         self.external = None
-        
-        # Instance name
-        self.name = None
-        
-        # Reference to the parent component of this instance
-        self.parent = None
-        
+    
+    def __deepcopy__(self, memo):
+        """
+        Deepcopy all members except for ones that should be copied by reference
+        """
+        copy_by_ref = ["original_def"]
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if(k in copy_by_ref):
+                setattr(result, k, v)
+            else:
+                setattr(result, k, deepcopy(v, memo))
+        return(result)
 
-class AddressableInst(Inst):
+class AddressableComponent(Component):
     """
-    Instance wrapper for addressable components:
+    Base class for all components that can have an address:
         reg, regfile, addrmap, mem
     """
-    def __init__(self, typ):
-        super().__init__(typ)
-        
-        # Relative address offset from the parent component
+    
+    def __init__(self):
+        super().__init__()
+        #------------------------------
+        # Component instantiation
+        #------------------------------
+        # Address offset from the parent component
+        # If left as None, compiler will resolve with inferred value
         self.addr_offset = None
         
-        # Alignment
+        # Address alignment if explicitly defined by user
         self.addr_align = None
         
         #------------------------------
@@ -43,125 +81,55 @@ class AddressableInst(Inst):
         self.array_size = None
         
         # Address offset between array elements
+        # If left as None, compiler will resolve with inferred value
         self.array_stride = None
-
-
-class VectorInst(Inst):
+        
+class VectorComponent(Component):
     """
-    Instance wrapper for vector-like components:
+    Base class for all components that are vector-like:
         field, signal
     """
-    def __init__(self, typ):
-        super().__init__(typ)
-        
+    
+    def __init__(self):
+        super().__init__()
+        #------------------------------
+        # Component instantiation
+        #------------------------------
         # Bit width and low-offset
         self.width = None
         self.offset = None
         self.msb = None
         self.lsb = None
-        
-        # Instance reset value (for Fields only)
-        self.reset_value = None
-
-#-------------------------------------------------------------------------------
-class FieldInst(VectorInst):
-    pass
-
-class RegInst(AddressableInst):
-    pass
-    
-class RegfileInst(AddressableInst):
-    pass
-    
-class AddrmapInst(AddressableInst):
-    pass
-    
-class SignalInst(VectorInst):
-    pass
-    
-class MemInst(AddressableInst):
-    pass
-    
 
 #===============================================================================
-# Definitions
-#===============================================================================
-class ComponentDef:
-    # field, reg, regfile, addrmap, signal, mem
-    
-    INST_TYPE = None
-    
-    def __init__(self):
-        # Type name
-        self.name = None
-        
-        # Instances of this component def
-        self.instances = []
-        
-        # If the component got parameterized or modified, a copy of the def is
-        # made.
-        # This stores a link to the original def that the component was derived
-        # If None, then this is the primary def
-        self.derived_from_def = None
-        
-        # Child elements instantiated inside this component
-        self.children = []
-        
-        # Parameters of this component definition
-        self.parameters = []
-        
-        # Properties applied to this component
-        self.properties = {}
-    
-    def create_derived_def(self):
-        """
-        Returns a copy of the component definition so that a derivative variant
-        can be created.
-        This can be due to either non-default parameterization, or dynamic
-        property assignment.
-        """
-        
-        if(self.derived_from_def is not None):
-            # Creating a derived def is only necessary when copying the primary
-            # one. Doing yet another copy is unnecessary since it is already
-            # unique.
-            return(self)
-        
-        # TODO: Implement create_derived_def
-        # Deepcopy self
-        # - all properties, and their expressions
-        # - all parameters
-        # - all children
-        
-        # Link new copy to original
-        # XXX.derived_from_def = self
-        
-        raise NotImplementedError
-        # return(XXX)
-
-
-#-------------------------------------------------------------------------------
-class Root(ComponentDef):
+class Root(Component):
+    """
+    Meta-component used by compiler to represent the root scope
+    """
     def __init__(self):
         super().__init__()
         # Component definitions in the global root scope
         self.comp_defs = {}
     
-class Signal(ComponentDef):
-    INST_TYPE = SignalInst
+class Signal(VectorComponent):
+    pass
     
-class Field(ComponentDef):
-    INST_TYPE = FieldInst
+class Field(VectorComponent):
+    def __init__(self):
+        super().__init__()
+        #------------------------------
+        # Component instantiation
+        #------------------------------
+        self.reset_value = None
 
-class Reg(ComponentDef):
-    INST_TYPE = RegInst
+class Reg(AddressableComponent):
+    pass
     
-class Regfile(ComponentDef):
-    INST_TYPE = RegfileInst
+class Regfile(AddressableComponent):
+    pass
     
-class Addrmap(ComponentDef):
-    INST_TYPE = AddrmapInst
+class Addrmap(AddressableComponent):
+    pass
     
-class Mem(ComponentDef):
-    INST_TYPE = MemInst
-
+class Mem(AddressableComponent):
+    pass

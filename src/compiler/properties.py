@@ -23,7 +23,7 @@ class PropertyRuleBook:
             return(self.user_properties[prop_name])
         else:
             return(None)
-        
+
 #===============================================================================
 # Base property
 #===============================================================================
@@ -243,16 +243,16 @@ class Prop_sync(PropertyRule):
         overridden
         """
         super().assign_value(comp_def, value, err_ctx)
-        if('async' in node.comp.properties):
-            del node.comp.properties['async']
+        if('async' in comp_def.properties):
+            del comp_def.properties['async']
     
     def get_default(self, node):
         """
         If not explicitly set, check if 'async' was set first before returning
         default
         """
-        if('async' in node.comp.properties):
-            return(not node.comp.properties['async'])
+        if('async' in node.inst.properties):
+            return(not node.inst.properties['async'])
         else:
             return(self.default)
         
@@ -274,16 +274,16 @@ class Prop_async(PropertyRule):
         overridden
         """
         super().assign_value(comp_def, value, err_ctx)
-        if('sync' in node.comp.properties):
-            del node.comp.properties['sync']
+        if('sync' in comp_def.properties):
+            del comp_def.properties['sync']
     
     def get_default(self, node):
         """
         If not explicitly set, check if 'sync' was set first before returning
         default
         """
-        if('sync' in node.comp.properties):
-            return(not node.comp.properties['sync'])
+        if('sync' in node.inst.properties):
+            return(not node.inst.properties['sync'])
         else:
             return(self.default)
 
@@ -372,7 +372,7 @@ class Prop_next(PropertyRule):
     (9.5)
     """
     bindable_to = [comp.Field]
-    valid_types = [comp.FieldInst]
+    valid_types = [comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -383,7 +383,7 @@ class Prop_reset(PropertyRule):
     (9.5)
     """
     bindable_to = [comp.Field]
-    valid_types = [int, comp.FieldInst]
+    valid_types = [int, comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -607,14 +607,14 @@ class Prop_hwset(PropertyRule):
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwenable(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.FieldInst]
+    valid_types = [comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
 
 class Prop_hwmask(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.FieldInst]
+    valid_types = [comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
@@ -636,7 +636,7 @@ class Prop_threshold(PropertyRule):
     alias of incrthreshold.
     """
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.SignalInst]
+    valid_types = [bool, int, comp.Signal]
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -653,7 +653,7 @@ class Prop_saturate(PropertyRule):
     alias of incrsaturate.
     """
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.SignalInst]
+    valid_types = [bool, int, comp.Signal]
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -667,7 +667,7 @@ class Prop_saturate(PropertyRule):
 
 class Prop_incrthreshold(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.SignalInst]
+    valid_types = [bool, int, comp.Signal]
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -681,7 +681,7 @@ class Prop_incrthreshold(PropertyRule):
 
 class Prop_incrsaturate(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.SignalInst]
+    valid_types = [bool, int, comp.Signal]
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -709,14 +709,14 @@ class Prop_underflow(PropertyRule):
 
 class Prop_incr(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.SignalInst]
+    valid_types = [comp.Signal]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_incrvalue(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [int, comp.SignalInst]
+    valid_types = [int, comp.Signal]
     default = None
     dyn_assign_allowed = True
     mutex_group = "F"
@@ -730,14 +730,14 @@ class Prop_incrwidth(PropertyRule):
 
 class Prop_decrvalue(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [int, comp.SignalInst]
+    valid_types = [int, comp.Signal]
     default = None
     dyn_assign_allowed = True
     mutex_group = "G"
 
 class Prop_decr(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.SignalInst]
+    valid_types = [comp.Signal]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -751,14 +751,14 @@ class Prop_decrwidth(PropertyRule):
 
 class Prop_decrsaturate(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.SignalInst]
+    valid_types = [bool, int, comp.Signal]
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_decrthreshold(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.SignalInst]
+    valid_types = [bool, int, comp.Signal]
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -778,28 +778,28 @@ class Prop_intr(PropertyRule):
 
 class Prop_enable(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.FieldInst]
+    valid_types = [comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
 
 class Prop_mask(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.FieldInst]
+    valid_types = [comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
 
 class Prop_haltenable(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.FieldInst]
+    valid_types = [comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"
 
 class Prop_haltmask(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.FieldInst]
+    valid_types = [comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"

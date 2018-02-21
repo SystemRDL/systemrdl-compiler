@@ -39,7 +39,7 @@ class NamespaceRegistry():
                 if(idx == 0):
                     # Return anything from local namespace
                     return(el)
-                elif(type(el) == comp.SignalInst):
+                elif(type(el) == comp.Signal):
                     # Signals are allowed to be found in parent namespaces
                     return(el)
                 else:

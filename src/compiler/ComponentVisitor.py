@@ -1,6 +1,7 @@
 from antlr4 import *
 import sys
 import inspect
+from copy import deepcopy
 from collections import OrderedDict
 
 from ..parser.SystemRDLParser import SystemRDLParser
@@ -26,7 +27,7 @@ class ComponentVisitor(BaseVisitor):
         super().__init__(ns, pr)
         
         self.component = self.comp_type()
-        self.component.name = def_name
+        self.component.type_name = def_name
         self.component.parameters = param_defs
         
         # Scratchpad of property settings encountered in body of component
@@ -56,7 +57,7 @@ class ComponentVisitor(BaseVisitor):
         Create, and possibly instantiate a component
         """
         
-        # Get definition. Returns ComponentDef
+        # Get definition. Returns Component
         if(ctx.component_anon_def() is not None):
             comp_def = self.visit(ctx.component_anon_def())
         elif(ctx.component_named_def() is not None):
@@ -159,41 +160,43 @@ class ComponentVisitor(BaseVisitor):
         # Unpack instance def info from parent
         comp_def, inst_type = self._tmp
         
+        if(comp_def.type_name is not None):
+            # Instantiating a named definition.
+            # Make a copy of the component so that the instance is unique
+            comp_inst = deepcopy(comp_def)
+            comp_inst.original_def = comp_def
+        else:
+            comp_inst = comp_def
+        
         # Get a dictionary of parameter assignments
         if(ctx.param_inst() is not None):
             param_assigns = self.visit(ctx.param_inst())
         else:
             param_assigns = {}
         
-        if(len(param_assigns)):
-            # Instance is overriding parameters.
+        # Assign parameter overrides, if any
+        for param_name, assign_expr, err_ctx in param_assigns.items():
+            # Lookup corresponding parameter in component
+            for comp_param in comp_inst.parameters:
+                if(comp_param.name == param_name):
+                    param = comp_param
+                    break
+            else:
+                raise RDLCompileError(
+                    "Parameter '%s' not found in definition for component '%s'" 
+                    % (param_name, comp_inst.name),
+                    err_ctx
+                )
             
-            # Uniquify the comp_def by making a derived version
-            comp_def = comp_def.create_derived_def()
-            
-            # Assign parameter overrides
-            for param_name, assign_expr, err_ctx in param_assigns.items():
-                # Lookup corresponding parameter in component
-                for comp_param in comp_def.parameters:
-                    if(comp_param.name == param_name):
-                        param = comp_param
-                        break
-                else:
-                    raise RDLCompileError(
-                        "Parameter '%s' not found in definition for component '%s'" 
-                        % (param_name, comp_def.name),
-                        err_ctx
-                    )
-                
-                # Override the value
-                assign_expr = expressions.AssignmentCast(err_ctx, assign_expr, param.param_type)
-                assign_expr.predict_type()
-                param.expr = assign_expr
+            # Override the value
+            assign_expr = expressions.AssignmentCast(err_ctx, assign_expr, param.param_type)
+            assign_expr.predict_type()
+            param.expr = assign_expr
         
         # Do instantiations
         for inst in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
             # Pass some temporary info to visitComponent_inst
-            self._tmp = comp_def, inst_type
+            self._tmp = comp_inst, inst_type
             self.visit(inst)
         
         return(None)
@@ -226,7 +229,7 @@ class ComponentVisitor(BaseVisitor):
         
     def visitComponent_inst(self, ctx:SystemRDLParser.Component_instContext):
         # Unpack instance def info from parent
-        comp_def, inst_type = self._tmp
+        comp_inst, inst_type = self._tmp
         
         inst_name = ctx.ID().getText()
         
@@ -241,14 +244,14 @@ class ComponentVisitor(BaseVisitor):
             range_suffix = None
         
         # Check for invalid usage of array or range suffix
-        if(type(comp_def) == comp.Field):
+        if(type(comp_inst) == comp.Field):
             # field can use a range, or a single array suffix
             if(len(array_suffixes) > 1):
                 raise RDLCompileError(
                     "Instances of a field can only use one array suffix",
                     ctx.array_suffix(1)
                 )
-        elif(type(comp_def) == comp.Signal):
+        elif(type(comp_inst) == comp.Signal):
             # signal can use a single array suffix
             if(len(array_suffixes) > 1):
                 raise RDLCompileError(
@@ -275,7 +278,7 @@ class ComponentVisitor(BaseVisitor):
         inst_addr_align = self.get_instance_assignment(ctx.inst_addr_align())
         
         # Check for assignment expression incompatibility
-        if(type(comp_def) in [comp.Field, comp.Signal]):
+        if(type(comp_inst) in [comp.Field, comp.Signal]):
             err_ctx = None
             if(inst_addr_fixed is not None):
                 err_ctx = ctx.inst_addr_fixed().start
@@ -290,14 +293,14 @@ class ComponentVisitor(BaseVisitor):
                     err_ctx
                 )
             
-        if(type(comp_def) == comp.Signal):
+        if(type(comp_inst) == comp.Signal):
             # none of these are allowed for signals
             if(field_inst_reset is not None):
                 raise RDLCompileError(
                     "Unexpected field reset assignment for non-field instance",
                     ctx.field_inst_reset().start
                 )
-        elif(type(comp_def) != comp.Field):
+        elif(type(comp_inst) != comp.Field):
             # Otherwise, inst_addr_fixed and inst_addr_align are mutually exclusive
             if(all([inst_addr_fixed, inst_addr_align])):
                 raise RDLCompileError(
@@ -319,35 +322,33 @@ class ComponentVisitor(BaseVisitor):
                 ctx.inst_addr_stride().start
             )
         
-        # Assign instantiation info
-        if(issubclass(comp_def.INST_TYPE, comp.VectorInst)):
-            inst = comp_def.INST_TYPE(comp_def)
+        # Do instantiation
+        comp_inst.is_instance = True
+        if(issubclass(type(comp_inst), comp.VectorComponent)):
             if(range_suffix is not None):
-                inst.msb, inst.lsb = range_suffix
+                comp_inst.msb, comp_inst.lsb = range_suffix
             if(len(array_suffixes) != 0):
-                inst.width = array_suffixes[0]
-            
-            inst.reset_value = field_inst_reset
+                comp_inst.width = array_suffixes[0]
+            comp_inst.reset_value = field_inst_reset
+        elif(issubclass(type(comp_inst), comp.AddressableComponent)):
+            comp_inst.addr_offset = inst_addr_fixed
+            comp_inst.addr_align = inst_addr_align
+            if(len(array_suffixes) != 0):
+                comp_inst.is_array = True
+                comp_inst.array_size = array_suffixes
+                comp_inst.array_stride = inst_addr_stride
         else:
-            inst = comp_def.INST_TYPE(comp_def)
-            inst.addr_offset = inst_addr_fixed
-            inst.addr_align = inst_addr_align
-            if(len(array_suffixes) != 0):
-                inst.is_array = True
-                inst.array_size = array_suffixes
-                inst.array_stride = inst_addr_stride
-                
+            raise RuntimeError
+        
         if(inst_type == SystemRDLParser.EXTERNAL_kw):
-            inst.external = True
+            comp_inst.external = True
         elif(inst_type == SystemRDLParser.INTERNAL_kw):
-            inst.external = False
+            comp_inst.external = False
         
-        inst.name = inst_name
-        inst.parent = self.component
-        comp_def.instances.append(inst)
-        self.component.children.append(inst)
+        comp_inst.inst_name = inst_name
+        self.component.children.append(comp_inst)
         
-        self.NS.register_element(inst_name, inst, ctx.ID())
+        self.NS.register_element(inst_name, comp_inst, ctx.ID())
         
         return(None)
         
@@ -630,7 +631,7 @@ class ComponentVisitor(BaseVisitor):
                 "Type '%s' is not defined" % def_name,
                 id_token
             )
-        if(not issubclass(type(comp_def), comp.ComponentDef)):
+        if(not issubclass(type(comp_def), comp.Component)):
             raise RDLCompileError(
                 "Type '%s' is not a component type" % def_name,
                 id_token
