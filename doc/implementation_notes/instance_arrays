@@ -7,17 +7,17 @@ class being instantiated.
 This is most efficient since the size of the array has no impact on model footprint
 
 Component classes have two members to describe this:
-    .array_size
+    .array_dimensions
     .array_stride
     
-.array_size is a list of integers for every dimension of the array
+.array_dimensions is a list of integers for every dimension of the array
 The instantiation:
     my_reg my_inst[32][8]
 is encoded as:
-    .array_size = [32,8]
+    .array_dimensions = [32,8]
 
 If the component is not instantiated as an array, it uses the same class, but:
-    .array_size = None
+    .array_dimensions = None
 
 --------------------------------------------------------------------------------
 No support for non-homogeneous arrays

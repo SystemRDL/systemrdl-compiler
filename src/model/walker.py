@@ -54,6 +54,10 @@ class RDLListener:
 
 #===============================================================================
 class RDLWalker:
+    """
+    Implements a walker instance that traverses the elaborated RDL instance tree
+    Each node is visited exactly once
+    """
     
     def walk(self, listener:RDLListener, node):
         self.do_enter(listener, node)
@@ -101,6 +105,11 @@ class RDLWalker:
 
 #-------------------------------------------------------------------------------
 class RDLUnrollWalker(RDLWalker):
+    """
+    Implements an RDL instance walker that unrolls any arrays of instances.
+    If the walker arrives at an array node, then it will be visited multiple
+    times according to the array dimensions
+    """
     def walk(self, listener:RDLListener, node):
         self.do_enter(listener, node)
         for child in node.children(unroll=True):

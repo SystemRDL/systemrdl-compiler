@@ -335,7 +335,7 @@ class ComponentVisitor(BaseVisitor):
             comp_inst.addr_align = inst_addr_align
             if(len(array_suffixes) != 0):
                 comp_inst.is_array = True
-                comp_inst.array_size = array_suffixes
+                comp_inst.array_dimensions = array_suffixes
                 comp_inst.array_stride = inst_addr_stride
         else:
             raise RuntimeError

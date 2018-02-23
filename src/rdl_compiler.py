@@ -103,11 +103,11 @@ class ElabExpressionsListener(walker.RDLListener):
                 node.inst.addr_align.resolve_expr_width()
                 node.inst.addr_align = node.inst.addr_align.get_value()
             
-            if(node.inst.array_size is not None):
-                for i in range(len(node.inst.array_size)):
-                    if(issubclass(type(node.inst.array_size[i]), Expr)):
-                        node.inst.array_size[i].resolve_expr_width()
-                        node.inst.array_size[i] = node.inst.array_size[i].get_value()
+            if(node.inst.array_dimensions is not None):
+                for i in range(len(node.inst.array_dimensions)):
+                    if(issubclass(type(node.inst.array_dimensions[i]), Expr)):
+                        node.inst.array_dimensions[i].resolve_expr_width()
+                        node.inst.array_dimensions[i] = node.inst.array_dimensions[i].get_value()
             
             if(issubclass(type(node.inst.array_stride), Expr)):
                 node.inst.array_stride.resolve_expr_width()

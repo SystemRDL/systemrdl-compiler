@@ -37,7 +37,7 @@ class Node:
         for child_inst in self.inst.children:
             if(unroll and issubclass(type(child_inst), comp.AddressableComponent) and child_inst.is_array):
                 # Unroll the array
-                range_list = [range(n) for n in child_inst.array_size]
+                range_list = [range(n) for n in child_inst.array_dimensions]
                 for idxs in itertools.product(*range_list):
                     N = Node.factory(child_inst, self.compiler, self)
                     N.current_idx = idxs
@@ -101,7 +101,7 @@ class AddressableNode(Node):
         if(self.inst.is_array):
             if(self.current_idx is None):
                 # Index is not known. append empty array suffixes
-                return(path + empty_array_suffix * len(self.inst.array_size))
+                return(path + empty_array_suffix * len(self.inst.array_dimensions))
             else:
                 # Index list is known
                 for idx in self.current_idx:

@@ -73,12 +73,12 @@ class AddressableComponent(Component):
         #------------------------------
         # Array Properties
         #------------------------------
-        # If true, then array_size and array_stride are valid
+        # If true, then array_dimensions and array_stride are valid
         self.is_array = False
         
         # List of sizes for each array dimension.
         # Last item in list iterates the most frequently
-        self.array_size = None
+        self.array_dimensions = None
         
         # Address offset between array elements
         # If left as None, compiler will resolve with inferred value
