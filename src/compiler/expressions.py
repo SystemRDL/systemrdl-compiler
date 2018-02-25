@@ -1,6 +1,5 @@
 from copy import deepcopy
 from . import type_placeholders as tp
-from ..model import rdl_types
 from .errors import RDLCompileError
 
 class Expr:

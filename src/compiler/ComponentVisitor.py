@@ -1,5 +1,4 @@
 from antlr4 import *
-import sys
 import inspect
 from copy import deepcopy
 from collections import OrderedDict
@@ -8,7 +7,6 @@ from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
 from .ExprVisitor import ExprVisitor
-from .namespace import NamespaceRegistry
 from .parameter import Parameter
 from . import type_placeholders
 from . import expressions
@@ -130,8 +128,7 @@ class ComponentVisitor(BaseVisitor):
             if(subclass.comp_type == self._CompType_Map[type_token.type]):
                 visitor = subclass(self.NS, self.PR, def_name, param_defs)
                 return(visitor.visit(body))
-        else:
-            raise RuntimeError
+        raise RuntimeError
     
     #---------------------------------------------------------------------------
     # Component Instantiation
@@ -681,7 +678,6 @@ class FieldComponentVisitor(ComponentVisitor):
             "Instantiation of components not allowed inside a field definition",
             ctx.component_inst(0).ID()
         )
-        return(super().visitComponent_insts(ctx))
     
     def check_comp_def_allowed(self, type_token):
         raise RDLCompileError(
@@ -792,7 +788,6 @@ class SignalComponentVisitor(ComponentVisitor):
             "Instantiation of components not allowed inside a signal definition",
             ctx.component_inst(0).ID()
         )
-        return(super().visitComponent_insts(ctx))
     
     def check_comp_def_allowed(self, type_token):
         raise RDLCompileError(

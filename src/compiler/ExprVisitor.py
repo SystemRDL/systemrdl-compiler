@@ -6,7 +6,6 @@ from ..parser.SystemRDLParser import SystemRDLParser
 from ..model import rdl_types
 
 from .BaseVisitor import BaseVisitor
-from .namespace import NamespaceRegistry
 from . import expressions as e
 from .errors import RDLCompileError, RDLNotSupportedYet
 from .parameter import Parameter
@@ -168,8 +167,8 @@ class ExprVisitor(BaseVisitor):
     }
     # Visit a parse tree produced by SystemRDLParser#CastType.
     def visitCastType(self, ctx:SystemRDLParser.CastTypeContext):
-        if(ctx.typ.type in _CastWidth_map):
-            w = _CastWidth_map[ctx.typ.type]
+        if(ctx.typ.type in self._CastWidth_map):
+            w = self._CastWidth_map[ctx.typ.type]
             return(e.WidthCast(ctx.op, self.visit(ctx.expr()), w_int=w))
         elif(ctx.typ.type == SystemRDLParser.BOOLEAN_kw):
             return(e.BoolCast(ctx.op, self.visit(ctx.expr())))

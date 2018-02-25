@@ -1,3 +1,4 @@
+from .errors import RDLCompileError
 from ..model import component as comp
 
 class NamespaceRegistry():
@@ -29,8 +30,7 @@ class NamespaceRegistry():
         for scope in reversed(self.type_ns_stack):
             if(name in scope):
                 return(scope[name])
-        else:
-            return(None)
+        return(None)
     
     def lookup_element(self, name:str):
         for idx, scope in enumerate(reversed(self.element_ns_stack)):
@@ -44,15 +44,13 @@ class NamespaceRegistry():
                     return(el)
                 else:
                     return(None)
-        else:
-            return(None)
+        return(None)
     
     def lookup_default_property(self, name:str):
         for scope in reversed(self.default_property_ns_stack):
             if(name in scope):
                 return(scope[name])
-        else:
-            return(None)
+        return(None)
     
     def enter_scope(self):
         self.type_ns_stack.append({})

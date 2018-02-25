@@ -42,13 +42,16 @@ class RDLCompiler:
         
         return(self.root)
     
-    def elaborate(self, top_def_name, parameters={}):
+    def elaborate(self, top_def_name, parameters=None):
         """
         Elaborates the design with the specified component definition from
         the Root namespace as the top-level component.
         
         Returns the elaborated top-level component Node object
         """
+        if(parameters is None):
+            parameters = {}
+        
         try:
             return(self._do_elaborate(top_def_name, parameters))
         except RDLCompileError as e:

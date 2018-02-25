@@ -3,7 +3,7 @@ import inspect
 from ..model import component as comp
 from ..model import rdl_types
 from . import expressions
-from .errors import RDLCompileError, RDLNotSupportedYet
+from .errors import RDLCompileError
 from . import type_placeholders as tp
         
 class PropertyRuleBook:

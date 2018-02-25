@@ -1,5 +1,5 @@
 
-from .node import Node, SignalNode, FieldNode, RegNode, RegfileNode, AddrmapNode, MemNode
+from .node import SignalNode, FieldNode, RegNode, RegfileNode, AddrmapNode, MemNode
 
 #===============================================================================
 class RDLListener:

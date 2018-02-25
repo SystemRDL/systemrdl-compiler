@@ -1,12 +1,11 @@
 import sys
-import antlr4
+
 from antlr4.error.ErrorListener import *
 from antlr4.Token import CommonToken
 from antlr4 import ParserRuleContext
 from antlr4.tree.Tree import TerminalNodeImpl
 
-import colorama
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 
 #===============================================================================
 # Antlr error listener
