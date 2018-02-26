@@ -13,6 +13,19 @@ from ..model import component as comp
 
 class ExprVisitor(BaseVisitor):
     
+    def __init__(self, ns, pr, current_component, target_depth=0):
+        super().__init__(ns=ns, pr=pr)
+        
+        # Reference to the current component that this expression was found in.
+        # This is used for context when constructing hierarchical references
+        self.current_component = current_component
+        
+        # Nonzero if target of an expression assignment is not within the 
+        # current_component instance. (i.e. dynamic property assignments)
+        # Number denotes how many instance levels deep the dynamic property
+        # assignment "reaches in"
+        self.target_depth = target_depth
+        
     #---------------------------------------------------------------------------
     # Numerical Expressions
     #---------------------------------------------------------------------------
@@ -192,38 +205,42 @@ class ExprVisitor(BaseVisitor):
             ref_elements.append(self.visit(ref_elem))
         
         # Resolve reference of first element, since it is in the local scope
-        name_token, array_suffixes = ref_elements.pop(0)
-        name = name_token.getText()
-        elem = self.NS.lookup_element(name)
-        if(elem is None):
+        first_name_token, first_array_suffixes = ref_elements[0]
+        first_name = first_name_token.getText()
+        first_elem = self.NS.lookup_element(first_name)
+        if(first_elem is None):
             raise RDLCompileError(
-                "Reference to '%s' not found" % name,
-                name_token
+                "Reference to '%s' not found" % first_name,
+                first_name_token
             )
-        elif(type(elem) == Parameter):
-            ref_expr = e.ParameterRef(name_token, elem)
-        elif(issubclass(type(elem), comp.Component)):
-            ref_expr = e.InstRef(name_token, elem)
+        
+        if(type(first_elem) == Parameter):
+            # Reference is to a local parameter
+            ref_expr = e.ParameterRef(first_name_token, first_elem)
+            
+            if(len(first_array_suffixes) != 0):
+                raise RDLNotSupportedYet(
+                    "Index or bit-slice of a parameter is not supported yet. Coming soon!",
+                    first_array_suffixes[0].err_ctx
+                )
+            if(len(ref_elements) > 1):
+                raise RDLNotSupportedYet(
+                    "Referencing child elements of a parameter is not supported yet. Coming soon!",
+                    ctx.instance_ref_element(1)
+                )
+        elif(type(first_elem) == comp.Signal):
+            # TODO: Need to handle signals differently. They are non-hierarchical (or something)
+            raise NotImplementedError
+        elif(issubclass(type(first_elem), comp.Component)):
+            # Reference is to a component instance
+            ref_expr = e.InstRef(
+                ref_inst=self.current_component,
+                uplevels_to_ref=self.target_depth,
+                ref_elements=ref_elements
+            )
         else:
             raise RuntimeError
         
-        for array_suffix in array_suffixes:
-            # Dereference the first element's array
-            # TODO
-            raise RDLNotSupportedYet(
-                "Indexing references is not supported yet. Coming soon!",
-                array_suffix.err_ctx
-            )
-        
-        
-        # Build a reference tree for all remaining hierarchical references
-        for name_token, array_suffixes in ref_elements:
-            # TODO
-            raise RDLNotSupportedYet(
-                "Hierarchical references are not supported yet. Coming soon!",
-                name_token
-            )
-            
         return(ref_expr)
 
     def visitInstance_ref_element(self, ctx:SystemRDLParser.Instance_ref_elementContext):

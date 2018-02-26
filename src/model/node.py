@@ -1,4 +1,5 @@
 from . import component as comp
+from . import rdl_types as rdlt
 import itertools
 
 class Node:
@@ -49,7 +50,13 @@ class Node:
     def get_property(self, prop_name):
         # If its already in the component, then safe to bypass checks
         if(prop_name in self.inst.properties):
-            return(self.inst.properties[prop_name])
+            prop_value = self.inst.properties[prop_name]
+            
+            # If this is a hierarchical component reference, convert it to a Node reference
+            if(issubclass(type(prop_value), rdlt.ComponentRef)):
+                prop_value = prop_value.build_node_ref(self)
+            
+            return(prop_value)
         
         rule = self.compiler.property_rules.lookup_property(prop_name)
         

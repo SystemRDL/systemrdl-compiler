@@ -21,12 +21,15 @@ from ..model import rdl_types
 class ComponentVisitor(BaseVisitor):
     comp_type = None
     
-    def __init__(self, ns=None, pr=None, def_name=None, param_defs=[]):
+    def __init__(self, ns=None, pr=None, def_name=None, param_defs=None):
         super().__init__(ns, pr)
         
         self.component = self.comp_type()
         self.component.type_name = def_name
-        self.component.parameters = param_defs
+        if(param_defs is None):
+            self.component.parameters = []
+        else:
+            self.component.parameters = param_defs
         
         # Scratchpad of property settings encountered in body of component
         self.property_dict = OrderedDict()
@@ -218,7 +221,7 @@ class ComponentVisitor(BaseVisitor):
         if(ctx is None):
             return(None)
         
-        visitor = ExprVisitor(self.NS, self.PR)
+        visitor = ExprVisitor(self.NS, self.PR, self.component)
         expr = visitor.visit(ctx.expr())
         expr = expressions.AssignmentCast(ctx.op, expr, int)
         expr.predict_type()
@@ -386,7 +389,7 @@ class ComponentVisitor(BaseVisitor):
         
         # Get expression for parameter default, if any
         if(ctx.expr() is not None):
-            visitor = ExprVisitor(self.NS, self.PR)
+            visitor = ExprVisitor(self.NS, self.PR, self.component)
             default_expr = visitor.visit(ctx.expr())
             default_expr = expressions.AssignmentCast(ctx.ID(), default_expr, param_type)
             default_expr.predict_type()
@@ -418,7 +421,7 @@ class ComponentVisitor(BaseVisitor):
     def visitParam_assignment(self, ctx:SystemRDLParser.Param_assignmentContext):
         param_name = ctx.ID().getText()
         
-        visitor = ExprVisitor(self.NS, self.PR)
+        visitor = ExprVisitor(self.NS, self.PR, self.component)
         # Note: AssignmentCast is handled in the visitComponent_insts Visitor
         assign_expr = visitor.visit(ctx.expr())
         return(param_name, assign_expr)
@@ -453,7 +456,9 @@ class ComponentVisitor(BaseVisitor):
                 self.property_dict[prop_name] = (prop_token, rhs)
         
     def visitDynamic_property_assignment(self, ctx:SystemRDLParser.Dynamic_property_assignmentContext):
-        # TODO
+        # TODO: Implement
+        # Make sure to keep track of target depth when doing assignment.
+        # The ExprVisitor constructor needs this to build component references properly
         raise RDLNotSupportedYet(
             "Dynamic property assignments are not supported yet",
             ctx
@@ -516,7 +521,7 @@ class ComponentVisitor(BaseVisitor):
         
     def visitProp_assignment_rhs(self, ctx:SystemRDLParser.Prop_assignment_rhsContext):
         if(ctx.expr() is not None):
-            visitor = ExprVisitor(self.NS, self.PR)
+            visitor = ExprVisitor(self.NS, self.PR, self.component)
             rhs = visitor.visit(ctx.expr())
         else:
             rhs = self.visit(ctx.precedencetype_literal())
@@ -556,7 +561,7 @@ class ComponentVisitor(BaseVisitor):
     # Array and Range suffixes
     #---------------------------------------------------------------------------
     def visitRange_suffix(self, ctx:SystemRDLParser.Range_suffixContext):
-        visitor = ExprVisitor(self.NS, self.PR)
+        visitor = ExprVisitor(self.NS, self.PR, self.component)
         expr1 = visitor.visit(ctx.expr(0))
         expr1 = expressions.AssignmentCast(ctx.expr(0), expr1, int)
         expr1.predict_type()
@@ -568,7 +573,7 @@ class ComponentVisitor(BaseVisitor):
         return(expr1, expr2)
 
     def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
-        visitor = ExprVisitor(self.NS, self.PR)
+        visitor = ExprVisitor(self.NS, self.PR, self.component)
         expr = visitor.visit(ctx.expr())
         expr = expressions.AssignmentCast(ctx.expr(), expr, int)
         expr.predict_type()

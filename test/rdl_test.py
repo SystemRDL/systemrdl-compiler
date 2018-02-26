@@ -15,6 +15,10 @@ result = rdlc.elaborate("my_design")
 
 class hier_printer(RDLListener):
     def enter_Component_before(self, node):
+        pass
         print(node.get_path())
 
 RDLUnrollWalker().walk(hier_printer(), result)
+
+testme = result.get_property("testme")
+print("testme =", testme.get_path())

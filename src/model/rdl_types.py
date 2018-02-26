@@ -1,4 +1,5 @@
 import enum
+from .node import Node, AddressableNode
 
 class AutoEnum(enum.Enum):
     def __new__(cls):
@@ -60,3 +61,50 @@ class UserStruct():
     TODO Implementation TBD,
     but whatever it is, shall be identifiable using issubclass()
     """
+
+#===============================================================================
+class ComponentRef:
+    """
+    Container for hierarchical component instance references.
+    This is used internally to store information about the reference
+    When a user requests the reference value, it is resolved into a Node object
+    """
+    
+    def __init__(self, uplevels_to_ref, ref_elements):
+        # Number of Node parents to traverse up from the assignee to reach the
+        # root of the relative path specified by ref_elements
+        self.uplevels_to_ref = uplevels_to_ref
+        
+        # List of hierarchical reference element tuples that make up the path
+        # to the reference.
+        # Each tuple in the list represents a segment of the path:
+        # [
+        #   ( <ID string> , [ <Index int> , ... ] ),
+        #   ( <ID string> , None )
+        # ]
+        self.ref_elements = ref_elements
+    
+    def build_node_ref(self, assignee_node):
+        current_node = assignee_node
+        
+        # Traverse up from assignee as needed
+        for i in range(self.uplevels_to_ref):
+            if(current_node.parent is None):
+                raise RuntimeError("Upref attempted past last parent")
+            current_node = current_node.parent
+        
+        for inst_name, idx_list in self.ref_elements:
+            # find instance
+            for child in current_node.inst.children:
+                if(child.inst_name == inst_name):
+                    current_node = Node.factory(child, current_node.compiler, current_node)
+                    break
+            else:
+                raise RuntimeError
+            
+            # Assign indexes if appropriate
+            if((issubclass(type(current_node), AddressableNode)) and current_node.inst.is_array):
+                current_node.current_idx = idx_list
+            
+        return(current_node)
+        

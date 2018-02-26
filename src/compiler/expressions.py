@@ -1,6 +1,9 @@
 from copy import deepcopy
 from . import type_placeholders as tp
 from .errors import RDLCompileError
+from ..model import component as comp
+from ..model import rdl_types as rdlt
+
 
 class Expr:
     def __init__(self, err_ctx):
@@ -681,21 +684,147 @@ class ParameterRef(Expr):
         
     def get_value(self):
         return(self.param.expr.get_value())
-    
+
+
 class InstRef(Expr):
-    def __init__(self, err_ctx, inst):
-        super().__init__(err_ctx)
-        self.inst = inst
+    def __init__(self, ref_inst, uplevels_to_ref, ref_elements):
+        super().__init__(None) # single err_ctx doesn't make sense for InstRef
+        
+        # Points to the component inst that the ref_elements 'path' is relative to
+        self.ref_inst = ref_inst
+        
+        # Number of parents to traverse up from the assignee to reach ref_inst
+        # For InstRefs in local property assignments, this is 0
+        # For dynamic (hierarchical) property assignments, this is > 0
+        self.uplevels_to_ref = uplevels_to_ref
+        
+        # List of hierarchical reference element tuples that make up the path
+        # to the reference.
+        # Path is relative to ref_inst
+        # Each tuple in the list represents a segment of the path:
+        # [
+        #   ( <Antlr ID token> , [ <Index Expr> , ... ] ),
+        #   ( <Antlr ID token> , [ <Index Expr> , ... ] )
+        # ]
+        self.ref_elements = ref_elements
+    
+    def __deepcopy__(self, memo):
+        """
+        Copy any Antlr tokens by ref within the ref_elements list when deepcopying
+        """
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if(k == "ref_elements"):
+                # Manually deepcopy the ref_elements list
+                new_ref_elements = []
+                for src_name_token, src_array_suffixes in v:
+                    new_array_suffixes = deepcopy(src_array_suffixes, memo)
+                    new_ref_elements.append((src_name_token, new_array_suffixes))
+                setattr(result, k, new_ref_elements)
+            else:
+                setattr(result, k, deepcopy(v, memo))
+        return(result)
     
     def predict_type(self):
-        return(tp.Ref)
+        """
+        Traverse the ref_elements path and determine the component type being
+        referenced.
+        Also do some checks on the array indexes
+        """
+        current_inst = self.ref_inst
+        for name_token, array_suffixes in self.ref_elements:
+            name = name_token.getText()
+            
+            # find instance
+            for child in current_inst.children:
+                if(child.inst_name == name):
+                    current_inst = child
+                    break
+            else:
+                # Not found!
+                raise RDLCompileError(
+                    "Could not resolve hierarchical reference to '%s'" % name,
+                    name_token
+                )
+            
+            # Do type-check in array suffixes
+            for array_suffix in array_suffixes:
+                array_suffix.predict_type()
+                
+            # Check array suffixes
+            if((issubclass(type(current_inst), comp.AddressableComponent)) and current_inst.is_array):
+                # is an array
+                if(len(array_suffixes) != len(current_inst.array_dimensions)):
+                    raise RDLCompileError(
+                        "Incompatible number of index dimensions after '%s'. Expected %d, found %d."
+                            % (name, len(current_inst.array_dimensions), len(array_suffixes)),
+                        name_token
+                    )
+            elif(len(array_suffixes)):
+                # Has array suffixes. Check if compatible with referenced component
+                raise RDLCompileError(
+                    "Unable to index non-array component '%s'" % name,
+                    name_token
+                )
+        
+        return(type(current_inst))
+        
+    def resolve_expr_width(self):
+        # Resolve expression widths of all array suffixes in ref_elements
+        for name_token, array_suffixes in self.ref_elements:
+            for array_suffix in array_suffixes:
+                array_suffix.resolve_expr_width()
     
     def get_min_eval_width(self):
         return(1) # Don't care
     
+    def propagate_eval_width(self, w):
+        self.resolve_expr_width()
+    
     def get_value(self):
-        return(self.inst)
-
+        """
+        Build a resolved ComponentRef container that describes the relative path
+        """
+        
+        resolved_ref_elements = []
+        
+        current_inst = self.ref_inst
+        for name_token, array_suffixes in self.ref_elements:
+            name = name_token.getText()
+            
+            # find instance
+            for child in current_inst.children:
+                if(child.inst_name == name):
+                    current_inst = child
+                    break
+            else:
+                raise RuntimeError
+            
+            # Evaluate array suffixes if appropriate
+            idx_list = None
+            if((issubclass(type(current_inst), comp.AddressableComponent)) and current_inst.is_array):
+                idx_list = []
+                for array_suffix in array_suffixes:
+                    idx_list.append(array_suffix.get_value())
+                
+                # Check ranges on suffixes
+                for i in range(len(idx_list)):
+                    if(idx_list[i] >= current_inst.array_dimensions[i]):
+                        raise RDLCompileError(
+                            "Array index out of range. Expected 0-%d, got %d."
+                                % (current_inst.array_dimensions[i]-1, idx_list[i]),
+                            array_suffix.err_ctx
+                        )
+            
+            resolved_ref_elements.append((name, idx_list))
+        
+        # Create container
+        cref = rdlt.ComponentRef(self.uplevels_to_ref, resolved_ref_elements)
+        
+        return(cref)
+        
 #-------------------------------------------------------------------------------
 # Assignment cast
 # This is a wrapper expression that normalizes the expression result
@@ -719,7 +848,7 @@ class AssignmentCast(Expr):
         
         if(not is_type_compatible(op_type, self.dest_type)):
             raise RDLCompileError(
-                "Assignment is not compatible with the destination type",
+                "Result of expression is not compatible with the expected type",
                 self.err_ctx
             )
         

@@ -144,9 +144,10 @@ class ElabExpressionsListener(walker.RDLListener):
                 param.expr.resolve_expr_width()
                 param.expr.get_value()
         
+    
+    def exit_Component_after(self, node):
         # Evaluate component properties
         for prop_name, prop_value in node.inst.properties.items():
             if(issubclass(type(prop_value), Expr)):
                 prop_value.resolve_expr_width()
                 node.inst.properties[prop_name] = prop_value.get_value()
-        
