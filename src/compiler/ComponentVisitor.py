@@ -31,8 +31,24 @@ class ComponentVisitor(BaseVisitor):
         else:
             self.component.parameters = param_defs
         
-        # Scratchpad of property settings encountered in body of component
+        # Scratchpad of local property assignments encountered in body of component
+        # format is:
+        #   {
+        #       prop_name : (prop_token, prop_rhs)
+        #   }
         self.property_dict = OrderedDict()
+        
+        # Scratchpad of dynamic property assignments encountered in body of component
+        # format is:
+        #   {
+        #       target_inst : {
+        #           prop_name : (prop_token, prop_rhs)
+        #       }
+        #   }
+        self.dynamic_property_dict = OrderedDict()
+        
+        # Scratchpad to pass stuff down between visitor functions
+        self._tmp = None
     
     #---------------------------------------------------------------------------
     # Component Definitions
@@ -49,6 +65,7 @@ class ComponentVisitor(BaseVisitor):
         self.visitChildren(ctx)
         
         self.apply_local_properties()
+        self.apply_dynamic_properties()
         
         self.NS.exit_scope()
         return(self.component)
@@ -433,6 +450,10 @@ class ComponentVisitor(BaseVisitor):
         
         default = (ctx.DEFAULT_kw() is not None)
         
+        # _tmp is used to store assignment target depth so that it can be passed
+        # to the ExprVisitor. This is 0 for local property assignments
+        self._tmp = 0
+        
         if(ctx.normal_prop_assign() is not None):
             prop_token, prop_name, rhs = self.visit(ctx.normal_prop_assign())
         elif(ctx.encode_prop_assign() is not None):
@@ -456,14 +477,66 @@ class ComponentVisitor(BaseVisitor):
                 self.property_dict[prop_name] = (prop_token, rhs)
         
     def visitDynamic_property_assignment(self, ctx:SystemRDLParser.Dynamic_property_assignmentContext):
-        # TODO: Implement
-        # Make sure to keep track of target depth when doing assignment.
-        # The ExprVisitor constructor needs this to build component references properly
-        raise RDLNotSupportedYet(
-            "Dynamic property assignments are not supported yet",
-            ctx
-        )
+        
+        # List of component instance names in the hierarchical path
+        name_tokens = self.visit(ctx.instance_ref())
+        
+        # Keep track of assignment target's depth.
+        # This needs to be passed to the ExprVisitor that generates RHS in order
+        # to properly evaluate component references
+        self._tmp = len(name_tokens)
+        
+        if(ctx.normal_prop_assign() is not None):
+            prop_token, prop_name, rhs = self.visit(ctx.normal_prop_assign())
+        elif(ctx.encode_prop_assign() is not None):
+            prop_token, prop_name, rhs = self.visit(ctx.encode_prop_assign())
+        else:
+            raise RuntimeError
+        
+        # Lookup component instance being assigned
+        target_inst = self.component
+        for name_token in name_tokens:
+            inst_name = name_token.getText()
+            target_inst = target_inst.get_child_by_name(inst_name)
+            if(target_inst is None):
+                # Not found!
+                raise RDLCompileError(
+                    "Could not resolve hierarchical reference to '%s'" % inst_name,
+                    name_token
+                )
+        
+        # Add assignment to dynamic_property_dict
+        target_inst_dict = self.dynamic_property_dict.get(target_inst, OrderedDict())
+        if(prop_name in target_inst_dict):
+            raise RDLCompileError(
+                "Property '%s' was already assigned to component '%s' from within this scope"
+                    % (prop_name, name_tokens[-1].getText()),
+                prop_token
+            )
+        else:
+            target_inst_dict[prop_name] = (prop_token, rhs)
+        self.dynamic_property_dict[target_inst] = target_inst_dict
+        
     
+    def visitInstance_ref(self, ctx:SystemRDLParser.Instance_refContext):
+        name_tokens = []
+        for ref_elem in ctx.getTypedRuleContexts(SystemRDLParser.Instance_ref_elementContext):
+            name_tokens.append(self.visit(ref_elem))
+        return(name_tokens)
+        
+    def visitInstance_ref_element(self, ctx:SystemRDLParser.Instance_ref_elementContext):
+        name_token = ctx.ID()
+        
+        # Intentionally not supporting array references in dynamic assignments
+        # due to heterogeneous array complications.
+        for as_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Array_suffixContext):
+            raise RDLCompileError(
+                "Use of array suffixes in dynamic property assignments is not supported",
+                as_ctx
+            )
+        
+        return(name_token)
+        
     def visitNormal_prop_assign(self, ctx:SystemRDLParser.Normal_prop_assignContext):
         
         # Get property string
@@ -520,8 +593,10 @@ class ComponentVisitor(BaseVisitor):
         return(prop_mod_token, prop_mod)
         
     def visitProp_assignment_rhs(self, ctx:SystemRDLParser.Prop_assignment_rhsContext):
+        target_depth = self._tmp
+        
         if(ctx.expr() is not None):
-            visitor = ExprVisitor(self.NS, self.PR, self.component)
+            visitor = ExprVisitor(self.NS, self.PR, self.component, target_depth)
             rhs = visitor.visit(ctx.expr())
         else:
             rhs = self.visit(ctx.precedencetype_literal())
@@ -557,6 +632,40 @@ class ComponentVisitor(BaseVisitor):
             # Apply property
             rule.assign_value(self.component, prop_rhs, prop_token)
     
+    def apply_dynamic_properties(self):
+        
+        for target_inst, target_inst_dict in self.dynamic_property_dict.items():
+            mutex_bins = {}
+            for prop_name, (prop_token, prop_rhs) in target_inst_dict.items():
+                rule = self.PR.lookup_property(prop_name)
+                if(rule is None):
+                    raise RDLCompileError(
+                        "Unrecognized property '%s'" % prop_name,
+                        prop_token
+                    )
+                
+                # Is dynamic assignment allowed?
+                if(rule.dyn_assign_allowed == False):
+                    raise RDLCompileError(
+                        "Dynamic assignment to property '%s' is not allowed" % prop_name,
+                        prop_token
+                    )
+                
+                # Check for mutex collisions
+                if(rule.mutex_group is not None):
+                    # Is mutually exclusive with other props. Check for collision
+                    if(rule.mutex_group in mutex_bins):
+                        # Already saw something in this mutex group
+                        raise RDLCompileError(
+                            "Properties '%s' and '%s' cannot be assigned in the same component" % (prop_name, mutex_bins[rule.mutex_group]),
+                            prop_token
+                        )
+                    else:
+                        mutex_bins[rule.mutex_group] = prop_name
+                
+                # Apply property
+                rule.assign_value(target_inst, prop_rhs, prop_token)
+
     #---------------------------------------------------------------------------
     # Array and Range suffixes
     #---------------------------------------------------------------------------

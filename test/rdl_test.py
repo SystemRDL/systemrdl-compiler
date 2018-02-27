@@ -7,14 +7,14 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(this_dir, "../"))
 
 from src.rdl_compiler import RDLCompiler
-from src.model.walker import RDLWalker, RDLListener, RDLUnrollWalker
+from src.model.walker import RDLListener, RDLUnrollWalker
 
 rdlc = RDLCompiler()
 root = rdlc.compile_file("test.rdl")
 result = rdlc.elaborate("my_design")
 
 class hier_printer(RDLListener):
-    def enter_Component_before(self, node):
+    def enter_Component(self, node):
         pass
         print(node.get_path())
 

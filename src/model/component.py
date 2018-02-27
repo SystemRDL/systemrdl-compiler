@@ -51,6 +51,12 @@ class Component:
             else:
                 setattr(result, k, deepcopy(v, memo))
         return(result)
+    
+    def get_child_by_name(self, inst_name):
+        for child in self.children:
+            if(child.inst_name == inst_name):
+                return(child)
+        return(None)
 
 class AddressableComponent(Component):
     """

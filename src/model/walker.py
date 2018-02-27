@@ -1,19 +1,25 @@
 
-from .node import SignalNode, FieldNode, RegNode, RegfileNode, AddrmapNode, MemNode
+from .node import *
 
 #===============================================================================
 class RDLListener:
     
-    def enter_Component_before(self, node):
+    def enter_Component(self, node):
         pass
     
-    def enter_Component_after(self, node):
+    def exit_Component(self, node):
         pass
-        
-    def exit_Component_before(self, node):
+    
+    def enter_AddressableComponent(self, node):
         pass
-        
-    def exit_Component_after(self, node):
+    
+    def exit_AddressableComponent(self, node):
+        pass
+    
+    def enter_VectorComponent(self, node):
+        pass
+    
+    def exit_VectorComponent(self, node):
         pass
     
     def enter_Addrmap(self, node):
@@ -67,7 +73,12 @@ class RDLWalker:
     
     
     def do_enter(self, listener:RDLListener, node):
-        listener.enter_Component_before(node)
+        listener.enter_Component(node)
+        
+        if(issubclass(type(node), AddressableNode)):
+            listener.enter_AddressableComponent(node)
+        elif(issubclass(type(node), VectorNode)):
+            listener.enter_VectorComponent(node)
         
         if(type(node) == FieldNode):
             listener.enter_Field(node)
@@ -81,12 +92,15 @@ class RDLWalker:
             listener.enter_Mem(node)
         elif(type(node) == SignalNode):
             listener.enter_Signal(node)
-        
-        listener.enter_Component_after(node)
     
     
     def do_exit(self, listener:RDLListener, node):
-        listener.exit_Component_before(node)
+        listener.exit_Component(node)
+        
+        if(issubclass(type(node), AddressableNode)):
+            listener.exit_AddressableComponent(node)
+        elif(issubclass(type(node), VectorNode)):
+            listener.exit_VectorComponent(node)
         
         if(type(node) == FieldNode):
             listener.exit_Field(node)
@@ -101,8 +115,6 @@ class RDLWalker:
         elif(type(node) == SignalNode):
             listener.exit_Signal(node)
         
-        listener.exit_Component_after(node)
-
 #-------------------------------------------------------------------------------
 class RDLUnrollWalker(RDLWalker):
     """

@@ -95,11 +95,8 @@ class ComponentRef:
         
         for inst_name, idx_list in self.ref_elements:
             # find instance
-            for child in current_node.inst.children:
-                if(child.inst_name == inst_name):
-                    current_node = Node.factory(child, current_node.compiler, current_node)
-                    break
-            else:
+            current_node = current_node.get_child_by_name(inst_name)
+            if(current_node is None):
                 raise RuntimeError
             
             # Assign indexes if appropriate

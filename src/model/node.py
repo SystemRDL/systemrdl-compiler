@@ -46,6 +46,11 @@ class Node:
             else:
                 yield Node.factory(child_inst, self.compiler, self)
     
+    def get_child_by_name(self, inst_name):
+        child_inst = self.inst.get_child_by_name(inst_name)
+        if(child_inst is None):
+            return(None)
+        return(Node.factory(child_inst, self.compiler, self))
     
     def get_property(self, prop_name):
         # If its already in the component, then safe to bypass checks
@@ -125,6 +130,13 @@ class AddressableNode(Node):
         # TODO
         raise NotImplementedError
     
+#===============================================================================
+class VectorNode(Node):
+    """
+    Base-class for any kind of node that is vector-like
+    (signal, field)
+    """
+
 #===============================================================================
 class SignalNode(Node):
     pass

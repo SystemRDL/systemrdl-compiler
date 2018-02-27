@@ -738,11 +738,8 @@ class InstRef(Expr):
             name = name_token.getText()
             
             # find instance
-            for child in current_inst.children:
-                if(child.inst_name == name):
-                    current_inst = child
-                    break
-            else:
+            current_inst = current_inst.get_child_by_name(name)
+            if(current_inst is None):
                 # Not found!
                 raise RDLCompileError(
                     "Could not resolve hierarchical reference to '%s'" % name,
@@ -795,11 +792,8 @@ class InstRef(Expr):
             name = name_token.getText()
             
             # find instance
-            for child in current_inst.children:
-                if(child.inst_name == name):
-                    current_inst = child
-                    break
-            else:
+            current_inst = current_inst.get_child_by_name(name)
+            if(current_inst is None):
                 raise RuntimeError
             
             # Evaluate array suffixes if appropriate
