@@ -1,0 +1,71 @@
+Hierarchical references
+
+Hierarchical reference example:
+    Consider the tree (parent --> child):
+        A --> B[0:4] --> C[0:20][0:5] --> D[0:1]
+    Say, a property in B is locally assigned a reference to D:
+        prop = C[12][2].D[0]
+    The property 'prop' is assigned an Expr object that:
+        Stores the following:
+            - Reference to the component inst of the property being assigned (comp B)
+            - String of each instance ref link
+            - Expr for each array index
+            So:
+                ref_inst = B
+                uplevels_to_ref = 0
+                ref_elements = [
+                    ( Token("C"), [Expr(12), Expr(2)] ),
+                    ( Token("D"), [Expr(0)] )
+                ]
+        When predict_type() is called:
+            - Predict types of each index expression and check if it is numeric
+            - Traverse each name link to determine if the referenced instance exists
+            - Once the target is reached, return its component type
+        When get_value() is called:
+            - Make a copy of ref_elements, but transform it so that:
+                - name tokens are resolved to strings
+                - indices are evaluated
+            - Whale converting, check that all indices are within the component's valid
+              range
+            - Create a ComponentRef object, which wraps the resolved ref_elements list
+            - return the ComponentRef
+            Example:
+                resolved_ref_elements = [
+                    ( "C", [12, 2] ),
+                    ( "D", [0] )
+                ]
+    When Node_B.get_property("prop") is called:
+        - Convert the ComponentRef into a Node back-path
+            Example:
+                A --> B[0:4] --> C[0:20] --> D[0:1]
+                                  ^^            ^^
+                     Node_B <-- Node(C, 12) <-- Node(D, 0)
+                Returns the rightmost object, Node_D
+        - The last link in the chain's .parent reference is completed by pointing to the
+          Node that is calling get_property (Node_B)
+        - User can then compare the lineage of Node_B and Node_D to understand the relative relationship
+
+How about a dynamic assignment of a hierarchical reference?
+    Consider the tree:
+           +-> X
+           |
+        A -+-> B[0:4] --> C[0:20]
+    
+    And in A's namespace, this happens:
+        A.X->prop = B[3].C[0]
+    
+    Expr object created during compile:
+        Parser uses "uplevels_to_ref" to denote how many parent links should be
+        traversed to reach a common ancestor.
+        The reference inst is the common ancestor
+        So:
+            ref_inst = A
+            uplevels_to_ref = 1
+            ref_elements = [
+                ( Token("B"), [Expr(3)] ),
+                ( Token("C"), [Expr(0)] )
+            ]
+    When Node_X.get_property("prop") is called:
+        - Since uplevels_to_ref != 0, first, take Node_X and traverse up
+          the .parent chain N times
+        - Create the Node chain as usual after that

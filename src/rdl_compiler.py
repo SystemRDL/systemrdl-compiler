@@ -1,5 +1,7 @@
 import sys
 
+from copy import deepcopy
+
 from antlr4 import FileStream, CommonTokenStream
 
 from .parser.SystemRDLLexer import SystemRDLLexer
@@ -61,9 +63,10 @@ class RDLCompiler:
     def _do_elaborate(self, top_def_name, parameters):
         
         # Lookup top_def_name
-        top_inst = self.root.comp_defs[top_def_name]
+        top_def = self.root.comp_defs[top_def_name]
         
         # Create a top-level instance
+        top_inst = deepcopy(top_def)
         top_inst.is_instance = True
         top_inst.inst_name = top_def_name
         
