@@ -799,9 +799,7 @@ class InstRef(Expr):
             # Evaluate array suffixes if appropriate
             idx_list = None
             if((issubclass(type(current_inst), comp.AddressableComponent)) and current_inst.is_array):
-                idx_list = []
-                for array_suffix in array_suffixes:
-                    idx_list.append(array_suffix.get_value())
+                idx_list = [ suffix.get_value() for suffix in array_suffixes ]
                 
                 # Check ranges on suffixes
                 for i in range(len(idx_list)):

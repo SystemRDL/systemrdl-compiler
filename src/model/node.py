@@ -1,3 +1,4 @@
+import re
 from . import component as comp
 from . import rdl_types as rdlt
 import itertools
@@ -35,6 +36,11 @@ class Node:
     
     
     def children(self, unroll=False):
+        """
+        Returns an iterator that provides nodes for all immediate children of
+        this component.
+        If unroll=True, then any children that are arrays are unrolled.
+        """
         for child_inst in self.inst.children:
             if(unroll and issubclass(type(child_inst), comp.AddressableComponent) and child_inst.is_array):
                 # Unroll the array
@@ -46,11 +52,53 @@ class Node:
             else:
                 yield Node.factory(child_inst, self.compiler, self)
     
+    
     def get_child_by_name(self, inst_name):
+        """
+        Returns an immediate child Node whose instance name matches inst_name
+        Returns None if not inst_name does not match
+        """
         child_inst = self.inst.get_child_by_name(inst_name)
         if(child_inst is None):
             return(None)
         return(Node.factory(child_inst, self.compiler, self))
+    
+    
+    def find_by_path(self, path):
+        """
+        Finds the descendant node that is located at the relative path
+        Returns None if not found
+        Raises exception if path is malformed, or array index is out of range
+        """
+        pathparts = path.split('.')
+        current_node = self
+        for pathpart in pathparts:
+            m = re.fullmatch(r'^(\w+)((?:\[(?:\d+|0[xX][\da-fA-F]+)\])*)$', pathpart)
+            if(not m):
+                raise ValueError("Invalid path")
+            inst_name, array_suffix = m.group(1,2)
+            idx_list = [ int(s,0) for s in re.findall(r'\[(\d+|0[xX][\da-fA-F]+)\]', array_suffix) ]
+            
+            current_node = current_node.get_child_by_name(inst_name)
+            if(current_node is None):
+                return(None)
+            
+            if(len(idx_list)):
+                if((issubclass(type(current_node), AddressableNode)) and current_node.inst.is_array):
+                    # is an array
+                    if(len(idx_list) != len(current_node.inst.array_dimensions)):
+                        raise IndexError("Wrong number of array dimensions")
+                    
+                    current_node.current_idx = []
+                    for i in range(len(idx_list)):
+                        if(idx_list[i] >= current_node.inst.array_dimensions[i]):
+                            raise IndexError("Array index out of range")
+                        current_node.current_idx.append(idx_list[i])
+                else:
+                    raise IndexError("Index attempted on non-array component")
+            
+        return(current_node)
+    
     
     def get_property(self, prop_name):
         # If its already in the component, then safe to bypass checks
@@ -121,6 +169,7 @@ class AddressableNode(Node):
                 return(path)
         else:
             return(path)
+    
     
     @property
     def absolute_address(self):

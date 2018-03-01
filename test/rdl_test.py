@@ -22,3 +22,8 @@ RDLUnrollWalker().walk(hier_printer(), result)
 
 testme = result.get_property("testme")
 print("testme =", testme.get_path())
+
+f = result.find_by_path("reg_b.asdf")
+if(f):
+    print(f.get_path())
+
