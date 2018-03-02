@@ -10,20 +10,20 @@ from src.rdl_compiler import RDLCompiler
 from src.model.walker import RDLListener, RDLUnrollWalker
 
 rdlc = RDLCompiler()
-root = rdlc.compile_file("test.rdl")
-result = rdlc.elaborate("my_design")
+rdlc.compile_file("test.rdl")
+top = rdlc.elaborate("my_design")
 
 class hier_printer(RDLListener):
     def enter_Component(self, node):
         pass
         print(node.get_path())
 
-RDLUnrollWalker().walk(hier_printer(), result)
+RDLUnrollWalker().walk(hier_printer(), top)
 
-testme = result.get_property("testme")
+testme = top.get_property("testme")
 print("testme =", testme.get_path())
 
-f = result.find_by_path("reg_b.asdf")
+f = top.find_by_path("reg_b.asdf")
 if(f):
     print(f.get_path())
 

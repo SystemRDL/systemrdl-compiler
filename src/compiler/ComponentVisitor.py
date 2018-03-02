@@ -21,7 +21,7 @@ from ..model import rdl_types
 class ComponentVisitor(BaseVisitor):
     comp_type = None
     
-    def __init__(self, ns=None, pr=None, def_name=None, param_defs=None):
+    def __init__(self, ns, pr, def_name=None, param_defs=None):
         super().__init__(ns, pr)
         
         self.component = self.comp_type()
@@ -55,6 +55,8 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     def visitComponent_body(self, ctx:SystemRDLParser.Component_bodyContext):
         self.NS.enter_scope()
+        
+        self.component.def_err_ctx = ctx
         
         # Re-Load any parameters into the local scope
         for param in self.component.parameters:
@@ -179,11 +181,11 @@ class ComponentVisitor(BaseVisitor):
         
         if(comp_def.type_name is not None):
             # Instantiating a named definition.
-            # Make a copy of the component so that the instance is unique
-            comp_inst = deepcopy(comp_def)
-            comp_inst.original_def = comp_def
+            # Make a copy of the component def to preserve original definition
+            comp_inst_template = deepcopy(comp_def)
+            comp_inst_template.original_def = comp_def
         else:
-            comp_inst = comp_def
+            comp_inst_template = comp_def
         
         # Get a dictionary of parameter assignments
         if(ctx.param_inst() is not None):
@@ -194,14 +196,14 @@ class ComponentVisitor(BaseVisitor):
         # Assign parameter overrides, if any
         for param_name, assign_expr, err_ctx in param_assigns.items():
             # Lookup corresponding parameter in component
-            for comp_param in comp_inst.parameters:
+            for comp_param in comp_inst_template.parameters:
                 if(comp_param.name == param_name):
                     param = comp_param
                     break
             else:
                 raise RDLCompileError(
                     "Parameter '%s' not found in definition for component '%s'" 
-                    % (param_name, comp_inst.name),
+                    % (param_name, comp_inst_template.name),
                     err_ctx
                 )
             
@@ -212,6 +214,9 @@ class ComponentVisitor(BaseVisitor):
         
         # Do instantiations
         for inst in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
+            # Make a copy of the template so that the instance is unique
+            comp_inst = deepcopy(comp_inst_template)
+            
             # Pass some temporary info to visitComponent_inst
             self._tmp = comp_inst, inst_type
             self.visit(inst)
@@ -249,6 +254,8 @@ class ComponentVisitor(BaseVisitor):
         comp_inst, inst_type = self._tmp
         
         inst_name = ctx.ID().getText()
+        comp_inst.inst_name = inst_name
+        comp_inst.inst_err_ctx = ctx.ID()
         
         # Get array or range suffix
         array_suffixes = []
@@ -362,7 +369,6 @@ class ComponentVisitor(BaseVisitor):
         elif(inst_type == SystemRDLParser.INTERNAL_kw):
             comp_inst.external = False
         
-        comp_inst.inst_name = inst_name
         self.component.children.append(comp_inst)
         
         self.NS.register_element(inst_name, comp_inst, ctx.ID())

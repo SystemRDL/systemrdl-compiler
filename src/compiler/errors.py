@@ -40,8 +40,15 @@ class ConsoleErrorPrinter(RDLErrorHandler):
             print(e)
     
     def print_compile_error(self, e):
-        ec = ErrorContext.from_antlr_obj(e.antlr_obj)
-        ec.print_error(e.msg)
+        if(e.antlr_obj is None):
+            print(
+                Fore.RED + Style.BRIGHT + "error:",
+                Style.RESET_ALL + e.msg,
+                file=sys.stderr
+            )
+        else:
+            ec = ErrorContext.from_antlr_obj(e.antlr_obj)
+            ec.print_error(e.msg)
     
 
 class ErrorContext:
@@ -119,7 +126,7 @@ class RDLCompileError(RDLException):
     The required Antlr object provided can be any of the following:
         Token, TerminalNode, ParserRuleContext
     """
-    def __init__(self, msg, antlr_obj):
+    def __init__(self, msg, antlr_obj=None):
         super().__init__(msg)
         self.antlr_obj = antlr_obj
         self.msg = msg

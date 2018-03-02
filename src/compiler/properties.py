@@ -5,14 +5,20 @@ from ..model import rdl_types
 from . import expressions
 from .errors import RDLCompileError
 from . import type_placeholders as tp
-        
+
+def get_all_subclasses(cls):
+        return cls.__subclasses__() + [g for s in cls.__subclasses__()
+                                           for g in get_all_subclasses(s)]
+
 class PropertyRuleBook:
     def __init__(self):
         
         # Auto-discover all properties defined below and load into dict
         self.rdl_properties = {}
-        for prop in PropertyRule.__subclasses__():
-            self.rdl_properties[prop.get_name()] = prop()
+        for prop in get_all_subclasses(PropertyRule):
+            prop_name = prop.get_name()
+            if(prop.__name__.startswith("Prop_")):
+                self.rdl_properties[prop_name] = prop()
         
         self.user_properties = {}
     
@@ -99,6 +105,32 @@ class PropertyRule:
         """
         return(self.default)
 
+#===============================================================================
+class PropertyRuleBoolPair(PropertyRule):
+    # Property name of the equivalent opposite
+    opposite_property = ""
+    
+    
+    def assign_value(self, comp_def, value, err_ctx):
+        """
+        Side effect: Ensure assignment of the opposite is cleared since it is being
+        overridden
+        """
+        super().assign_value(comp_def, value, err_ctx)
+        if(self.opposite_property in comp_def.properties):
+            del comp_def.properties[self.opposite_property]
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, check if the opposite was set first before returning
+        default
+        """
+        if(self.opposite_property in node.inst.properties):
+            return(not node.inst.properties[self.opposite_property])
+        else:
+            return(self.default)
+
+#===============================================================================
 # Placeholder for all my todos below
 TODO = None
 
@@ -226,7 +258,7 @@ class Prop_signalwidth(PropertyRule):
         """
         return(node.inst.width)
     
-class Prop_sync(PropertyRule):
+class Prop_sync(PropertyRuleBoolPair):
     """
     Signal is synchronous to the clock of the component.
     (8.2)
@@ -237,27 +269,9 @@ class Prop_sync(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "N"
     
-    def assign_value(self, comp_def, value, err_ctx):
-        """
-        Side effect: Ensure assignment of 'async' is cleared since it is being
-        overridden
-        """
-        super().assign_value(comp_def, value, err_ctx)
-        if('async' in comp_def.properties):
-            del comp_def.properties['async']
-    
-    def get_default(self, node):
-        """
-        If not explicitly set, check if 'async' was set first before returning
-        default
-        """
-        if('async' in node.inst.properties):
-            return(not node.inst.properties['async'])
-        else:
-            return(self.default)
-        
+    opposite_property = "async"
 
-class Prop_async(PropertyRule):
+class Prop_async(PropertyRuleBoolPair):
     """
     Signal is asynchronous to the clock of the component.
     (8.2)
@@ -268,24 +282,7 @@ class Prop_async(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "N"
     
-    def assign_value(self, comp_def, value, err_ctx):
-        """
-        Side effect: Ensure assignment of 'sync' is cleared since it is being
-        overridden
-        """
-        super().assign_value(comp_def, value, err_ctx)
-        if('sync' in comp_def.properties):
-            del comp_def.properties['sync']
-    
-    def get_default(self, node):
-        """
-        If not explicitly set, check if 'sync' was set first before returning
-        default
-        """
-        if('sync' in node.inst.properties):
-            return(not node.inst.properties['sync'])
-        else:
-            return(self.default)
+    opposite_property = "sync"
 
 class Prop_cpuif_reset(PropertyRule):
     """
@@ -959,20 +956,24 @@ class Prop_rsvdsetX(PropertyRule):
     dyn_assign_allowed = False
     mutex_group = "Q"
 
-class Prop_msb0(PropertyRule):
+class Prop_msb0(PropertyRuleBoolPair):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = False
     mutex_group = "M"
-
-class Prop_lsb0(PropertyRule):
+    
+    opposite_property = "lsb0"
+    
+class Prop_lsb0(PropertyRuleBoolPair):
     bindable_to = [comp.Addrmap]
     valid_types = [bool]
     default = True
     dyn_assign_allowed = False
     mutex_group = "M"
-
+    
+    opposite_property = "msb0"
+    
 #-------------------------------------------------------------------------------
 class Prop_bridge(PropertyRule):
     bindable_to = [comp.Addrmap]

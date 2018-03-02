@@ -272,7 +272,7 @@ class _RelationalExpr(Expr):
     def __init__(self, err_ctx, l, r):
         super().__init__(err_ctx)
         self.op = [l, r]
-        print("TODO: add support for non-numeric comparisons")
+        # TODO: add support for non-numeric comparisons
         
     def predict_type(self):
         if(self.op[0].predict_type() not in [int, bool]):

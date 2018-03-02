@@ -28,8 +28,6 @@ Phases of compilation
         - Instance addressing expressions
         - Instance array sizes
         
-    - User-specified default properties are propagated
-    - Propagate addressing mode rules
     - Resolve item addresses
     
     - Component type names are uniquified according to RDL rules in section 5.1.1.4
