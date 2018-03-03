@@ -176,7 +176,7 @@ class StructuralPlacementListener(walker.RDLListener):
     """
     Resolves inferred locations of structural components
     - Field width and offset
-    - Component addresses
+    - Component addresses TODO
     - Signal stuff?? TODO - TBD
     """
     def __init__(self):
@@ -202,17 +202,19 @@ class StructuralPlacementListener(walker.RDLListener):
                         node.inst.inst_err_ctx
                     )
                 
-                if((fieldwidth is not None) and (fieldwidth != width)):
-                    raise RDLCompileError(
-                        "Width of field bit range (%d) must match field's 'fieldwidth' preoperty (%d)" % (width, fieldwidth),
-                        node.inst.inst_err_ctx
-                    )
-                
                 node.inst.width = width
             elif(fieldwidth is not None):
                 node.inst.width = fieldwidth
             else:
                 node.inst.width = 1
+        
+        # Test field width again
+        fieldwidth = node.get_property('fieldwidth')
+        if(fieldwidth != node.inst.width):
+            raise RDLCompileError(
+                "Width of field instance (%d) must match field's 'fieldwidth' preoperty (%d)" % (node.inst.width, fieldwidth),
+                node.inst.inst_err_ctx
+            )
     
     def exit_Reg(self, node):
         

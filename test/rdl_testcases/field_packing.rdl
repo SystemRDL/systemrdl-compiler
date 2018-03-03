@@ -1,0 +1,29 @@
+
+reg test_reg_t {
+    field {} x;
+    field {} y[9:6];
+    field {} z[3];
+    field {fieldwidth=2;} zz;
+};
+
+reg test_reg16_t {
+    regwidth=16;
+    
+    field {} x;
+    field {} y[9:6];
+    field {} z[3];
+    field {fieldwidth=2;} zz;
+};
+
+
+addrmap lsb_packing {
+    lsb0;
+    test_reg_t reg1;
+    test_reg16_t reg2;
+};
+
+addrmap msb_packing {
+    msb0;
+    test_reg_t reg1;
+    test_reg16_t reg2;
+};
