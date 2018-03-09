@@ -1,5 +1,7 @@
 import sys
-
+import math
+import operator
+import functools
 from copy import deepcopy
 
 from antlr4 import FileStream, CommonTokenStream
@@ -13,7 +15,8 @@ from .compiler.properties import PropertyRuleBook
 from .compiler.namespace import NamespaceRegistry
 from .model import component as comp
 from .model import walker
-from .model.node import Node
+from .model.node import Node, AddressableNode, RegNode
+from .model import rdl_types
 
 class RDLCompiler:
     
@@ -181,13 +184,26 @@ class StructuralPlacementListener(walker.RDLListener):
     """
     def __init__(self):
         self.msb0_mode_stack = []
+        self.addressing_mode_stack = []
+        self.alignment_stack = []
+    
     
     def enter_Addrmap(self, node):
         self.msb0_mode_stack.append(node.get_property("msb0"))
-        
-    def exit_Addrmap(self, node):
-        self.msb0_mode_stack.pop()
-        
+        self.addressing_mode_stack.append(node.get_property("addressing"))
+        self.alignment_stack.append(node.get_property("alignment"))
+    
+    
+    def enter_Regfile(self, node):
+        # Regfile can override the current alignment, but does not block
+        # the propagation of a parent's setting if left undefined
+        alignment = node.get_property("alignment")
+        if(alignment is None):
+            # not set. Propagate from parent
+            alignment = self.alignment_stack[-1]
+        self.alignment_stack.append(alignment)
+    
+    
     def exit_Field(self, node):
         
         # Resolve field width
@@ -216,11 +232,13 @@ class StructuralPlacementListener(walker.RDLListener):
                 node.inst.inst_err_ctx
             )
     
+    
     def exit_Reg(self, node):
         
         regwidth = node.get_property('regwidth')
         
         # Resolve field positions
+        # Children are iterated in order of declaration
         prev_inst = None
         for inst in node.inst.children:
             if(type(inst) != comp.Field):
@@ -246,3 +264,99 @@ class StructuralPlacementListener(walker.RDLListener):
                         
                     inst.msb = inst.lsb + inst.width - 1
             prev_inst = inst
+        
+        # Sort fields by lsb.
+        # Non-field child components are sorted to be first (signals)
+        def get_field_sort_key(inst):
+            if(type(inst) != comp.Field):
+                return(-1)
+            else:
+                return(inst.lsb)
+        node.inst.children.sort(key=get_field_sort_key)
+    
+    
+    def exit_Regfile(self, node):
+        self.resolve_addresses(node)
+        
+        self.alignment_stack.pop()
+    
+    
+    def exit_Addrmap(self, node):
+        self.resolve_addresses(node)
+        
+        self.msb0_mode_stack.pop()
+        self.addressing_mode_stack.pop()
+        self.alignment_stack.pop()
+    
+    
+    def exit_AddressableComponent(self, node):
+        # Resolve array stride if needed
+        if(node.inst.is_array and (node.inst.array_stride is None)):
+            node.inst.array_stride = node.size
+    
+    
+    def resolve_addresses(self, node):
+        """
+        Resolve addresses of children of Addrmap and Regfile components
+        """
+        
+        # Get alignment based on 'alignment' property
+        # This remains constant for all children
+        prop_alignment = self.alignment_stack[-1]
+        if(prop_alignment is None):
+            # was not specified. Does not contribute to alignment
+            prop_alignment = 1
+        
+        prev_node = None
+        for child_node in node.children():
+            if(not issubclass(type(child_node), AddressableNode)):
+                continue
+            
+            if(child_node.inst.addr_offset is not None):
+                # Address is already known. Do not need to infer
+                prev_node = child_node
+                continue
+            
+            # Get alignment specified by '%=' allocator, if any
+            alloc_alignment = child_node.inst.addr_align
+            if(alloc_alignment is None):
+                # was not specified. Does not contribute to alignment
+                alloc_alignment = 1
+            
+            # Calculate alignment based on current addressing mode
+            if(self.addressing_mode_stack[-1] == rdl_types.AddressingType.compact):
+                if(type(child_node) == RegNode):
+                    # Regs are aligned based on their accesswidth
+                    mode_alignment = child_node.get_property('accesswidth') // 8
+                else:
+                    # Spec does not specify for other components
+                    # Assuming absolutely compact packing
+                    mode_alignment = 1
+                    
+            elif(self.addressing_mode_stack[-1] == rdl_types.AddressingType.regalign):
+                # Components are aligned to a multiple of their size
+                # Spec vaguely suggests that alignment is also a power of 2
+                mode_alignment = child_node.size
+                mode_alignment = 2**(math.ceil(math.log(mode_alignment, 2)))
+            
+            elif(self.addressing_mode_stack[-1] == rdl_types.AddressingType.fullalign):
+                # Same as regalign except for arrays
+                # Arrays are aligned to their total size
+                # Both are rounded to power of 2
+                mode_alignment = child_node.total_size
+                mode_alignment = 2**(math.ceil(math.log(mode_alignment, 2)))
+                
+            else:
+                raise RuntimeError
+            
+            # Calculate resulting address offset
+            alignment = max(prop_alignment, alloc_alignment, mode_alignment)
+            if(prev_node is None):
+                next_offset = 0
+            else:
+                next_offset = prev_node.inst.addr_offset + prev_node.total_size + 1
+            
+            # round next_offset up to alignment
+            child_node.inst.addr_offset = math.ceil(next_offset/alignment) * alignment
+            
+            prev_node = child_node

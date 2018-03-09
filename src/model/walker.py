@@ -95,13 +95,6 @@ class RDLWalker:
     
     
     def do_exit(self, listener:RDLListener, node):
-        listener.exit_Component(node)
-        
-        if(issubclass(type(node), AddressableNode)):
-            listener.exit_AddressableComponent(node)
-        elif(issubclass(type(node), VectorNode)):
-            listener.exit_VectorComponent(node)
-        
         if(type(node) == FieldNode):
             listener.exit_Field(node)
         elif(type(node) == RegNode):
@@ -114,6 +107,13 @@ class RDLWalker:
             listener.exit_Mem(node)
         elif(type(node) == SignalNode):
             listener.exit_Signal(node)
+        
+        if(issubclass(type(node), AddressableNode)):
+            listener.exit_AddressableComponent(node)
+        elif(issubclass(type(node), VectorNode)):
+            listener.exit_VectorComponent(node)
+        
+        listener.exit_Component(node)
         
 #-------------------------------------------------------------------------------
 class RDLUnrollWalker(RDLWalker):

@@ -906,6 +906,14 @@ class Prop_alignment(PropertyRule):
     default = None
     dyn_assign_allowed = False
     mutex_group = None
+    
+    # RDL spec claims that if unspecified, the default alignment is based on
+    # the registers width.
+    # If that is taken at face-value, then it would directly conflict with the
+    # 'compact' addressing rules in the situation where accesswidth < regwidth
+    # Since the equivalent alignment is already handled by the addressing mode
+    # rules, the alignment property's default is intentionally left as None
+    # in order to distinguish it as unspecified by the user. 
 
 class Prop_sharedextbus(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Regfile]

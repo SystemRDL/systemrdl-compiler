@@ -2,6 +2,8 @@ import re
 from . import component as comp
 from . import rdl_types as rdlt
 import itertools
+import operator
+import functools
 
 class Node:
     """
@@ -174,10 +176,31 @@ class AddressableNode(Node):
     @property
     def absolute_address(self):
         """
-        Calculate the absolute address of this node
+        Calculate the absolute byte address of this node
         """
         # TODO
         raise NotImplementedError
+    
+    @property
+    def size(self):
+        """
+        Determine the size (in bytes) of this node.
+        If an array, returns the size of a single element
+        """
+        # must be overridden
+        raise NotImplementedError
+    
+    @property
+    def total_size(self):
+        """
+        Determine the size (in bytes) of this node.
+        If an array, returns size of the entire array
+        """
+        if(self.inst.is_array):
+            num_elements = functools.reduce(operator.mul, self.inst.array_dimensions)
+            return(self.inst.array_stride * (num_elements-1) + self.size)
+        else:
+            return(self.size)
     
 #===============================================================================
 class VectorNode(Node):
@@ -196,16 +219,49 @@ class FieldNode(VectorNode):
     
 #===============================================================================
 class RegNode(AddressableNode):
-    pass
+    
+    @property
+    def size(self):
+        return(self.get_property('regwidth') // 8)
 
 #===============================================================================
 class RegfileNode(AddressableNode):
-    pass
-
+    
+    @property
+    def size(self):
+        return(get_group_node_size(self))
+        
 #===============================================================================
 class AddrmapNode(AddressableNode):
-    pass
+    
+    @property
+    def size(self):
+        return(get_group_node_size(self))
 
 #===============================================================================
 class MemNode(AddressableNode):
-    pass
+    
+    @property
+    def size(self):
+        entry_size = self.get_property('memwidth') // 8
+        num_entries = self.get_property('mementries')
+        return(entry_size * num_entries)
+
+#===============================================================================
+def get_group_node_size(node):
+    """
+    Shared getter for AddrmapNode and RegfileNode's "size" property
+    """
+    # After structural placement, children are sorted
+    if((len(node.inst.children) == 0)
+        or (not issubclass(type(node.inst.children[-1]), comp.AddressableComponent))
+    ):
+        # No addressable child exists.
+        return(0)
+    
+    # Current node's size is based on last child
+    last_child_node = Node.factory(node.inst.children[-1], node.compiler, node)
+    return(
+        last_child_node.inst.addr_offset
+        + last_child_node.total_size
+    )
