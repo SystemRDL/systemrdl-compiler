@@ -614,6 +614,17 @@ class ComponentVisitor(BaseVisitor):
     
     def apply_local_properties(self):
         
+        # First, apply default property assignments inherited from namespace
+        for prop_name, (prop_token, prop_rhs) in self.NS.get_default_properties(type(self.component), self.PR).items():
+            rule = self.PR.lookup_property(prop_name)
+            if(rule is None):
+                raise RDLCompileError(
+                    "Unrecognized property '%s'" % prop_name,
+                    prop_token
+                )
+            rule.assign_value(self.component, prop_rhs, prop_token)
+        
+        # Apply locally-assigned properties
         mutex_bins = {}
         for prop_name, (prop_token, prop_rhs) in self.property_dict.items():
             rule = self.PR.lookup_property(prop_name)

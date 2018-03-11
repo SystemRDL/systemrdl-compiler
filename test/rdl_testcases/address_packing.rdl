@@ -1,0 +1,84 @@
+
+//------------------------------------------------------------------------------
+// Examples from Section 5.1.2.2.2 - Addressing Mode
+//------------------------------------------------------------------------------
+
+addrmap example_5_1_2_2_2_ex1 {
+    default accesswidth=32;
+    addressing=compact;
+    reg { field {} a; } a;              // Address 0
+    reg { regwidth=64; field {} a; } b; // Address 4
+    reg { field {} a; } c[20];          // Address 0x0C - Element 0
+                                        // Address 0x10 - Element 1
+                                        // Address 0x14 - Element 2
+};
+
+
+addrmap example_5_1_2_2_2_ex2 {
+    default accesswidth=64;
+    addressing=compact;
+    reg { field {} a; } a;              // Address 0
+    reg { regwidth=64; field {} a; } b; // Address 8
+    reg { field {} a; } c[20];          // Address 0x10 - Element 0
+                                        // Address 0x14 - Element 1
+                                        // Address 0x18 - Element 2
+};
+
+
+addrmap example_5_1_2_2_2_ex3 {
+    addressing = regalign;
+    reg { field {} a; } a;              // Address 0
+    reg { regwidth=64; field {} a; } b; // Address 8
+    reg { field {} a; } c[20];          // Address 0x10 - Element 0
+                                        // Address 0x14 - Element 1
+                                        // Address 0x18 - Element 2
+};
+
+
+addrmap example_5_1_2_2_2_ex4 {
+    addressing = fullalign;
+    reg { field {} a; } a;              // Address 0
+    reg { regwidth=64; field {} a; } b; // Address 8
+    reg { field {} a; } c[20];          // Address 0x80 - Element 0
+                                        // Address 0x84 - Element 1
+                                        // Address 0x88 - Element 2
+};
+
+//------------------------------------------------------------------------------
+// Examples from Section 5.1.2.5 - Address allocation
+//------------------------------------------------------------------------------
+
+addrmap example_5_1_2_5_ex1 {
+    regfile {
+        reg some_reg { field {} a; };
+        some_reg a @0x0;
+        some_reg b @0x4;
+        some_reg c; // Implies address of 8
+                    // Address 0xC is not implemented or specified
+        some_reg d @0x10;
+    } example;
+};
+
+addrmap example_5_1_2_5_ex2 {
+    regfile {
+        reg some_reg { field {} a; };
+        some_reg a[10]; // So these will consume 40 bytes
+                        // Address 0,4,8,C....
+        some_reg b[10] @0x100 += 0x10; // These consume 160-12 bytes of space
+                                    // Address 0x100 to 0x103, 0x110 to 0x113,....
+    } example;
+};
+
+addrmap example_5_1_2_5_ex3 {
+    regfile {
+        reg some_reg { field {} a; };
+        some_reg a[10]; // So these will consume 40 bytes
+                        // Address 0,4,8,C....
+        some_reg b[10] @0x100 += 0x10; // These consume 160-12 bytes of space
+                                    // Address 0x100 to 0x103, 0x110 to 0x113,....
+        some_reg c %=0x80;  // This means ((address % 0x80) == 0))
+                            // So this would imply an address of 0x200 since
+                            // that is the first address satisfying address>=0x194
+                            // and ((address % 0x80) == 0)
+    } example;
+};

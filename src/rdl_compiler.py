@@ -374,7 +374,7 @@ class StructuralPlacementListener(walker.RDLListener):
                 # Spec vaguely suggests that alignment is also a power of 2
                 mode_alignment = child_node.size
                 mode_alignment = 2**(math.ceil(math.log(mode_alignment, 2)))
-            
+                
             elif(self.addressing_mode_stack[-1] == rdl_types.AddressingType.fullalign):
                 # Same as regalign except for arrays
                 # Arrays are aligned to their total size
@@ -390,7 +390,7 @@ class StructuralPlacementListener(walker.RDLListener):
             if(prev_node is None):
                 next_offset = 0
             else:
-                next_offset = prev_node.inst.addr_offset + prev_node.total_size + 1
+                next_offset = prev_node.inst.addr_offset + prev_node.total_size
             
             # round next_offset up to alignment
             child_node.inst.addr_offset = math.ceil(next_offset/alignment) * alignment

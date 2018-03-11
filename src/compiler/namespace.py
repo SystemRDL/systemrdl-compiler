@@ -1,5 +1,6 @@
-from .errors import RDLCompileError
+from .errors import RDLCompileError, RDLNotSupportedYet
 from ..model import component as comp
+from . import expressions
 
 class NamespaceRegistry():
     
@@ -24,6 +25,18 @@ class NamespaceRegistry():
                 "Default property '%s' was already assigned in this scope" % name,
                 err_token
             )
+        
+        # TODO: default properties that resolve to an instance reference
+        # won't work properly yet.
+        prop_token, rhs = ref
+        if(issubclass(type(rhs), expressions.Expr)):
+            result_type = rhs.predict_type()
+            if(issubclass(result_type, comp.Component)):
+                raise RDLNotSupportedYet(
+                    "Assigning a reference to a component instance in a property default is not supported yet",
+                    prop_token
+                )
+        
         self.default_property_ns_stack[-1][name] = ref
     
     def lookup_type(self, name:str):
@@ -46,16 +59,37 @@ class NamespaceRegistry():
                     return(None)
         return(None)
     
-    def lookup_default_property(self, name:str):
-        for scope in reversed(self.default_property_ns_stack):
-            if(name in scope):
-                return(scope[name])
-        return(None)
+    def get_default_properties(self, comp_type, PR):
+        """
+        Returns a flattened dictionary of all default property assignments
+        visible in the current scope that apply to the current component type.
+        Requires access to the current property rulebook (PR)
+        """
+        # Flatten current scope's assignments
+        props = {}
+        for scope in self.default_property_ns_stack:
+            props.update(scope)
+            
+        # filter out properties that are not relevant
+        prop_names = list(props.keys())
+        for prop_name in prop_names:
+            rule = PR.lookup_property(prop_name)
+            if(rule is None):
+                raise RDLCompileError(
+                    "Unrecognized property '%s'" % prop_name,
+                    props[prop_name][0]
+                )
+            if(comp_type not in rule.bindable_to):
+                del props[prop_name]
+            
+        return(props)
     
     def enter_scope(self):
         self.type_ns_stack.append({})
         self.element_ns_stack.append({})
+        self.default_property_ns_stack.append({})
         
     def exit_scope(self):
         self.type_ns_stack.pop()
         self.element_ns_stack.pop()
+        self.default_property_ns_stack.pop()
