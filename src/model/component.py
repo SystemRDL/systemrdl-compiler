@@ -107,9 +107,16 @@ class VectorComponent(Component):
         #------------------------------
         # Component instantiation
         #------------------------------
+        # Width of vector in bits
         self.width = None
+        
+        # bit positions of most and least significant bits
         self.msb = None
         self.lsb = None
+        
+        # bit range
+        self.high = None
+        self.low = None
 
 #===============================================================================
 class Root(Component):

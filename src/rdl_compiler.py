@@ -211,12 +211,7 @@ class StructuralPlacementListener(walker.RDLListener):
             fieldwidth = node.get_property('fieldwidth')
             
             if((node.inst.lsb is not None) and (node.inst.msb is not None)):
-                width = node.inst.msb - node.inst.lsb + 1
-                if(width <= 0):
-                    raise RDLCompileError(
-                        "Invalid field bit range",
-                        node.inst.inst_err_ctx
-                    )
+                width = abs(node.inst.msb - node.inst.lsb) + 1
                 
                 node.inst.width = width
             elif(fieldwidth is not None):
@@ -237,7 +232,42 @@ class StructuralPlacementListener(walker.RDLListener):
         
         regwidth = node.get_property('regwidth')
         
-        # Resolve field positions
+        # Resolve field positions.
+        # First determine if there is an implied lsb/msb mode
+        implied_lsb_inst = None
+        implied_msb_inst = None
+        for inst in node.inst.children:
+            if(type(inst) != comp.Field):
+                continue
+            
+            if((inst.lsb is None) or (inst.msb is None)):
+                continue
+            
+            if(inst.msb > inst.lsb):
+                # bit ordering is [high:low]. Implies lsb mode
+                implied_lsb_inst = inst
+            elif(inst.msb < inst.lsb):
+                # bit ordering is [low:high]. Implies msb mode
+                implied_msb_inst = inst
+        
+        # Check for lsb/msb mode conflicts
+        if((implied_lsb_inst is not None) and (implied_msb_inst is not None)):
+            # register uses both [high:low] and [low:high] ordering!
+            raise RDLCompileError(
+                "Both the [low:high] (field '%s') and [high:low] (field '%s') bit specification forms shall not be used together in the same register."
+                % (implied_msb_inst.inst_name, implied_lsb_inst.inst_name),
+                node.inst.def_err_ctx
+            )
+        
+        # Any implied lsb/msb modes override the property set by a parent
+        if(implied_msb_inst is not None):
+            is_msb0_mode = True
+        elif(implied_lsb_inst is not None):
+            is_msb0_mode = False
+        else:
+            is_msb0_mode = self.msb0_mode_stack[-1]
+        
+        # Assign field positions
         # Children are iterated in order of declaration
         prev_inst = None
         for inst in node.inst.children:
@@ -247,31 +277,37 @@ class StructuralPlacementListener(walker.RDLListener):
             if((inst.lsb is None) or (inst.msb is None)):
                 # Offset is not known
                 
-                if(self.msb0_mode_stack[-1]):
+                if(is_msb0_mode):
                     # In msb0 mode. Pack from top first
+                    # lsb == high
+                    # msb == low
                     if(prev_inst is None):
-                        inst.msb = regwidth - 1
+                        inst.lsb = regwidth - 1
                     else:
-                        inst.msb = prev_inst.lsb - 1
+                        inst.lsb = prev_inst.msb - 1
                         
-                    inst.lsb = inst.msb - inst.width + 1
+                    inst.msb = inst.lsb - inst.width + 1
                 else:
                     # In lsb0 mode. Pack from bit 0 first
+                    # lsb == low
+                    # msb == high
                     if(prev_inst is None):
                         inst.lsb = 0
                     else:
                         inst.lsb = prev_inst.msb + 1
                         
                     inst.msb = inst.lsb + inst.width - 1
+            inst.high = max(inst.msb, inst.lsb)
+            inst.low = min(inst.msb, inst.lsb)
             prev_inst = inst
         
-        # Sort fields by lsb.
+        # Sort fields by low-bit.
         # Non-field child components are sorted to be first (signals)
         def get_field_sort_key(inst):
             if(type(inst) != comp.Field):
                 return(-1)
             else:
-                return(inst.lsb)
+                return(inst.low)
         node.inst.children.sort(key=get_field_sort_key)
     
     

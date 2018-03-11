@@ -1,28 +1,72 @@
 
-reg test_reg_t {
-    field {} x;
-    field {} y[9:6];
-    field {} z[3];
-    field {fieldwidth=2;} zz;
+//------------------------------------------------------------------------------
+// Examples from Section 10.7.2
+//------------------------------------------------------------------------------
+addrmap example_10_7_2_lsb {
+    lsb0;
+    reg {
+        field {} A; // Single bit from 0 to 0
+        field {} B[3]; // 3 bits from 3 down to 1
+                       // 4 bits from 7 down to 4 are reserved and unused
+        field {} C[15:8]; // 8 Bits from 15 to 8
+        field {} D[5]; // 5 Bits from 20 down to 16
+    } regA;
 };
 
-reg test_reg16_t {
-    regwidth=16;
-    
-    field {} x;
-    field {} y[9:6];
-    field {} z[3];
-    field {fieldwidth=2;} zz;
+addrmap example_10_7_2_msb {
+    msb0;
+    reg {
+        field {} A; // Single bit from 31 to 31
+        field {} B[3]; // 3 bits from 28 to 30
+                       // 12 bits from 16 to 27 are reserved and unused
+        field {} C[8:15]; // 8 Bits from 8 to 15
+        field {} D[5]; // 5 Bits from 3 to 7
+    } regA;
 };
 
+//------------------------------------------------------------------------------
+// More test-cases
+//------------------------------------------------------------------------------
 
 addrmap lsb_packing {
+    reg test_reg_t {
+        field {} x;
+        field {} y[9:6];
+        field {} z[3];
+        field {fieldwidth=2;} zz;
+    };
+
+    reg test_reg16_t {
+        regwidth=16;
+        
+        field {} x;
+        field {} y[9:6];
+        field {} z[3];
+        field {fieldwidth=2;} zz;
+    };
+    
     lsb0;
     test_reg_t reg1;
     test_reg16_t reg2;
 };
 
 addrmap msb_packing {
+    reg test_reg_t {
+        field {} x;
+        field {} y[6:9];
+        field {} z[3];
+        field {fieldwidth=2;} zz;
+    };
+
+    reg test_reg16_t {
+        regwidth=16;
+        
+        field {} x;
+        field {} y[6:9];
+        field {} z[3];
+        field {fieldwidth=2;} zz;
+    };
+    
     msb0;
     test_reg_t reg1;
     test_reg16_t reg2;
