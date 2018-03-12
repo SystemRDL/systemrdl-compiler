@@ -3,13 +3,13 @@ import re
 from antlr4 import *
 
 from ..parser.SystemRDLParser import SystemRDLParser
-from ..model import rdl_types
+from .. import rdltypes
 
 from .BaseVisitor import BaseVisitor
 from . import expressions as e
-from .errors import RDLCompileError, RDLNotSupportedYet
+from ..errors import RDLCompileError, RDLNotSupportedYet
 from .parameter import Parameter
-from ..model import component as comp
+from .. import component as comp
 
 class ExprVisitor(BaseVisitor):
     
@@ -145,16 +145,16 @@ class ExprVisitor(BaseVisitor):
     # Built-in RDL Enumeration literals
     #---------------------------------------------------------------------------
     def visitAccesstype_literal(self, ctx:SystemRDLParser.Accesstype_literalContext):
-        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.AccessType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(ctx.kw, rdltypes.AccessType[ctx.kw.text]))
 
     def visitOnreadtype_literal(self, ctx:SystemRDLParser.Onreadtype_literalContext):
-        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.OnReadType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(ctx.kw, rdltypes.OnReadType[ctx.kw.text]))
 
     def visitOnwritetype_literal(self, ctx:SystemRDLParser.Onwritetype_literalContext):
-        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.OnWriteType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(ctx.kw, rdltypes.OnWriteType[ctx.kw.text]))
 
     def visitAddressingtype_literal(self, ctx:SystemRDLParser.Addressingtype_literalContext):
-        return(e.BuiltinEnumLiteral(ctx.kw, rdl_types.AddressingType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(ctx.kw, rdltypes.AddressingType[ctx.kw.text]))
 
     #---------------------------------------------------------------------------
     # Misc other literals

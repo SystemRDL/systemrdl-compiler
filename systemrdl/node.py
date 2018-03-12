@@ -1,6 +1,6 @@
 import re
 from . import component as comp
-from . import rdl_types as rdlt
+from . import rdltypes
 import itertools
 import operator
 import functools
@@ -108,7 +108,7 @@ class Node:
             prop_value = self.inst.properties[prop_name]
             
             # If this is a hierarchical component reference, convert it to a Node reference
-            if(issubclass(type(prop_value), rdlt.ComponentRef)):
+            if(issubclass(type(prop_value), rdltypes.ComponentRef)):
                 prop_value = prop_value.build_node_ref(self)
             
             return(prop_value)

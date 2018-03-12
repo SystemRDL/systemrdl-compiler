@@ -6,8 +6,7 @@ import os
 this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(this_dir, "../"))
 
-from src.rdl_compiler import RDLCompiler
-from src.model.walker import RDLListener, RDLUnrollWalker
+from systemrdl import RDLCompiler, RDLListener, RDLUnrollWalker
 
 rdlc = RDLCompiler()
 rdlc.compile_file("test.rdl")

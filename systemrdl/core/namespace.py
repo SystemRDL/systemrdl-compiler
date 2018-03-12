@@ -1,5 +1,5 @@
-from .errors import RDLCompileError, RDLNotSupportedYet
-from ..model import component as comp
+from ..errors import RDLCompileError, RDLNotSupportedYet
+from .. import component as comp
 from . import expressions
 
 class NamespaceRegistry():

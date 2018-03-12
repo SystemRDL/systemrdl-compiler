@@ -10,10 +10,10 @@ from .ExprVisitor import ExprVisitor
 from .parameter import Parameter
 from . import type_placeholders
 from . import expressions
-from .errors import RDLCompileError, RDLNotSupportedYet
+from ..errors import RDLCompileError, RDLNotSupportedYet
 
-from ..model import component as comp
-from ..model import rdl_types
+from .. import component as comp
+from .. import rdltypes
 
 #===============================================================================
 # Base visitor
@@ -574,7 +574,7 @@ class ComponentVisitor(BaseVisitor):
                 "Type '%s' is not defined" % enum_name,
                 ctx.ID()
             )
-        if(not(inspect.isclass(enum_type) and (issubclass(enum_type, rdl_types.UserEnum)))):
+        if(not(inspect.isclass(enum_type) and (issubclass(enum_type, rdltypes.UserEnum)))):
             raise RDLCompileError(
                 "Assignment to encode property is not an enum type",
                 ctx.ID()
@@ -610,7 +610,7 @@ class ComponentVisitor(BaseVisitor):
         return(rhs)
     
     def visitPrecedencetype_literal(self, ctx:SystemRDLParser.Precedencetype_literalContext):
-        return(rdl_types.PrecedenceType[ctx.kw.text])
+        return(rdltypes.PrecedenceType[ctx.kw.text])
     
     def apply_local_properties(self):
         
@@ -711,10 +711,10 @@ class ComponentVisitor(BaseVisitor):
     _DataType_Map = {
         SystemRDLParser.BIT_kw              : int,
         SystemRDLParser.LONGINT_kw          : int,
-        SystemRDLParser.ACCESSTYPE_kw       : rdl_types.AccessType,
-        SystemRDLParser.ADDRESSINGTYPE_kw   : rdl_types.AddressingType,
-        SystemRDLParser.ONREADTYPE_kw       : rdl_types.OnReadType,
-        SystemRDLParser.ONWRITETYPE_kw      : rdl_types.OnWriteType,
+        SystemRDLParser.ACCESSTYPE_kw       : rdltypes.AccessType,
+        SystemRDLParser.ADDRESSINGTYPE_kw   : rdltypes.AddressingType,
+        SystemRDLParser.ONREADTYPE_kw       : rdltypes.OnReadType,
+        SystemRDLParser.ONWRITETYPE_kw      : rdltypes.OnWriteType,
         SystemRDLParser.STRING_kw           : str,
         SystemRDLParser.BOOLEAN_kw          : bool
     }
@@ -735,7 +735,7 @@ class ComponentVisitor(BaseVisitor):
                 )
             
             if(inspect.isclass(typ)):
-                if(issubclass(typ, rdl_types.UserEnum) or issubclass(typ, rdl_types.UserStruct)):
+                if(issubclass(typ, rdltypes.UserEnum) or issubclass(typ, rdltypes.UserStruct)):
                     return(typ)
                 else:
                     raise RDLCompileError(

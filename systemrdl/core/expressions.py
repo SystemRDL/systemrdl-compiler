@@ -1,8 +1,8 @@
 from copy import deepcopy
 from . import type_placeholders as tp
-from .errors import RDLCompileError
-from ..model import component as comp
-from ..model import rdl_types as rdlt
+from ..errors import RDLCompileError
+from .. import component as comp
+from .. import rdltypes
 
 
 class Expr:
@@ -813,7 +813,7 @@ class InstRef(Expr):
             resolved_ref_elements.append((name, idx_list))
         
         # Create container
-        cref = rdlt.ComponentRef(self.uplevels_to_ref, resolved_ref_elements)
+        cref = rdltypes.ComponentRef(self.uplevels_to_ref, resolved_ref_elements)
         
         return(cref)
         

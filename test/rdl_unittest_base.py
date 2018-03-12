@@ -5,7 +5,7 @@ import os
 this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(this_dir, "../"))
 
-from src.rdl_compiler import RDLCompiler
+from systemrdl import RDLCompiler
 
 class RDLSourceTestCase(unittest.TestCase):
     """

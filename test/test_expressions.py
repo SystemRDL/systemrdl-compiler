@@ -8,11 +8,11 @@ sys.path.insert(0, os.path.join(this_dir, "../"))
 
 
 from antlr4 import InputStream, CommonTokenStream
-from src.parser.SystemRDLLexer import SystemRDLLexer
-from src.parser.SystemRDLParser import SystemRDLParser
-from src.compiler.ExprVisitor import ExprVisitor
-from src.compiler.properties import PropertyRuleBook
-from src.compiler.namespace import NamespaceRegistry
+from systemrdl.parser.SystemRDLLexer import SystemRDLLexer
+from systemrdl.parser.SystemRDLParser import SystemRDLParser
+from systemrdl.core.ExprVisitor import ExprVisitor
+from systemrdl.core.properties import PropertyRuleBook
+from systemrdl.core.namespace import NamespaceRegistry
 
 #===============================================================================
 def eval_RDL_expr(expr_text):

@@ -8,15 +8,15 @@ from antlr4 import FileStream, CommonTokenStream
 
 from .parser.SystemRDLLexer import SystemRDLLexer
 from .parser.SystemRDLParser import SystemRDLParser
-from .compiler.ComponentVisitor import RootVisitor
-from .compiler.errors import RDLParserErrorListener, RDLCompileError, ConsoleErrorPrinter
-from .compiler.expressions import Expr
-from .compiler.properties import PropertyRuleBook
-from .compiler.namespace import NamespaceRegistry
-from .model import component as comp
-from .model import walker
-from .model.node import Node, AddressableNode, RegNode
-from .model import rdl_types
+from .core.ComponentVisitor import RootVisitor
+from .errors import RDLParserErrorListener, RDLCompileError, ConsoleErrorPrinter
+from .core.expressions import Expr
+from .core.properties import PropertyRuleBook
+from .core.namespace import NamespaceRegistry
+from . import component as comp
+from . import walker
+from .node import Node, AddressableNode, RegNode
+from . import rdltypes
 
 class RDLCompiler:
     
@@ -360,7 +360,7 @@ class StructuralPlacementListener(walker.RDLListener):
                 alloc_alignment = 1
             
             # Calculate alignment based on current addressing mode
-            if(self.addressing_mode_stack[-1] == rdl_types.AddressingType.compact):
+            if(self.addressing_mode_stack[-1] == rdltypes.AddressingType.compact):
                 if(type(child_node) == RegNode):
                     # Regs are aligned based on their accesswidth
                     mode_alignment = child_node.get_property('accesswidth') // 8
@@ -369,13 +369,13 @@ class StructuralPlacementListener(walker.RDLListener):
                     # Assuming absolutely compact packing
                     mode_alignment = 1
                     
-            elif(self.addressing_mode_stack[-1] == rdl_types.AddressingType.regalign):
+            elif(self.addressing_mode_stack[-1] == rdltypes.AddressingType.regalign):
                 # Components are aligned to a multiple of their size
                 # Spec vaguely suggests that alignment is also a power of 2
                 mode_alignment = child_node.size
                 mode_alignment = 2**(math.ceil(math.log(mode_alignment, 2)))
                 
-            elif(self.addressing_mode_stack[-1] == rdl_types.AddressingType.fullalign):
+            elif(self.addressing_mode_stack[-1] == rdltypes.AddressingType.fullalign):
                 # Same as regalign except for arrays
                 # Arrays are aligned to their total size
                 # Both are rounded to power of 2

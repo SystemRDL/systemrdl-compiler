@@ -1,9 +1,9 @@
 import inspect
 
-from ..model import component as comp
-from ..model import rdl_types
+from .. import component as comp
+from .. import rdltypes
 from . import expressions
-from .errors import RDLCompileError
+from ..errors import RDLCompileError
 from . import type_placeholders as tp
 
 def get_all_subclasses(cls):
@@ -71,12 +71,12 @@ class PropertyRule:
         #   - An expression (instance of an Expr subclass)
         if(type(value) == bool):
             assign_type = bool
-        elif(type(value) == rdl_types.PrecedenceType):
-            assign_type = rdl_types.PrecedenceType
+        elif(type(value) == rdltypes.PrecedenceType):
+            assign_type = rdltypes.PrecedenceType
         elif(issubclass(type(value), expressions.Expr)):
             assign_type = value.predict_type()
-        elif(inspect.isclass(value) and issubclass(value, rdl_types.UserEnum)):
-            assign_type = rdl_types.UserEnum
+        elif(inspect.isclass(value) and issubclass(value, rdltypes.UserEnum)):
+            assign_type = rdltypes.UserEnum
         else:
             raise RuntimeError
         
@@ -344,8 +344,8 @@ class Prop_hw(PropertyRule):
     (9.4)
     """
     bindable_to = [comp.Field]
-    valid_types = [rdl_types.AccessType]
-    default = rdl_types.AccessType.rw
+    valid_types = [rdltypes.AccessType]
+    default = rdltypes.AccessType.rw
     dyn_assign_allowed = False
     mutex_group = None
 
@@ -355,8 +355,8 @@ class Prop_sw(PropertyRule):
     (9.4)
     """
     bindable_to = [comp.Field, comp.Mem]
-    valid_types = [rdl_types.AccessType]
-    default = rdl_types.AccessType.rw
+    valid_types = [rdltypes.AccessType]
+    default = rdltypes.AccessType.rw
     dyn_assign_allowed = True
     mutex_group = None
 
@@ -434,7 +434,7 @@ class Prop_onread(PropertyRule):
     (9.6)
     """
     bindable_to = [comp.Field]
-    valid_types = [rdl_types.OnReadType]
+    valid_types = [rdltypes.OnReadType]
     default = None
     dyn_assign_allowed = True
     mutex_group = "P"
@@ -467,7 +467,7 @@ class Prop_onwrite(PropertyRule):
     (9.6)
     """
     bindable_to = [comp.Field]
-    valid_types = [rdl_types.OnWriteType]
+    valid_types = [rdltypes.OnWriteType]
     default = None
     dyn_assign_allowed = True
     mutex_group = "B"
@@ -820,15 +820,15 @@ class Prop_stickybit(PropertyRule):
 #-------------------------------------------------------------------------------
 class Prop_encode(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [rdl_types.UserEnum]
+    valid_types = [rdltypes.UserEnum]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_precedence(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [rdl_types.PrecedenceType]
-    default = rdl_types.PrecedenceType.sw
+    valid_types = [rdltypes.PrecedenceType]
+    default = rdltypes.PrecedenceType.sw
     dyn_assign_allowed = True
     mutex_group = None
 
@@ -941,8 +941,8 @@ class Prop_littleendian(PropertyRule):
 
 class Prop_addressing(PropertyRule):
     bindable_to = [comp.Addrmap]
-    valid_types = [rdl_types.AddressingType]
-    default = rdl_types.AddressingType.regalign
+    valid_types = [rdltypes.AddressingType]
+    default = rdltypes.AddressingType.regalign
     dyn_assign_allowed = False
     mutex_group = None
 
