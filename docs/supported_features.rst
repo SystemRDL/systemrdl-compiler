@@ -8,11 +8,21 @@ Supported RDL Features
 
 .. raw:: html
 
-   <style>
-      .red {color:#c00;} 
-      .yellow {color:#c60;} 
-      .green {color:#0c0;} 
-   </style>
+    <style>
+        .red {color:#c00;} 
+        .yellow {color:#c60;} 
+        .green {color:#0c0;}
+      
+        /* override table width restrictions */
+        @media screen and (min-width: 767px) {
+            .wy-table-responsive table td {
+                white-space: normal;
+            }
+            .wy-table-responsive {
+                overflow: visible;
+            }
+        }
+    </style>
 
 
 Below is a rough enumeration of SystemRDL 2.0 features, and their current state
