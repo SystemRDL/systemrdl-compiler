@@ -1,20 +1,44 @@
-.. SystemRDL Compiler documentation master file, created by
-   sphinx-quickstart on Sun Mar 11 21:55:29 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to SystemRDL Compiler's documentation!
-==============================================
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
 
-
-Indices and tables
+SystemRDL Compiler
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Hello World
+
+.. note::   systemrdl-compiler is still under development!
+            Check back later for an official release.
+
+Installing
+----------
+
+TODO: Add install instructions
+
+
+
+.. toctree::
+   :hidden:
+   :caption: Introduction
+   
+   self
+   
+.. toctree::
+   :hidden:
+   :caption: Getting Started
+   
+   example
+   model_structure
+   model_traversal
+   
+.. toctree::
+   :hidden:
+   :caption: Class Reference
+   
+   api/compiler
+   api/node
+
+.. toctree::
+   :hidden:
+   :caption: Other
+   
+   supported_features
+   genindex

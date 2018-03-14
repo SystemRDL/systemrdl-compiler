@@ -22,7 +22,7 @@ class Node:
     
     
     @staticmethod
-    def factory(inst, compiler, parent=None):
+    def _factory(inst, compiler, parent=None):
         if(type(inst) == comp.Field):
             return(FieldNode(inst, compiler, parent))
         elif(type(inst) == comp.Reg):
@@ -41,29 +41,48 @@ class Node:
         """
         Returns an iterator that provides nodes for all immediate children of
         this component.
-        If unroll=True, then any children that are arrays are unrolled.
+        
+        Parameters
+        ----------
+        unroll : bool
+            If True, any children that are arrays are unrolled.
+        
+        Yields
+        ------
+        :class:`~systemrdl.node.Node`
+            All immediate children
         """
         for child_inst in self.inst.children:
             if(unroll and issubclass(type(child_inst), comp.AddressableComponent) and child_inst.is_array):
                 # Unroll the array
                 range_list = [range(n) for n in child_inst.array_dimensions]
                 for idxs in itertools.product(*range_list):
-                    N = Node.factory(child_inst, self.compiler, self)
+                    N = Node._factory(child_inst, self.compiler, self)
                     N.current_idx = idxs
                     yield N
             else:
-                yield Node.factory(child_inst, self.compiler, self)
+                yield Node._factory(child_inst, self.compiler, self)
     
     
     def get_child_by_name(self, inst_name):
         """
-        Returns an immediate child Node whose instance name matches inst_name
+        Returns an immediate child Node whose instance name matches *inst_name*
         Returns None if not inst_name does not match
+        
+        Parameters
+        ----------
+        inst_name: str
+            Name of immediate child to get
+        
+        Returns
+        -------
+        :class:`~systemrdl.node.Node` or None
+            Child Node. None if not found.
         """
         child_inst = self.inst.get_child_by_name(inst_name)
         if(child_inst is None):
             return(None)
-        return(Node.factory(child_inst, self.compiler, self))
+        return(Node._factory(child_inst, self.compiler, self))
     
     
     def find_by_path(self, path):
@@ -71,6 +90,23 @@ class Node:
         Finds the descendant node that is located at the relative path
         Returns None if not found
         Raises exception if path is malformed, or array index is out of range
+        
+        Parameters
+        ----------
+        path: str
+            Path to target relative to current node
+        
+        Returns
+        -------
+        :class:`~systemrdl.node.Node` or None
+            Descendant Node. None if not found.
+        
+        Raises
+        ------
+        ValueError
+            If path syntax is invalid
+        IndexError
+            If an array index in the path is invalid
         """
         pathparts = path.split('.')
         current_node = self
@@ -260,7 +296,7 @@ def get_group_node_size(node):
         return(0)
     
     # Current node's size is based on last child
-    last_child_node = Node.factory(node.inst.children[-1], node.compiler, node)
+    last_child_node = Node._factory(node.inst.children[-1], node.compiler, node)
     return(
         last_child_node.inst.addr_offset
         + last_child_node.total_size

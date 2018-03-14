@@ -31,9 +31,13 @@ class RDLCompiler:
     
     def compile_file(self, path):
         """
-        Parse & compile the file specified by path
+        Parse & compile a single file and append it to the current root namespace
         
-        Call this multiple times to add file contents to the Root meta-component
+        Parameters
+        ----------
+        path:str
+            Path to an RDL source file
+        
         """
         
         input_stream = FileStream(path)
@@ -53,11 +57,23 @@ class RDLCompiler:
     def elaborate(self, top_def_name, inst_name=None, parameters=None):
         """
         Elaborates the design with the specified component definition from
-        the Root namespace as the top-level component.
+        the root namespace as the top-level component.
         
-        inst_name overrides the top-component's instantiated name
+        Parameters
+        ----------
+        top_def_name: str
+            Defined name of the top-level addrmap component in the root namespace.
+        inst_name: str
+            Overrides the top-component's instantiated name.
+            By default, instantiated name is the same as *top_def_name*
         
-        Returns the elaborated top-level component Node object
+        parameters: TBD
+            Assign the top-component instance parameters
+        
+        Returns
+        -------
+        :class:`~systemrdl.node.AddrmapNode`
+            Elaborated top-level component's Node object.
         """
         if(parameters is None):
             parameters = {}
@@ -92,7 +108,7 @@ class RDLCompiler:
             # TODO
             raise NotImplementedError
         
-        top_node = Node.factory(top_inst, self)
+        top_node = Node._factory(top_inst, self)
         
         # Resolve all expressions
         walker.RDLWalker().walk(ElabExpressionsListener(), top_node)
