@@ -1,0 +1,10 @@
+================================================================================
+SystemRDL spec issues
+================================================================================
+Semantic rule 10.6.1.c is violated in 5.1.2.2.2-Example 2
+    reg 'a' has an implied regwidth of 32
+    reg 'a' gets assigned an accesswidth of 64 via default
+    accesswidth > regwidth!
+    
+    Resolution:
+        Rule 10.6.1.c seems unnecessary. Waiving checks for it.

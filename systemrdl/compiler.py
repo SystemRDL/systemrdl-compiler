@@ -1,7 +1,4 @@
 import sys
-import math
-import operator
-import functools
 from copy import deepcopy
 
 from antlr4 import FileStream, CommonTokenStream
@@ -17,6 +14,7 @@ from . import component as comp
 from . import walker
 from .node import Node, AddressableNode, RegNode
 from . import rdltypes
+from .core.helpers import is_pow2, roundup_pow2, roundup_to
 
 class RDLCompiler:
     
@@ -111,10 +109,10 @@ class RDLCompiler:
         top_node = Node._factory(top_inst, self)
         
         # Resolve all expressions
-        walker.RDLWalker().walk(ElabExpressionsListener(), top_node)
+        walker.RDLWalker().walk(top_node, ElabExpressionsListener())
         
         # TODO: Resolve address and field placement
-        walker.RDLWalker().walk(StructuralPlacementListener(), top_node)
+        walker.RDLWalker().walk(top_node, PrePlacementValidateListener(), StructuralPlacementListener())
         
         # TODO: Uniquify parameterized Component type names
         
@@ -191,12 +189,92 @@ class ElabExpressionsListener(walker.RDLListener):
                 node.inst.properties[prop_name] = prop_value.get_value()
 
 #-------------------------------------------------------------------------------
+class PrePlacementValidateListener(walker.RDLListener):
+    """
+    Performs value checks of some properties prior to StructuralPlacementListener
+    """
+    def enter_Addrmap(self, node):
+        self.check_alignment(node)
+        
+    def enter_Regfile(self, node):
+        self.check_alignment(node)
+        
+    def check_alignment(self, node):
+        if('alignment' in node.inst.properties):
+            n = node.inst.properties['alignment']
+            if(n <= 0):
+                raise RDLCompileError(
+                    "'alignment' property must be greater than zero",
+                    node.inst.def_err_ctx
+                )
+            if(not is_pow2(n)):
+                raise RDLCompileError(
+                    "'alignment' property must be a power of 2",
+                    node.inst.def_err_ctx
+                )
+        
+    
+    
+    def enter_Reg(self, node):
+        if('regwidth' in node.inst.properties):
+            n = node.inst.properties['regwidth']
+            if(n < 8):
+                raise RDLCompileError(
+                    "'regwidth' property must be at least 8",
+                    node.inst.def_err_ctx
+                )
+            if(not is_pow2(n)):
+                raise RDLCompileError(
+                    "'regwidth' property must be a power of 2",
+                    node.inst.def_err_ctx
+                )
+        
+        if('accesswidth' in node.inst.properties):
+            n = node.inst.properties['accesswidth']
+            if(n < 8):
+                raise RDLCompileError(
+                    "'accesswidth' property must be at least 8",
+                    node.inst.def_err_ctx
+                )
+            if(not is_pow2(n)):
+                raise RDLCompileError(
+                    "'accesswidth' property must be a power of 2",
+                    node.inst.def_err_ctx
+                )
+        
+    def enter_Field(self, node):
+        if('fieldwidth' in node.inst.properties):
+            n = node.inst.properties['fieldwidth']
+            if(n <= 0):
+                raise RDLCompileError(
+                    "'fieldwidth' property must be greater than zero",
+                    node.inst.def_err_ctx
+                )
+        
+    def enter_Mem(self, node):
+        if('mementries' in node.inst.properties):
+            n = node.inst.properties['mementries']
+            if(n <= 0):
+                raise RDLCompileError(
+                    "'mementries' property must be greater than zero",
+                    node.inst.def_err_ctx
+                )
+        if('memwidth' in node.inst.properties):
+            n = node.inst.properties['memwidth']
+            if(n <= 0):
+                raise RDLCompileError(
+                    "'memwidth' property must be greater than zero",
+                    node.inst.def_err_ctx
+                )
+    
+#-------------------------------------------------------------------------------
 class StructuralPlacementListener(walker.RDLListener):
     """
     Resolves inferred locations of structural components
     - Field width and offset
-    - Component addresses TODO
-    - Signal stuff?? TODO - TBD
+    - Component addresses
+    - Signal stuff. TODO - TBD
+    - Mem stuff. TODO - TBD
     """
     def __init__(self):
         self.msb0_mode_stack = []
@@ -389,14 +467,14 @@ class StructuralPlacementListener(walker.RDLListener):
                 # Components are aligned to a multiple of their size
                 # Spec vaguely suggests that alignment is also a power of 2
                 mode_alignment = child_node.size
-                mode_alignment = 2**(math.ceil(math.log(mode_alignment, 2)))
+                mode_alignment = roundup_pow2(mode_alignment)
                 
             elif(self.addressing_mode_stack[-1] == rdltypes.AddressingType.fullalign):
                 # Same as regalign except for arrays
                 # Arrays are aligned to their total size
                 # Both are rounded to power of 2
                 mode_alignment = child_node.total_size
-                mode_alignment = 2**(math.ceil(math.log(mode_alignment, 2)))
+                mode_alignment = roundup_pow2(mode_alignment)
                 
             else:
                 raise RuntimeError
@@ -409,6 +487,6 @@ class StructuralPlacementListener(walker.RDLListener):
                 next_offset = prev_node.inst.addr_offset + prev_node.total_size
             
             # round next_offset up to alignment
-            child_node.inst.addr_offset = math.ceil(next_offset/alignment) * alignment
+            child_node.inst.addr_offset = roundup_to(next_offset, alignment)
             
             prev_node = child_node

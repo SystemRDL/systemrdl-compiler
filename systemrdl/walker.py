@@ -1,5 +1,6 @@
 
-from .node import *
+from .node import AddressableNode, VectorNode, FieldNode, RegNode, RegfileNode
+from .node import AddrmapNode, MemNode, SignalNode
 
 #===============================================================================
 class RDLListener:
@@ -65,14 +66,21 @@ class RDLWalker:
     Each node is visited exactly once
     """
     
-    def walk(self, listener:RDLListener, node):
-        self.do_enter(listener, node)
+    def walk(self, node, *listeners:RDLListener):
+        """
+        Initiates the walker to traverse the current *node* and its children.
+        Calls the corresponding callback for each of the *listeners* provided in
+        the order that they are listed.
+        """
+        for listener in listeners:
+            self.do_enter(node, listener)
         for child in node.children():
-            self.walk(listener, child)
-        self.do_exit(listener, node)
+            self.walk(child, *listeners)
+        for listener in listeners:
+            self.do_exit(node, listener)
     
     
-    def do_enter(self, listener:RDLListener, node):
+    def do_enter(self, node, listener:RDLListener):
         listener.enter_Component(node)
         
         if(issubclass(type(node), AddressableNode)):
@@ -94,7 +102,7 @@ class RDLWalker:
             listener.enter_Signal(node)
     
     
-    def do_exit(self, listener:RDLListener, node):
+    def do_exit(self, node, listener:RDLListener):
         if(type(node) == FieldNode):
             listener.exit_Field(node)
         elif(type(node) == RegNode):
@@ -122,8 +130,10 @@ class RDLUnrollWalker(RDLWalker):
     If the walker arrives at an array node, then it will be visited multiple
     times according to the array dimensions
     """
-    def walk(self, listener:RDLListener, node):
-        self.do_enter(listener, node)
+    def walk(self, node, *listeners:RDLListener):
+        for listener in listeners:
+            self.do_enter(node, listener)
         for child in node.children(unroll=True):
-            self.walk(listener, child)
-        self.do_exit(listener, node)
+            self.walk(child, *listeners)        
+        for listener in listeners:
+            self.do_exit(node, listener)

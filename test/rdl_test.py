@@ -17,7 +17,7 @@ class hier_printer(RDLListener):
         pass
         print(node.get_path())
 
-RDLUnrollWalker().walk(hier_printer(), top)
+RDLUnrollWalker().walk(top, hier_printer())
 
 testme = top.get_property("testme")
 print("testme =", testme.get_path())
