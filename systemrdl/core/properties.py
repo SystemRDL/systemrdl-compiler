@@ -989,17 +989,3 @@ class Prop_bridge(PropertyRule):
     default = False
     dyn_assign_allowed = False
     mutex_group = None
-
-
-
-
-#-------------------------------------------------------------------------------
-class Prop_testme(PropertyRule):
-    """
-    TODO: Delete me
-    """
-    bindable_to = [comp.Addrmap]
-    valid_types = [comp.Field]
-    default = None
-    dyn_assign_allowed = True
-    mutex_group = None

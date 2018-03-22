@@ -149,23 +149,42 @@ class ElabExpressionsListener(walker.RDLListener):
         if(issubclass(type(node.inst.addr_align), Expr)):
             node.inst.addr_align.resolve_expr_width()
             node.inst.addr_align = node.inst.addr_align.get_value()
+            if(node.inst.addr_align == 0):
+                raise RDLCompileError(
+                    "Alignment allocator '%=' must be greater than zero",
+                    node.inst.inst_err_ctx
+                )
         
         if(node.inst.array_dimensions is not None):
             for i in range(len(node.inst.array_dimensions)):
                 if(issubclass(type(node.inst.array_dimensions[i]), Expr)):
                     node.inst.array_dimensions[i].resolve_expr_width()
                     node.inst.array_dimensions[i] = node.inst.array_dimensions[i].get_value()
+                    if(node.inst.array_dimensions[i] == 0):
+                        raise RDLCompileError(
+                            "Array dimension must be greater than zero",
+                            node.inst.inst_err_ctx
+                        )
         
         if(issubclass(type(node.inst.array_stride), Expr)):
             node.inst.array_stride.resolve_expr_width()
             node.inst.array_stride = node.inst.array_stride.get_value()
-    
+            if(node.inst.array_stride == 0):
+                raise RDLCompileError(
+                    "Array stride allocator '+=' must be greater than zero",
+                    node.inst.inst_err_ctx
+                )
     
     def enter_VectorComponent(self, node):
         # Evaluate instance object expressions
         if(issubclass(type(node.inst.width), Expr)):
             node.inst.width.resolve_expr_width()
             node.inst.width = node.inst.width.get_value()
+            if(node.inst.width == 0):
+                raise RDLCompileError(
+                    "Vector width must be greater than zero",
+                    node.inst.inst_err_ctx
+                )
         
         if(issubclass(type(node.inst.msb), Expr)):
             node.inst.msb.resolve_expr_width()

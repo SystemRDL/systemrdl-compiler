@@ -174,15 +174,15 @@ class ExprVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Cast
     #---------------------------------------------------------------------------
-    _CastWidth_map = {
-        SystemRDLParser.BIT_kw      : 1,
-        SystemRDLParser.LONGINT_kw  : 64,
-    }
     # Visit a parse tree produced by SystemRDLParser#CastType.
     def visitCastType(self, ctx:SystemRDLParser.CastTypeContext):
-        if(ctx.typ.type in self._CastWidth_map):
-            w = self._CastWidth_map[ctx.typ.type]
-            return(e.WidthCast(ctx.op, self.visit(ctx.expr()), w_int=w))
+        if(ctx.typ.type == SystemRDLParser.LONGINT_kw):
+            # Longint gets truncated to 64-bits
+            return(e.WidthCast(ctx.op, self.visit(ctx.expr()), w_int=64))
+        elif(ctx.typ.type == SystemRDLParser.BIT_kw):
+            # Cast to bit remains unaffected, but in self-determined context
+            # Use assignment cast to isolate evaluation
+            return(e.AssignmentCast(ctx.op, self.visit(ctx.expr()), int))
         elif(ctx.typ.type == SystemRDLParser.BOOLEAN_kw):
             return(e.BoolCast(ctx.op, self.visit(ctx.expr())))
         else:

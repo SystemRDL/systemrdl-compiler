@@ -28,7 +28,4 @@ addrmap my_design {
     } r_a[3];
     
     
-    testme = r_a[2].f_a;
-    
-    
 };

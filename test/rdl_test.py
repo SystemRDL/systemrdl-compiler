@@ -19,9 +19,6 @@ class hier_printer(RDLListener):
 
 RDLUnrollWalker().walk(top, hier_printer())
 
-testme = top.get_property("testme")
-print("testme =", testme.get_path())
-
 f = top.find_by_path("reg_b.asdf")
 if(f):
     print(f.get_path())
