@@ -103,7 +103,7 @@ class RDLCompiler:
         
         # Override parameters as needed
         if(len(parameters)):
-            # TODO
+            # TODO: Add mechanism to set parameters of top-level component
             raise NotImplementedError
         
         top_node = Node._factory(top_inst, self)
@@ -269,6 +269,15 @@ class PrePlacementValidateListener(walker.RDLListener):
                     "'fieldwidth' property must be greater than zero",
                     node.inst.def_err_ctx
                 )
+    
+    def enter_Signal(self, node):
+        if('signalwidth' in node.inst.properties):
+            n = node.inst.properties['signalwidth']
+            if(n <= 0):
+                raise RDLCompileError(
+                    "'signalwidth' property must be greater than zero",
+                    node.inst.def_err_ctx
+                )
         
     def enter_Mem(self, node):
         if('mementries' in node.inst.properties):
@@ -292,8 +301,7 @@ class StructuralPlacementListener(walker.RDLListener):
     Resolves inferred locations of structural components
     - Field width and offset
     - Component addresses
-    - Signal stuff. TODO - TBD
-    - Mem stuff. TODO - TBD
+    - Signals.
     """
     def __init__(self):
         self.msb0_mode_stack = []
@@ -316,7 +324,6 @@ class StructuralPlacementListener(walker.RDLListener):
             alignment = self.alignment_stack[-1]
         self.alignment_stack.append(alignment)
     
-    
     def exit_Field(self, node):
         
         # Resolve field width
@@ -336,7 +343,38 @@ class StructuralPlacementListener(walker.RDLListener):
         fieldwidth = node.get_property('fieldwidth')
         if(fieldwidth != node.inst.width):
             raise RDLCompileError(
-                "Width of field instance (%d) must match field's 'fieldwidth' preoperty (%d)" % (node.inst.width, fieldwidth),
+                "Width of field instance (%d) must match field's 'fieldwidth' property (%d)" % (node.inst.width, fieldwidth),
+                node.inst.inst_err_ctx
+            )
+    
+    def exit_Signal(self, node):
+        
+        # Resolve signal width
+        if(node.inst.width is None):
+            signalwidth = node.get_property('signalwidth')
+            
+            if((node.inst.lsb is not None) and (node.inst.msb is not None)):
+                width = abs(node.inst.msb - node.inst.lsb) + 1
+                
+                node.inst.width = width
+            elif(signalwidth is not None):
+                node.inst.width = signalwidth
+            else:
+                node.inst.width = 1
+        
+        if((node.inst.lsb is None) or (node.inst.msb is None)):
+            # Range instance style was not used. Deduce msb/lsb and high/low
+            # Assume [width-1:0] style
+            node.inst.lsb = 0
+            node.inst.msb = node.inst.width - 1
+            node.inst.low = 0
+            node.inst.high = node.inst.width - 1
+        
+        # Test field width again
+        signalwidth = node.get_property('signalwidth')
+        if(signalwidth != node.inst.width):
+            raise RDLCompileError(
+                "Width of signal instance (%d) must match signal's 'signalwidth' property (%d)" % (node.inst.width, signalwidth),
                 node.inst.inst_err_ctx
             )
     

@@ -45,3 +45,35 @@ If any assignment already exists in the dict, throws an error immediately.
 At the end of the component body, flip through each local property assignment and:
     - Check for mutex collisions
     - Coerce assignments to appropriate type (predict expr type, assignment cast, etc)
+
+================================================================================
+Misc
+================================================================================
+
+In grammar, property names include existing keywords, and other non-keyword ID
+
+LHS assignments can be:
+    - numeric
+    - reference to a signal instance
+    - reference to a "virtual signal" property
+    - Reference to any other component types?
+        I dont think so?
+
+RHS references can be:
+    - only a "virtual signal" property of a field or reg
+        These are shown in the spec in Annex G, marked under the "Ref target" column
+        I have no desire to actually implement these anytime soon...
+    - It looks like RHS reference to copy a component property's value is NOT a thing
+
+Misc rules
+    - Each property has an expected type
+        - Some can accept more than one type (numeric OR signal ref)
+    - Some properties are mutually exclusive
+        Each mutex set is listed in Annex G
+    - Not all are allowed to be dynamically assigned
+
+Default properties
+    User-set defaults are propagated according to namespace scope, not by structural
+    parent->child inheritance
+    Defaults may need to be propagated at parse time instead
+    Spec basically implies another "default property" namespace

@@ -37,6 +37,26 @@ class Node:
             return(SignalNode(inst, compiler, parent))
     
     
+    @classmethod
+    def add_meta_property(cls, getter_function, name=None):
+        """
+        Register a user-defined meta-property
+        
+        Parameters
+        ----------
+        getter_function : function
+            Function that fetches the result of the user-defined meta-property
+        name : str
+            Meta-property name
+            If unassigned, will default to the function's name
+        """
+        
+        if(name is None):
+            name = getter_function.__name__
+        mp = property(fget=getter_function)
+        setattr(cls, name, mp)
+    
+    
     def children(self, unroll=False):
         """
         Returns an iterator that provides nodes for all immediate children of
@@ -217,6 +237,7 @@ class AddressableNode(Node):
         # TODO
         raise NotImplementedError
     
+    
     @property
     def size(self):
         """
@@ -225,6 +246,7 @@ class AddressableNode(Node):
         """
         # must be overridden
         raise NotImplementedError
+    
     
     @property
     def total_size(self):

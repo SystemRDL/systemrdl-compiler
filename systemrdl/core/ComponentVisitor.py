@@ -368,6 +368,8 @@ class ComponentVisitor(BaseVisitor):
             comp_inst.external = True
         elif(inst_type == SystemRDLParser.INTERNAL_kw):
             comp_inst.external = False
+        else:
+            comp_inst.external = False
         
         self.component.children.append(comp_inst)
         

@@ -59,7 +59,7 @@ Meta-properties:
     Users can also define their own meta-properties.
     User provides a getter function of the following prototype:
         def my_meta_property_getter(node)
-    And registers it <SOMEHOW>
+    And registers it via Node.add_meta_property(my_meta_property_getter, "my_meta")
 
 ================================================================================
 Walker + Listener Tree Traversal
