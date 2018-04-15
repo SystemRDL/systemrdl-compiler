@@ -1,5 +1,5 @@
 import enum
-from .node import Node, AddressableNode
+from .node import AddressableNode
 
 class AutoEnum(enum.Enum):
     def __new__(cls):
@@ -88,7 +88,7 @@ class ComponentRef:
         current_node = assignee_node
         
         # Traverse up from assignee as needed
-        for i in range(self.uplevels_to_ref):
+        for _ in range(self.uplevels_to_ref):
             if(current_node.parent is None):
                 raise RuntimeError("Upref attempted past last parent")
             current_node = current_node.parent

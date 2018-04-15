@@ -3,7 +3,7 @@ import inspect
 from .. import component as comp
 from .. import rdltypes
 from . import expressions
-from ..errors import RDLCompileError
+from ..messages import MessageContext
 from . import type_placeholders as tp
 
 def get_all_subclasses(cls):
@@ -11,14 +11,15 @@ def get_all_subclasses(cls):
                                            for g in get_all_subclasses(s)]
 
 class PropertyRuleBook:
-    def __init__(self):
+    def __init__(self, compiler):
+        self.compiler = compiler
         
         # Auto-discover all properties defined below and load into dict
         self.rdl_properties = {}
         for prop in get_all_subclasses(PropertyRule):
             prop_name = prop.get_name()
             if(prop.__name__.startswith("Prop_")):
-                self.rdl_properties[prop_name] = prop()
+                self.rdl_properties[prop_name] = prop(self.compiler)
         
         self.user_properties = {}
     
@@ -41,6 +42,10 @@ class PropertyRule:
     mutex_group = None
     
     #---------------------------------------------------------------------------
+    def __init__(self, compiler):
+        self.compiler = compiler
+    
+    #---------------------------------------------------------------------------
     @classmethod
     def get_name(cls):
         return(cls.__name__.replace("Prop_", ""))
@@ -58,9 +63,9 @@ class PropertyRule:
         
         # Check if property is allowed in this component
         if(type(comp_def) not in self.bindable_to):
-            raise RDLCompileError(
+            self.compiler.msg.fatal(
                 "The property '%s' is not valid for '%s' components" % (self.get_name(), type(comp_def).__name__.lower()),
-                err_ctx
+                MessageContext(err_ctx)
             )
         
         # unpack true type of value
@@ -85,9 +90,9 @@ class PropertyRule:
             if(expressions.is_type_compatible(assign_type, valid_type)):
                 break
         else:
-            raise RDLCompileError(
+            self.compiler.msg.fatal(
                 "Incompatible assignment to property '%s'" % self.get_name(),
-                err_ctx
+                MessageContext(err_ctx)
             )
         
         # Store the property

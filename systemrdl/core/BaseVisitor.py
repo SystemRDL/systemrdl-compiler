@@ -9,9 +9,9 @@ from .properties import PropertyRuleBook
 
 class BaseVisitor(SystemRDLVisitor):
     
-    def __init__(self, ns, pr):
-        self.NS = ns
-        self.PR = pr
+    def __init__(self, compiler):
+        self.compiler = compiler
+        self.msg = compiler.msg
 
     #---------------------------------------------------------------------------
     # Keyword passthrough visitors

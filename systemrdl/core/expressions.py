@@ -1,12 +1,14 @@
 from copy import deepcopy
 from . import type_placeholders as tp
-from ..errors import RDLCompileError
+from ..messages import MessageContext
 from .. import component as comp
 from .. import rdltypes
 
 
 class Expr:
-    def __init__(self, err_ctx):
+    def __init__(self, compiler, err_ctx):
+        self.compiler = compiler
+        self.msg = compiler.msg
         
         # Number of bits to use for this expression's evaluation
         # Only relevant for integer-like contexts
@@ -22,7 +24,7 @@ class Expr:
         """
         Deepcopy all members except for ones that should be copied by reference
         """
-        copy_by_ref = ["err_ctx"]
+        copy_by_ref = ["err_ctx", "compiler", "msg"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -95,8 +97,8 @@ class Expr:
     
 #-------------------------------------------------------------------------------
 class IntLiteral(Expr):
-    def __init__(self, err_ctx, val, width=64):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, val, width=64):
+        super().__init__(compiler, err_ctx)
         self.val = val
         self.width = width
     
@@ -115,8 +117,8 @@ class BuiltinEnumLiteral(Expr):
     Expr wrapper for builtin RDL enumeration types:
     AccessType, OnReadType, OnWriteType, AddressingType, PrecedenceType
     """
-    def __init__(self, err_ctx, val):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, val):
+        super().__init__(compiler, err_ctx)
         self.val = val
     
     def predict_type(self):
@@ -130,8 +132,8 @@ class BuiltinEnumLiteral(Expr):
 
 #-------------------------------------------------------------------------------
 class StringLiteral(Expr):
-    def __init__(self, err_ctx, val):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, val):
+        super().__init__(compiler, err_ctx)
         self.val = val
     
     def predict_type(self):
@@ -148,15 +150,21 @@ class StringLiteral(Expr):
 #   +  -  *  /  %  &  |  ^  ^~  ~^
 # Normal expression context rules
 class _BinaryIntExpr(Expr):
-    def __init__(self, err_ctx, l, r):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, l, r):
+        super().__init__(compiler, err_ctx)
         self.op = [l, r]
         
     def predict_type(self):
         if(self.op[0].predict_type() not in [int, bool]):
-            raise RDLCompileError("Left operand of expression is not a compatible numeric type", self.err_ctx)
+            self.msg.fatal(
+                "Left operand of expression is not a compatible numeric type",
+                MessageContext(self.err_ctx)
+            )
         if(self.op[1].predict_type() not in [int, bool]):
-            raise RDLCompileError("Right operand of expression is not a compatible numeric type", self.err_ctx)
+            self.msg.fatal(
+                "Right operand of expression is not a compatible numeric type",
+                MessageContext(self.err_ctx)
+            )
         return(int)
     
     def get_min_eval_width(self):
@@ -189,9 +197,9 @@ class Div(_BinaryIntExpr):
     def get_value(self):
         l,r = self.get_ops()
         if(r == 0):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Division by zero",
-                self.err_ctx
+                MessageContext(self.err_ctx)
             )
         return(self.trunc(l // r))
 
@@ -199,9 +207,9 @@ class Mod(_BinaryIntExpr):
     def get_value(self):
         l,r = self.get_ops()
         if(r == 0):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Modulo by zero",
-                self.err_ctx
+                MessageContext(self.err_ctx)
             )
         return(self.trunc(l % r))
         
@@ -230,13 +238,16 @@ class BitwiseXnor(_BinaryIntExpr):
 #   +  -  ~
 # Normal expression context rules
 class _UnaryIntExpr(Expr):
-    def __init__(self, err_ctx, n):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, n):
+        super().__init__(compiler, err_ctx)
         self.op = [n]
         
     def predict_type(self):
         if(self.op[0].predict_type() not in [int, bool]):
-            raise RDLCompileError("Operand of expression is not a compatible numeric type", self.err_ctx)
+            self.msg.fatal(
+                "Operand of expression is not a compatible numeric type",
+                MessageContext(self.err_ctx)
+            )
         return(int)
     
     def get_min_eval_width(self):
@@ -269,16 +280,22 @@ class BitwiseInvert(_UnaryIntExpr):
 # Child operands are evaluated in the same width context, sized to the max
 # of either op.
 class _RelationalExpr(Expr):
-    def __init__(self, err_ctx, l, r):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, l, r):
+        super().__init__(compiler, err_ctx)
         self.op = [l, r]
         # TODO: add support for non-numeric comparisons
         
     def predict_type(self):
         if(self.op[0].predict_type() not in [int, bool]):
-            raise RDLCompileError("Left operand of expression is not a compatible numeric type", self.err_ctx)
+            self.msg.fatal(
+                "Left operand of expression is not a compatible numeric type",
+                MessageContext(self.err_ctx)
+            )
         if(self.op[1].predict_type() not in [int, bool]):
-            raise RDLCompileError("Right operand of expression is not a compatible numeric type", self.err_ctx)
+            self.msg.fatal(
+                "Right operand of expression is not a compatible numeric type",
+                MessageContext(self.err_ctx)
+            )
         return(bool)
     
     def get_min_eval_width(self):
@@ -331,13 +348,16 @@ class Geq(_RelationalExpr):
 # Result is always 1 bit bool
 # Creates a new evaluation context
 class _ReductionExpr(Expr):
-    def __init__(self, err_ctx, n):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, n):
+        super().__init__(compiler, err_ctx)
         self.op = [n]
     
     def predict_type(self):
         if(self.op[0].predict_type() not in [int, bool]):
-            raise RDLCompileError("Operand of expression is not a compatible numeric type", self.err_ctx)
+            self.msg.fatal(
+                "Operand of expression is not a compatible numeric type",
+                MessageContext(self.err_ctx)
+            )
         return(int)
     
     def get_min_eval_width(self):
@@ -403,15 +423,21 @@ class BoolNot(_ReductionExpr):
 #   && ||
 # Both operands are self-determined
 class _BoolExpr(Expr):
-    def __init__(self, err_ctx, l, r):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, l, r):
+        super().__init__(compiler, err_ctx)
         self.op = [l,r]
     
     def predict_type(self):
         if(self.op[0].predict_type() not in [int, bool]):
-            raise RDLCompileError("Left operand of expression is not a compatible boolean type", self.err_ctx)
+            self.msg.fatal(
+                "Left operand of expression is not a compatible boolean type",
+                MessageContext(self.err_ctx)
+            )
         if(self.op[1].predict_type() not in [int, bool]):
-            raise RDLCompileError("Right operand of expression is not a compatible boolean type", self.err_ctx)
+            self.msg.fatal(
+                "Right operand of expression is not a compatible boolean type",
+                MessageContext(self.err_ctx)
+            )
         return(bool)
     
     def resolve_expr_width(self):
@@ -449,15 +475,21 @@ class BoolOr(_BoolExpr):
 #   **  <<  >>
 # Righthand operand is self-determined
 class _ExpShiftExpr(Expr):
-    def __init__(self, err_ctx, l, r):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, l, r):
+        super().__init__(compiler, err_ctx)
         self.op = [l,r]
     
     def predict_type(self):
         if(self.op[0].predict_type() not in [int, bool]):
-            raise RDLCompileError("Left operand of expression is not a compatible numeric type", self.err_ctx)
+            self.msg.fatal(
+                "Left operand of expression is not a compatible numeric type",
+                MessageContext(self.err_ctx)
+            )
         if(self.op[1].predict_type() not in [int, bool]):
-            raise RDLCompileError("Right operand of expression is not a compatible numeric type", self.err_ctx)
+            self.msg.fatal(
+                "Right operand of expression is not a compatible numeric type",
+                MessageContext(self.err_ctx)
+            )
         return(int)
     
     def resolve_expr_width(self):
@@ -507,13 +539,16 @@ class RShift(_ExpShiftExpr):
 # Truth expression is self-determined and does not contribute to context
 
 class TernaryExpr(Expr):
-    def __init__(self, err_ctx, i, j, k):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, i, j, k):
+        super().__init__(compiler, err_ctx)
         self.op = [i, j, k]
     
     def predict_type(self):
         if(self.op[0].predict_type() not in [int, bool]):
-            raise RDLCompileError("Conditional operand of expression is not a compatible boolean type", self.err_ctx)
+            self.msg.fatal(
+                "Conditional operand of expression is not a compatible boolean type",
+                MessageContext(self.err_ctx)
+            )
         
         # Type of j and k shall be compatible
         t_j = self.op[1].predict_type()
@@ -526,7 +561,10 @@ class TernaryExpr(Expr):
         else:
             # Not numeric types. Shall be equal types
             if(t_j != t_k):
-                raise RDLCompileError("True/False results of ternary conditional are not compatible types", self.err_ctx)
+                self.msg.fatal(
+                    "True/False results of ternary conditional are not compatible types",
+                    MessageContext(self.err_ctx)
+                )
             return(t_j)
     
     def resolve_expr_width(self):
@@ -571,8 +609,8 @@ class TernaryExpr(Expr):
 # The cast width determines the result's width
 # Also influences the min eval width of the value expression
 class WidthCast(Expr):
-    def __init__(self, err_ctx, v, w_expr=None, w_int=64):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, v, w_expr=None, w_int=64):
+        super().__init__(compiler, err_ctx)
         
         if(w_expr is not None):
             self.op = [v, w_expr]
@@ -584,9 +622,15 @@ class WidthCast(Expr):
     def predict_type(self):
         if(self.cast_width is None):
             if(self.op[1].predict_type() not in [int, bool]):
-                raise RDLCompileError("Width operand of cast expression is not a compatible numeric type", self.err_ctx)
+                self.msg.fatal(
+                    "Width operand of cast expression is not a compatible numeric type",
+                    MessageContext(self.err_ctx)
+                )
         if(self.op[0].predict_type() not in [int, bool]):
-            raise RDLCompileError("Value operand of cast expression cannot be cast to an integer", self.err_ctx)
+            self.msg.fatal(
+                "Value operand of cast expression cannot be cast to an integer",
+                MessageContext(self.err_ctx)
+            )
         
         return(int)
     
@@ -619,9 +663,9 @@ class WidthCast(Expr):
         n = int(self.op[0].get_value())
         self.expr_eval_width = self.cast_width
         if(self.expr_eval_width == 0):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Cannot cast to width of zero",
-                self.err_ctx
+                MessageContext(self.err_ctx)
             )
         return(self.trunc(n))
 
@@ -629,13 +673,16 @@ class WidthCast(Expr):
 # Boolean cast operator
 
 class BoolCast(Expr):
-    def __init__(self, err_ctx, n):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, n):
+        super().__init__(compiler, err_ctx)
         self.op = [n]
     
     def predict_type(self):
         if(self.op[0].predict_type() not in [int, bool]):
-            raise RDLCompileError("Value operand of cast expression cannot be cast to a boolean", self.err_ctx)
+            self.msg.fatal(
+                "Value operand of cast expression cannot be cast to a boolean",
+                MessageContext(self.err_ctx)
+            )
         return(bool)
     
     def get_min_eval_width(self):
@@ -655,8 +702,8 @@ class BoolCast(Expr):
 # References
 
 class ParameterRef(Expr):
-    def __init__(self, err_ctx, param):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, param):
+        super().__init__(compiler, err_ctx)
         self.param = param
     
     def predict_type(self):
@@ -664,18 +711,18 @@ class ParameterRef(Expr):
     
     def resolve_expr_width(self):
         if(self.param.expr is None):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Value for parameter '%s' was never assigned" % self.param.name,
-                self.err_ctx
+                MessageContext(self.err_ctx)
             )
         self.op = [self.param.expr]
         super().resolve_expr_width()
     
     def get_min_eval_width(self):
         if(self.param.expr is None):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Value for parameter '%s' was never assigned" % self.param.name,
-                self.err_ctx
+                MessageContext(self.err_ctx)
             )
         return(self.param.expr.get_min_eval_width())
     
@@ -687,8 +734,8 @@ class ParameterRef(Expr):
 
 
 class InstRef(Expr):
-    def __init__(self, ref_inst, uplevels_to_ref, ref_elements):
-        super().__init__(None) # single err_ctx doesn't make sense for InstRef
+    def __init__(self, compiler, ref_inst, uplevels_to_ref, ref_elements):
+        super().__init__(compiler, None) # single err_ctx doesn't make sense for InstRef
         
         # Points to the component inst that the ref_elements 'path' is relative to
         self.ref_inst = ref_inst
@@ -712,11 +759,14 @@ class InstRef(Expr):
         """
         Copy any Antlr tokens by ref within the ref_elements list when deepcopying
         """
+        copy_by_ref = ["err_ctx", "compiler", "msg"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
         for k, v in self.__dict__.items():
-            if(k == "ref_elements"):
+            if(k in copy_by_ref):
+                setattr(result, k, v)
+            elif(k == "ref_elements"):
                 # Manually deepcopy the ref_elements list
                 new_ref_elements = []
                 for src_name_token, src_array_suffixes in v:
@@ -741,9 +791,9 @@ class InstRef(Expr):
             current_inst = current_inst.get_child_by_name(name)
             if(current_inst is None):
                 # Not found!
-                raise RDLCompileError(
+                self.msg.fatal(
                     "Could not resolve hierarchical reference to '%s'" % name,
-                    name_token
+                    MessageContext(name_token)
                 )
             
             # Do type-check in array suffixes
@@ -754,16 +804,16 @@ class InstRef(Expr):
             if((issubclass(type(current_inst), comp.AddressableComponent)) and current_inst.is_array):
                 # is an array
                 if(len(array_suffixes) != len(current_inst.array_dimensions)):
-                    raise RDLCompileError(
+                    self.msg.fatal(
                         "Incompatible number of index dimensions after '%s'. Expected %d, found %d."
                             % (name, len(current_inst.array_dimensions), len(array_suffixes)),
-                        name_token
+                        MessageContext(name_token)
                     )
             elif(len(array_suffixes)):
                 # Has array suffixes. Check if compatible with referenced component
-                raise RDLCompileError(
+                self.msg.fatal(
                     "Unable to index non-array component '%s'" % name,
-                    name_token
+                    MessageContext(name_token)
                 )
         
         return(type(current_inst))
@@ -804,10 +854,10 @@ class InstRef(Expr):
                 # Check ranges on suffixes
                 for i in range(len(idx_list)):
                     if(idx_list[i] >= current_inst.array_dimensions[i]):
-                        raise RDLCompileError(
+                        self.msg.fatal(
                             "Array index out of range. Expected 0-%d, got %d."
                                 % (current_inst.array_dimensions[i]-1, idx_list[i]),
-                            array_suffix.err_ctx
+                            MessageContext(array_suffix.err_ctx)
                         )
             
             resolved_ref_elements.append((name, idx_list))
@@ -829,8 +879,8 @@ class InstRef(Expr):
 # When getting value:
 #   Ensures that the expression result gets converted to the resulting type
 class AssignmentCast(Expr):
-    def __init__(self, err_ctx, v, dest_type):
-        super().__init__(err_ctx)
+    def __init__(self, compiler, err_ctx, v, dest_type):
+        super().__init__(compiler, err_ctx)
         
         self.op = [v]
         self.dest_type = dest_type
@@ -839,9 +889,9 @@ class AssignmentCast(Expr):
         op_type = self.op[0].predict_type()
         
         if(not is_type_compatible(op_type, self.dest_type)):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Result of expression is not compatible with the expected type",
-                self.err_ctx
+                MessageContext(self.err_ctx)
             )
         
         return(self.dest_type)

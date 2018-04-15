@@ -7,14 +7,14 @@ from .. import rdltypes
 
 from .BaseVisitor import BaseVisitor
 from . import expressions as e
-from ..errors import RDLCompileError, RDLNotSupportedYet
+from ..messages import MessageContext
 from .parameter import Parameter
 from .. import component as comp
 
 class ExprVisitor(BaseVisitor):
     
-    def __init__(self, ns, pr, current_component, target_depth=0):
-        super().__init__(ns=ns, pr=pr)
+    def __init__(self, compiler, current_component, target_depth=0):
+        super().__init__(compiler)
         
         # Reference to the current component that this expression was found in.
         # This is used for context when constructing hierarchical references
@@ -70,14 +70,14 @@ class ExprVisitor(BaseVisitor):
         l = self.visit(ctx.expr(0))
         r = self.visit(ctx.expr(1))
         expr_class = self._BinaryExpr_map[ctx.op.type]
-        return(expr_class(ctx.op,l,r))
+        return(expr_class(self.compiler, ctx.op,l,r))
 
 
     # Visit a parse tree produced by SystemRDLParser#UnaryExpr.
     def visitUnaryExpr(self, ctx:SystemRDLParser.UnaryExprContext):
         n = self.visit(ctx.expr_primary())
         expr_class = self._UnaryExpr_map[ctx.op.type]
-        return(expr_class(ctx.op,n))
+        return(expr_class(self.compiler, ctx.op,n))
 
 
     # Visit a parse tree produced by SystemRDLParser#TernaryExpr.
@@ -85,7 +85,7 @@ class ExprVisitor(BaseVisitor):
         i = self.visit(ctx.expr(0))
         j = self.visit(ctx.expr(1))
         k = self.visit(ctx.expr(2))
-        return(e.TernaryExpr(ctx.op,i,j,k))
+        return(e.TernaryExpr(self.compiler, ctx.op,i,j,k))
     
     
     # Visit a parse tree produced by SystemRDLParser#paren_expr.
@@ -99,14 +99,14 @@ class ExprVisitor(BaseVisitor):
     def visitNumberInt(self, ctx:SystemRDLParser.NumberIntContext):
         s = ctx.INT().getText()
         s = s.replace("_","")
-        return(e.IntLiteral(ctx.INT(), int(s)))
+        return(e.IntLiteral(self.compiler, ctx.INT(), int(s)))
     
     
     # Visit a parse tree produced by SystemRDLParser#NumberHex.
     def visitNumberHex(self, ctx:SystemRDLParser.NumberHexContext):
         s = ctx.HEX_INT().getText()
         s = s.replace("_","")
-        return(e.IntLiteral(ctx.HEX_INT(), int(s,16)))
+        return(e.IntLiteral(self.compiler, ctx.HEX_INT(), int(s,16)))
     
     
     # Visit a parse tree produced by SystemRDLParser#NumberVerilog.
@@ -126,35 +126,35 @@ class ExprVisitor(BaseVisitor):
         val = int(m.group(3), base)
         
         if(val >= (1 << width)):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Value of integer literal exceeds the specified width",
-                ctx.VLOG_INT()
+                MessageContext(ctx.VLOG_INT())
             )
         
-        return(e.IntLiteral(ctx.VLOG_INT(), val, width))
+        return(e.IntLiteral(self.compiler, ctx.VLOG_INT(), val, width))
         
     
     # Visit a parse tree produced by SystemRDLParser#boolean_literal.
     def visitBoolean_literal(self, ctx:SystemRDLParser.Boolean_literalContext):
         if(ctx.val.type == SystemRDLParser.TRUE_kw):
-            return(e.IntLiteral(ctx.val, 1, 1))
+            return(e.IntLiteral(self.compiler, ctx.val, 1, 1))
         else:
-            return(e.IntLiteral(ctx.val, 0, 1))
+            return(e.IntLiteral(self.compiler, ctx.val, 0, 1))
         
     #---------------------------------------------------------------------------
     # Built-in RDL Enumeration literals
     #---------------------------------------------------------------------------
     def visitAccesstype_literal(self, ctx:SystemRDLParser.Accesstype_literalContext):
-        return(e.BuiltinEnumLiteral(ctx.kw, rdltypes.AccessType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.AccessType[ctx.kw.text]))
 
     def visitOnreadtype_literal(self, ctx:SystemRDLParser.Onreadtype_literalContext):
-        return(e.BuiltinEnumLiteral(ctx.kw, rdltypes.OnReadType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.OnReadType[ctx.kw.text]))
 
     def visitOnwritetype_literal(self, ctx:SystemRDLParser.Onwritetype_literalContext):
-        return(e.BuiltinEnumLiteral(ctx.kw, rdltypes.OnWriteType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.OnWriteType[ctx.kw.text]))
 
     def visitAddressingtype_literal(self, ctx:SystemRDLParser.Addressingtype_literalContext):
-        return(e.BuiltinEnumLiteral(ctx.kw, rdltypes.AddressingType[ctx.kw.text]))
+        return(e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.AddressingType[ctx.kw.text]))
 
     #---------------------------------------------------------------------------
     # Misc other literals
@@ -168,7 +168,7 @@ class ExprVisitor(BaseVisitor):
         # Remove backslashes from any escaped characters
         string = re.sub(r'\\(.)', r'\1', string)
         
-        return(e.StringLiteral(ctx.STRING(), string))
+        return(e.StringLiteral(self.compiler, ctx.STRING(), string))
         
     
     #---------------------------------------------------------------------------
@@ -178,20 +178,20 @@ class ExprVisitor(BaseVisitor):
     def visitCastType(self, ctx:SystemRDLParser.CastTypeContext):
         if(ctx.typ.type == SystemRDLParser.LONGINT_kw):
             # Longint gets truncated to 64-bits
-            return(e.WidthCast(ctx.op, self.visit(ctx.expr()), w_int=64))
+            return(e.WidthCast(self.compiler, ctx.op, self.visit(ctx.expr()), w_int=64))
         elif(ctx.typ.type == SystemRDLParser.BIT_kw):
             # Cast to bit remains unaffected, but in self-determined context
             # Use assignment cast to isolate evaluation
-            return(e.AssignmentCast(ctx.op, self.visit(ctx.expr()), int))
+            return(e.AssignmentCast(self.compiler, ctx.op, self.visit(ctx.expr()), int))
         elif(ctx.typ.type == SystemRDLParser.BOOLEAN_kw):
-            return(e.BoolCast(ctx.op, self.visit(ctx.expr())))
+            return(e.BoolCast(self.compiler, ctx.op, self.visit(ctx.expr())))
         else:
             raise RuntimeError
 
     # Visit a parse tree produced by SystemRDLParser#CastWidth.
     def visitCastWidth(self, ctx:SystemRDLParser.CastWidthContext):
         w = self.visit(ctx.cast_width_expr())
-        return(e.WidthCast(ctx.op, self.visit(ctx.expr()), w_expr=w))
+        return(e.WidthCast(self.compiler, ctx.op, self.visit(ctx.expr()), w_expr=w))
     
     #---------------------------------------------------------------------------
     # References
@@ -207,26 +207,28 @@ class ExprVisitor(BaseVisitor):
         # Resolve reference of first element, since it is in the local scope
         first_name_token, first_array_suffixes = ref_elements[0]
         first_name = first_name_token.getText()
-        first_elem = self.NS.lookup_element(first_name)
+        first_elem = self.compiler.namespace.lookup_element(first_name)
         if(first_elem is None):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Reference to '%s' not found" % first_name,
-                first_name_token
+                MessageContext(first_name_token)
             )
         
         if(type(first_elem) == Parameter):
             # Reference is to a local parameter
-            ref_expr = e.ParameterRef(first_name_token, first_elem)
+            ref_expr = e.ParameterRef(self.compiler, first_name_token, first_elem)
             
             if(len(first_array_suffixes) != 0):
-                raise RDLNotSupportedYet(
+                # TODO: Reference bit-slice of parameter
+                self.msg.fatal(
                     "Index or bit-slice of a parameter is not supported yet. Coming soon!",
-                    first_array_suffixes[0].err_ctx
+                    MessageContext(first_array_suffixes[0].err_ctx)
                 )
             if(len(ref_elements) > 1):
-                raise RDLNotSupportedYet(
+                # TODO: Reference struct member of parameter
+                self.msg.fatal(
                     "Referencing child elements of a parameter is not supported yet. Coming soon!",
-                    ctx.instance_ref_element(1)
+                    MessageContext(ctx.instance_ref_element(1))
                 )
         elif(type(first_elem) == comp.Signal):
             # TODO: Need to handle signals differently. They are non-hierarchical (or something)
@@ -234,6 +236,7 @@ class ExprVisitor(BaseVisitor):
         elif(issubclass(type(first_elem), comp.Component)):
             # Reference is to a component instance
             ref_expr = e.InstRef(
+                self.compiler, 
                 ref_inst=self.current_component,
                 uplevels_to_ref=self.target_depth,
                 ref_elements=ref_elements
@@ -260,14 +263,14 @@ class ExprVisitor(BaseVisitor):
         else:
             prop_token = ctx.ID()
         
-        raise RDLNotSupportedYet(
+        self.msg.fatal(
             "Property references in expressions are not supported.",
-            prop_token
+            MessageContext(prop_token)
         )
     
     def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
         expr = self.visit(ctx.expr())
-        expr = e.AssignmentCast(ctx.expr(), expr, int)
+        expr = e.AssignmentCast(self.compiler, ctx.expr(), expr, int)
         expr.predict_type()
         return(expr)
     

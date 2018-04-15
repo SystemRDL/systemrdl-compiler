@@ -1,10 +1,13 @@
-from ..errors import RDLCompileError, RDLNotSupportedYet
+from ..messages import MessageContext
 from .. import component as comp
 from . import expressions
 
 class NamespaceRegistry():
     
-    def __init__(self):
+    def __init__(self, compiler):
+        self.compiler = compiler
+        self.msg = compiler.msg
+        
         self.type_ns_stack = [{}]
         self.element_ns_stack = [{}]
         self.default_property_ns_stack = [{}]
@@ -21,9 +24,9 @@ class NamespaceRegistry():
     
     def register_default_property(self, name:str, ref, err_token):
         if(name in self.default_property_ns_stack[-1]):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Default property '%s' was already assigned in this scope" % name,
-                err_token
+                MessageContext(err_token)
             )
         
         # TODO: default properties that resolve to an instance reference
@@ -32,9 +35,9 @@ class NamespaceRegistry():
         if(issubclass(type(rhs), expressions.Expr)):
             result_type = rhs.predict_type()
             if(issubclass(result_type, comp.Component)):
-                raise RDLNotSupportedYet(
+                self.msg.fatal(
                     "Assigning a reference to a component instance in a property default is not supported yet",
-                    prop_token
+                    MessageContext(prop_token)
                 )
         
         self.default_property_ns_stack[-1][name] = ref
@@ -59,11 +62,10 @@ class NamespaceRegistry():
                     return(None)
         return(None)
     
-    def get_default_properties(self, comp_type, PR):
+    def get_default_properties(self, comp_type):
         """
         Returns a flattened dictionary of all default property assignments
         visible in the current scope that apply to the current component type.
-        Requires access to the current property rulebook (PR)
         """
         # Flatten current scope's assignments
         props = {}
@@ -73,11 +75,11 @@ class NamespaceRegistry():
         # filter out properties that are not relevant
         prop_names = list(props.keys())
         for prop_name in prop_names:
-            rule = PR.lookup_property(prop_name)
+            rule = self.compiler.property_rules.lookup_property(prop_name)
             if(rule is None):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "Unrecognized property '%s'" % prop_name,
-                    props[prop_name][0]
+                    MessageContext(props[prop_name][0])
                 )
             if(comp_type not in rule.bindable_to):
                 del props[prop_name]

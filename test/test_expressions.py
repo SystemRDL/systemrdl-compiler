@@ -8,11 +8,10 @@ sys.path.insert(0, os.path.join(this_dir, "../"))
 
 
 from antlr4 import InputStream, CommonTokenStream
+from systemrdl import RDLCompiler
 from systemrdl.parser.SystemRDLLexer import SystemRDLLexer
 from systemrdl.parser.SystemRDLParser import SystemRDLParser
 from systemrdl.core.ExprVisitor import ExprVisitor
-from systemrdl.core.properties import PropertyRuleBook
-from systemrdl.core.namespace import NamespaceRegistry
 
 #===============================================================================
 def eval_RDL_expr(expr_text):
@@ -22,10 +21,9 @@ def eval_RDL_expr(expr_text):
     parser = SystemRDLParser(token_stream)
     tree = parser.expr()
     
-    ns = NamespaceRegistry()
-    pr = PropertyRuleBook()
+    rdlc = RDLCompiler()
     
-    visitor = ExprVisitor(ns, pr, None)
+    visitor = ExprVisitor(rdlc, None)
     result = visitor.visit(tree)
     
     pred_type = result.predict_type()

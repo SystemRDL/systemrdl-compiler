@@ -1,12 +1,11 @@
-import sys
 from copy import deepcopy
 
 from antlr4 import FileStream, CommonTokenStream
 
+from . import messages
 from .parser.SystemRDLLexer import SystemRDLLexer
 from .parser.SystemRDLParser import SystemRDLParser
 from .core.ComponentVisitor import RootVisitor
-from .errors import RDLParserErrorListener, RDLCompileError, ConsoleErrorPrinter
 from .core.expressions import Expr
 from .core.properties import PropertyRuleBook
 from .core.namespace import NamespaceRegistry
@@ -18,13 +17,18 @@ from .core.helpers import is_pow2, roundup_pow2, roundup_to
 
 class RDLCompiler:
     
-    def __init__(self):
-        namespace = NamespaceRegistry()
+    def __init__(self, message_printer=None):
         
-        self.property_rules = PropertyRuleBook()
-        self.visitor = RootVisitor(namespace, self.property_rules)
+        # Set up message handling
+        if(message_printer is None):
+            message_printer = messages.MessagePrinter()
+        self.msg = messages.MessageHandler(message_printer)
+        
+        self.namespace = NamespaceRegistry(self)
+        self.property_rules = PropertyRuleBook(self)
+        
+        self.visitor = RootVisitor(self)
         self.root = None
-        self.error_handler = ConsoleErrorPrinter()
     
     
     def compile_file(self, path):
@@ -43,14 +47,16 @@ class RDLCompiler:
         token_stream = CommonTokenStream(lexer)
         parser = SystemRDLParser(token_stream)
         parser.removeErrorListeners()
-        parser.addErrorListener(RDLParserErrorListener())
+        parser.addErrorListener(messages.RDLAntlrErrorListener(self.msg))
         
-        try:
-            self.root = self.visitor.visit(parser.root())
-        except RDLCompileError as e:
-            self.error_handler.handle_exception(e)
-            sys.exit(1)
-    
+        parsed_tree = parser.root()
+        if(self.msg.error_count):
+            self.msg.fatal("Compile aborted due to previous errors")
+        
+        self.root = self.visitor.visit(parsed_tree)
+        
+        if(self.msg.error_count):
+            self.msg.fatal("Compile aborted due to previous errors")
     
     def elaborate(self, top_def_name, inst_name=None, parameters=None):
         """
@@ -76,22 +82,13 @@ class RDLCompiler:
         if(parameters is None):
             parameters = {}
         
-        try:
-            return(self._do_elaborate(top_def_name, inst_name, parameters))
-        except RDLCompileError as e:
-            self.error_handler.handle_exception(e)
-            sys.exit(1)
-    
-    
-    def _do_elaborate(self, top_def_name, inst_name, parameters):
-        
         # Lookup top_def_name
         if(top_def_name not in self.root.comp_defs):
-            raise RDLCompileError("Elaboration target '%s' not found" % top_def_name)
+            self.msg.fatal("Elaboration target '%s' not found" % top_def_name)
         top_def = self.root.comp_defs[top_def_name]
         
         if(type(top_def) != comp.Addrmap):
-            raise RDLCompileError("Elaboration target '%s' is not an 'addrmap' component" % top_def_name)
+            self.msg.fatal("Elaboration target '%s' is not an 'addrmap' component" % top_def_name)
         
         # Create a top-level instance
         top_inst = deepcopy(top_def)
@@ -109,14 +106,17 @@ class RDLCompiler:
         top_node = Node._factory(top_inst, self)
         
         # Resolve all expressions
-        walker.RDLWalker().walk(top_node, ElabExpressionsListener())
+        walker.RDLWalker().walk(top_node, ElabExpressionsListener(self.msg))
         
         # TODO: Resolve address and field placement
-        walker.RDLWalker().walk(top_node, PrePlacementValidateListener(), StructuralPlacementListener())
+        walker.RDLWalker().walk(top_node, PrePlacementValidateListener(self.msg), StructuralPlacementListener(self.msg))
         
         # TODO: Uniquify parameterized Component type names
         
         # TODO: Validate design
+        
+        if(self.msg.error_count):
+            self.msg.fatal("Compile aborted due to previous errors")
         
         return(top_node)
 
@@ -131,6 +131,10 @@ class ElabExpressionsListener(walker.RDLListener):
     - Instance address allocators
     - Property assignments
     """
+    
+    def __init__(self, msg_handler):
+        self.msg = msg_handler
+    
     def enter_Component(self, node):
         # Evaluate parameters
         # Result is not saved, but will catch evaluation errors if they exist
@@ -150,7 +154,7 @@ class ElabExpressionsListener(walker.RDLListener):
             node.inst.addr_align.resolve_expr_width()
             node.inst.addr_align = node.inst.addr_align.get_value()
             if(node.inst.addr_align == 0):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "Alignment allocator '%=' must be greater than zero",
                     node.inst.inst_err_ctx
                 )
@@ -161,7 +165,7 @@ class ElabExpressionsListener(walker.RDLListener):
                     node.inst.array_dimensions[i].resolve_expr_width()
                     node.inst.array_dimensions[i] = node.inst.array_dimensions[i].get_value()
                     if(node.inst.array_dimensions[i] == 0):
-                        raise RDLCompileError(
+                        self.msg.fatal(
                             "Array dimension must be greater than zero",
                             node.inst.inst_err_ctx
                         )
@@ -170,7 +174,7 @@ class ElabExpressionsListener(walker.RDLListener):
             node.inst.array_stride.resolve_expr_width()
             node.inst.array_stride = node.inst.array_stride.get_value()
             if(node.inst.array_stride == 0):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "Array stride allocator '+=' must be greater than zero",
                     node.inst.inst_err_ctx
                 )
@@ -181,7 +185,7 @@ class ElabExpressionsListener(walker.RDLListener):
             node.inst.width.resolve_expr_width()
             node.inst.width = node.inst.width.get_value()
             if(node.inst.width == 0):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "Vector width must be greater than zero",
                     node.inst.inst_err_ctx
                 )
@@ -212,6 +216,9 @@ class PrePlacementValidateListener(walker.RDLListener):
     """
     Performs value checks of some properties prior to StructuralPlacementListener
     """
+    def __init__(self, msg_handler):
+        self.msg = msg_handler
+    
     def enter_Addrmap(self, node):
         self.check_alignment(node)
         
@@ -222,12 +229,12 @@ class PrePlacementValidateListener(walker.RDLListener):
         if('alignment' in node.inst.properties):
             n = node.inst.properties['alignment']
             if(n <= 0):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'alignment' property must be greater than zero",
                     node.inst.def_err_ctx
                 )
             if(not is_pow2(n)):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'alignment' property must be a power of 2",
                     node.inst.def_err_ctx
                 )
@@ -238,12 +245,12 @@ class PrePlacementValidateListener(walker.RDLListener):
         if('regwidth' in node.inst.properties):
             n = node.inst.properties['regwidth']
             if(n < 8):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'regwidth' property must be at least 8",
                     node.inst.def_err_ctx
                 )
             if(not is_pow2(n)):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'regwidth' property must be a power of 2",
                     node.inst.def_err_ctx
                 )
@@ -251,12 +258,12 @@ class PrePlacementValidateListener(walker.RDLListener):
         if('accesswidth' in node.inst.properties):
             n = node.inst.properties['accesswidth']
             if(n < 8):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'accesswidth' property must be at least 8",
                     node.inst.def_err_ctx
                 )
             if(not is_pow2(n)):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'accesswidth' property must be a power of 2",
                     node.inst.def_err_ctx
                 )
@@ -265,7 +272,7 @@ class PrePlacementValidateListener(walker.RDLListener):
         if('fieldwidth' in node.inst.properties):
             n = node.inst.properties['fieldwidth']
             if(n <= 0):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'fieldwidth' property must be greater than zero",
                     node.inst.def_err_ctx
                 )
@@ -274,7 +281,7 @@ class PrePlacementValidateListener(walker.RDLListener):
         if('signalwidth' in node.inst.properties):
             n = node.inst.properties['signalwidth']
             if(n <= 0):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'signalwidth' property must be greater than zero",
                     node.inst.def_err_ctx
                 )
@@ -283,14 +290,14 @@ class PrePlacementValidateListener(walker.RDLListener):
         if('mementries' in node.inst.properties):
             n = node.inst.properties['mementries']
             if(n <= 0):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'mementries' property must be greater than zero",
                     node.inst.def_err_ctx
                 )
         if('memwidth' in node.inst.properties):
             n = node.inst.properties['memwidth']
             if(n <= 0):
-                raise RDLCompileError(
+                self.msg.fatal(
                     "'memwidth' property must be greater than zero",
                     node.inst.def_err_ctx
                 )
@@ -303,7 +310,9 @@ class StructuralPlacementListener(walker.RDLListener):
     - Component addresses
     - Signals.
     """
-    def __init__(self):
+    
+    def __init__(self, msg_handler):
+        self.msg = msg_handler
         self.msb0_mode_stack = []
         self.addressing_mode_stack = []
         self.alignment_stack = []
@@ -342,7 +351,7 @@ class StructuralPlacementListener(walker.RDLListener):
         # Test field width again
         fieldwidth = node.get_property('fieldwidth')
         if(fieldwidth != node.inst.width):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Width of field instance (%d) must match field's 'fieldwidth' property (%d)" % (node.inst.width, fieldwidth),
                 node.inst.inst_err_ctx
             )
@@ -373,7 +382,7 @@ class StructuralPlacementListener(walker.RDLListener):
         # Test field width again
         signalwidth = node.get_property('signalwidth')
         if(signalwidth != node.inst.width):
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Width of signal instance (%d) must match signal's 'signalwidth' property (%d)" % (node.inst.width, signalwidth),
                 node.inst.inst_err_ctx
             )
@@ -404,7 +413,7 @@ class StructuralPlacementListener(walker.RDLListener):
         # Check for lsb/msb mode conflicts
         if((implied_lsb_inst is not None) and (implied_msb_inst is not None)):
             # register uses both [high:low] and [low:high] ordering!
-            raise RDLCompileError(
+            self.msg.fatal(
                 "Both the [low:high] (field '%s') and [high:low] (field '%s') bit specification forms shall not be used together in the same register."
                 % (implied_msb_inst.inst_name, implied_lsb_inst.inst_name),
                 node.inst.def_err_ctx
