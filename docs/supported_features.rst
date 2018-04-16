@@ -142,8 +142,8 @@ The *priority* column denotes how high the item is on my to-do list:
         - lsb0 and msb0 modes. Explicit and implied
 
     *   - alias instances
-        - :red:`No`
-        - 4
+        - :green:`Yes`
+        - 
         - 
 
     *   - internal/external instances

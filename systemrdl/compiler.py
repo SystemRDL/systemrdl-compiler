@@ -51,7 +51,7 @@ class RDLCompiler:
         
         parsed_tree = parser.root()
         if(self.msg.error_count):
-            self.msg.fatal("Compile aborted due to previous errors")
+            self.msg.fatal("Parse aborted due to previous errors")
         
         self.root = self.visitor.visit(parsed_tree)
         
@@ -116,7 +116,7 @@ class RDLCompiler:
         # TODO: Validate design
         
         if(self.msg.error_count):
-            self.msg.fatal("Compile aborted due to previous errors")
+            self.msg.fatal("Elaborate aborted due to previous errors")
         
         return(top_node)
 

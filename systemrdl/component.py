@@ -140,7 +140,16 @@ class Field(VectorComponent):
         self.reset_value = None
 
 class Reg(AddressableComponent):
-    pass
+    def __init__(self):
+        super().__init__()
+        #------------------------------
+        # Alias Register
+        #------------------------------
+        # If true, then alias_primary_inst is valid
+        self.is_alias = False
+        
+        # Reference to primary register instance
+        self.alias_primary_inst = None
     
 class Regfile(AddressableComponent):
     pass

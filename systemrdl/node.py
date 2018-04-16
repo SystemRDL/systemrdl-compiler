@@ -234,7 +234,7 @@ class AddressableNode(Node):
         """
         Calculate the absolute byte address of this node
         """
-        # TODO
+        # TODO: Implement absolute_address getter
         raise NotImplementedError
     
     

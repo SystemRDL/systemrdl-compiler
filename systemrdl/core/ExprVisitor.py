@@ -221,13 +221,13 @@ class ExprVisitor(BaseVisitor):
             if(len(first_array_suffixes) != 0):
                 # TODO: Reference bit-slice of parameter
                 self.msg.fatal(
-                    "Index or bit-slice of a parameter is not supported yet. Coming soon!",
+                    "Index or bit-slice of a parameter is not supported yet.",
                     MessageContext(first_array_suffixes[0].err_ctx)
                 )
             if(len(ref_elements) > 1):
                 # TODO: Reference struct member of parameter
                 self.msg.fatal(
-                    "Referencing child elements of a parameter is not supported yet. Coming soon!",
+                    "Referencing child elements of a parameter is not supported yet.",
                     MessageContext(ctx.instance_ref_element(1))
                 )
         elif(type(first_elem) == comp.Signal):
@@ -275,20 +275,23 @@ class ExprVisitor(BaseVisitor):
         return(expr)
     
     #---------------------------------------------------------------------------
-    # TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-    #---------------------------------------------------------------------------
 
     def visitArray_literal(self, ctx:SystemRDLParser.Array_literalContext):
+        # TODO: Implement array literals
         raise NotImplementedError
 
     def visitStruct_literal(self, ctx:SystemRDLParser.Struct_literalContext):
+        # TODO: Implement struct literals
         raise NotImplementedError
 
     def visitEnum_literal(self, ctx:SystemRDLParser.Enum_literalContext):
+        # TODO: Implement enum literals
         raise NotImplementedError
 
     def visitConcatenate(self, ctx:SystemRDLParser.ConcatenateContext):
+        # TODO: Implement concatenate operator
         raise NotImplementedError
 
     def visitReplicate(self, ctx:SystemRDLParser.ReplicateContext):
+        # TODO: Implement replicate operator
         raise NotImplementedError

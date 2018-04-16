@@ -93,7 +93,7 @@ class ComponentVisitor(BaseVisitor):
                 inst_type = None
             
             # Pass some temporary info to visitComponent_insts
-            self._tmp = (comp_def, inst_type)
+            self._tmp = (comp_def, inst_type, None)
             self.visit(ctx.component_insts())
             
         return(None)
@@ -161,23 +161,50 @@ class ComponentVisitor(BaseVisitor):
         else:
             inst_type = None
         
-        if(ctx.component_inst_alias() is not None):
-            raise NotImplementedError
-        
         comp_def = self.component_def_from_token(ctx.ID())
         
+        if(ctx.component_inst_alias() is not None):
+            # Get instance that is being aliased
+            alias_primary_inst = self.visit(ctx.component_inst_alias())
+            
+            if(type(comp_def) != comp.Reg):
+                self.msg.error(
+                    "Type of alias must be a 'reg' component",
+                    MessageContext(ctx.ID())
+                )
+                return(None)
+        else:
+            alias_primary_inst = None
+        
         # Pass some temporary info to visitComponent_insts
-        self._tmp = (comp_def, inst_type)
+        self._tmp = (comp_def, inst_type, alias_primary_inst)
         self.visit(ctx.component_insts())
         
         return(None)
 
     def visitComponent_inst_alias(self, ctx:SystemRDLParser.Component_inst_aliasContext):
-        raise NotImplementedError
+        name = ctx.ID().getText()
+        inst = self.compiler.namespace.lookup_element(name)
+        if(inst is None):
+            self.msg.fatal(
+                "Reference to '%s' not found" % name,
+                MessageContext(ctx.ID())
+            )
+        if(type(inst) != comp.Reg):
+            self.msg.fatal(
+                "Alias primary component '%s' must be of type 'reg'" % name,
+                MessageContext(ctx.ID())
+            )
+        if(inst.is_alias):
+            self.msg.fatal(
+                "Alias primary register '%s' cannot be another alias" % name,
+                MessageContext(ctx.ID())
+            )
+        return(inst)
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp
         
         if(comp_def.type_name is not None):
             # Instantiating a named definition.
@@ -218,7 +245,7 @@ class ComponentVisitor(BaseVisitor):
             comp_inst = deepcopy(comp_inst_template)
             
             # Pass some temporary info to visitComponent_inst
-            self._tmp = comp_inst, inst_type
+            self._tmp = comp_inst, inst_type, alias_primary_inst
             self.visit(inst)
         
         return(None)
@@ -251,7 +278,7 @@ class ComponentVisitor(BaseVisitor):
         
     def visitComponent_inst(self, ctx:SystemRDLParser.Component_instContext):
         # Unpack instance def info from parent
-        comp_inst, inst_type = self._tmp
+        comp_inst, inst_type, alias_primary_inst = self._tmp
         
         inst_name = ctx.ID().getText()
         comp_inst.inst_name = inst_name
@@ -370,6 +397,13 @@ class ComponentVisitor(BaseVisitor):
             comp_inst.external = False
         else:
             comp_inst.external = False
+        
+        if(alias_primary_inst is not None):
+            if(type(comp_inst) == comp.Reg):
+                comp_inst.is_alias = True
+                comp_inst.alias_primary_inst = alias_primary_inst
+            else:
+                raise RuntimeError
         
         self.component.children.append(comp_inst)
         
@@ -790,7 +824,7 @@ class RootVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp
         
         if(type(comp_def) != comp.Signal):
             self.msg.fatal(
@@ -825,7 +859,7 @@ class RegComponentVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp
         
         if(type(comp_def) not in [comp.Signal, comp.Field]):
             self.msg.fatal(
@@ -851,7 +885,7 @@ class RegfileComponentVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp
         
         if(type(comp_def) not in [comp.Signal, comp.Reg, comp.Regfile]):
             self.msg.fatal(
@@ -876,7 +910,7 @@ class AddrmapComponentVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp
         
         if(type(comp_def) == comp.Field):
             self.msg.fatal(
@@ -893,7 +927,7 @@ class MemComponentVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp
         
         if(type(comp_def) != comp.Reg):
             self.msg.fatal(
