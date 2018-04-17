@@ -47,9 +47,9 @@ The *priority* column denotes how high the item is on my to-do list:
 
 
     *   - Signal component
-        - :yellow:`Partial`
-        - 5
-        - Instance elaboration incomplete
+        - :green:`Yes`
+        - 
+        - 
 
     *   - Field component
         - :green:`Yes`
@@ -114,7 +114,7 @@ The *priority* column denotes how high the item is on my to-do list:
     *   - Property references
         - :red:`No`
         - 4
-        - References to a component's signal-like property, such as 
+        - References to a component's signal-like property (Table G1: Ref target)
 
     *   - ispresent property
         - :yellow:`Partial`
@@ -147,8 +147,8 @@ The *priority* column denotes how high the item is on my to-do list:
         - 
 
     *   - internal/external instances
-        - :yellow:`Partial`
-        - 5
+        - :green:`Yes`
+        - 
         - 
 
     *   - array datatype
