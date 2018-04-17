@@ -14,8 +14,7 @@ top = rdlc.elaborate("my_design")
 
 class hier_printer(RDLListener):
     def enter_Component(self, node):
-        pass
-        print(node.get_path())
+        print(node.get_path(), node.inst.type_name)
 
 RDLUnrollWalker().walk(top, hier_printer())
 

@@ -108,10 +108,8 @@ class RDLCompiler:
         # Resolve all expressions
         walker.RDLWalker().walk(top_node, ElabExpressionsListener(self.msg))
         
-        # TODO: Resolve address and field placement
+        # Resolve address and field placement
         walker.RDLWalker().walk(top_node, PrePlacementValidateListener(self.msg), StructuralPlacementListener(self.msg))
-        
-        # TODO: Uniquify parameterized Component type names
         
         # TODO: Validate design
         
@@ -130,19 +128,32 @@ class ElabExpressionsListener(walker.RDLListener):
     - Vector dimensions
     - Instance address allocators
     - Property assignments
+    
+    Also elaborates parameterized component type names
     """
     
     def __init__(self, msg_handler):
         self.msg = msg_handler
     
     def enter_Component(self, node):
-        # Evaluate parameters
-        # Result is not saved, but will catch evaluation errors if they exist
-        for param in node.inst.parameters:
-            if(issubclass(type(param.expr), Expr)):
-                param.expr.resolve_expr_width()
-                param.expr.get_value()
-    
+        if(node.inst.original_def is not None):
+            # This is a parameterized instance
+            # Generate the elaborated type name as per 5.1.1.4
+            
+            new_type_name = node.inst.original_def.type_name
+            
+            for i in range(len(node.inst.parameters)):
+                orig_param_value = node.inst.original_def.parameters[i].get_value()
+                new_param_value = node.inst.parameters[i].get_value()
+                if(new_param_value != orig_param_value):
+                    new_type_name = new_type_name + "_" + node.inst.parameters[i].get_normalized_parameter()
+            node.inst.type_name = new_type_name
+                
+        else:
+            # Evaluate parameters anyways
+            # Result is not saved, but will catch evaluation errors if they exist
+            for param in node.inst.parameters:
+                param.get_value()
     
     def enter_AddressableComponent(self, node):
         # Evaluate instance object expressions

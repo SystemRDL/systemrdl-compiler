@@ -221,7 +221,7 @@ class ComponentVisitor(BaseVisitor):
             param_assigns = {}
         
         # Assign parameter overrides, if any
-        for param_name, assign_expr, err_ctx in param_assigns.items():
+        for param_name, (assign_expr, err_ctx) in param_assigns.items():
             # Lookup corresponding parameter in component
             for comp_param in comp_inst_template.parameters:
                 if(comp_param.name == param_name):
