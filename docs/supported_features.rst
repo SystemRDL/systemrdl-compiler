@@ -117,9 +117,9 @@ The *priority* column denotes how high the item is on my to-do list:
         - References to a component's signal-like property (Table G1: Ref target)
 
     *   - ispresent property
-        - :yellow:`Partial`
-        - 5
-        - Property exists, but is not inspected during node traversal
+        - :green:`Yes`
+        - 
+        - Iterators skip non-present components by default
 
     *   - Hierarchical instance references
         - :green:`Yes`

@@ -57,7 +57,7 @@ class Node:
         setattr(cls, name, mp)
     
     
-    def children(self, unroll=False):
+    def children(self, unroll=False, skip_not_present=True):
         """
         Returns an iterator that provides nodes for all immediate children of
         this component.
@@ -67,12 +67,21 @@ class Node:
         unroll : bool
             If True, any children that are arrays are unrolled.
         
+        skip_not_present : bool
+            If True, skips children whose 'ispresent' property is set to False
+        
         Yields
         ------
         :class:`~systemrdl.node.Node`
             All immediate children
         """
         for child_inst in self.inst.children:
+            if(skip_not_present):
+                # Check if property ispresent == False
+                if(not child_inst.properties.get('ispresent', True)):
+                    # ispresent was explicitly set to False. Skip it
+                    continue
+                
             if(unroll and issubclass(type(child_inst), comp.AddressableComponent) and child_inst.is_array):
                 # Unroll the array
                 range_list = [range(n) for n in child_inst.array_dimensions]

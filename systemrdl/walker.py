@@ -65,7 +65,23 @@ class RDLWalker:
     Implements a walker instance that traverses the elaborated RDL instance tree
     Each node is visited exactly once
     """
-    
+    def __init__(self, unroll=False, skip_not_present=True):
+        """
+        Parameters
+        ----------
+        unroll : bool
+            If True, any nodes that are arrays are unrolled.
+            When the walker arrives at an array node, it will be visited multiple
+            times according to the array dimensions.
+            
+        skip_not_present : bool
+            If True, walker skips nodes whose 'ispresent' property is set
+            to False
+        """
+        self.unroll = unroll
+        self.skip_not_present = skip_not_present
+        
+        
     def walk(self, node, *listeners:RDLListener):
         """
         Initiates the walker to traverse the current *node* and its children.
@@ -74,7 +90,7 @@ class RDLWalker:
         """
         for listener in listeners:
             self.do_enter(node, listener)
-        for child in node.children():
+        for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
             self.walk(child, *listeners)
         for listener in listeners:
             self.do_exit(node, listener)
@@ -122,18 +138,3 @@ class RDLWalker:
             listener.exit_VectorComponent(node)
         
         listener.exit_Component(node)
-        
-#-------------------------------------------------------------------------------
-class RDLUnrollWalker(RDLWalker):
-    """
-    Implements an RDL instance walker that unrolls any arrays of instances.
-    If the walker arrives at an array node, then it will be visited multiple
-    times according to the array dimensions
-    """
-    def walk(self, node, *listeners:RDLListener):
-        for listener in listeners:
-            self.do_enter(node, listener)
-        for child in node.children(unroll=True):
-            self.walk(child, *listeners)        
-        for listener in listeners:
-            self.do_exit(node, listener)

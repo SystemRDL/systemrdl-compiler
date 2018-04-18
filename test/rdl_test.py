@@ -6,7 +6,7 @@ import os
 this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(this_dir, "../"))
 
-from systemrdl import RDLCompiler, RDLListener, RDLUnrollWalker
+from systemrdl import RDLCompiler, RDLListener, RDLWalker
 
 rdlc = RDLCompiler()
 rdlc.compile_file("test.rdl")
@@ -16,7 +16,7 @@ class hier_printer(RDLListener):
     def enter_Component(self, node):
         print(node.get_path(), node.inst.type_name)
 
-RDLUnrollWalker().walk(top, hier_printer())
+RDLWalker(unroll=True).walk(top, hier_printer())
 
 f = top.find_by_path("reg_b.asdf")
 if(f):

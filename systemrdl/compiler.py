@@ -106,10 +106,10 @@ class RDLCompiler:
         top_node = Node._factory(top_inst, self)
         
         # Resolve all expressions
-        walker.RDLWalker().walk(top_node, ElabExpressionsListener(self.msg))
+        walker.RDLWalker(skip_not_present=False).walk(top_node, ElabExpressionsListener(self.msg))
         
         # Resolve address and field placement
-        walker.RDLWalker().walk(top_node, PrePlacementValidateListener(self.msg), StructuralPlacementListener(self.msg))
+        walker.RDLWalker(skip_not_present=False).walk(top_node, PrePlacementValidateListener(self.msg), StructuralPlacementListener(self.msg))
         
         # TODO: Validate design
         

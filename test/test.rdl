@@ -21,6 +21,8 @@ addrmap my_design {
         .MY_PARAM(2)
     ) reg_c;
     
+    reg_b->ispresent=false;
+    
     signal {} sig_a;
     
     reg {
