@@ -1,4 +1,3 @@
-from ..messages import MessageContext
 from .. import component as comp
 from . import expressions
 
@@ -26,7 +25,7 @@ class NamespaceRegistry():
         if(name in self.default_property_ns_stack[-1]):
             self.msg.fatal(
                 "Default property '%s' was already assigned in this scope" % name,
-                MessageContext(err_token)
+                err_token
             )
         
         # TODO: default properties that resolve to an instance reference
@@ -37,7 +36,7 @@ class NamespaceRegistry():
             if(issubclass(result_type, comp.Component)):
                 self.msg.fatal(
                     "Assigning a reference to a component instance in a property default is not supported yet",
-                    MessageContext(prop_token)
+                    prop_token
                 )
         
         self.default_property_ns_stack[-1][name] = ref
@@ -79,7 +78,7 @@ class NamespaceRegistry():
             if(rule is None):
                 self.msg.fatal(
                     "Unrecognized property '%s'" % prop_name,
-                    MessageContext(props[prop_name][0])
+                    props[prop_name][0]
                 )
             if(comp_type not in rule.bindable_to):
                 del props[prop_name]

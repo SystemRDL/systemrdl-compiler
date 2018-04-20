@@ -21,10 +21,16 @@ class MessageHandler:
         self.error_count = 0
     
     def warning(self, text, context=None):
+        if(context is not None):
+            context = MessageContext(context)
+        
         self.printer.print_message("warning", text, context)
         self.warning_count += 1
     
     def error(self, text, context=None):
+        if(context is not None):
+            context = MessageContext(context)
+        
         self.printer.print_message("error", text, context)
         self.error_count += 1
     
@@ -52,8 +58,9 @@ class MessageContext:
             self.init_from_single_token(antlr_obj.symbol)
         elif(issubclass(type(antlr_obj), ParserRuleContext)):
             # antlr_obj is an entire context (multiple tokens)
-            self.init_from_token_range(antlr_obj.start, antlr_obj.end)
+            self.init_from_token_range(antlr_obj.start, antlr_obj.stop)
         else:
+            print(antlr_obj)
             raise NotImplementedError
         
     def init_from_single_token(self, token):
@@ -83,7 +90,7 @@ class MessageContext:
             self.width = end_token.stop - start_token.start + 1
         else:
             # Range spans multiple lines. Only select the first line
-            self.width = len(self.line_text) - start_token.start
+            self.width = len(self.line_text) - start_token.column
             
         
 
@@ -170,5 +177,5 @@ class RDLAntlrErrorListener(ErrorListener) :
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         self.msg.error(
             msg,
-            MessageContext(offendingSymbol)
+            offendingSymbol
         )

@@ -7,7 +7,6 @@ from .. import rdltypes
 
 from .BaseVisitor import BaseVisitor
 from . import expressions as e
-from ..messages import MessageContext
 from .parameter import Parameter
 from .. import component as comp
 
@@ -128,7 +127,7 @@ class ExprVisitor(BaseVisitor):
         if(val >= (1 << width)):
             self.msg.fatal(
                 "Value of integer literal exceeds the specified width",
-                MessageContext(ctx.VLOG_INT())
+                ctx.VLOG_INT()
             )
         
         return(e.IntLiteral(self.compiler, ctx.VLOG_INT(), val, width))
@@ -211,7 +210,7 @@ class ExprVisitor(BaseVisitor):
         if(first_elem is None):
             self.msg.fatal(
                 "Reference to '%s' not found" % first_name,
-                MessageContext(first_name_token)
+                first_name_token
             )
         
         if(type(first_elem) == Parameter):
@@ -222,13 +221,13 @@ class ExprVisitor(BaseVisitor):
                 # TODO: Reference bit-slice of parameter
                 self.msg.fatal(
                     "Index or bit-slice of a parameter is not supported yet.",
-                    MessageContext(first_array_suffixes[0].err_ctx)
+                    first_array_suffixes[0].err_ctx
                 )
             if(len(ref_elements) > 1):
                 # TODO: Reference struct member of parameter
                 self.msg.fatal(
                     "Referencing child elements of a parameter is not supported yet.",
-                    MessageContext(ctx.instance_ref_element(1))
+                    ctx.instance_ref_element(1)
                 )
         elif(type(first_elem) == comp.Signal):
             # TODO: Need to handle signals differently. They are non-hierarchical (or something)
@@ -265,7 +264,7 @@ class ExprVisitor(BaseVisitor):
         
         self.msg.fatal(
             "Property references in expressions are not supported.",
-            MessageContext(prop_token)
+            prop_token
         )
     
     def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):

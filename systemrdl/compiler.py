@@ -111,13 +111,16 @@ class RDLCompiler:
         # Resolve address and field placement
         walker.RDLWalker(skip_not_present=False).walk(top_node, PrePlacementValidateListener(self.msg), StructuralPlacementListener(self.msg))
         
-        # TODO: Validate design
+        # Validate design
+        walker.RDLWalker().walk(top_node, ValidateListener(self))
         
         if(self.msg.error_count):
             self.msg.fatal("Elaborate aborted due to previous errors")
         
         return(top_node)
 
+#===============================================================================
+# Elaboration Listeners
 #===============================================================================
 
 class ElabExpressionsListener(walker.RDLListener):
@@ -208,12 +211,6 @@ class ElabExpressionsListener(walker.RDLListener):
         if(issubclass(type(node.inst.lsb), Expr)):
             node.inst.lsb.resolve_expr_width()
             node.inst.lsb = node.inst.lsb.get_value()
-        
-    def enter_Field(self, node):
-        if(issubclass(type(node.inst.reset_value), Expr)):
-            node.inst.reset_value.resolve_expr_width()
-            node.inst.reset_value = node.inst.reset_value.get_value()
-    
     
     def exit_Component(self, node):
         # Evaluate component properties
@@ -515,7 +512,7 @@ class StructuralPlacementListener(walker.RDLListener):
             prop_alignment = 1
         
         prev_node = None
-        for child_node in node.children():
+        for child_node in node.children(skip_not_present=False):
             if(not issubclass(type(child_node), AddressableNode)):
                 continue
             
@@ -567,3 +564,112 @@ class StructuralPlacementListener(walker.RDLListener):
             child_node.inst.addr_offset = roundup_to(next_offset, alignment)
             
             prev_node = child_node
+        
+        # Sort children by address offset
+        # Non-addressable child components are sorted to be first (signals)
+        def get_child_sort_key(inst):
+            if(not issubclass(type(inst), comp.AddressableComponent)):
+                return(-1)
+            else:
+                return(inst.addr_offset)
+        node.inst.children.sort(key=get_child_sort_key)
+
+#===============================================================================
+# Validation Listeners
+#===============================================================================
+class ValidateListener(walker.RDLListener):
+    # TODO: Validate design
+    def __init__(self, compiler):
+        self.compiler = compiler
+        self.msg = compiler.msg
+        
+        # Used in field overlap checks
+        self.prev_field = None
+        
+    def enter_Component(self, node):
+        
+        # Validate all properties that were applied to the component
+        for prop_name in node.inst.properties.keys():
+            prop_value = node.get_property(prop_name)
+            prop_rule = self.compiler.property_rules.lookup_property(prop_name)
+            prop_rule.validate(node, prop_value)
+        
+    def enter_Reg(self, node):
+        self.prev_field = None
+        
+    def exit_Reg(self, node):
+        # 10.1-c: At least one field shall be instantiated within a register
+        if(self.prev_field is None):
+            self.msg.error(
+                "Register '%s' does not contain any fields" % node.inst.inst_name,
+                node.inst.inst_err_ctx
+            )
+        
+    def enter_Field(self, node):
+        
+        # 9.4.1-Table 12: Check for bad sw/hw combinations
+        this_f_hw = node.get_property('hw')
+        this_f_sw = node.get_property('sw')
+        if((this_f_sw == rdltypes.AccessType.w) and (this_f_hw == rdltypes.AccessType.w)):
+            self.msg.error(
+                "Field '%s' access property combination is meaningless: sw=w; hw=w;"
+                % (node.inst.inst_name),
+                node.inst.inst_err_ctx
+            )
+        elif((this_f_sw == rdltypes.AccessType.w) and (this_f_hw == rdltypes.AccessType.na)):
+            self.msg.error(
+                "Field '%s' access property combination is meaningless: sw=w; hw=na;"
+                % (node.inst.inst_name),
+                node.inst.inst_err_ctx
+            )
+        elif((this_f_sw == rdltypes.AccessType.na) and (this_f_hw == rdltypes.AccessType.w)):
+            self.msg.error(
+                "Field '%s' access property combination results in an unloaded net: sw=na; hw=w;"
+                % (node.inst.inst_name),
+                node.inst.inst_err_ctx
+            )
+        elif((this_f_sw == rdltypes.AccessType.na) and (this_f_hw == rdltypes.AccessType.na)):
+            self.msg.error(
+                "Field '%s' access property combination results in a nonexistent net: sw=na; hw=na;"
+                % (node.inst.inst_name),
+                node.inst.inst_err_ctx
+            )
+        
+        # 10.1-d: Two field instances shall not occupy overlapping bit positions
+        # within a register unless one field is read-only and the other field
+        # is write-only.
+        if((self.prev_field is not None) and (self.prev_field.inst.high >= node.inst.low)):
+            prev_f_sw = self.prev_field.get_property('sw')
+            
+            if(
+                (prev_f_sw == rdltypes.AccessType.r)
+                and ((this_f_sw == rdltypes.AccessType.w) or this_f_sw == rdltypes.AccessType.w1)
+            ):
+                pass
+            elif(
+                (this_f_sw == rdltypes.AccessType.r)
+                and ((prev_f_sw == rdltypes.AccessType.w) or prev_f_sw == rdltypes.AccessType.w1)
+            ):
+                pass
+            else:
+                self.msg.error(
+                    "Field '%s' overlaps with field '%s'"
+                    % (node.inst.inst_name, self.prev_field.inst.inst_name),
+                    node.inst.inst_err_ctx
+                )
+            
+        
+        # 10.1-e: Field instances shall not occupy a bit position exceeding the
+        # MSB of the register
+        if(node.inst.high >= node.parent.get_property('regwidth')):
+            self.msg.error(
+                "High bit (%d) of field '%s' exceeds MSb of parent register"
+                % (node.inst.high, node.inst.inst_name),
+                node.inst.inst_err_ctx
+            )
+        
+    
+    def exit_Field(self, node):
+        self.prev_field = node
+        
+        

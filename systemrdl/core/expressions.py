@@ -1,6 +1,5 @@
 from copy import deepcopy
 from . import type_placeholders as tp
-from ..messages import MessageContext
 from .. import component as comp
 from .. import rdltypes
 
@@ -158,12 +157,12 @@ class _BinaryIntExpr(Expr):
         if(self.op[0].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         if(self.op[1].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Right operand of expression is not a compatible numeric type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(int)
     
@@ -199,7 +198,7 @@ class Div(_BinaryIntExpr):
         if(r == 0):
             self.msg.fatal(
                 "Division by zero",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(self.trunc(l // r))
 
@@ -209,7 +208,7 @@ class Mod(_BinaryIntExpr):
         if(r == 0):
             self.msg.fatal(
                 "Modulo by zero",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(self.trunc(l % r))
         
@@ -246,7 +245,7 @@ class _UnaryIntExpr(Expr):
         if(self.op[0].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Operand of expression is not a compatible numeric type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(int)
     
@@ -289,12 +288,12 @@ class _RelationalExpr(Expr):
         if(self.op[0].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         if(self.op[1].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Right operand of expression is not a compatible numeric type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(bool)
     
@@ -356,7 +355,7 @@ class _ReductionExpr(Expr):
         if(self.op[0].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Operand of expression is not a compatible numeric type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(int)
     
@@ -431,12 +430,12 @@ class _BoolExpr(Expr):
         if(self.op[0].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Left operand of expression is not a compatible boolean type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         if(self.op[1].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Right operand of expression is not a compatible boolean type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(bool)
     
@@ -483,12 +482,12 @@ class _ExpShiftExpr(Expr):
         if(self.op[0].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         if(self.op[1].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Right operand of expression is not a compatible numeric type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(int)
     
@@ -547,7 +546,7 @@ class TernaryExpr(Expr):
         if(self.op[0].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Conditional operand of expression is not a compatible boolean type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         
         # Type of j and k shall be compatible
@@ -563,7 +562,7 @@ class TernaryExpr(Expr):
             if(t_j != t_k):
                 self.msg.fatal(
                     "True/False results of ternary conditional are not compatible types",
-                    MessageContext(self.err_ctx)
+                    self.err_ctx
                 )
             return(t_j)
     
@@ -624,12 +623,12 @@ class WidthCast(Expr):
             if(self.op[1].predict_type() not in [int, bool]):
                 self.msg.fatal(
                     "Width operand of cast expression is not a compatible numeric type",
-                    MessageContext(self.err_ctx)
+                    self.err_ctx
                 )
         if(self.op[0].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to an integer",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         
         return(int)
@@ -665,7 +664,7 @@ class WidthCast(Expr):
         if(self.expr_eval_width == 0):
             self.msg.fatal(
                 "Cannot cast to width of zero",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(self.trunc(n))
 
@@ -681,7 +680,7 @@ class BoolCast(Expr):
         if(self.op[0].predict_type() not in [int, bool]):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to a boolean",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(bool)
     
@@ -713,7 +712,7 @@ class ParameterRef(Expr):
         if(self.param.expr is None):
             self.msg.fatal(
                 "Value for parameter '%s' was never assigned" % self.param.name,
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         self.op = [self.param.expr]
         super().resolve_expr_width()
@@ -722,7 +721,7 @@ class ParameterRef(Expr):
         if(self.param.expr is None):
             self.msg.fatal(
                 "Value for parameter '%s' was never assigned" % self.param.name,
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         return(self.param.expr.get_min_eval_width())
     
@@ -793,7 +792,7 @@ class InstRef(Expr):
                 # Not found!
                 self.msg.fatal(
                     "Could not resolve hierarchical reference to '%s'" % name,
-                    MessageContext(name_token)
+                    name_token
                 )
             
             # Do type-check in array suffixes
@@ -807,13 +806,13 @@ class InstRef(Expr):
                     self.msg.fatal(
                         "Incompatible number of index dimensions after '%s'. Expected %d, found %d."
                             % (name, len(current_inst.array_dimensions), len(array_suffixes)),
-                        MessageContext(name_token)
+                        name_token
                     )
             elif(len(array_suffixes)):
                 # Has array suffixes. Check if compatible with referenced component
                 self.msg.fatal(
                     "Unable to index non-array component '%s'" % name,
-                    MessageContext(name_token)
+                    name_token
                 )
         
         return(type(current_inst))
@@ -857,7 +856,7 @@ class InstRef(Expr):
                         self.msg.fatal(
                             "Array index out of range. Expected 0-%d, got %d."
                                 % (current_inst.array_dimensions[i]-1, idx_list[i]),
-                            MessageContext(array_suffix.err_ctx)
+                            array_suffix.err_ctx
                         )
             
             resolved_ref_elements.append((name, idx_list))
@@ -891,7 +890,7 @@ class AssignmentCast(Expr):
         if(not is_type_compatible(op_type, self.dest_type)):
             self.msg.fatal(
                 "Result of expression is not compatible with the expected type",
-                MessageContext(self.err_ctx)
+                self.err_ctx
             )
         
         return(self.dest_type)

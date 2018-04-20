@@ -10,7 +10,6 @@ from .ExprVisitor import ExprVisitor
 from .parameter import Parameter
 from . import type_placeholders
 from . import expressions
-from ..messages import MessageContext
 
 from .. import component as comp
 from .. import rdltypes
@@ -170,7 +169,7 @@ class ComponentVisitor(BaseVisitor):
             if(type(comp_def) != comp.Reg):
                 self.msg.error(
                     "Type of alias must be a 'reg' component",
-                    MessageContext(ctx.ID())
+                    ctx.ID()
                 )
                 return(None)
         else:
@@ -188,17 +187,17 @@ class ComponentVisitor(BaseVisitor):
         if(inst is None):
             self.msg.fatal(
                 "Reference to '%s' not found" % name,
-                MessageContext(ctx.ID())
+                ctx.ID()
             )
         if(type(inst) != comp.Reg):
             self.msg.fatal(
                 "Alias primary component '%s' must be of type 'reg'" % name,
-                MessageContext(ctx.ID())
+                ctx.ID()
             )
         if(inst.is_alias):
             self.msg.fatal(
                 "Alias primary register '%s' cannot be another alias" % name,
-                MessageContext(ctx.ID())
+                ctx.ID()
             )
         return(inst)
     
@@ -231,7 +230,7 @@ class ComponentVisitor(BaseVisitor):
                 self.msg.fatal(
                     "Parameter '%s' not found in definition for component '%s'" 
                     % (param_name, comp_inst_template.name),
-                    MessageContext(err_ctx)
+                    err_ctx
                 )
             
             # Override the value
@@ -300,26 +299,26 @@ class ComponentVisitor(BaseVisitor):
             if(len(array_suffixes) > 1):
                 self.msg.fatal(
                     "Instances of a field can only use one array suffix",
-                    MessageContext(ctx.array_suffix(1))
+                    ctx.array_suffix(1)
                 )
         elif(type(comp_inst) == comp.Signal):
             # signal can use a single array suffix
             if(len(array_suffixes) > 1):
                 self.msg.fatal(
                     "Instances of a signal can only use one array suffix",
-                    MessageContext(ctx.array_suffix(1))
+                    ctx.array_suffix(1)
                 )
             if(range_suffix is not None):
                 self.msg.fatal(
                     "Unexpected range suffix after signal instance",
-                    MessageContext(ctx.range_suffix())
+                    ctx.range_suffix()
                 )
         else:
             # Everything else can use any number of array suffixes
             if(range_suffix is not None):
                 self.msg.fatal(
                     "Unexpected range suffix after instance",
-                    MessageContext(ctx.range_suffix())
+                    ctx.range_suffix()
                 )
         
         # Get all instance assignment expressions
@@ -341,7 +340,7 @@ class ComponentVisitor(BaseVisitor):
             if(err_ctx is not None):
                 self.msg.fatal(
                     "Unexpected address allocation operator for non-addressable instance",
-                    MessageContext(err_ctx)
+                    err_ctx
                 )
             
         if(type(comp_inst) == comp.Signal):
@@ -349,20 +348,20 @@ class ComponentVisitor(BaseVisitor):
             if(field_inst_reset is not None):
                 self.msg.fatal(
                     "Unexpected field reset assignment for non-field instance",
-                    MessageContext(ctx.field_inst_reset().start)
+                    ctx.field_inst_reset().start
                 )
         elif(type(comp_inst) != comp.Field):
             # Otherwise, inst_addr_fixed and inst_addr_align are mutually exclusive
             if(all([inst_addr_fixed, inst_addr_align])):
                 self.msg.fatal(
                     "Fixed address allocator '@' cannot be used along with an alignment allocator '%='",
-                    MessageContext(ctx.inst_addr_fixed().start)
+                    ctx.inst_addr_fixed().start
                 )
             
             if(field_inst_reset is not None):
                 self.msg.fatal(
                     "Unexpected field reset assignment for non-field instance",
-                    MessageContext(ctx.field_inst_reset().start)
+                    ctx.field_inst_reset().start
                 )
             
         
@@ -370,7 +369,7 @@ class ComponentVisitor(BaseVisitor):
         if((inst_addr_stride is not None) and (len(array_suffixes) == 0)):
             self.msg.fatal(
                 "Unexpected address stride allocator '%=' on non-array instance",
-                MessageContext(ctx.inst_addr_stride().start)
+                ctx.inst_addr_stride().start
             )
         
         # Do instantiation
@@ -380,7 +379,11 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.msb, comp_inst.lsb = range_suffix
             if(len(array_suffixes) != 0):
                 comp_inst.width = array_suffixes[0]
-            comp_inst.reset_value = field_inst_reset
+            
+            # directly override field reset property
+            if((field_inst_reset is not None) and (type(comp_inst == comp.Field))):
+                comp_inst.properties['reset'] = field_inst_reset
+            
         elif(issubclass(type(comp_inst), comp.AddressableComponent)):
             comp_inst.addr_offset = inst_addr_fixed
             comp_inst.addr_align = inst_addr_align
@@ -471,7 +474,7 @@ class ComponentVisitor(BaseVisitor):
             if(param_name in param_assigns):
                 self.msg.fatal(
                     "Duplicate assignment to parameter '%s'" % param_name,
-                    MessageContext(assignment.ID())
+                    assignment.ID()
                 )
             
             param_assigns[param_name] = (assign_expr, assignment.ID())
@@ -513,7 +516,7 @@ class ComponentVisitor(BaseVisitor):
             if(prop_name in self.property_dict):
                 self.msg.fatal(
                     "Property '%s' was already assigned in this scope" % prop_name,
-                    MessageContext(prop_token)
+                    prop_token
                 )
             else:
                 self.property_dict[prop_name] = (prop_token, rhs)
@@ -544,7 +547,7 @@ class ComponentVisitor(BaseVisitor):
                 # Not found!
                 self.msg.fatal(
                     "Could not resolve hierarchical reference to '%s'" % inst_name,
-                    MessageContext(name_token)
+                    name_token
                 )
         
         # Add assignment to dynamic_property_dict
@@ -553,7 +556,7 @@ class ComponentVisitor(BaseVisitor):
             self.msg.fatal(
                 "Property '%s' was already assigned to component '%s' from within this scope"
                     % (prop_name, name_tokens[-1].getText()),
-                MessageContext(prop_token)
+                prop_token
             )
         else:
             target_inst_dict[prop_name] = (prop_token, rhs)
@@ -574,7 +577,7 @@ class ComponentVisitor(BaseVisitor):
         for as_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Array_suffixContext):
             self.msg.fatal(
                 "Use of array suffixes in dynamic property assignments is not supported",
-                MessageContext(as_ctx)
+                as_ctx
             )
         
         return(name_token)
@@ -608,12 +611,12 @@ class ComponentVisitor(BaseVisitor):
         if(enum_type is None):
             self.msg.fatal(
                 "Type '%s' is not defined" % enum_name,
-                MessageContext(ctx.ID())
+                ctx.ID()
             )
         if(not(inspect.isclass(enum_type) and (issubclass(enum_type, rdltypes.UserEnum)))):
             self.msg.fatal(
                 "Assignment to encode property is not an enum type",
-                MessageContext(ctx.ID())
+                ctx.ID()
             )
         rhs = enum_type
         
@@ -629,7 +632,7 @@ class ComponentVisitor(BaseVisitor):
         if(intr_token.getText() != "intr"):
             self.msg.fatal(
                 "extraneous input '%s' expecting 'intr'" % intr_token.getText(),
-                MessageContext(intr_token)
+                intr_token
             )
 
         return(prop_mod_token, prop_mod)
@@ -656,7 +659,7 @@ class ComponentVisitor(BaseVisitor):
             if(rule is None):
                 self.msg.fatal(
                     "Unrecognized property '%s'" % prop_name,
-                    MessageContext(prop_token)
+                    prop_token
                 )
             rule.assign_value(self.component, prop_rhs, prop_token)
         
@@ -667,7 +670,7 @@ class ComponentVisitor(BaseVisitor):
             if(rule is None):
                 self.msg.fatal(
                     "Unrecognized property '%s'" % prop_name,
-                    MessageContext(prop_token)
+                    prop_token
                 )
             
             # Check for mutex collisions
@@ -677,7 +680,7 @@ class ComponentVisitor(BaseVisitor):
                     # Already saw something in this mutex group
                     self.msg.fatal(
                         "Properties '%s' and '%s' cannot be assigned in the same component" % (prop_name, mutex_bins[rule.mutex_group]),
-                        MessageContext(prop_token)
+                        prop_token
                     )
                 else:
                     mutex_bins[rule.mutex_group] = prop_name
@@ -694,14 +697,14 @@ class ComponentVisitor(BaseVisitor):
                 if(rule is None):
                     self.msg.fatal(
                         "Unrecognized property '%s'" % prop_name,
-                        MessageContext(prop_token)
+                        prop_token
                     )
                 
                 # Is dynamic assignment allowed?
                 if(rule.dyn_assign_allowed == False):
                     self.msg.fatal(
                         "Dynamic assignment to property '%s' is not allowed" % prop_name,
-                        MessageContext(prop_token)
+                        prop_token
                     )
                 
                 # Check for mutex collisions
@@ -711,7 +714,7 @@ class ComponentVisitor(BaseVisitor):
                         # Already saw something in this mutex group
                         self.msg.fatal(
                             "Properties '%s' and '%s' cannot be assigned in the same component" % (prop_name, mutex_bins[rule.mutex_group]),
-                            MessageContext(prop_token)
+                            prop_token
                         )
                     else:
                         mutex_bins[rule.mutex_group] = prop_name
@@ -767,7 +770,7 @@ class ComponentVisitor(BaseVisitor):
             if(typ is None):
                 self.msg.fatal(
                     "Type '%s' is not defined" % token.text,
-                    MessageContext(token)
+                    token
                 )
             
             if(inspect.isclass(typ)):
@@ -776,12 +779,12 @@ class ComponentVisitor(BaseVisitor):
                 else:
                     self.msg.fatal(
                         "Type '%s' is not a struct or enum" % token.text,
-                        MessageContext(token)
+                        token
                     )
             else:
                 self.msg.fatal(
                     "Type '%s' is not a struct or enum" % token.text,
-                    MessageContext(token)
+                    token
                 )
             
         else:
@@ -793,12 +796,12 @@ class ComponentVisitor(BaseVisitor):
         if(comp_def is None):
             self.msg.fatal(
                 "Type '%s' is not defined" % def_name,
-                MessageContext(id_token)
+                id_token
             )
         if(not issubclass(type(comp_def), comp.Component)):
             self.msg.fatal(
                 "Type '%s' is not a component type" % def_name,
-                MessageContext(id_token)
+                id_token
             )
         
         return(comp_def)
@@ -829,7 +832,7 @@ class RootVisitor(ComponentVisitor):
         if(type(comp_def) != comp.Signal):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed in the root namespace" % type(comp_def).__name__.lower(),
-                MessageContext(ctx.component_inst(0).ID())
+                ctx.component_inst(0).ID()
             )
         
         return(super().visitComponent_insts(ctx))
@@ -843,13 +846,13 @@ class FieldComponentVisitor(ComponentVisitor):
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         self.msg.fatal(
             "Instantiation of components not allowed inside a field definition",
-            MessageContext(ctx.component_inst(0).ID())
+            ctx.component_inst(0).ID()
         )
     
     def check_comp_def_allowed(self, type_token):
         self.msg.fatal(
             "Definitions of components not allowed inside a reg definition",
-            MessageContext(type_token)
+            type_token
         )
 #===============================================================================
 # Reg Component visitor
@@ -864,7 +867,7 @@ class RegComponentVisitor(ComponentVisitor):
         if(type(comp_def) not in [comp.Signal, comp.Field]):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a reg definition" % type(comp_def).__name__.lower(),
-                MessageContext(ctx.component_inst(0).ID())
+                ctx.component_inst(0).ID()
             )
         return(super().visitComponent_insts(ctx))
     
@@ -874,7 +877,7 @@ class RegComponentVisitor(ComponentVisitor):
         if(comp_type not in [comp.Signal, comp.Field]):
             self.msg.fatal(
                 "Definitions of '%s' components not allowed inside a reg definition" % comp_type.__name__.lower(),
-                MessageContext(type_token)
+                type_token
             )
 
 #===============================================================================
@@ -890,7 +893,7 @@ class RegfileComponentVisitor(ComponentVisitor):
         if(type(comp_def) not in [comp.Signal, comp.Reg, comp.Regfile]):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a regfile definition" % type(comp_def).__name__.lower(),
-                MessageContext(ctx.component_inst(0).ID())
+                ctx.component_inst(0).ID()
             )
         return(super().visitComponent_insts(ctx))
     
@@ -900,7 +903,7 @@ class RegfileComponentVisitor(ComponentVisitor):
         if(comp_type in [comp.Addrmap, comp.Mem]):
             self.msg.fatal(
                 "Definitions of '%s' components not allowed inside a regfile definition" % comp_type.__name__.lower(),
-                MessageContext(type_token)
+                type_token
             )
 #===============================================================================
 # Addrmap Component visitor
@@ -915,7 +918,7 @@ class AddrmapComponentVisitor(ComponentVisitor):
         if(type(comp_def) == comp.Field):
             self.msg.fatal(
                 "Instantiation of 'field' components not allowed inside a addrmap definition",
-                MessageContext(ctx.component_inst(0).ID())
+                ctx.component_inst(0).ID()
             )
         return(super().visitComponent_insts(ctx))
 
@@ -932,7 +935,7 @@ class MemComponentVisitor(ComponentVisitor):
         if(type(comp_def) != comp.Reg):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a mem definition" % type(comp_def).__name__.lower(),
-                MessageContext(ctx.component_inst(0).ID())
+                ctx.component_inst(0).ID()
             )
         return(super().visitComponent_insts(ctx))
         
@@ -942,7 +945,7 @@ class MemComponentVisitor(ComponentVisitor):
         if(comp_type in [comp.Field, comp.Reg]):
             self.msg.fatal(
                 "Definitions of '%s' components not allowed inside a mem definition" % comp_type.__name__.lower(),
-                MessageContext(type_token)
+                type_token
             )
 #===============================================================================
 # Signal Component visitor
@@ -953,11 +956,11 @@ class SignalComponentVisitor(ComponentVisitor):
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         self.msg.fatal(
             "Instantiation of components not allowed inside a signal definition",
-            MessageContext(ctx.component_inst(0).ID())
+            ctx.component_inst(0).ID()
         )
     
     def check_comp_def_allowed(self, type_token):
         self.msg.fatal(
             "Definitions of components not allowed inside a signal definition",
-            MessageContext(type_token)
+            type_token
         )

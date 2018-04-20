@@ -6,16 +6,20 @@ import os
 this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(this_dir, "../"))
 
-from systemrdl import RDLCompiler, RDLListener, RDLWalker
+from systemrdl import RDLCompiler, RDLListener, RDLWalker, RDLCompileError
 
 rdlc = RDLCompiler()
-rdlc.compile_file("test.rdl")
-top = rdlc.elaborate("my_design")
+
+try:
+    rdlc.compile_file("test.rdl")
+    top = rdlc.elaborate("my_design")
+except RDLCompileError:
+    sys.exit(1)
 
 class hier_printer(RDLListener):
     def enter_Component(self, node):
         print(node.get_path(), node.inst.type_name)
-
+    
 RDLWalker(unroll=True).walk(top, hier_printer())
 
 f = top.find_by_path("reg_b.asdf")

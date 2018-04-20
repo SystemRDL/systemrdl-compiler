@@ -133,12 +133,7 @@ class Signal(VectorComponent):
     pass
     
 class Field(VectorComponent):
-    def __init__(self):
-        super().__init__()
-        #------------------------------
-        # Component instantiation
-        #------------------------------
-        self.reset_value = None
+    pass
 
 class Reg(AddressableComponent):
     def __init__(self):

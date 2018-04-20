@@ -9,7 +9,10 @@ reg my_reg #(bit MY_PARAM = 1) {
     
     
     my_field asdf[2] = 1;
+    my_field yay = 1;
     my_field foo = 1 / MY_PARAM + 0x100 - 16'd4;
+    
+    foo->reset = 0;
     
 };
 
@@ -27,8 +30,7 @@ addrmap my_design {
     
     reg {
         field {} f_a;
-        field {} f_b;
-        
+        field {} f_b[31:1];
     } r_a[3];
     
     

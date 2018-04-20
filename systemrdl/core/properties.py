@@ -1,9 +1,9 @@
 import inspect
 
 from .. import component as comp
+from ..node import FieldNode
 from .. import rdltypes
 from . import expressions
-from ..messages import MessageContext
 from . import type_placeholders as tp
 
 def get_all_subclasses(cls):
@@ -65,7 +65,7 @@ class PropertyRule:
         if(type(comp_def) not in self.bindable_to):
             self.compiler.msg.fatal(
                 "The property '%s' is not valid for '%s' components" % (self.get_name(), type(comp_def).__name__.lower()),
-                MessageContext(err_ctx)
+                err_ctx
             )
         
         # unpack true type of value
@@ -92,7 +92,7 @@ class PropertyRule:
         else:
             self.compiler.msg.fatal(
                 "Incompatible assignment to property '%s'" % self.get_name(),
-                MessageContext(err_ctx)
+                err_ctx
             )
         
         # Store the property
@@ -109,6 +109,13 @@ class PropertyRule:
         other default value derivations
         """
         return(self.default)
+    
+    #---------------------------------------------------------------------------
+    def validate(self, node, value):
+        """
+        Used during the validate phase after elaboration.
+        Performs checks against the property's value
+        """
 
 #===============================================================================
 class PropertyRuleBoolPair(PropertyRule):
@@ -390,11 +397,34 @@ class Prop_reset(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = None
     
-    def get_default(self, node):
-        """
-        If not explicitly set, inherits the instantiation's reset assignment
-        """
-        return(node.inst.reset_value)
+    def validate(self, node, value):
+        if(type(value) == int):
+            # 9.5.1-c: The reset value cannot be larger than can fit in the field
+            if(value >= (2**node.inst.width)):
+                self.compiler.msg.error(
+                    "The reset value (%d) of field '%s' exceeds it's width (%d)"
+                    % (value, node.inst.inst_name, node.inst.width),
+                    node.inst.inst_err_ctx
+                )
+        elif(type(value) == FieldNode):
+            # 9.5.1-d: When reset is a reference, it shall reference another
+            # field of the same size.
+            if(node.inst.width != value.inst.width):
+                self.compiler.msg.error(
+                    "Field '%s' references field '%s' as its reset value but they are not the same size (%d != %d)"
+                    % (node.inst.inst_name, value.inst.inst_name, node.inst.width, value.inst.width),
+                    node.inst.inst_err_ctx
+                )
+            
+            # 9.5.1-e: reset cannot be self-referencing
+            if(node.get_path() == value.get_path()):
+                self.compiler.msg.error(
+                    "Field '%s' cannot reference itself in reset property"
+                    % (node.inst.inst_name),
+                    node.inst.inst_err_ctx
+                )
+        else:
+            raise RuntimeError
 
 class Prop_resetsignal(PropertyRule):
     """
