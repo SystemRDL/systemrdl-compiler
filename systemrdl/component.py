@@ -10,7 +10,8 @@ class Component:
         #------------------------------
         # Component definition
         #------------------------------
-        # Named definition identifier. Remains None if declaration was anonymous
+        # Named definition identifier.
+        # If declaration was anonymous, inherits the first instance's name
         self.type_name = None
         
         # Child elements instantiated inside this component

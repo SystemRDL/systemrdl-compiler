@@ -208,10 +208,13 @@ class ComponentVisitor(BaseVisitor):
         if(comp_def.type_name is not None):
             # Instantiating a named definition.
             # Make a copy of the component def to preserve original definition
+            # in case it is being parameterized
             comp_inst_template = deepcopy(comp_def)
             comp_inst_template.original_def = comp_def
         else:
+            # Anonymous declaration. Impossible to parameterize so no need to copy
             comp_inst_template = comp_def
+            comp_inst_template.original_def = comp_def
         
         # Get a dictionary of parameter assignments
         if(ctx.param_inst() is not None):
@@ -282,6 +285,14 @@ class ComponentVisitor(BaseVisitor):
         inst_name = ctx.ID().getText()
         comp_inst.inst_name = inst_name
         comp_inst.inst_err_ctx = ctx.ID()
+        
+        if(comp_inst.type_name is None):
+            if(comp_inst.original_def.type_name is None):
+                # 5.1.1-f: The first instance name of an anonymous definition is
+                #   also used as the component type name.
+                comp_inst.original_def.type_name = inst_name
+            comp_inst.type_name = comp_inst.original_def.type_name
+                
         
         # Get array or range suffix
         array_suffixes = []

@@ -901,7 +901,7 @@ class Prop_accesswidth(PropertyRule):
     
     def get_default(self, node):
         """
-        1.6.1.d: The default value of the accesswidth property shall be
+        10.6.1.d: The default value of the accesswidth property shall be
         identical to the width of the register.
         """
         return(node.get_property('regwidth'))

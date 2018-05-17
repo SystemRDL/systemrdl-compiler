@@ -241,6 +241,7 @@ class PrePlacementValidateListener(walker.RDLListener):
                     "'alignment' property must be greater than zero",
                     node.inst.def_err_ctx
                 )
+            # 12.3.1-a, 13.4.1-b: All alignment values shall be a power of two (1, 2, 4, etc.)
             if(not is_pow2(n)):
                 self.msg.fatal(
                     "'alignment' property must be a power of 2",
@@ -418,7 +419,8 @@ class StructuralPlacementListener(walker.RDLListener):
                 # bit ordering is [low:high]. Implies msb mode
                 implied_msb_inst = inst
         
-        # Check for lsb/msb mode conflicts
+        # 10.7.1-a: Both the [low:high] and [high:low] bit specification forms 
+        #   shall not be used together in the same register.
         if((implied_lsb_inst is not None) and (implied_msb_inst is not None)):
             # register uses both [high:low] and [low:high] ordering!
             self.msg.fatal(
