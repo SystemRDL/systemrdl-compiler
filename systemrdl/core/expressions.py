@@ -130,6 +130,21 @@ class BuiltinEnumLiteral(Expr):
         return(self.val)
 
 #-------------------------------------------------------------------------------
+class EnumLiteral(Expr):
+    def __init__(self, compiler, err_ctx, val):
+        super().__init__(compiler, err_ctx)
+        self.val = val
+    
+    def predict_type(self):
+        return(type(self.val))
+        
+    def get_min_eval_width(self):
+        return(64)
+    
+    def get_value(self):
+        return(self.val)
+
+#-------------------------------------------------------------------------------
 class StringLiteral(Expr):
     def __init__(self, compiler, err_ctx, val):
         super().__init__(compiler, err_ctx)
@@ -154,12 +169,14 @@ class _BinaryIntExpr(Expr):
         self.op = [l, r]
         
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool]):
+        l_type = self.op[0].predict_type()
+        r_type = self.op[1].predict_type()
+        if(not is_castable(l_type, int)):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
                 self.err_ctx
             )
-        if(self.op[1].predict_type() not in [int, bool]):
+        if(not is_castable(r_type, int)):
             self.msg.fatal(
                 "Right operand of expression is not a compatible numeric type",
                 self.err_ctx
@@ -242,7 +259,8 @@ class _UnaryIntExpr(Expr):
         self.op = [n]
         
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool]):
+        op_type = self.op[0].predict_type()
+        if(not is_castable(op_type, int)):
             self.msg.fatal(
                 "Operand of expression is not a compatible numeric type",
                 self.err_ctx
@@ -282,17 +300,23 @@ class _RelationalExpr(Expr):
     def __init__(self, compiler, err_ctx, l, r):
         super().__init__(compiler, err_ctx)
         self.op = [l, r]
-        # TODO: add support for non-numeric comparisons
         
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool]):
+        l_type = self.op[0].predict_type()
+        r_type = self.op[1].predict_type()
+        
+        # Type of L and R operands shall be compatible
+        if(l_type == r_type):
+            # Same types. Inherently compatible
+            pass
+        elif(is_castable(l_type, int) and is_castable(r_type, int)):
+            # Since types are not equal, the only remaining option is that they
+            # are both numeric-compatible.
+            pass
+        else:
+            # Incompatible
             self.msg.fatal(
-                "Left operand of expression is not a compatible numeric type",
-                self.err_ctx
-            )
-        if(self.op[1].predict_type() not in [int, bool]):
-            self.msg.fatal(
-                "Right operand of expression is not a compatible numeric type",
+                "Left and right operands of expression are not compatible types",
                 self.err_ctx
             )
         return(bool)
@@ -307,10 +331,36 @@ class _RelationalExpr(Expr):
         self.resolve_expr_width()
         
     def get_ops(self):
-        l = int(self.op[0].get_value())
-        r = int(self.op[1].get_value())
-        return(l,r)
+        l = self.op[0].get_value()
+        r = self.op[1].get_value()
         
+        if(is_castable(type(l), int)):
+            l = int(l)
+        
+        if(is_castable(type(r), int)):
+            r = int(r)
+        
+        return(l,r)
+
+class _NumericRelationalExpr(_RelationalExpr):
+    
+    def predict_type(self):
+        l_type = self.op[0].predict_type()
+        r_type = self.op[1].predict_type()
+        
+        # Type of L and R operands shall be integral types
+        if(is_castable(l_type, int) and is_castable(r_type, int)):
+            pass
+        else:
+            # Incompatible
+            self.msg.fatal(
+                "Left and right operands of expression are not compatible types",
+                self.err_ctx
+            )
+        return(bool)
+        
+    
+
 class Eq(_RelationalExpr):
     def get_value(self):
         l,r = self.get_ops()
@@ -321,22 +371,22 @@ class Neq(_RelationalExpr):
         l,r = self.get_ops()
         return(l != r)
 
-class Lt(_RelationalExpr):
+class Lt(_NumericRelationalExpr):
     def get_value(self):
         l,r = self.get_ops()
         return(l < r)
         
-class Gt(_RelationalExpr):
+class Gt(_NumericRelationalExpr):
     def get_value(self):
         l,r = self.get_ops()
         return(l > r)
 
-class Leq(_RelationalExpr):
+class Leq(_NumericRelationalExpr):
     def get_value(self):
         l,r = self.get_ops()
         return(l <= r)
 
-class Geq(_RelationalExpr):
+class Geq(_NumericRelationalExpr):
     def get_value(self):
         l,r = self.get_ops()
         return(l >= r)
@@ -352,7 +402,8 @@ class _ReductionExpr(Expr):
         self.op = [n]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool]):
+        op_type = self.op[0].predict_type()
+        if(not is_castable(op_type, int)):
             self.msg.fatal(
                 "Operand of expression is not a compatible numeric type",
                 self.err_ctx
@@ -427,12 +478,14 @@ class _BoolExpr(Expr):
         self.op = [l,r]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool]):
+        l_type = self.op[0].predict_type()
+        r_type = self.op[1].predict_type()
+        if(not is_castable(l_type, bool)):
             self.msg.fatal(
                 "Left operand of expression is not a compatible boolean type",
                 self.err_ctx
             )
-        if(self.op[1].predict_type() not in [int, bool]):
+        if(not is_castable(r_type, bool)):
             self.msg.fatal(
                 "Right operand of expression is not a compatible boolean type",
                 self.err_ctx
@@ -479,12 +532,14 @@ class _ExpShiftExpr(Expr):
         self.op = [l,r]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool]):
+        l_type = self.op[0].predict_type()
+        r_type = self.op[1].predict_type()
+        if(not is_castable(l_type, int)):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
                 self.err_ctx
             )
-        if(self.op[1].predict_type() not in [int, bool]):
+        if(not is_castable(r_type, int)):
             self.msg.fatal(
                 "Right operand of expression is not a compatible numeric type",
                 self.err_ctx
@@ -543,7 +598,8 @@ class TernaryExpr(Expr):
         self.op = [i, j, k]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool]):
+        t_i = self.op[1].predict_type()
+        if(not is_castable(t_i, bool)):
             self.msg.fatal(
                 "Conditional operand of expression is not a compatible boolean type",
                 self.err_ctx
@@ -553,18 +609,20 @@ class TernaryExpr(Expr):
         t_j = self.op[1].predict_type()
         t_k = self.op[2].predict_type()
         
-        num_t = [int, bool]
-        if((t_j in num_t) and (t_k in num_t)):
-            # Both are a numeric type
+        if(t_j == t_i):
+            # Same types. Inherently compatible
+            # Resolves to same type
+            return(t_j)
+        elif(is_castable(t_j, int) and is_castable(t_k, int)):
+            # Since types are not equal, the only remaining option is that they
+            # are both numeric-compatible.
             return(int)
         else:
-            # Not numeric types. Shall be equal types
-            if(t_j != t_k):
-                self.msg.fatal(
-                    "True/False results of ternary conditional are not compatible types",
-                    self.err_ctx
-                )
-            return(t_j)
+            # Incompatible
+            self.msg.fatal(
+                "True/False results of ternary conditional are not compatible types",
+                self.err_ctx
+            )
     
     def resolve_expr_width(self):
         wj = self.op[1].get_min_eval_width()
@@ -620,12 +678,12 @@ class WidthCast(Expr):
         
     def predict_type(self):
         if(self.cast_width is None):
-            if(self.op[1].predict_type() not in [int, bool]):
+            if(not is_castable(self.op[1].predict_type(), int)):
                 self.msg.fatal(
                     "Width operand of cast expression is not a compatible numeric type",
                     self.err_ctx
                 )
-        if(self.op[0].predict_type() not in [int, bool]):
+        if(not is_castable(self.op[0].predict_type(), int)):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to an integer",
                 self.err_ctx
@@ -677,7 +735,7 @@ class BoolCast(Expr):
         self.op = [n]
     
     def predict_type(self):
-        if(self.op[0].predict_type() not in [int, bool]):
+        if(not is_castable(self.op[0].predict_type(), bool)):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to a boolean",
                 self.err_ctx
@@ -887,7 +945,7 @@ class AssignmentCast(Expr):
     def predict_type(self):
         op_type = self.op[0].predict_type()
         
-        if(not is_type_compatible(op_type, self.dest_type)):
+        if(not is_castable(op_type, self.dest_type)):
             self.msg.fatal(
                 "Result of expression is not compatible with the expected type",
                 self.err_ctx
@@ -906,23 +964,26 @@ class AssignmentCast(Expr):
         
         if(self.dest_type == bool):
             return(bool(v))
+        elif(self.dest_type == int):
+            return(int(v))
         else:
             return(v)
 
 
 
 #===============================================================================
-def is_type_compatible(t1, t2):
+
+def is_castable(src, dst):
     """
-    Checks if the two types are compatible.
+    Check if src type can be cast to dst type
     """
-    if((t1 in [int, bool]) and (t2 in [int, bool])):
-        # Both came from number-like types.
+    if(((src in [int, bool]) or rdltypes.is_user_enum(src)) and (dst in [int, bool])):
+        # Pure numeric or enum can be cast to a numeric
         return(True)
-    elif((t1 == tp.Array) and (t2 == tp.Array)):
+    elif((src == tp.Array) and (dst == tp.Array)):
         # TODO: Check that array size and element types also match
         raise NotImplementedError
-    elif(t1 == t2):
+    elif(src == dst):
         return(True)
     else:
         return(False)

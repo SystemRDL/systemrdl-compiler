@@ -1,4 +1,5 @@
 import enum
+import inspect
 from .node import AddressableNode
 
 class AutoEnum(enum.Enum):
@@ -53,14 +54,51 @@ class InterruptType(AutoEnum):
 class UserEnum(enum.Enum):
     """
     All user-defined enumerations are based on this class
-    UserEnum types can be identified using: issubclass(my_enum, UserEnum)
+    UserEnum types can be identified using: is_user_enum()
     """
+    def __init__(self, value, rdl_name, rdl_desc):
+        self._value_ = value
+        self._rdl_name_ = rdl_name
+        self._rdl_desc_ = rdl_desc
+    
+    @property
+    def rdl_desc(self):
+        return(self._rdl_desc_)
+    
+    @property
+    def rdl_name(self):
+        return(self._rdl_name_)
+    
+    def __int__(self):
+        return(self.value)
+    
+    def __bool__(self):
+        return(bool(self.value))
+        
+    def __deepcopy__(self, memo):
+        # Do not deepcopy enumerations
+        return(self)
 
+
+def is_user_enum(t):
+    """
+    Test if type t is a UserEnum
+    NOTE: Returns false if t is referencing a UserEnum value member
+    """
+    return(inspect.isclass(t) and (issubclass(t, UserEnum)))
+
+#===============================================================================
 class UserStruct():
     """
     TODO Implementation TBD,
-    but whatever it is, shall be identifiable using issubclass()
+    but whatever it is, shall be identifiable using is_user_struct()
     """
+
+def is_user_struct(t):
+    """
+    Test if type t is a UserStruct
+    """
+    return(inspect.isclass(t) and (issubclass(t, UserStruct)))
 
 #===============================================================================
 class ComponentRef:

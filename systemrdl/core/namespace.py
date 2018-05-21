@@ -13,12 +13,18 @@ class NamespaceRegistry():
     
     def register_type(self, name:str, ref, err_token):
         if(name in self.type_ns_stack[-1]):
-            raise ValueError("Multiple declarations of type '%s'" % name)
+            self.msg.fatal(
+                "Multiple declarations of type '%s'" % name,
+                err_token
+            )
         self.type_ns_stack[-1][name] = ref
         
     def register_element(self, name:str, ref, err_token):
         if(name in self.element_ns_stack[-1]):
-            raise ValueError("Multiple declarations of instance '%s'" % name)
+            self.msg.fatal(
+                "Multiple declarations of instance '%s'" % name,
+                err_token
+            )
         self.element_ns_stack[-1][name] = ref
     
     def register_default_property(self, name:str, ref, err_token):

@@ -2,9 +2,35 @@
 SystemRDL spec issues
 ================================================================================
 Semantic rule 10.6.1.c is violated in 5.1.2.2.2-Example 2
-    reg 'a' has an implied regwidth of 32
-    reg 'a' gets assigned an accesswidth of 64 via default
-    accesswidth > regwidth!
+    Rule 10.6.1.c states that accesswidth cannot be greater than regwidth.
+    
+    However, in the example:
+        reg 'a' has an implied regwidth of 32
+        reg 'a' gets assigned an accesswidth of 64 via default
+        accesswidth > regwidth!
     
     Resolution:
+        The use-case shown in the example seems reasonable.
         Rule 10.6.1.c seems unnecessary. Waiving checks for it.
+
+--------------------------------------------------------------------------------
+Likely typo in semantic rule 11.2-f
+    "Virtual registers, REGISTER FILES, and fields shall have the same software access (sw property value) as the parent memory."
+    
+    Mentions "register files", even though they are not allowed in "mem" components
+    as per 11.1-b-1-ii.
+
+--------------------------------------------------------------------------------
+Example in 6.2.6 uses an invalid hierarchical reference
+    In section 6.2.6, an example shows a child component definition incorrectly 
+    inheriting a parameter from its parent lexical scope:
+        regfile some_regfile #( my_struct arg ) {
+            reg {
+                desc = arg.inner.foo ; // <-- Illegal out-of-scope reference to 'arg'
+                field {} a ;
+            } regA ;
+        } ;
+    
+    This is inconsistent with the namespace rules described in 5.1.4
+    Also, 5.1.1.2-d explicitly says that nested component definitions do not inherit
+    parents' parameters.

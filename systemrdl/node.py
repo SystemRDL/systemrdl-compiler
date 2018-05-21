@@ -282,7 +282,13 @@ class SignalNode(VectorNode):
 
 #===============================================================================
 class FieldNode(VectorNode):
-    pass
+    
+    @property
+    def is_virtual(self):
+        """
+        Determines if this node represents a virtual field (child of a virtual register)
+        """
+        return(self.parent.is_virtual)
     
 #===============================================================================
 class RegNode(AddressableNode):
@@ -290,6 +296,18 @@ class RegNode(AddressableNode):
     @property
     def size(self):
         return(self.get_property('regwidth') // 8)
+    
+    @property
+    def is_virtual(self):
+        """
+        Determines if this node represents a virtual register (child of a mem component)
+        """
+        # since mem components can only contain reg instances, a reg can only be
+        # virtual if its direct parent is of type mem
+        if(type(self.parent) == MemNode):
+            return(True)
+        else:
+            return(False)
 
 #===============================================================================
 class RegfileNode(AddressableNode):

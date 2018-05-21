@@ -157,8 +157,8 @@ The *priority* column denotes how high the item is on my to-do list:
         - 
 
     *   - enum datatype
-        - :red:`No`
-        - 5
+        - :green:`Yes`
+        - 
         - 
 
     *   - struct datatype
@@ -207,9 +207,9 @@ The *priority* column denotes how high the item is on my to-do list:
         - 
 
     *   - Relational operators
-        - :yellow:`Partial`
-        - 5
-        - Only support numeric comparisons
+        - :green:`Yes`
+        - 
+        - 
 
     *   - Concatenate operator
         - :red:`No`
@@ -222,7 +222,7 @@ The *priority* column denotes how high the item is on my to-do list:
         - 
 
     *   - Semantic checking
-        - :red:`No`
+        - :yellow:`Partial`
         - 5
         - 
 

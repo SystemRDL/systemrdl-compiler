@@ -1,5 +1,3 @@
-from antlr4 import *
-import inspect
 from copy import deepcopy
 from collections import OrderedDict
 
@@ -7,6 +5,8 @@ from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
 from .ExprVisitor import ExprVisitor
+from .EnumVisitor import EnumVisitor
+from .UDPVisitor import UDPVisitor
 from .parameter import Parameter
 from . import type_placeholders
 from . import expressions
@@ -15,7 +15,7 @@ from .. import component as comp
 from .. import rdltypes
 
 #===============================================================================
-# Base visitor
+# Base Component visitor
 #===============================================================================
 class ComponentVisitor(BaseVisitor):
     comp_type = None
@@ -624,7 +624,7 @@ class ComponentVisitor(BaseVisitor):
                 "Type '%s' is not defined" % enum_name,
                 ctx.ID()
             )
-        if(not(inspect.isclass(enum_type) and (issubclass(enum_type, rdltypes.UserEnum)))):
+        if(not rdltypes.is_user_enum(enum_type)):
             self.msg.fatal(
                 "Assignment to encode property is not an enum type",
                 ctx.ID()
@@ -784,14 +784,8 @@ class ComponentVisitor(BaseVisitor):
                     token
                 )
             
-            if(inspect.isclass(typ)):
-                if(issubclass(typ, rdltypes.UserEnum) or issubclass(typ, rdltypes.UserStruct)):
-                    return(typ)
-                else:
-                    self.msg.fatal(
-                        "Type '%s' is not a struct or enum" % token.text,
-                        token
-                    )
+            if(rdltypes.is_user_enum(typ) or rdltypes.is_user_struct(typ)):
+                return(typ)
             else:
                 self.msg.fatal(
                     "Type '%s' is not a struct or enum" % token.text,
@@ -816,6 +810,14 @@ class ComponentVisitor(BaseVisitor):
             )
         
         return(comp_def)
+    
+    #---------------------------------------------------------------------------
+    # User-defined enum
+    #---------------------------------------------------------------------------
+    def visitEnum_def(self, ctx:SystemRDLParser.Enum_defContext):
+        visitor = EnumVisitor(self.compiler)
+        enum_type, name_ctx = visitor.visit(ctx)
+        self.compiler.namespace.register_type(name_ctx.getText(), enum_type, name_ctx)
         
 #===============================================================================
 # Root meta-component visitor
@@ -848,6 +850,13 @@ class RootVisitor(ComponentVisitor):
         
         return(super().visitComponent_insts(ctx))
     
+    #---------------------------------------------------------------------------
+    # User-defined Properties
+    #---------------------------------------------------------------------------
+    def visitUdp_def(self, ctx:SystemRDLParser.Udp_defContext):
+        # TODO: Implement UDP
+        raise NotImplementedError
+    
 #===============================================================================
 # Field Component visitor
 #===============================================================================
@@ -855,6 +864,7 @@ class FieldComponentVisitor(ComponentVisitor):
     comp_type = comp.Field
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+        # 9.2-a: No other types of structural components shall be defined within a field component.
         self.msg.fatal(
             "Instantiation of components not allowed inside a field definition",
             ctx.component_inst(0).ID()
@@ -862,9 +872,10 @@ class FieldComponentVisitor(ComponentVisitor):
     
     def check_comp_def_allowed(self, type_token):
         self.msg.fatal(
-            "Definitions of components not allowed inside a reg definition",
+            "Definitions of components not allowed inside a field definition",
             type_token
         )
+
 #===============================================================================
 # Reg Component visitor
 #===============================================================================
@@ -875,6 +886,7 @@ class RegComponentVisitor(ComponentVisitor):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp
         
+        # 10.2-b-1-ii: Component instantiations are limited to field, constraint, and signal instances
         if(type(comp_def) not in [comp.Signal, comp.Field]):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a reg definition" % type(comp_def).__name__.lower(),
@@ -885,6 +897,7 @@ class RegComponentVisitor(ComponentVisitor):
     def check_comp_def_allowed(self, type_token):
         comp_type = self._CompType_Map[type_token.type]
         
+        # 10.2-b-1-i: Component definitions are limited to field, constraint, signal, and enum components
         if(comp_type not in [comp.Signal, comp.Field]):
             self.msg.fatal(
                 "Definitions of '%s' components not allowed inside a reg definition" % comp_type.__name__.lower(),
@@ -901,6 +914,7 @@ class RegfileComponentVisitor(ComponentVisitor):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp
         
+        # 12.1-b-1-ii: Component instantiations are limited to reg, regfile, constraint, and signal instances
         if(type(comp_def) not in [comp.Signal, comp.Reg, comp.Regfile]):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a regfile definition" % type(comp_def).__name__.lower(),
@@ -911,7 +925,8 @@ class RegfileComponentVisitor(ComponentVisitor):
     def check_comp_def_allowed(self, type_token):
         comp_type = self._CompType_Map[type_token.type]
         
-        if(comp_type in [comp.Addrmap, comp.Mem]):
+        # 12.1-b-1-i: Component definitions are limited to field, reg, regfile, signal, constraint, and enum
+        if(comp_type not in [comp.Field, comp.Reg, comp.Regfile, comp.Signal]):
             self.msg.fatal(
                 "Definitions of '%s' components not allowed inside a regfile definition" % comp_type.__name__.lower(),
                 type_token
@@ -926,9 +941,11 @@ class AddrmapComponentVisitor(ComponentVisitor):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp
         
-        if(type(comp_def) == comp.Field):
+        # 13.3-a: The components instantiated within an address map shall be 
+        #   registers, register files, memories, address maps, or signals.
+        if(type(comp_def) not in [comp.Reg, comp.Regfile, comp.Mem, comp.Addrmap, comp.Signal]):
             self.msg.fatal(
-                "Instantiation of 'field' components not allowed inside a addrmap definition",
+                "Instantiation of '%s' components not allowed inside a addrmap definition"  % type(comp_def).__name__.lower(),
                 ctx.component_inst(0).ID()
             )
         return(super().visitComponent_insts(ctx))
@@ -943,7 +960,8 @@ class MemComponentVisitor(ComponentVisitor):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp
         
-        if(type(comp_def) != comp.Reg):
+        # 11.1-b-a-ii: Component instantiations are limited to reg and constraint instances.
+        if(type(comp_def) not in [comp.Reg]):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a mem definition" % type(comp_def).__name__.lower(),
                 ctx.component_inst(0).ID()
@@ -953,7 +971,8 @@ class MemComponentVisitor(ComponentVisitor):
     def check_comp_def_allowed(self, type_token):
         comp_type = self._CompType_Map[type_token.type]
         
-        if(comp_type in [comp.Field, comp.Reg]):
+        # 11.1-b-a-i: Component definitions are limited to field, reg, constraint, and enum components.
+        if(comp_type not in [comp.Field, comp.Reg]):
             self.msg.fatal(
                 "Definitions of '%s' components not allowed inside a mem definition" % comp_type.__name__.lower(),
                 type_token

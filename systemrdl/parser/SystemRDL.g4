@@ -3,8 +3,8 @@ grammar SystemRDL;
 root: (root_elem ';')* EOF;
 
 root_elem : component_def
-// TODO   | enum_def
-// TODO   | property_def
+          | enum_def
+          | udp_def
 // TODO   | struct_def
 // TODO   | constraint_def
           | explicit_component_inst
@@ -36,7 +36,7 @@ component_anon_def  : component_type component_body;
 component_body: '{' (component_body_elem ';')* '}';
 
 component_body_elem : component_def
-// TODO             | enum_def
+                    | enum_def
 // TODO             | struct_def
 // TODO             | constraint_def
                     | explicit_component_inst
@@ -215,6 +215,46 @@ prop_assignment_rhs : precedencetype_literal
 
 prop_keyword: kw=(SW_kw|HW_kw|RCLR_kw|RSET_kw|WOCLR_kw|WOSET_kw);
 prop_mod    : kw=(POSEDGE_kw|NEGEDGE_kw|BOTHEDGE_kw|LEVEL_kw|NONSTICKY_kw);
+
+//------------------------------------------------------------------------------
+// User-defined properties
+//------------------------------------------------------------------------------
+udp_def : PROPERTY_kw ID '{' (udp_attr ';')+ '}';
+
+udp_attr: udp_type
+        | udp_usage
+        | udp_default
+        | udp_constraint
+        ;
+
+udp_type : TYPE_kw ASSIGN udp_data_type array_type_suffix?;
+udp_data_type : component_type_primary
+              | REF_kw
+              | NUMBER_kw
+              | basic_data_type
+              ;
+
+udp_usage : COMPONENT_kw ASSIGN udp_comp_types;
+udp_comp_types : udp_comp_type (OR udp_comp_type)*;
+udp_comp_type : component_type
+              | CONSTRAINT_kw
+              | ALL_kw
+              ;
+
+udp_default : DEFAULT_kw ASSIGN expr;
+
+udp_constraint : CONSTRAINT_kw ASSIGN COMPONENTWIDTH_kw;
+
+//------------------------------------------------------------------------------
+// User-defined enumerations
+//------------------------------------------------------------------------------
+enum_def: ENUM_kw ID '{' (enum_entry ';')+ '}';
+
+enum_entry: ID (ASSIGN expr)? ('{' (enum_prop_assign ';')* '}')?;
+
+// Only 'name' and 'desc' properties are allowed in enums
+// No need to invoke the rest of the grammar for property assignments here.
+enum_prop_assign: ID ASSIGN expr;
 
 //==============================================================================
 // Lexer

@@ -1,4 +1,4 @@
-# Generated from SystemRDL.g4 by ANTLR 4.7
+# Generated from SystemRDL.g4 by ANTLR 4.7.1
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .SystemRDLParser import SystemRDLParser
@@ -326,6 +326,66 @@ class SystemRDLVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by SystemRDLParser#prop_mod.
     def visitProp_mod(self, ctx:SystemRDLParser.Prop_modContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#udp_def.
+    def visitUdp_def(self, ctx:SystemRDLParser.Udp_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#udp_attr.
+    def visitUdp_attr(self, ctx:SystemRDLParser.Udp_attrContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#udp_type.
+    def visitUdp_type(self, ctx:SystemRDLParser.Udp_typeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#udp_data_type.
+    def visitUdp_data_type(self, ctx:SystemRDLParser.Udp_data_typeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#udp_usage.
+    def visitUdp_usage(self, ctx:SystemRDLParser.Udp_usageContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#udp_comp_types.
+    def visitUdp_comp_types(self, ctx:SystemRDLParser.Udp_comp_typesContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#udp_comp_type.
+    def visitUdp_comp_type(self, ctx:SystemRDLParser.Udp_comp_typeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#udp_default.
+    def visitUdp_default(self, ctx:SystemRDLParser.Udp_defaultContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#udp_constraint.
+    def visitUdp_constraint(self, ctx:SystemRDLParser.Udp_constraintContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#enum_def.
+    def visitEnum_def(self, ctx:SystemRDLParser.Enum_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#enum_entry.
+    def visitEnum_entry(self, ctx:SystemRDLParser.Enum_entryContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#enum_prop_assign.
+    def visitEnum_prop_assign(self, ctx:SystemRDLParser.Enum_prop_assignContext):
         return self.visitChildren(ctx)
 
 

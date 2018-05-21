@@ -1,7 +1,5 @@
 import re
 
-from antlr4 import *
-
 from ..parser.SystemRDLParser import SystemRDLParser
 from .. import rdltypes
 
@@ -168,7 +166,35 @@ class ExprVisitor(BaseVisitor):
         string = re.sub(r'\\(.)', r'\1', string)
         
         return(e.StringLiteral(self.compiler, ctx.STRING(), string))
+    
+    
+    def visitEnum_literal(self, ctx:SystemRDLParser.Enum_literalContext):
+        enum_type_name = ctx.ID(0).getText()
+        enum_entry_name = ctx.ID(1).getText()
         
+        # Lookup the enum type
+        enum_type = self.compiler.namespace.lookup_type(enum_type_name)
+        if(enum_type is None):
+            self.msg.fatal(
+                "Enumeration type '%s' not found" % enum_type_name,
+                ctx.ID(0)
+            )
+        
+        if(not rdltypes.is_user_enum(enum_type)):
+            self.msg.fatal(
+                "Identifier '%s' is not an enum" % enum_type_name,
+                ctx.ID(0)
+            )
+        
+        # Get it's value
+        if(enum_entry_name not in enum_type.__members__):
+            self.msg.fatal(
+                "'%s' is not a valid member of enum '%s'"
+                % (enum_entry_name, enum_type_name),
+                ctx.ID(1)
+            )
+        
+        return(e.EnumLiteral(self.compiler, ctx, enum_type[enum_entry_name]))
     
     #---------------------------------------------------------------------------
     # Cast
@@ -281,10 +307,6 @@ class ExprVisitor(BaseVisitor):
 
     def visitStruct_literal(self, ctx:SystemRDLParser.Struct_literalContext):
         # TODO: Implement struct literals
-        raise NotImplementedError
-
-    def visitEnum_literal(self, ctx:SystemRDLParser.Enum_literalContext):
-        # TODO: Implement enum literals
         raise NotImplementedError
 
     def visitConcatenate(self, ctx:SystemRDLParser.ConcatenateContext):

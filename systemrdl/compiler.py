@@ -251,6 +251,7 @@ class PrePlacementValidateListener(walker.RDLListener):
     
     
     def enter_Reg(self, node):
+        # 10.6.1-a: All registers shall have a regwidth = 2 N , where N >=3.
         if('regwidth' in node.inst.properties):
             n = node.inst.properties['regwidth']
             if(n < 8):
@@ -264,6 +265,7 @@ class PrePlacementValidateListener(walker.RDLListener):
                     node.inst.def_err_ctx
                 )
         
+        # 10.6.1-b: All registers shall have a accesswidth = 2 N , where N >=3.
         if('accesswidth' in node.inst.properties):
             n = node.inst.properties['accesswidth']
             if(n < 8):
@@ -296,6 +298,7 @@ class PrePlacementValidateListener(walker.RDLListener):
                 )
         
     def enter_Mem(self, node):
+        # 11.3.1-a: mementries shall be greater than 0.
         if('mementries' in node.inst.properties):
             n = node.inst.properties['mementries']
             if(n <= 0):
@@ -303,6 +306,8 @@ class PrePlacementValidateListener(walker.RDLListener):
                     "'mementries' property must be greater than zero",
                     node.inst.def_err_ctx
                 )
+        
+        # 11.3.1-a: memwidth shall be greater than 0.
         if('memwidth' in node.inst.properties):
             n = node.inst.properties['memwidth']
             if(n <= 0):

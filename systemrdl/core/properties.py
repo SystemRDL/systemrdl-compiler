@@ -1,5 +1,3 @@
-import inspect
-
 from .. import component as comp
 from ..node import FieldNode
 from .. import rdltypes
@@ -80,14 +78,14 @@ class PropertyRule:
             assign_type = rdltypes.PrecedenceType
         elif(issubclass(type(value), expressions.Expr)):
             assign_type = value.predict_type()
-        elif(inspect.isclass(value) and issubclass(value, rdltypes.UserEnum)):
+        elif(rdltypes.is_user_enum(value)):
             assign_type = rdltypes.UserEnum
         else:
             raise RuntimeError
         
         # Check if value's type is compatible
         for valid_type in self.valid_types:
-            if(expressions.is_type_compatible(assign_type, valid_type)):
+            if(expressions.is_castable(assign_type, valid_type)):
                 break
         else:
             self.compiler.msg.fatal(
@@ -220,6 +218,15 @@ class Prop_errextbus(PropertyRule):
     default = False
     dyn_assign_allowed = False
     mutex_group = None
+    
+    def validate(self, node, value):
+        # 10.6.1-h: errextbus is only valid for external registers
+        if((node.inst.external == False) and (value == True)):
+            self.compiler.msg.error(
+                "The 'errextbus' property is set to 'true', but instance '%s' is not external"
+                % (node.inst.inst_name),
+                node.inst.inst_err_ctx
+            )
 
 class Prop_hdl_path(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
@@ -385,6 +392,15 @@ class Prop_next(PropertyRule):
     default = None
     dyn_assign_allowed = True
     mutex_group = None
+    
+    def validate(self, node, value):
+        # 9.5.1-e: next cannot be self-referencing
+        if(node.get_path() == value.get_path()):
+            self.compiler.msg.error(
+                "Field '%s' cannot reference itself in next property"
+                % (node.inst.inst_name),
+                node.inst.inst_err_ctx
+            )
 
 class Prop_reset(PropertyRule):
     """

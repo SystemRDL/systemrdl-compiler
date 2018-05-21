@@ -1,6 +1,4 @@
 
-from antlr4 import *
-
 from ..parser.SystemRDLParser import SystemRDLParser
 from ..parser.SystemRDLVisitor import SystemRDLVisitor
 
