@@ -229,16 +229,13 @@ udp_attr: udp_type
 
 udp_type : TYPE_kw ASSIGN udp_data_type array_type_suffix?;
 udp_data_type : component_type_primary
-              | REF_kw
-              | NUMBER_kw
+              | kw=(REF_kw|NUMBER_kw)
               | basic_data_type
               ;
 
-udp_usage : COMPONENT_kw ASSIGN udp_comp_types;
-udp_comp_types : udp_comp_type (OR udp_comp_type)*;
+udp_usage : COMPONENT_kw ASSIGN udp_comp_type (OR udp_comp_type)*;
 udp_comp_type : component_type
-              | CONSTRAINT_kw
-              | ALL_kw
+              | kw=(CONSTRAINT_kw|ALL_kw)
               ;
 
 udp_default : DEFAULT_kw ASSIGN expr;

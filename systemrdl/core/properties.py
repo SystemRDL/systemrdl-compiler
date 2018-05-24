@@ -1,12 +1,14 @@
 from .. import component as comp
-from ..node import FieldNode
+from ..node import FieldNode, VectorNode
 from .. import rdltypes
 from . import expressions
 from . import type_placeholders as tp
 
 def get_all_subclasses(cls):
-        return cls.__subclasses__() + [g for s in cls.__subclasses__()
-                                           for g in get_all_subclasses(s)]
+    return cls.__subclasses__() + [
+        g for s in cls.__subclasses__()
+        for g in get_all_subclasses(s)
+    ]
 
 class PropertyRuleBook:
     def __init__(self, compiler):
@@ -15,8 +17,8 @@ class PropertyRuleBook:
         # Auto-discover all properties defined below and load into dict
         self.rdl_properties = {}
         for prop in get_all_subclasses(PropertyRule):
-            prop_name = prop.get_name()
             if(prop.__name__.startswith("Prop_")):
+                prop_name = prop.get_name()
                 self.rdl_properties[prop_name] = prop(self.compiler)
         
         self.user_properties = {}
@@ -28,6 +30,16 @@ class PropertyRuleBook:
             return(self.user_properties[prop_name])
         else:
             return(None)
+    
+    def register_udp(self, udp, err_token):
+        if(udp.name in self.user_properties):
+            self.compiler.msg.fatal(
+                "Multiple declarations of user-defined property '%s'"
+                % udp.name,
+                err_token
+            )
+        
+        self.user_properties[udp.name] = udp
 
 #===============================================================================
 # Base property
@@ -98,6 +110,7 @@ class PropertyRule:
     
     #---------------------------------------------------------------------------
     def get_default(self, node):
+        # pylint: disable=unused-argument
         """
         Used when the user queries a property, and it was not explicitly set.
         Default values are not always directly known. Sometimes they depend on
@@ -418,7 +431,7 @@ class Prop_reset(PropertyRule):
             # 9.5.1-c: The reset value cannot be larger than can fit in the field
             if(value >= (2**node.inst.width)):
                 self.compiler.msg.error(
-                    "The reset value (%d) of field '%s' exceeds it's width (%d)"
+                    "The reset value (%d) of field '%s' cannot fit within it's width (%d)"
                     % (value, node.inst.inst_name, node.inst.width),
                     node.inst.inst_err_ctx
                 )
@@ -1040,3 +1053,36 @@ class Prop_bridge(PropertyRule):
     default = False
     dyn_assign_allowed = False
     mutex_group = None
+
+#===============================================================================
+# User-defined property
+#===============================================================================
+
+class UserProperty(PropertyRule):
+    def __init__(self, compiler, name, bindable_to, valid_types, default = None, constr_componentwidth=False):
+        super().__init__(compiler)
+        
+        self.name = name
+        self.bindable_to = bindable_to
+        self.valid_types = valid_types
+        self.default = default
+        self.constr_componentwidth = constr_componentwidth
+    
+    def get_name(self):
+        return(self.name)
+        
+    def validate(self, node, value):
+        if(self.constr_componentwidth):
+            # 15.1.1-g: If constraint is set to componentwidth, the assigned
+            #   value of the property shall not have a value of 1 for any bit
+            #   beyond the width of the field.
+            
+            # Spec does not specify, but assuming this check gets ignored for
+            # non-vector nodes
+            if(issubclass(type(node), VectorNode)):
+                if(value >= (2**node.inst.width)):
+                    self.compiler.msg.error(
+                        "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
+                        % (value, self.name, node.inst.width, node.inst.inst_name),
+                        node.inst.inst_err_ctx
+                    )

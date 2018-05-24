@@ -914,7 +914,7 @@ class InstRef(Expr):
                         self.msg.fatal(
                             "Array index out of range. Expected 0-%d, got %d."
                                 % (current_inst.array_dimensions[i]-1, idx_list[i]),
-                            array_suffix.err_ctx
+                            array_suffixes[i].err_ctx
                         )
             
             resolved_ref_elements.append((name, idx_list))

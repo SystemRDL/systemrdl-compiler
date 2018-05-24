@@ -82,8 +82,8 @@ The *priority* column denotes how high the item is on my to-do list:
         - 
 
     *   - user-defined properties
-        - :red:`No`
-        - 5
+        - :green:`Yes`
+        - 
         - 
 
     *   - Parameterized components

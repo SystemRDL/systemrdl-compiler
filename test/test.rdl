@@ -15,7 +15,10 @@ enum my_enum {
 
 
 
-reg my_reg #(bit MY_PARAM = 1) {
+reg my_reg #(
+    bit MY_PARAM = 1,
+    my_enum FOO = my_enum::four
+) {
     field my_field {
         hw = rw;
         sw = rw;
@@ -27,16 +30,22 @@ reg my_reg #(bit MY_PARAM = 1) {
     my_field yay = 1;
     my_field foo = 1 / MY_PARAM + 0x100 - 16'd4;
     
-    foo->reset = my_enum::four - 3;
+    foo->reset = FOO - 4;
     
 };
 
+
+property my_super_udp {
+    component = all;
+    type = ref;
+};
 
 addrmap my_design {
     my_reg reg_a[2];
     my_reg reg_b[3][2];
     my_reg #(
-        .MY_PARAM(2)
+        .MY_PARAM(2),
+        .FOO(my_enum::five)
     ) reg_c;
     
     reg_b->ispresent=false;
@@ -48,5 +57,6 @@ addrmap my_design {
         field {} f_b[31:1];
     } r_a[3];
     
-    
+    my_super_udp = r_a[1];
 };
+

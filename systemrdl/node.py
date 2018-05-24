@@ -87,7 +87,7 @@ class Node:
                 range_list = [range(n) for n in child_inst.array_dimensions]
                 for idxs in itertools.product(*range_list):
                     N = Node._factory(child_inst, self.compiler, self)
-                    N.current_idx = idxs
+                    N.current_idx = idxs # pylint: disable=attribute-defined-outside-init
                     yield N
             else:
                 yield Node._factory(child_inst, self.compiler, self)
@@ -156,7 +156,7 @@ class Node:
                     if(len(idx_list) != len(current_node.inst.array_dimensions)):
                         raise IndexError("Wrong number of array dimensions")
                     
-                    current_node.current_idx = []
+                    current_node.current_idx = [] # pylint: disable=attribute-defined-outside-init
                     for i in range(len(idx_list)):
                         if(idx_list[i] >= current_node.inst.array_dimensions[i]):
                             raise IndexError("Array index out of range")

@@ -132,4 +132,5 @@ def normalize_struct(value):
             subsequence( md5( join( apply( struct_members, member_normalization ) ), 0, 8)
     """
     # TODO: Implement struct normalization
+    # pylint: disable=unused-argument
     raise NotImplementedError

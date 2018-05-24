@@ -7,8 +7,6 @@ from . import expressions
 from .. import rdltypes
 
 class EnumVisitor(BaseVisitor):
-    def __init__(self, compiler):
-        super().__init__(compiler)
     
     def visitEnum_def(self, ctx:SystemRDLParser.Enum_defContext):
         self.compiler.namespace.enter_scope()
@@ -59,7 +57,7 @@ class EnumVisitor(BaseVisitor):
         
         
         # Create Enum type
-        enum_type = rdltypes.UserEnum(enum_name, entries)
+        enum_type = rdltypes.UserEnum(enum_name, entries) #pylint: disable=no-value-for-parameter
         
         self.compiler.namespace.exit_scope()
         return(enum_type, ctx.ID())

@@ -354,11 +354,6 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by SystemRDLParser#udp_comp_types.
-    def visitUdp_comp_types(self, ctx:SystemRDLParser.Udp_comp_typesContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by SystemRDLParser#udp_comp_type.
     def visitUdp_comp_type(self, ctx:SystemRDLParser.Udp_comp_typeContext):
         return self.visitChildren(ctx)
