@@ -2,7 +2,7 @@ from copy import deepcopy
 from . import type_placeholders as tp
 from .. import component as comp
 from .. import rdltypes
-
+from .helpers import get_ID_text
 
 class Expr:
     def __init__(self, compiler, err_ctx):
@@ -842,7 +842,7 @@ class InstRef(Expr):
         """
         current_inst = self.ref_inst
         for name_token, array_suffixes in self.ref_elements:
-            name = name_token.getText()
+            name = get_ID_text(name_token)
             
             # find instance
             current_inst = current_inst.get_child_by_name(name)
@@ -896,7 +896,7 @@ class InstRef(Expr):
         
         current_inst = self.ref_inst
         for name_token, array_suffixes in self.ref_elements:
-            name = name_token.getText()
+            name = get_ID_text(name_token)
             
             # find instance
             current_inst = current_inst.get_child_by_name(name)

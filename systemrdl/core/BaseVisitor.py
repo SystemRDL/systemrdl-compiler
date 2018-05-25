@@ -1,3 +1,4 @@
+from .helpers import get_ID_text
 
 from ..parser.SystemRDLParser import SystemRDLParser
 from ..parser.SystemRDLVisitor import SystemRDLVisitor
@@ -33,10 +34,10 @@ class BaseVisitor(SystemRDLVisitor):
         if(token.type == SystemRDLParser.ID):
             # Is an identifier for either an enum or struct type
             
-            typ = self.compiler.namespace.lookup_type(token.text)
+            typ = self.compiler.namespace.lookup_type(get_ID_text(token))
             if(typ is None):
                 self.msg.fatal(
-                    "Type '%s' is not defined" % token.text,
+                    "Type '%s' is not defined" % get_ID_text(token),
                     token
                 )
             
@@ -44,7 +45,7 @@ class BaseVisitor(SystemRDLVisitor):
                 return(typ)
             else:
                 self.msg.fatal(
-                    "Type '%s' is not a struct or enum" % token.text,
+                    "Type '%s' is not a struct or enum" % get_ID_text(token),
                     token
                 )
             

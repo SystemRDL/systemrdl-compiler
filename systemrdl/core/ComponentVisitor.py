@@ -8,6 +8,7 @@ from .ExprVisitor import ExprVisitor
 from .EnumVisitor import EnumVisitor
 from .UDPVisitor import UDPVisitor
 from .parameter import Parameter
+from .helpers import get_ID_text
 from . import type_placeholders
 from . import expressions
 
@@ -102,7 +103,7 @@ class ComponentVisitor(BaseVisitor):
         
         self.check_comp_def_allowed(type_token)
         
-        def_name = ctx.ID().getText()
+        def_name = get_ID_text(ctx.ID())
         # Get any parameters for the component
         if(ctx.param_def() is not None):
             param_defs = self.visit(ctx.param_def())
@@ -182,7 +183,7 @@ class ComponentVisitor(BaseVisitor):
         return(None)
 
     def visitComponent_inst_alias(self, ctx:SystemRDLParser.Component_inst_aliasContext):
-        name = ctx.ID().getText()
+        name = get_ID_text(ctx.ID())
         inst = self.compiler.namespace.lookup_element(name)
         if(inst is None):
             self.msg.fatal(
@@ -282,7 +283,7 @@ class ComponentVisitor(BaseVisitor):
         # Unpack instance def info from parent
         comp_inst, inst_type, alias_primary_inst = self._tmp
         
-        inst_name = ctx.ID().getText()
+        inst_name = get_ID_text(ctx.ID())
         comp_inst.inst_name = inst_name
         comp_inst.inst_err_ctx = ctx.ID()
         
@@ -458,7 +459,7 @@ class ComponentVisitor(BaseVisitor):
             param_type = type_placeholders.Array(param_data_type)
         
         # Get parameter name
-        param_name = ctx.ID().getText()
+        param_name = get_ID_text(ctx.ID())
         
         # Get expression for parameter default, if any
         if(ctx.expr() is not None):
@@ -492,7 +493,7 @@ class ComponentVisitor(BaseVisitor):
         return(param_assigns)
 
     def visitParam_assignment(self, ctx:SystemRDLParser.Param_assignmentContext):
-        param_name = ctx.ID().getText()
+        param_name = get_ID_text(ctx.ID())
         
         visitor = ExprVisitor(self.compiler, self.component)
         # Note: AssignmentCast is handled in the visitComponent_insts Visitor
@@ -552,7 +553,7 @@ class ComponentVisitor(BaseVisitor):
         # Lookup component instance being assigned
         target_inst = self.component
         for name_token in name_tokens:
-            inst_name = name_token.getText()
+            inst_name = get_ID_text(name_token)
             target_inst = target_inst.get_child_by_name(inst_name)
             if(target_inst is None):
                 # Not found!
@@ -566,7 +567,7 @@ class ComponentVisitor(BaseVisitor):
         if(prop_name in target_inst_dict):
             self.msg.fatal(
                 "Property '%s' was already assigned to component '%s' from within this scope"
-                    % (prop_name, name_tokens[-1].getText()),
+                    % (prop_name, get_ID_text(name_tokens[-1])),
                 prop_token
             )
         else:
@@ -601,7 +602,7 @@ class ComponentVisitor(BaseVisitor):
             prop_name = prop_token.text
         else:
             prop_token = ctx.ID()
-            prop_name = prop_token.getText()
+            prop_name = get_ID_text(prop_token)
         
         if(ctx.prop_assignment_rhs() is not None):
             rhs = self.visit(ctx.prop_assignment_rhs())
@@ -614,9 +615,9 @@ class ComponentVisitor(BaseVisitor):
     def visitEncode_prop_assign(self, ctx:SystemRDLParser.Encode_prop_assignContext):
         # Get property string
         prop_token = ctx.ENCODE_kw()
-        prop_name = prop_token.getText()
+        prop_name = get_ID_text(prop_token)
         
-        enum_name = ctx.ID().getText()
+        enum_name = get_ID_text(ctx.ID())
         
         enum_type = self.compiler.namespace.lookup_type(enum_name)
         if(enum_type is None):
@@ -760,7 +761,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     
     def component_def_from_token(self, id_token):
-        def_name = id_token.getText()
+        def_name = get_ID_text(id_token)
         comp_def = self.compiler.namespace.lookup_type(def_name)
         if(comp_def is None):
             self.msg.fatal(
@@ -781,7 +782,7 @@ class ComponentVisitor(BaseVisitor):
     def visitEnum_def(self, ctx:SystemRDLParser.Enum_defContext):
         visitor = EnumVisitor(self.compiler)
         enum_type, name_ctx = visitor.visit(ctx)
-        self.compiler.namespace.register_type(name_ctx.getText(), enum_type, name_ctx)
+        self.compiler.namespace.register_type(get_ID_text(name_ctx), enum_type, name_ctx)
         
 #===============================================================================
 # Root meta-component visitor

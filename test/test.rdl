@@ -53,8 +53,9 @@ addrmap my_design {
     signal {} sig_a;
     
     reg {
+        field {} \field;
         field {} f_a;
-        field {} f_b[31:1];
+        field {} f_b[31:2];
     } r_a[3];
     
     my_super_udp = r_a[1];

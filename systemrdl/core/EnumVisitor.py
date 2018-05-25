@@ -2,6 +2,7 @@ from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
 from .ExprVisitor import ExprVisitor
+from .helpers import get_ID_text
 from . import expressions
 
 from .. import rdltypes
@@ -11,7 +12,7 @@ class EnumVisitor(BaseVisitor):
     def visitEnum_def(self, ctx:SystemRDLParser.Enum_defContext):
         self.compiler.namespace.enter_scope()
         
-        enum_name = ctx.ID().getText()
+        enum_name = get_ID_text(ctx.ID())
         
         # Collect entries
         entry_values = []
@@ -19,7 +20,7 @@ class EnumVisitor(BaseVisitor):
         for enum_entry_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Enum_entryContext):
             name_token, value_expr_ctx, rdl_name, rdl_desc = self.visit(enum_entry_ctx)
             
-            entry_name = name_token.getText()
+            entry_name = get_ID_text(name_token)
             if(entry_name in entries):
                 self.msg.fatal(
                     "Entry '%s' has already been defined in this enum" % entry_name,
@@ -71,7 +72,7 @@ class EnumVisitor(BaseVisitor):
         
         for pa_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Enum_prop_assignContext):
             prop_token, prop_value = self.visit(pa_ctx)
-            prop_name = prop_token.getText()
+            prop_name = get_ID_text(prop_token)
             
             if(prop_name == "desc"):
                 if(rdl_desc is not None):

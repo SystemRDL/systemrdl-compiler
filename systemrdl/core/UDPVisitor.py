@@ -2,6 +2,7 @@ from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
 from .ExprVisitor import ExprVisitor
+from .helpers import get_ID_text
 
 from . import properties
 from . import expressions
@@ -17,7 +18,7 @@ class UDPVisitor(BaseVisitor):
         self.attr = {}
     
     def visitUdp_def(self, ctx:SystemRDLParser.Udp_defContext):
-        udp_name = ctx.ID().getText()
+        udp_name = get_ID_text(ctx.ID())
         
         # Collect all attributes
         for attr_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Udp_attrContext):

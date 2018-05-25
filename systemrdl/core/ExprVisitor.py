@@ -2,11 +2,12 @@ import re
 
 from ..parser.SystemRDLParser import SystemRDLParser
 from .. import rdltypes
+from .. import component as comp
 
 from .BaseVisitor import BaseVisitor
 from . import expressions as e
 from .parameter import Parameter
-from .. import component as comp
+from .helpers import get_ID_text
 
 class ExprVisitor(BaseVisitor):
     
@@ -169,8 +170,8 @@ class ExprVisitor(BaseVisitor):
     
     
     def visitEnum_literal(self, ctx:SystemRDLParser.Enum_literalContext):
-        enum_type_name = ctx.ID(0).getText()
-        enum_entry_name = ctx.ID(1).getText()
+        enum_type_name = get_ID_text(ctx.ID(0))
+        enum_entry_name = get_ID_text(ctx.ID(1))
         
         # Lookup the enum type
         enum_type = self.compiler.namespace.lookup_type(enum_type_name)
@@ -231,7 +232,7 @@ class ExprVisitor(BaseVisitor):
         
         # Resolve reference of first element, since it is in the local scope
         first_name_token, first_array_suffixes = ref_elements[0]
-        first_name = first_name_token.getText()
+        first_name = get_ID_text(first_name_token)
         first_elem = self.compiler.namespace.lookup_element(first_name)
         if(first_elem is None):
             self.msg.fatal(

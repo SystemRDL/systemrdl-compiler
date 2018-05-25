@@ -1,3 +1,4 @@
+from antlr4.Token import CommonToken
 
 def is_pow2(x):
     return((x > 0) and ((x & (x - 1)) == 0))
@@ -11,3 +12,16 @@ def roundup_to(x, n):
         return((x//n + 1) * n)
     else:
         return((x//n) * n)
+
+def get_ID_text(token):
+    """
+    Get the text from the ID token.
+    Strips off leading slash escape if present
+    """
+    if(type(token) == CommonToken):
+        text = token.text
+    else:
+        text = token.getText()
+    
+    text = text.lstrip('\\')
+    return(text)

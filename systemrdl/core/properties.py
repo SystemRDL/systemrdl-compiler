@@ -39,6 +39,13 @@ class PropertyRuleBook:
                 err_token
             )
         
+        if(udp.name in self.rdl_properties):
+            self.compiler.msg.fatal(
+                "User-defined property '%s' cannot be the same name as a built-in SystemRDL property"
+                % udp.name,
+                err_token
+            )
+        
         self.user_properties[udp.name] = udp
 
 #===============================================================================

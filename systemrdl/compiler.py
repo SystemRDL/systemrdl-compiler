@@ -43,8 +43,13 @@ class RDLCompiler:
         """
         
         input_stream = FileStream(path)
+        
         lexer = SystemRDLLexer(input_stream)
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(messages.RDLAntlrErrorListener(self.msg))
+        
         token_stream = CommonTokenStream(lexer)
+        
         parser = SystemRDLParser(token_stream)
         parser.removeErrorListeners()
         parser.addErrorListener(messages.RDLAntlrErrorListener(self.msg))
