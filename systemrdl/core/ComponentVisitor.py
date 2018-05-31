@@ -9,7 +9,6 @@ from .EnumVisitor import EnumVisitor
 from .UDPVisitor import UDPVisitor
 from .parameter import Parameter
 from .helpers import get_ID_text
-from . import type_placeholders
 from . import expressions
 
 from .. import component as comp
@@ -456,7 +455,7 @@ class ComponentVisitor(BaseVisitor):
             param_type = param_data_type
         else:
             # Array-like type
-            param_type = type_placeholders.Array(param_data_type)
+            param_type = rdltypes.ArrayPlaceholder(param_data_type)
         
         # Get parameter name
         param_name = get_ID_text(ctx.ID())

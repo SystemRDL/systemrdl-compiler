@@ -34,3 +34,17 @@ Example in 6.2.6 uses an invalid hierarchical reference
     This is inconsistent with the namespace rules described in 5.1.4
     Also, 5.1.1.2-d explicitly says that nested component definitions do not inherit
     parents' parameters.
+
+--------------------------------------------------------------------------------
+Grammar does not allow empty array literals
+    The grammar in appendix B.10 shows that an array literal's 'array_literal_body'
+    requires at one or more instances of a 'constant_expression'
+    
+    Section 6.3.1-d states that empty array literals are allowed to be declared
+    using the following:
+        left_hand_side = '{}
+    However based on appendix B.10, this is grammatically incorrect.
+    
+    Resolution:
+        Arrays of zero-size seem like a reasonable concept, especially since 6.3.1-d
+        explicitly makes note of them. Grammar will be revised to allow this.

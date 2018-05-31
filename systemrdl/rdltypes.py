@@ -143,3 +143,15 @@ class ComponentRef:
             
         return(current_node)
         
+#===============================================================================
+
+class ArrayPlaceholder():
+    """
+    Placeholder class to describe array types
+    
+    Once elaborated, arrays are converted to Python lists
+    In the meantime, this placeholder is used to communicate expected type 
+    information during compilation type checking
+    """
+    def __init__(self, element_type):
+        self.element_type = element_type

@@ -1,5 +1,4 @@
 from copy import deepcopy
-from . import type_placeholders as tp
 from .. import component as comp
 from .. import rdltypes
 from .helpers import get_ID_text
@@ -159,6 +158,188 @@ class StringLiteral(Expr):
     def get_value(self):
         return(self.val)
 
+#-------------------------------------------------------------------------------
+class ArrayLiteral(Expr):
+    def __init__(self, compiler, err_ctx, elements):
+        super().__init__(compiler, err_ctx)
+        self.op = elements
+    
+    def predict_type(self):
+        
+        if(len(self.op) == 0):
+            # Empty array. Element type is indeterminate
+            return(rdltypes.ArrayPlaceholder(None))
+        
+        # Get type of first element
+        op_iter = iter(self.op)
+        element_type = next(op_iter).predict_type()
+        
+        # All remaining elements shall match
+        for op in op_iter:
+            if(element_type != op.predict_type()):
+                self.msg.fatal(
+                    "Elements of an array shall be the same type",
+                    self.err_ctx
+                )
+        
+        return(rdltypes.ArrayPlaceholder(element_type))
+            
+    def get_min_eval_width(self):
+        return(1) # Don't care
+    
+    def propagate_eval_width(self, w):
+        # All elements are self-determined
+        for op in self.op:
+            op.resolve_expr_width()
+    
+    def get_value(self):
+        result = []
+        for op in self.op:
+            result.append(op.get_value())
+        return(result)
+    
+#-------------------------------------------------------------------------------
+class Concatenate(Expr):
+    def __init__(self, compiler, err_ctx, elements):
+        super().__init__(compiler, err_ctx)
+        self.op = elements
+        self.type = None
+    
+    def predict_type(self):
+        
+        # Get type of first element
+        op_iter = iter(self.op)
+        element_type = next(op_iter).predict_type()
+        
+        # All remaining elements shall match
+        for op in op_iter:
+            if(element_type != op.predict_type()):
+                self.msg.fatal(
+                    "Elements of a concatenation shall be the same type",
+                    self.err_ctx
+                )
+        if(is_castable(element_type, int)):
+            self.type = int
+            return(int)
+        elif(is_castable(element_type, str)):
+            self.type = str
+            return(str)
+        else:
+            self.msg.fatal(
+                "Concatenation operator can only be used for integral or string types",
+                self.err_ctx
+            )
+            
+    def get_min_eval_width(self):
+        if(self.type == int):
+            width = 0
+            for op in self.op:
+                width = width + op.get_min_eval_width()
+            
+            return(width)
+        elif(self.type == str):
+            return(1) # Don't care for strings
+        else:
+            raise RuntimeError
+    
+    def propagate_eval_width(self, w):
+        # All elements are self-determined
+        for op in self.op:
+            op.resolve_expr_width()
+    
+    def get_value(self):
+        if(self.type == int):
+            result = 0
+            for op in self.op:
+                width = op.get_min_eval_width()
+                result <<= width
+                result |= int(op.get_value())
+            return(result)
+        
+        elif(self.type == str):
+            result = ""
+            for op in self.op:
+                result += op.get_value()
+            return(result)
+        
+        else:
+            raise RuntimeError
+
+#-------------------------------------------------------------------------------
+class Replicate(Expr):
+    def __init__(self, compiler, err_ctx, reps, concat):
+        super().__init__(compiler, err_ctx)
+        self.reps = reps
+        self.concat = concat
+        self.type = None
+        self.reps_value = None
+    
+    def predict_type(self):
+        
+        if(not is_castable(self.reps.predict_type(), int)):
+            self.msg.fatal(
+                "Replication count operand of replication expression is not a compatible numeric type",
+                self.reps.err_ctx
+            )
+        
+        element_type = self.concat.predict_type()
+        
+        if(is_castable(element_type, int)):
+            self.type = int
+            return(int)
+        elif(is_castable(element_type, str)):
+            self.type = str
+            return(str)
+        else:
+            self.msg.fatal(
+                "Replication operator can only be used for integral or string types",
+                self.concat.err_ctx
+            )
+    
+    def get_min_eval_width(self):
+        if(self.type == int):
+            # Get width of single contents
+            width = self.concat.get_min_eval_width()
+            
+            # Evaluate number of repetitions
+            if(self.reps_value is None):
+                self.reps.resolve_expr_width()
+                self.reps_value = self.reps.get_value()
+            
+            width *= self.reps_value
+            
+            return(width)
+            
+        elif(self.type == str):
+            return(1) # Don't care for strings
+        else:
+            raise RuntimeError
+    
+    def propagate_eval_width(self, w):
+        # All elements are self-determined
+        self.reps.resolve_expr_width()
+        self.concat.resolve_expr_width()
+    
+    def get_value(self):
+        if(self.type == int):
+            width = self.concat.get_min_eval_width()
+            val = int(self.concat.get_value())
+            
+            result = 0
+            for i in range(self.reps_value):
+                result <<= width
+                result |= val
+            
+            return(result)
+        
+        elif(self.type == str):
+            result = self.concat.get_value()
+            result *= self.reps_value
+            return(result)
+        
+        else:
+            raise RuntimeError
+    
 #-------------------------------------------------------------------------------
 # Integer binary operators:
 #   +  -  *  /  %  &  |  ^  ^~  ~^
@@ -681,12 +862,12 @@ class WidthCast(Expr):
             if(not is_castable(self.op[1].predict_type(), int)):
                 self.msg.fatal(
                     "Width operand of cast expression is not a compatible numeric type",
-                    self.err_ctx
+                    self.op[1].err_ctx
                 )
         if(not is_castable(self.op[0].predict_type(), int)):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to an integer",
-                self.err_ctx
+                self.op[0].err_ctx
             )
         
         return(int)
@@ -980,9 +1161,15 @@ def is_castable(src, dst):
     if(((src in [int, bool]) or rdltypes.is_user_enum(src)) and (dst in [int, bool])):
         # Pure numeric or enum can be cast to a numeric
         return(True)
-    elif((src == tp.Array) and (dst == tp.Array)):
-        # TODO: Check that array size and element types also match
-        raise NotImplementedError
+    elif((src == rdltypes.ArrayPlaceholder) and (dst == rdltypes.ArrayPlaceholder)):
+        # Check that array element types also match
+        if(src.element_type is None):
+            # indeterminate array type. Is castable
+            return(True)
+        elif(src.element_type == dst.element_type):
+            return(True)
+        else:
+            return(False)
     elif(src == dst):
         return(True)
     else:

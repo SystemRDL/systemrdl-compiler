@@ -8,6 +8,7 @@ from . import properties
 from . import expressions
 
 from .. import component as comp
+from .. import rdltypes
 
 class UDPVisitor(BaseVisitor):
     def __init__(self, compiler, current_component):
@@ -102,9 +103,9 @@ class UDPVisitor(BaseVisitor):
         
         is_array = (ctx.array_type_suffix() is not None)
         if(is_array):
-            # TODO: arrayify each entry in the list of valid types
-            raise NotImplementedError
-        
+            # arrayify each entry in the list of valid types
+            for i in range(len(valid_types)):
+                valid_types[i] = rdltypes.ArrayPlaceholder(valid_types[i])
         
         self.attr['valid_types'] = valid_types
         

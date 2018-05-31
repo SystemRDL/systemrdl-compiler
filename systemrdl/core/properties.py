@@ -2,7 +2,6 @@ from .. import component as comp
 from ..node import FieldNode, VectorNode
 from .. import rdltypes
 from . import expressions
-from . import type_placeholders as tp
 
 def get_all_subclasses(cls):
     return cls.__subclasses__() + [
@@ -264,14 +263,14 @@ class Prop_hdl_path_gate(PropertyRule):
 
 class Prop_hdl_path_gate_slice(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
-    valid_types = [tp.Array(str)]
+    valid_types = [rdltypes.ArrayPlaceholder(str)]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hdl_path_slice(PropertyRule):
     bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
-    valid_types = [tp.Array(str)]
+    valid_types = [rdltypes.ArrayPlaceholder(str)]
     default = None
     dyn_assign_allowed = True
     mutex_group = None

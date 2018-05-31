@@ -197,6 +197,38 @@ class ExprVisitor(BaseVisitor):
         
         return(e.EnumLiteral(self.compiler, ctx, enum_type[enum_entry_name]))
     
+    
+    def visitArray_literal(self, ctx:SystemRDLParser.Array_literalContext):
+        elements = []
+        for expr_ctx in ctx.getChildren():
+            elm_expr = self.visit(expr_ctx)
+            elements.append(elm_expr)
+        
+        expr = e.ArrayLiteral(self.compiler, ctx, elements)
+        expr.predict_type()
+        return(expr)
+        
+    #---------------------------------------------------------------------------
+    # Aggregate Operators
+    #---------------------------------------------------------------------------
+    def visitConcatenate(self, ctx:SystemRDLParser.ConcatenateContext):
+        elements = []
+        for expr_ctx in ctx.getChildren():
+            elm_expr = self.visit(expr_ctx)
+            elements.append(elm_expr)
+        
+        expr = e.Concatenate(self.compiler, ctx, elements)
+        expr.predict_type()
+        return(expr)
+    
+    
+    def visitReplicate(self, ctx:SystemRDLParser.ReplicateContext):
+        reps_expr = self.visit(ctx.expr())
+        concat_expr = self.visit(ctx.concatenate())
+        expr = e.Replicate(self.compiler, ctx, reps_expr, concat_expr)
+        expr.predict_type()
+        return(expr)
+    
     #---------------------------------------------------------------------------
     # Cast
     #---------------------------------------------------------------------------
@@ -302,18 +334,6 @@ class ExprVisitor(BaseVisitor):
     
     #---------------------------------------------------------------------------
 
-    def visitArray_literal(self, ctx:SystemRDLParser.Array_literalContext):
-        # TODO: Implement array literals
-        raise NotImplementedError
-
     def visitStruct_literal(self, ctx:SystemRDLParser.Struct_literalContext):
         # TODO: Implement struct literals
-        raise NotImplementedError
-
-    def visitConcatenate(self, ctx:SystemRDLParser.ConcatenateContext):
-        # TODO: Implement concatenate operator
-        raise NotImplementedError
-
-    def visitReplicate(self, ctx:SystemRDLParser.ReplicateContext):
-        # TODO: Implement replicate operator
         raise NotImplementedError

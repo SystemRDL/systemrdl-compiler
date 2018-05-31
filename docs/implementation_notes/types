@@ -25,7 +25,7 @@ RDL --> Python type mapping:
     onwritetype       Python Enum Inst          Python Enum Class
     precedencetype    Python Enum Inst          Python Enum Class
     struct            Object reference          Dynamically created type
-    array             Python list               type_placeholders.Array
+    array             Python list               ArrayPlaceholder
     enum              Inst of the enum          Dynamically created enum.Enum
     ref               Build Node link @ runtime Reference to Component type
 

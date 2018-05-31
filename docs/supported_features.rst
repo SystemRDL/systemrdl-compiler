@@ -152,8 +152,8 @@ The *priority* column denotes how high the item is on my to-do list:
         - 
 
     *   - array datatype
-        - :red:`No`
-        - 5
+        - :green:`Yes`
+        - 
         - 
 
     *   - enum datatype
@@ -212,13 +212,13 @@ The *priority* column denotes how high the item is on my to-do list:
         - 
 
     *   - Concatenate operator
-        - :red:`No`
-        - 5
+        - :green:`Yes`
+        - 
         - 
 
     *   - Replication operator
-        - :red:`No`
-        - 5
+        - :green:`Yes`
+        - 
         - 
 
     *   - Semantic checking
