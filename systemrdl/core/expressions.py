@@ -621,6 +621,7 @@ class AndReduce(_ReductionExpr):
 class NandReduce(_ReductionExpr):
     def get_value(self):
         n = self.get_ops()
+        n = self.trunc(~n)
         return(int(n != 0))
         
 class OrReduce(_ReductionExpr):
@@ -655,7 +656,12 @@ class XnorReduce(_ReductionExpr):
         
 class BoolNot(_ReductionExpr):
     def get_value(self):
-        return(not self.op[0])
+        n = self.get_ops()
+        return(not n)
+    
+    def predict_type(self):
+        super().predict_type()
+        return(bool)
 
 #-------------------------------------------------------------------------------
 # Logical boolean operators:
@@ -741,6 +747,7 @@ class _ExpShiftExpr(Expr):
         """
         self.expr_eval_width = self.op[0].get_min_eval_width()
         self.op[0].propagate_eval_width(self.expr_eval_width)
+        self.op[1].resolve_expr_width()
     
     def get_min_eval_width(self):
         # Righthand op has no influence in evaluation context
@@ -787,7 +794,7 @@ class TernaryExpr(Expr):
         self.op = [i, j, k]
     
     def predict_type(self):
-        t_i = self.op[1].predict_type()
+        t_i = self.op[0].predict_type()
         if(not is_castable(t_i, bool)):
             self.msg.fatal(
                 "Conditional operand of expression is not a compatible boolean type",
@@ -798,7 +805,7 @@ class TernaryExpr(Expr):
         t_j = self.op[1].predict_type()
         t_k = self.op[2].predict_type()
         
-        if(t_j == t_i):
+        if(t_j == t_k):
             # Same types. Inherently compatible
             # Resolves to same type
             return(t_j)
