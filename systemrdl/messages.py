@@ -3,7 +3,7 @@ import sys
 
 from antlr4.error.ErrorListener import ErrorListener
 from antlr4.Token import CommonToken
-from antlr4 import ParserRuleContext
+from antlr4 import ParserRuleContext, FileStream
 from antlr4.tree.Tree import TerminalNodeImpl
 from colorama import Fore, Style
 
@@ -35,7 +35,10 @@ class MessageHandler:
         self.error_count += 1
     
     def fatal(self, text, context=None):
-        self.error(text, context)
+        if(context is not None):
+            context = MessageContext(context)
+        
+        self.printer.print_message("error", text, context)
         raise RDLCompileError(text)
         
 #===============================================================================
@@ -67,7 +70,8 @@ class MessageContext:
         self.line = token.line
         self.column = token.column
         inputStream = token.getInputStream()
-        self.filename = inputStream.fileName
+        if(type(inputStream) == FileStream):
+            self.filename = inputStream.fileName
         
         file_lines = inputStream.strdata.splitlines()
         file_lines.append("") # append an empty line just in case error is at EOF
@@ -78,7 +82,8 @@ class MessageContext:
         self.line = start_token.line
         self.column = start_token.column
         inputStream = start_token.getInputStream()
-        self.filename = inputStream.fileName
+        if(type(inputStream) == FileStream):
+            self.filename = inputStream.fileName
         
         file_lines = inputStream.strdata.splitlines()
         file_lines.append("") # append an empty line just in case error is at EOF

@@ -297,14 +297,15 @@ class Replicate(Expr):
             )
     
     def get_min_eval_width(self):
+        # Evaluate number of repetitions
+        if(self.reps_value is None):
+            self.reps.resolve_expr_width()
+            self.reps_value = self.reps.get_value()
+        
         if(self.type == int):
             # Get width of single contents
             width = self.concat.get_min_eval_width()
             
-            # Evaluate number of repetitions
-            if(self.reps_value is None):
-                self.reps.resolve_expr_width()
-                self.reps_value = self.reps.get_value()
             
             width *= self.reps_value
             
@@ -321,6 +322,11 @@ class Replicate(Expr):
         self.concat.resolve_expr_width()
     
     def get_value(self):
+        # Evaluate number of repetitions
+        if(self.reps_value is None):
+            self.reps.resolve_expr_width()
+            self.reps_value = self.reps.get_value()
+        
         if(self.type == int):
             width = self.concat.get_min_eval_width()
             val = int(self.concat.get_value())
@@ -530,12 +536,14 @@ class _NumericRelationalExpr(_RelationalExpr):
         r_type = self.op[1].predict_type()
         
         # Type of L and R operands shall be integral types
-        if(is_castable(l_type, int) and is_castable(r_type, int)):
-            pass
-        else:
-            # Incompatible
+        if(not is_castable(l_type, int)):
             self.msg.fatal(
-                "Left and right operands of expression are not compatible types",
+                "Left operand of expression is not a compatible numeric type",
+                self.err_ctx
+            )
+        if(not is_castable(r_type, int)):
+            self.msg.fatal(
+                "Right operand of expression is not a compatible numeric type",
                 self.err_ctx
             )
         return(bool)

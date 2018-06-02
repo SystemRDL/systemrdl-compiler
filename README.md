@@ -1,4 +1,4 @@
-[![Documentation Status](https://readthedocs.org/projects/systemrdl-compiler/badge/?version=latest)](http://systemrdl-compiler.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/systemrdl-compiler/badge/?version=latest)](http://systemrdl-compiler.readthedocs.io/en/latest/?badge=latest)[![Build Status](https://travis-ci.org/SystemRDL/systemrdl-compiler.svg?branch=master)](https://travis-ci.org/SystemRDL/systemrdl-compiler)
 
 # SystemRDL Compiler
 

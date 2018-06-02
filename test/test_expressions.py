@@ -1,70 +1,214 @@
-#!/usr/bin/env python3
-import unittest
 
-import sys
-import os
-this_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, os.path.join(this_dir, "../"))
+from rdl_unittest import RDLSourceTestCase
 
-
-from antlr4 import InputStream, CommonTokenStream
-from systemrdl import RDLCompiler
-from systemrdl.parser.SystemRDLLexer import SystemRDLLexer
-from systemrdl.parser.SystemRDLParser import SystemRDLParser
-from systemrdl.core.ExprVisitor import ExprVisitor
+import systemrdl.rdltypes as rdlt
 
 #===============================================================================
-def eval_RDL_expr(expr_text):
-    input_stream = InputStream(expr_text)
-    lexer = SystemRDLLexer(input_stream)
-    token_stream = CommonTokenStream(lexer)
-    parser = SystemRDLParser(token_stream)
-    tree = parser.expr()
+class TestLiterals(RDLSourceTestCase):
     
-    rdlc = RDLCompiler()
-    
-    visitor = ExprVisitor(rdlc, None)
-    result = visitor.visit(tree)
-    
-    pred_type = result.predict_type()
-    result.resolve_expr_width()
-    return(pred_type, result.get_value())
-
-#===============================================================================
-class TestNumericExpressions(unittest.TestCase):
-    
-    def test_width_propagation(self):
-        self.assertEqual((int, 0x00FF), eval_RDL_expr("8'h00 - 1'h1"))
-        self.assertEqual((int, 0x00FF), eval_RDL_expr("8'h00 - 1'h1"))
-        self.assertEqual((int, 0x0000), eval_RDL_expr("(8'h00 - 1'h1) + 16'h1"))
-        self.assertEqual((int, 0x0100), eval_RDL_expr("(8'hFF) + 16'h1"))
-        self.assertEqual((int, 0xFFFF), eval_RDL_expr("(8'h00 - 1'h1) + 16'h0"))
-        self.assertEqual((int, 0x0000), eval_RDL_expr("((8'h00 - 1'h1) - 8'hFF)"))
-        self.assertEqual((int, 0xFF00), eval_RDL_expr("((8'h00- 1'h1) - 8'hFF) + 16'h0"))
-        self.assertEqual((int, 0xFFFF), eval_RDL_expr("(~(~(8'h00 - 1'h1))) + 16'h0"))
-        self.assertEqual((int, 0xFFFF), eval_RDL_expr("(~(8'h00)) + 16'h0"))
-        self.assertEqual((int, 0xFF00), eval_RDL_expr("(~(8'hFF)) + 16'h0"))
-        self.assertEqual((int, 0x0100), eval_RDL_expr("((8'hFF + 8'h1)) + 16'h0"))
-        self.assertEqual((int, 0x0000), eval_RDL_expr("8'hFF + 8'h1"))
-        self.assertEqual((int, 0x0100), eval_RDL_expr("8'hFF + 16'h1"))
-        self.assertEqual((int, 0x00FF), eval_RDL_expr("8'hFF + 16'h0"))
-        self.assertEqual((int, 0x0100), eval_RDL_expr("((8'hFF + 8'h1) + 8'h0) + 16'h0"))
-        self.assertEqual((int, 0x0000), eval_RDL_expr("((8'hFF + 8'h1) + 8'h0) + 8'h0"))
-        self.assertEqual((int, 0x0000), eval_RDL_expr("(8'hFF + 8'h1) + 8'h0"))
-        self.assertEqual((int, 0x0000), eval_RDL_expr("((8'hFF + 8'h1)) + ((8'hFF + 8'h1))"))
-        self.assertEqual((int, 0x0200), eval_RDL_expr("((8'hFF + 8'h1)) + ((8'hFF + 8'h1) + 16'b0)"))
-        self.assertEqual((int, 0x0000), eval_RDL_expr("1'b1 << 3"))
-        self.assertEqual((int, 0x0008), eval_RDL_expr("(1'b1 << 3) + 8'b0"))
-        self.assertEqual((int, 0x0000), eval_RDL_expr("(|(~(4'hF))) + 8'b0"))
-        self.assertEqual((int, 0x00FF), eval_RDL_expr("(~(&(4'b1))) + 8'b0"))
-    
-    def test_width_cast(self):
-        self.assertEqual((int, 0x0100), eval_RDL_expr("(16)'(8'hFF + 8'h1) + 8'h0)"))
-        self.assertEqual((int, 0x000F), eval_RDL_expr("(4)'(8'hFF)"))
-    
-    def test_boolean_expr(self):
-        self.assertEqual((bool, False), eval_RDL_expr("16 == 3"))
+    def test_verilog(self):
+        with self.subTest("hex"):
+            self.assertEqual((int, 0xcafebabe), self.eval_RDL_expr("(32'hcafebabe)"))
+            self.assertEqual((int, 0x12345678), self.eval_RDL_expr("(32'h12_345__678)"))
         
+        with self.subTest("dec"):
+            self.assertEqual((int, 1234), self.eval_RDL_expr("(16'd1234)"))
+            self.assertEqual((int, 987), self.eval_RDL_expr("(10'd9_8_7)"))
+        
+        with self.subTest("bin"):
+            self.assertEqual((int, 0xb19), self.eval_RDL_expr("(12'b101100011001)"))
+            self.assertEqual((int, 0x7A), self.eval_RDL_expr("(16'b0111_1010)"))
+        
+        with self.subTest("err"):
+            self.assertRDLExprError("(16'h12345)", "Value of integer literal exceeds the specified width")
+            self.assertRDLExprError("(0'h12345)", "Integer literal width must be greater than zero")
+    
+    
+    def test_hex(self):
+        self.assertEqual((int, 0xcafebabe), self.eval_RDL_expr("(0xcafebabe)"))
+        self.assertEqual((int, 0x12345678), self.eval_RDL_expr("(0x12_345__678)"))
+    
+    
+    def test_decimal(self):
+        self.assertEqual((int, 1234), self.eval_RDL_expr("(1234)"))
+        self.assertEqual((int, 987654), self.eval_RDL_expr("(987_654)"))
+    
+    def test_bool(self):
+        self.assertEqual((int, 1), self.eval_RDL_expr("(true)"))
+        self.assertEqual((int, 0), self.eval_RDL_expr("(false)"))
+    
+    def test_string(self):
+        self.assertEqual((str, ''), self.eval_RDL_expr('""'))
+        self.assertEqual((str, 'Hello World'), self.eval_RDL_expr('"Hello World"'))
+        self.assertEqual((str, '"quotes" quotes!"'), self.eval_RDL_expr('"\\"quotes\\" quotes!\\""'))
+    
+    
+    def test_builtin(self):
+        self.assertEqual((rdlt.AccessType, rdlt.AccessType.na), self.eval_RDL_expr('(na)'))
+        self.assertEqual((rdlt.AddressingType, rdlt.AddressingType.fullalign), self.eval_RDL_expr('(fullalign)'))
+        self.assertEqual((rdlt.OnReadType, rdlt.OnReadType.rclr), self.eval_RDL_expr('(rclr)'))
+        self.assertEqual((rdlt.OnWriteType, rdlt.OnWriteType.woclr), self.eval_RDL_expr('(woclr)'))
+    
+    
+    def test_array(self):
+        with self.subTest("valid"):
+            self.assertEqual((rdlt.ArrayPlaceholder(None), []), self.eval_RDL_expr("('{})"))
+            self.assertEqual((rdlt.ArrayPlaceholder(int), [1,2,3,4]), self.eval_RDL_expr("('{1,2,3,4})"))
+            self.assertEqual((rdlt.ArrayPlaceholder(str), ["foo", "bar", "baz"]), self.eval_RDL_expr('(\'{"foo", "bar", "baz"})'))
+            self.assertEqual(
+                (rdlt.ArrayPlaceholder(rdlt.AccessType), [rdlt.AccessType.rw, rdlt.AccessType.na]),
+                self.eval_RDL_expr("('{rw, na})")
+            )
+        
+        with self.subTest("err"):
+            self.assertRDLExprError("('{rw, 1234})", "Elements of an array shall be the same type")
+    
 #===============================================================================
-if __name__ == '__main__':
-    unittest.main()
+class TestListOperators(RDLSourceTestCase):
+    def test_concatenate(self):
+        with self.subTest("int"):
+            self.assertEqual((int, 123), self.eval_RDL_expr("{123}"))
+            self.assertEqual((int, 0xABCD), self.eval_RDL_expr("{8'hAB, 8'hCD}"))
+            self.assertEqual((int, 0xAB0000000000000000), self.eval_RDL_expr("{8'hAB, 0}"))
+            self.assertEqual((int, 0xFF), self.eval_RDL_expr("{1'b1, 7'h7F}"))
+            self.assertEqual((int, 0xFF), self.eval_RDL_expr("{true, 7'h7F}"))
+            self.assertEqual((int, 0xABCDEF), self.eval_RDL_expr("{{4'hA, 8'hBC}, {8'hDE, 4'hF}}"))
+    
+        with self.subTest("str"):
+            self.assertEqual((str, ''), self.eval_RDL_expr('{""}'))
+            self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"foobar"}'))
+            self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"foo","bar"}'))
+            self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"fo","ob", "ar"}'))
+            self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"foobar", ""}'))
+
+        with self.subTest("err"):
+            self.assertRDLExprError('{woclr}', "Concatenation operator can only be used for integral or string types")
+            self.assertRDLExprError('{"hi", 123}', "Elements of a concatenation shall be the same type")
+    
+    
+    def test_replicate(self):
+        with self.subTest("int"):
+            self.assertEqual((int, 0xFFF), self.eval_RDL_expr("{3{4'hF}}"))
+            self.assertEqual((int, 0), self.eval_RDL_expr("{0{4'hF}}"))
+            self.assertEqual((int, 0xAB), self.eval_RDL_expr("{4'hA, {0{4'hF}}, 4'hB}"))
+        
+        with self.subTest("str"):
+            self.assertEqual((str, "hihihi"), self.eval_RDL_expr('{3{"hi"}}'))
+            self.assertEqual((str, ""), self.eval_RDL_expr('{3{""}}'))
+            self.assertEqual((str, ""), self.eval_RDL_expr('{0{"hi"}}'))
+
+#===============================================================================
+class TestIntBinaryOperators(RDLSourceTestCase):
+    #   +  -  *  /  %  &  |  ^  ^~  ~^
+    def test_basic(self):
+        self.assertEqual((int, 32), self.eval_RDL_expr("24 + 8"))
+        self.assertEqual((int, 16), self.eval_RDL_expr("24 - 8"))
+        self.assertEqual((int, 192), self.eval_RDL_expr("24 * 8"))
+        self.assertEqual((int, 3), self.eval_RDL_expr("24 / 8"))
+        self.assertEqual((int, 4), self.eval_RDL_expr("24 / 5"))
+        self.assertEqual((int, 1), self.eval_RDL_expr("10 % 3"))
+        self.assertEqual((int, 0x02), self.eval_RDL_expr("0x12 & 0x23"))
+        self.assertEqual((int, 0x33), self.eval_RDL_expr("0x12 | 0x23"))
+        self.assertEqual((int, 0x31), self.eval_RDL_expr("0x12 ^ 0x23"))
+        self.assertEqual((int, 0xCE), self.eval_RDL_expr("8'h12 ~^ 8'h23"))
+        self.assertEqual((int, 0xCE), self.eval_RDL_expr("8'h12 ^~ 8'h23"))
+    
+    def test_overflow(self):
+        self.assertEqual((int, 1), self.eval_RDL_expr("8'hF0 + 5'h11"))
+        self.assertEqual((int, 1), self.eval_RDL_expr("0xFFFFFFFFFFFFFFF0 + 0x11"))
+        self.assertEqual((int, 1), self.eval_RDL_expr("68'hFFFFFFFFFFFFFFFF0 + 5'h11"))
+    
+    def test_err(self):
+        self.assertRDLExprError('10 + "hi"', "Right operand of expression is not a compatible numeric type")
+        self.assertRDLExprError('"hi" + 10', "Left operand of expression is not a compatible numeric type")
+        self.assertRDLExprError('"hi" + "hi"', r"\w+ operand of expression is not a compatible numeric type")
+        self.assertRDLExprError('100 / 0', "Division by zero")
+        self.assertRDLExprError('100 % 0', "Modulo by zero")
+    
+#===============================================================================
+class TestUnaryOperators(RDLSourceTestCase):
+    #   +  -  ~
+    def test_basic(self):
+        self.assertEqual((int, 0xA3), self.eval_RDL_expr("+8'hA3"))
+        self.assertEqual((int, 0x5D), self.eval_RDL_expr("-8'hA3"))
+        self.assertEqual((int, 0x5C), self.eval_RDL_expr("~8'hA3"))
+        self.assertEqual((int, 0), self.eval_RDL_expr("~true"))
+        self.assertEqual((int, 1), self.eval_RDL_expr("~false"))
+    
+    def test_err(self):
+        self.assertRDLExprError('~"hi"', "Operand of expression is not a compatible numeric type")
+
+#===============================================================================
+class TestRelationalOperators(RDLSourceTestCase):
+    #   == != < > <= >=
+    def test_int(self):
+        self.assertEqual((bool, 1), self.eval_RDL_expr("123 == 123"))
+        self.assertEqual((bool, 0), self.eval_RDL_expr("120 == 123"))
+        self.assertEqual((bool, 0), self.eval_RDL_expr("123 != 123"))
+        self.assertEqual((bool, 1), self.eval_RDL_expr("120 != 123"))
+        self.assertEqual((bool, 1), self.eval_RDL_expr("120 < 123"))
+        self.assertEqual((bool, 0), self.eval_RDL_expr("123 < 120"))
+        self.assertEqual((bool, 0), self.eval_RDL_expr("120 > 123"))
+        self.assertEqual((bool, 1), self.eval_RDL_expr("123 > 120"))
+        self.assertEqual((bool, 0), self.eval_RDL_expr("120 >= 123"))
+        self.assertEqual((bool, 1), self.eval_RDL_expr("123 >= 123"))
+        self.assertEqual((bool, 1), self.eval_RDL_expr("123 >= 120"))
+        self.assertEqual((bool, 0), self.eval_RDL_expr("123 <= 120"))
+        self.assertEqual((bool, 1), self.eval_RDL_expr("123 <= 123"))
+        self.assertEqual((bool, 1), self.eval_RDL_expr("120 <= 123"))
+    
+    def test_str(self):
+        self.assertEqual((bool, 0), self.eval_RDL_expr('"hi" == "ho"'))
+        self.assertEqual((bool, 1), self.eval_RDL_expr('"hi" == "hi"'))
+        self.assertEqual((bool, 1), self.eval_RDL_expr('"hi" != "ho"'))
+        self.assertEqual((bool, 0), self.eval_RDL_expr('"hi" != "hi"'))
+    
+    def test_array(self):
+        self.assertEqual((bool, 1), self.eval_RDL_expr("'{} == '{}'"))
+        self.assertEqual((bool, 0), self.eval_RDL_expr("'{1,2,3} == '{1,2}'"))
+        self.assertEqual((bool, 1), self.eval_RDL_expr("'{1,2,3} == '{1,2,3}'"))
+        self.assertEqual((bool, 1), self.eval_RDL_expr("'{1,2,3} != '{1,2}'"))
+        self.assertEqual((bool, 0), self.eval_RDL_expr("'{1,2,3} != '{1,2,3}'"))
+    
+    def test_err(self):
+        self.assertRDLExprError('10 > "hi"', "Right operand of expression is not a compatible numeric type")
+        self.assertRDLExprError('"hi" > 10', "Left operand of expression is not a compatible numeric type")
+        self.assertRDLExprError('10 == "hi"', "Left and right operands of expression are not compatible types")
+    
+    
+#===============================================================================
+class TestCast(RDLSourceTestCase):
+    def test_width_cast(self):
+        self.assertEqual((int, 0x0100), self.eval_RDL_expr("(16)'(8'hFF + 8'h1) + 8'h0)"))
+        self.assertEqual((int, 0x000F), self.eval_RDL_expr("(4)'(8'hFF)"))
+        self.assertEqual((int, 0x00FE), self.eval_RDL_expr("(8)'(-3 + 1)"))
+        self.assertEqual((int, 0x00FE), self.eval_RDL_expr("(8)'(1 - 3)"))
+
+#===============================================================================
+class TestAdvanced(RDLSourceTestCase):
+    def test_width_propagation(self):
+        self.assertEqual((int, 0x00FF), self.eval_RDL_expr("8'h00 - 1'h1"))
+        self.assertEqual((int, 0x0000), self.eval_RDL_expr("(8'h00 - 1'h1) + 16'h1"))
+        self.assertEqual((int, 0x0100), self.eval_RDL_expr("(8'hFF) + 16'h1"))
+        self.assertEqual((int, 0xFFFF), self.eval_RDL_expr("(8'h00 - 1'h1) + 16'h0"))
+        self.assertEqual((int, 0x0000), self.eval_RDL_expr("((8'h00 - 1'h1) - 8'hFF)"))
+        self.assertEqual((int, 0xFF00), self.eval_RDL_expr("((8'h00- 1'h1) - 8'hFF) + 16'h0"))
+        self.assertEqual((int, 0xFFFF), self.eval_RDL_expr("(~(~(8'h00 - 1'h1))) + 16'h0"))
+        self.assertEqual((int, 0xFFFF), self.eval_RDL_expr("(~(8'h00)) + 16'h0"))
+        self.assertEqual((int, 0xFF00), self.eval_RDL_expr("(~(8'hFF)) + 16'h0"))
+        self.assertEqual((int, 0x0100), self.eval_RDL_expr("((8'hFF + 8'h1)) + 16'h0"))
+        self.assertEqual((int, 0x0000), self.eval_RDL_expr("8'hFF + 8'h1"))
+        self.assertEqual((int, 0x0100), self.eval_RDL_expr("8'hFF + 16'h1"))
+        self.assertEqual((int, 0x00FF), self.eval_RDL_expr("8'hFF + 16'h0"))
+        self.assertEqual((int, 0x0100), self.eval_RDL_expr("((8'hFF + 8'h1) + 8'h0) + 16'h0"))
+        self.assertEqual((int, 0x0000), self.eval_RDL_expr("((8'hFF + 8'h1) + 8'h0) + 8'h0"))
+        self.assertEqual((int, 0x0000), self.eval_RDL_expr("(8'hFF + 8'h1) + 8'h0"))
+        self.assertEqual((int, 0x0000), self.eval_RDL_expr("((8'hFF + 8'h1)) + ((8'hFF + 8'h1))"))
+        self.assertEqual((int, 0x0200), self.eval_RDL_expr("((8'hFF + 8'h1)) + ((8'hFF + 8'h1) + 16'b0)"))
+        self.assertEqual((int, 0x0000), self.eval_RDL_expr("1'b1 << 3"))
+        self.assertEqual((int, 0x0008), self.eval_RDL_expr("(1'b1 << 3) + 8'b0"))
+        self.assertEqual((int, 0x0000), self.eval_RDL_expr("(|(~(4'hF))) + 8'b0"))
+        self.assertEqual((int, 0x00FF), self.eval_RDL_expr("(~(&(4'b1))) + 8'b0"))
+    
+    
+

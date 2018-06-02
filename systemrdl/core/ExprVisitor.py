@@ -110,8 +110,8 @@ class ExprVisitor(BaseVisitor):
     # Visit a parse tree produced by SystemRDLParser#NumberVerilog.
     def visitNumberVerilog(self, ctx:SystemRDLParser.NumberVerilogContext):
         s = ctx.VLOG_INT().getText()
-        
-        m = re.fullmatch(r"(\d+)'(b|d|h)([\da-f_]+)", s, re.IGNORECASE)
+        s = s.replace("_","")
+        m = re.fullmatch(r"(\d+)'(b|d|h)([\da-f]+)", s, re.IGNORECASE)
         width = int(m.group(1))
         basechar = m.group(2).lower()
         if(basechar == "b"):
@@ -123,6 +123,12 @@ class ExprVisitor(BaseVisitor):
         
         val = int(m.group(3), base)
         
+        if(width < 1):
+            self.msg.fatal(
+                "Integer literal width must be greater than zero",
+                ctx.VLOG_INT()
+            )
+            
         if(val >= (1 << width)):
             self.msg.fatal(
                 "Value of integer literal exceeds the specified width",
@@ -200,7 +206,7 @@ class ExprVisitor(BaseVisitor):
     
     def visitArray_literal(self, ctx:SystemRDLParser.Array_literalContext):
         elements = []
-        for expr_ctx in ctx.getChildren():
+        for expr_ctx in ctx.getTypedRuleContexts(SystemRDLParser.ExprContext):
             elm_expr = self.visit(expr_ctx)
             elements.append(elm_expr)
         
@@ -213,7 +219,7 @@ class ExprVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     def visitConcatenate(self, ctx:SystemRDLParser.ConcatenateContext):
         elements = []
-        for expr_ctx in ctx.getChildren():
+        for expr_ctx in ctx.getTypedRuleContexts(SystemRDLParser.ExprContext):
             elm_expr = self.visit(expr_ctx)
             elements.append(elm_expr)
         

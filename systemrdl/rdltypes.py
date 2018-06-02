@@ -155,3 +155,9 @@ class ArrayPlaceholder():
     """
     def __init__(self, element_type):
         self.element_type = element_type
+    
+    def __eq__(self, other):
+        if(type(other) == ArrayPlaceholder):
+            return(self.element_type == other.element_type)
+        else:
+            return(False)

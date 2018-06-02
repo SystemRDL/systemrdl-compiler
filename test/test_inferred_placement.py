@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
-import unittest
 
-import os
-
-from rdl_unittest_base import RDLSourceTestCase
+from rdl_unittest import RDLSourceTestCase
 
 #===============================================================================
 # Validate inferred field bit placement/packing

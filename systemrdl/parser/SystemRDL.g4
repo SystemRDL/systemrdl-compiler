@@ -170,7 +170,6 @@ boolean_literal : val=(TRUE_kw|FALSE_kw);
 
 array_literal : '\'' '{' '}'
               | '\'' '{' expr (',' expr )* '}';
-//empty_array_literal: '\'' '{' '}';
 
 struct_literal : ID '\'' '{' struct_kv (',' struct_kv)* '}';
 struct_kv : ID ':' expr ;
