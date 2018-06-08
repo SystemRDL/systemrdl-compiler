@@ -1,8 +1,11 @@
 [run]
 omit =
-    # omit anything in a .local directory anywhere
+    # omit Python packages
     */.local/*
-    # omit everything in /usr
     /usr/*
     
+    # Omit unittest
+    ./*
+    
+    # Omit Antlr-generated parser templates
     ../systemrdl/parser/*

@@ -250,7 +250,7 @@ class ExprVisitor(BaseVisitor):
         elif(ctx.typ.type == SystemRDLParser.BOOLEAN_kw):
             return(e.BoolCast(self.compiler, ctx.op, self.visit(ctx.expr())))
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
 
     # Visit a parse tree produced by SystemRDLParser#CastWidth.
     def visitCastWidth(self, ctx:SystemRDLParser.CastWidthContext):
@@ -306,7 +306,7 @@ class ExprVisitor(BaseVisitor):
                 ref_elements=ref_elements
             )
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
         
         return(ref_expr)
 

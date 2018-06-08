@@ -44,7 +44,7 @@ class Expr:
         even if the child type is not relevant to the resulting type.
         Raises exception if input types are not compatible.
         """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
     
     def resolve_expr_width(self):
         """
@@ -71,7 +71,7 @@ class Expr:
         self-determined expression bit-width rules
         (SystemVerilog LRM: IEEE Std 1800-2012, Table 11-21)
         """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
     
     def propagate_eval_width(self, w):
         """
@@ -91,7 +91,7 @@ class Expr:
         Compute the value of the result of the expression
         Assumed that types are compatible.
         """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
     
 #-------------------------------------------------------------------------------
 class IntLiteral(Expr):
@@ -240,7 +240,7 @@ class Concatenate(Expr):
         elif(self.type == str):
             return(1) # Don't care for strings
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
     
     def propagate_eval_width(self, w):
         # All elements are self-determined
@@ -263,7 +263,7 @@ class Concatenate(Expr):
             return(result)
         
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
 
 #-------------------------------------------------------------------------------
 class Replicate(Expr):
@@ -314,7 +314,7 @@ class Replicate(Expr):
         elif(self.type == str):
             return(1) # Don't care for strings
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
     
     def propagate_eval_width(self, w):
         # All elements are self-determined
@@ -344,7 +344,7 @@ class Replicate(Expr):
             return(result)
         
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
     
 #-------------------------------------------------------------------------------
 # Integer binary operators:
@@ -1097,7 +1097,7 @@ class InstRef(Expr):
             # find instance
             current_inst = current_inst.get_child_by_name(name)
             if(current_inst is None):
-                raise RuntimeError
+                raise RuntimeError # pragma: no cover
             
             # Evaluate array suffixes if appropriate
             idx_list = None

@@ -96,7 +96,10 @@ class TestListOperators(RDLSourceTestCase):
             self.assertEqual((str, "hihihi"), self.eval_RDL_expr('{3{"hi"}}'))
             self.assertEqual((str, ""), self.eval_RDL_expr('{3{""}}'))
             self.assertEqual((str, ""), self.eval_RDL_expr('{0{"hi"}}'))
-
+        
+        with self.subTest("err"):
+            self.assertRDLExprError('{"hi"{"hi"}}', "Replication count operand of replication expression is not a compatible numeric type")
+        
 #===============================================================================
 class TestBinaryOperators(RDLSourceTestCase):
     #   +  -  *  /  %  &  |  ^  ^~  ~^

@@ -82,7 +82,7 @@ class ComponentVisitor(BaseVisitor):
         elif(ctx.component_named_def() is not None):
             comp_def = self.visit(ctx.component_named_def())
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
         
         if(ctx.component_insts() is not None):
             # Component is instantiated one or more times
@@ -149,7 +149,7 @@ class ComponentVisitor(BaseVisitor):
             if(subclass.comp_type == self._CompType_Map[type_token.type]):
                 visitor = subclass(self.compiler, def_name, param_defs)
                 return(visitor.visit(body))
-        raise RuntimeError
+        raise RuntimeError # pragma: no cover
     
     #---------------------------------------------------------------------------
     # Component Instantiation
@@ -403,7 +403,7 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.array_dimensions = array_suffixes
                 comp_inst.array_stride = inst_addr_stride
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
         
         if(inst_type == SystemRDLParser.EXTERNAL_kw):
             comp_inst.external = True
@@ -417,7 +417,7 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.is_alias = True
                 comp_inst.alias_primary_inst = alias_primary_inst
             else:
-                raise RuntimeError
+                raise RuntimeError # pragma: no cover
         
         self.component.children.append(comp_inst)
         
@@ -519,7 +519,7 @@ class ComponentVisitor(BaseVisitor):
             # TODO: Set intr property to True and apply prop_mod
             raise NotImplementedError
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
         
         if(default):
             self.compiler.namespace.register_default_property(prop_name, (prop_token, rhs), prop_token)
@@ -547,7 +547,7 @@ class ComponentVisitor(BaseVisitor):
         elif(ctx.encode_prop_assign() is not None):
             prop_token, prop_name, rhs = self.visit(ctx.encode_prop_assign())
         else:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
         
         # Lookup component instance being assigned
         target_inst = self.component
