@@ -37,7 +37,6 @@ class EnumVisitor(BaseVisitor):
                 
                 # OK to immediately evaluate the expression since there is no way that it
                 # can depend on any external references
-                expr.resolve_expr_width()
                 entry_value = expr.get_value()
             else:
                 # automatic enumerator assignment
@@ -108,7 +107,6 @@ class EnumVisitor(BaseVisitor):
         
         # OK to immediately evaluate the expression since there is no way that it
         # can depend on any external references
-        prop_expr.resolve_expr_width()
         prop_value = prop_expr.get_value()
         
         return(prop_token, prop_value)

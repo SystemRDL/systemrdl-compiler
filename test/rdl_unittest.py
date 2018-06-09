@@ -48,7 +48,6 @@ class RDLSourceTestCase(unittest.TestCase):
         result = visitor.visit(tree)
         
         pred_type = result.predict_type()
-        result.resolve_expr_width()
         return(pred_type, result.get_value())
     
     

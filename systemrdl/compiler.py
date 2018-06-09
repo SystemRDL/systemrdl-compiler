@@ -166,11 +166,9 @@ class ElabExpressionsListener(walker.RDLListener):
     def enter_AddressableComponent(self, node):
         # Evaluate instance object expressions
         if(issubclass(type(node.inst.addr_offset), Expr)):
-            node.inst.addr_offset.resolve_expr_width()
             node.inst.addr_offset = node.inst.addr_offset.get_value()
         
         if(issubclass(type(node.inst.addr_align), Expr)):
-            node.inst.addr_align.resolve_expr_width()
             node.inst.addr_align = node.inst.addr_align.get_value()
             if(node.inst.addr_align == 0):
                 self.msg.fatal(
@@ -181,7 +179,6 @@ class ElabExpressionsListener(walker.RDLListener):
         if(node.inst.array_dimensions is not None):
             for i in range(len(node.inst.array_dimensions)):
                 if(issubclass(type(node.inst.array_dimensions[i]), Expr)):
-                    node.inst.array_dimensions[i].resolve_expr_width()
                     node.inst.array_dimensions[i] = node.inst.array_dimensions[i].get_value()
                     if(node.inst.array_dimensions[i] == 0):
                         self.msg.fatal(
@@ -190,7 +187,6 @@ class ElabExpressionsListener(walker.RDLListener):
                         )
         
         if(issubclass(type(node.inst.array_stride), Expr)):
-            node.inst.array_stride.resolve_expr_width()
             node.inst.array_stride = node.inst.array_stride.get_value()
             if(node.inst.array_stride == 0):
                 self.msg.fatal(
@@ -201,7 +197,6 @@ class ElabExpressionsListener(walker.RDLListener):
     def enter_VectorComponent(self, node):
         # Evaluate instance object expressions
         if(issubclass(type(node.inst.width), Expr)):
-            node.inst.width.resolve_expr_width()
             node.inst.width = node.inst.width.get_value()
             if(node.inst.width == 0):
                 self.msg.fatal(
@@ -210,18 +205,15 @@ class ElabExpressionsListener(walker.RDLListener):
                 )
         
         if(issubclass(type(node.inst.msb), Expr)):
-            node.inst.msb.resolve_expr_width()
             node.inst.msb = node.inst.msb.get_value()
         
         if(issubclass(type(node.inst.lsb), Expr)):
-            node.inst.lsb.resolve_expr_width()
             node.inst.lsb = node.inst.lsb.get_value()
     
     def exit_Component(self, node):
         # Evaluate component properties
         for prop_name, prop_value in node.inst.properties.items():
             if(issubclass(type(prop_value), Expr)):
-                prop_value.resolve_expr_width()
                 node.inst.properties[prop_name] = prop_value.get_value()
 
 #-------------------------------------------------------------------------------

@@ -1,19 +1,12 @@
 from copy import deepcopy
 from .. import component as comp
 from .. import rdltypes
-from .helpers import get_ID_text
+from .helpers import get_ID_text, truncate_int
 
 class Expr:
     def __init__(self, compiler, err_ctx):
         self.compiler = compiler
         self.msg = compiler.msg
-        
-        # Number of bits to use for this expression's evaluation
-        # Only relevant for integer-like contexts
-        self.expr_eval_width = None
-        
-        # operands of the expression
-        self.op = []
         
         # Handle to Antlr object to use for error context
         self.err_ctx = err_ctx
@@ -32,10 +25,6 @@ class Expr:
             else:
                 setattr(result, k, deepcopy(v, memo))
         return(result)
-    
-    def trunc(self, v):
-        mask = (1 << self.expr_eval_width) - 1
-        return(v & mask)
         
     def predict_type(self):
         """
@@ -45,25 +34,6 @@ class Expr:
         Raises exception if input types are not compatible.
         """
         raise NotImplementedError # pragma: no cover
-    
-    def resolve_expr_width(self):
-        """
-        Each integer-like expression context is evaluated in a self-determined
-        bit width.
-        
-        This function is called for the top-node of each expression context
-        in order to determine, and propagate the context's expression width
-        - Determine the context's expression width from all
-          operands that do not define their own context.
-        - Propagate resulting width back to those same ops
-        """
-        self.expr_eval_width = 1
-        for op in self.op:
-            w = op.get_min_eval_width()
-            self.expr_eval_width = max(self.expr_eval_width, w)
-        
-        for op in self.op:
-            op.propagate_eval_width(self.expr_eval_width)
         
     def get_min_eval_width(self):
         """
@@ -71,25 +41,25 @@ class Expr:
         self-determined expression bit-width rules
         (SystemVerilog LRM: IEEE Std 1800-2012, Table 11-21)
         """
-        raise NotImplementedError # pragma: no cover
-    
-    def propagate_eval_width(self, w):
-        """
-        Sets the new expression evaluation width from the parent context
-        If this expression is the beginning of a new self-determined integer
-        context, then it shall override this and:
-            - Ignore the value w
-            - Instead, call self.resolve_expr_width() in order to continue
-              resolution propagation
-        """
-        self.expr_eval_width = w
-        for op in self.op:
-            op.propagate_eval_width(w)
+        raise RuntimeError # pragma: no cover
         
-    def get_value(self):
+    def get_value(self, eval_width=None):
         """
         Compute the value of the result of the expression
-        Assumed that types are compatible.
+        
+        Since predict_type() was already called, safe to assume that types are
+        compatible.
+        
+        The eval_width parameter controls the integer width resolution context
+        - If eval_width is irrelevant:
+            For example, comparison operator, integer literal, non-integer expression)
+            OK to ignore eval_width.
+            Otherwise...
+        - If eval_width is None:
+            This expression node is the start of a new self-determined context.
+            Query the relevant operands to determine the context's eval_width
+        - If eval_width is set to a value:
+            Parent expression is propagating the eval_width
         """
         raise NotImplementedError # pragma: no cover
     
@@ -106,7 +76,7 @@ class IntLiteral(Expr):
     def get_min_eval_width(self):
         return(self.width)
     
-    def get_value(self):
+    def get_value(self, eval_width=None):
         return(self.val)
 
 #-------------------------------------------------------------------------------
@@ -121,11 +91,8 @@ class BuiltinEnumLiteral(Expr):
     
     def predict_type(self):
         return(type(self.val))
-        
-    def get_min_eval_width(self):
-        return(1) # dont care
     
-    def get_value(self):
+    def get_value(self, eval_width=None):
         return(self.val)
 
 #-------------------------------------------------------------------------------
@@ -140,7 +107,7 @@ class EnumLiteral(Expr):
     def get_min_eval_width(self):
         return(64)
     
-    def get_value(self):
+    def get_value(self, eval_width=None):
         return(self.val)
 
 #-------------------------------------------------------------------------------
@@ -151,69 +118,58 @@ class StringLiteral(Expr):
     
     def predict_type(self):
         return(str)
-        
-    def get_min_eval_width(self):
-        return(1) # dont care
     
-    def get_value(self):
+    def get_value(self, eval_width=None):
         return(self.val)
 
 #-------------------------------------------------------------------------------
 class ArrayLiteral(Expr):
     def __init__(self, compiler, err_ctx, elements):
         super().__init__(compiler, err_ctx)
-        self.op = elements
+        self.elements = elements
     
     def predict_type(self):
         
-        if(len(self.op) == 0):
+        if(len( self.elements) == 0):
             # Empty array. Element type is indeterminate
             return(rdltypes.ArrayPlaceholder(None))
         
         # Get type of first element
-        op_iter = iter(self.op)
-        element_type = next(op_iter).predict_type()
+        element_iter = iter( self.elements)
+        element_type = next(element_iter).predict_type()
         
         # All remaining elements shall match
-        for op in op_iter:
-            if(element_type != op.predict_type()):
+        for element in element_iter:
+            if(element_type != element.predict_type()):
                 self.msg.fatal(
                     "Elements of an array shall be the same type",
                     self.err_ctx
                 )
         
         return(rdltypes.ArrayPlaceholder(element_type))
-            
-    def get_min_eval_width(self):
-        return(1) # Don't care
     
-    def propagate_eval_width(self, w):
-        # All elements are self-determined
-        for op in self.op:
-            op.resolve_expr_width()
-    
-    def get_value(self):
+    def get_value(self, eval_width=None):
         result = []
-        for op in self.op:
-            result.append(op.get_value())
+        for element in self.elements:
+            result.append(element.get_value())
         return(result)
     
 #-------------------------------------------------------------------------------
 class Concatenate(Expr):
     def __init__(self, compiler, err_ctx, elements):
         super().__init__(compiler, err_ctx)
-        self.op = elements
+        self.elements = elements
         self.type = None
     
     def predict_type(self):
         
         # Get type of first element
-        op_iter = iter(self.op)
-        element_type = next(op_iter).predict_type()
+        element_iter = iter(self.elements)
+        element_type = next(element_iter).predict_type()
         
         # All remaining elements shall match
-        for op in op_iter:
-            if(element_type != op.predict_type()):
+        for element in element_iter:
+            if(element_type != element.predict_type()):
                 self.msg.fatal(
                     "Elements of a concatenation shall be the same type",
                     self.err_ctx
@@ -233,33 +189,26 @@ class Concatenate(Expr):
     def get_min_eval_width(self):
         if(self.type == int):
             width = 0
-            for op in self.op:
-                width = width + op.get_min_eval_width()
+            for element in self.elements:
+                width = width + element.get_min_eval_width()
             
             return(width)
-        elif(self.type == str):
-            return(1) # Don't care for strings
         else:
             raise RuntimeError # pragma: no cover
     
-    def propagate_eval_width(self, w):
-        # All elements are self-determined
-        for op in self.op:
-            op.resolve_expr_width()
-    
-    def get_value(self):
+    def get_value(self, eval_width=None):
         if(self.type == int):
             result = 0
-            for op in self.op:
-                width = op.get_min_eval_width()
+            for element in self.elements:
+                width = element.get_min_eval_width()
                 result <<= width
-                result |= int(op.get_value())
+                result |= int(element.get_value())
             return(result)
         
         elif(self.type == str):
             result = ""
-            for op in self.op:
-                result += op.get_value()
+            for element in self.elements:
+                result += element.get_value()
             return(result)
         
         else:
@@ -299,32 +248,19 @@ class Replicate(Expr):
     def get_min_eval_width(self):
         # Evaluate number of repetitions
         if(self.reps_value is None):
-            self.reps.resolve_expr_width()
             self.reps_value = self.reps.get_value()
         
         if(self.type == int):
             # Get width of single contents
             width = self.concat.get_min_eval_width()
-            
-            
             width *= self.reps_value
-            
             return(width)
-            
-        elif(self.type == str):
-            return(1) # Don't care for strings
         else:
             raise RuntimeError # pragma: no cover
     
-    def propagate_eval_width(self, w):
-        # All elements are self-determined
-        self.reps.resolve_expr_width()
-        self.concat.resolve_expr_width()
-    
-    def get_value(self):
+    def get_value(self, eval_width=None):
         # Evaluate number of repetitions
         if(self.reps_value is None):
-            self.reps.resolve_expr_width()
             self.reps_value = self.reps.get_value()
         
         if(self.type == int):
@@ -353,11 +289,12 @@ class Replicate(Expr):
 class _BinaryIntExpr(Expr):
     def __init__(self, compiler, err_ctx, l, r):
         super().__init__(compiler, err_ctx)
-        self.op = [l, r]
+        self.l = l
+        self.r = r
         
     def predict_type(self):
-        l_type = self.op[0].predict_type()
-        r_type = self.op[1].predict_type()
+        l_type = self.l.predict_type()
+        r_type = self.r.predict_type()
         if(not is_castable(l_type, int)):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
@@ -372,69 +309,93 @@ class _BinaryIntExpr(Expr):
     
     def get_min_eval_width(self):
         return(max(
-            self.op[0].get_min_eval_width(),
-            self.op[1].get_min_eval_width()
+            self.l.get_min_eval_width(),
+            self.r.get_min_eval_width()
         ))
         
-    def get_ops(self):
-        l = int(self.op[0].get_value())
-        r = int(self.op[1].get_value())
-        return(l,r)
-    
 class Add(_BinaryIntExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(l + r))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        l = self.l.get_value(eval_width)
+        r = self.r.get_value(eval_width)
+        return(truncate_int(l + r, eval_width))
 
 class Sub(_BinaryIntExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(l - r))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        l = self.l.get_value(eval_width)
+        r = self.r.get_value(eval_width)
+        return(truncate_int(l - r, eval_width))
 
 class Mult(_BinaryIntExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(l * r))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        l = self.l.get_value(eval_width)
+        r = self.r.get_value(eval_width)
+        return(truncate_int(l * r, eval_width))
 
 class Div(_BinaryIntExpr):
-    def get_value(self):
-        l,r = self.get_ops()
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        l = self.l.get_value(eval_width)
+        r = self.r.get_value(eval_width)
+        
         if(r == 0):
             self.msg.fatal(
                 "Division by zero",
                 self.err_ctx
             )
-        return(self.trunc(l // r))
+        return(truncate_int(l // r, eval_width))
 
 class Mod(_BinaryIntExpr):
-    def get_value(self):
-        l,r = self.get_ops()
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        l = self.l.get_value(eval_width)
+        r = self.r.get_value(eval_width)
+        
         if(r == 0):
             self.msg.fatal(
                 "Modulo by zero",
                 self.err_ctx
             )
-        return(self.trunc(l % r))
+        return(truncate_int(l % r, eval_width))
         
 class BitwiseAnd(_BinaryIntExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(l & r))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        l = self.l.get_value(eval_width)
+        r = self.r.get_value(eval_width)
+        return(truncate_int(l & r, eval_width))
         
 class BitwiseOr(_BinaryIntExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(l | r))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        l = self.l.get_value(eval_width)
+        r = self.r.get_value(eval_width)
+        return(truncate_int(l | r, eval_width))
         
 class BitwiseXor(_BinaryIntExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(l ^ r))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        l = self.l.get_value(eval_width)
+        r = self.r.get_value(eval_width)
+        return(truncate_int(l ^ r, eval_width))
 
 class BitwiseXnor(_BinaryIntExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(l ^~ r))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        l = self.l.get_value(eval_width)
+        r = self.r.get_value(eval_width)
+        return(truncate_int(l ^~ r, eval_width))
 
 #-------------------------------------------------------------------------------
 # Integer unary operators:
@@ -443,10 +404,10 @@ class BitwiseXnor(_BinaryIntExpr):
 class _UnaryIntExpr(Expr):
     def __init__(self, compiler, err_ctx, n):
         super().__init__(compiler, err_ctx)
-        self.op = [n]
+        self.n = n
         
     def predict_type(self):
-        op_type = self.op[0].predict_type()
+        op_type = self.n.predict_type()
         if(not is_castable(op_type, int)):
             self.msg.fatal(
                 "Operand of expression is not a compatible numeric type",
@@ -455,26 +416,28 @@ class _UnaryIntExpr(Expr):
         return(int)
     
     def get_min_eval_width(self):
-        return(self.op[0].get_min_eval_width())
+        return(self.n.get_min_eval_width())
         
-    def get_ops(self):
-        n = int(self.op[0].get_value())
-        return(n)
-
 class UnaryPlus(_UnaryIntExpr):
-    def get_value(self):
-        n = self.get_ops()
-        return(self.trunc(n))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        n = self.n.get_value(eval_width)
+        return(truncate_int(n, eval_width))
 
 class UnaryMinus(_UnaryIntExpr):
-    def get_value(self):
-        n = self.get_ops()
-        return(self.trunc(-n))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        n = self.n.get_value(eval_width)
+        return(truncate_int(-n, eval_width))
 
 class BitwiseInvert(_UnaryIntExpr):
-    def get_value(self):
-        n = self.get_ops()
-        return(self.trunc(~n))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.get_min_eval_width()
+        n = self.n.get_value(eval_width)
+        return(truncate_int(~n, eval_width))
 
 #-------------------------------------------------------------------------------
 # Relational operators:
@@ -486,20 +449,20 @@ class BitwiseInvert(_UnaryIntExpr):
 class _RelationalExpr(Expr):
     def __init__(self, compiler, err_ctx, l, r):
         super().__init__(compiler, err_ctx)
-        self.op = [l, r]
+        self.l = l
+        self.r = r
+        self.is_numeric = None
         
     def predict_type(self):
-        l_type = self.op[0].predict_type()
-        r_type = self.op[1].predict_type()
+        l_type = self.l.predict_type()
+        r_type = self.r.predict_type()
         
         # Type of L and R operands shall be compatible
-        if(l_type == r_type):
+        if(is_castable(l_type, int) and is_castable(r_type, int)):
+            self.is_numeric = True
+        elif(l_type == r_type):
             # Same types. Inherently compatible
-            pass
-        elif(is_castable(l_type, int) and is_castable(r_type, int)):
-            # Since types are not equal, the only remaining option is that they
-            # are both numeric-compatible.
-            pass
+            self.is_numeric = False
         else:
             # Incompatible
             self.msg.fatal(
@@ -511,31 +474,33 @@ class _RelationalExpr(Expr):
     def get_min_eval_width(self):
         return(1)
         
-    def propagate_eval_width(self, w):
-        """
-        Ignore parent's width and start a new expression context
-        """
-        self.resolve_expr_width()
-        
     def get_ops(self):
-        l = self.op[0].get_value()
-        r = self.op[1].get_value()
         
-        if(is_castable(type(l), int)):
-            l = int(l)
+        if(self.is_numeric == True):
+            # New width context. Determine eval_width here
+            eval_width = max(
+                self.l.get_min_eval_width(),
+                self.r.get_min_eval_width()
+            )
         
-        if(is_castable(type(r), int)):
-            r = int(r)
+            l = int(self.l.get_value(eval_width))
+            r = int(self.r.get_value(eval_width))
+        elif(self.is_numeric == False):
+            l = self.l.get_value()
+            r = self.r.get_value()
+        else:
+            raise RuntimeError # pragma: no cover
         
         return(l,r)
 
 class _NumericRelationalExpr(_RelationalExpr):
     
     def predict_type(self):
-        l_type = self.op[0].predict_type()
-        r_type = self.op[1].predict_type()
+        l_type = self.l.predict_type()
+        r_type = self.r.predict_type()
         
         # Type of L and R operands shall be integral types
+        self.is_numeric = True
         if(not is_castable(l_type, int)):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
@@ -551,32 +516,32 @@ class _NumericRelationalExpr(_RelationalExpr):
     
 
 class Eq(_RelationalExpr):
-    def get_value(self):
+    def get_value(self, eval_width=None):
         l,r = self.get_ops()
         return(l == r)
 
 class Neq(_RelationalExpr):
-    def get_value(self):
+    def get_value(self, eval_width=None):
         l,r = self.get_ops()
         return(l != r)
 
 class Lt(_NumericRelationalExpr):
-    def get_value(self):
+    def get_value(self, eval_width=None):
         l,r = self.get_ops()
         return(l < r)
         
 class Gt(_NumericRelationalExpr):
-    def get_value(self):
+    def get_value(self, eval_width=None):
         l,r = self.get_ops()
         return(l > r)
 
 class Leq(_NumericRelationalExpr):
-    def get_value(self):
+    def get_value(self, eval_width=None):
         l,r = self.get_ops()
         return(l <= r)
 
 class Geq(_NumericRelationalExpr):
-    def get_value(self):
+    def get_value(self, eval_width=None):
         l,r = self.get_ops()
         return(l >= r)
 
@@ -588,10 +553,10 @@ class Geq(_NumericRelationalExpr):
 class _ReductionExpr(Expr):
     def __init__(self, compiler, err_ctx, n):
         super().__init__(compiler, err_ctx)
-        self.op = [n]
+        self.n = n
     
     def predict_type(self):
-        op_type = self.op[0].predict_type()
+        op_type = self.n.predict_type()
         if(not is_castable(op_type, int)):
             self.msg.fatal(
                 "Operand of expression is not a compatible numeric type",
@@ -601,42 +566,34 @@ class _ReductionExpr(Expr):
     
     def get_min_eval_width(self):
         return(1)
-        
-    def propagate_eval_width(self, w):
-        """
-        Ignore parent's width and start a new expression context
-        """
-        self.resolve_expr_width()
-        
-    def get_ops(self):
-        n = int(self.op[0].get_value())
-        return(n)
-
+    
 class AndReduce(_ReductionExpr):
-    def get_value(self):
-        n = self.get_ops()
-        n = self.trunc(~n)
+    def get_value(self, eval_width=None):
+        eval_width = self.n.get_min_eval_width()
+        n = int(self.n.get_value(eval_width))
+        n = truncate_int(~n, eval_width)
         return(int(n == 0))
         
 class NandReduce(_ReductionExpr):
-    def get_value(self):
-        n = self.get_ops()
-        n = self.trunc(~n)
+    def get_value(self, eval_width=None):
+        eval_width = self.n.get_min_eval_width()
+        n = int(self.n.get_value(eval_width))
+        n = truncate_int(~n, eval_width)
         return(int(n != 0))
         
 class OrReduce(_ReductionExpr):
-    def get_value(self):
-        n = self.get_ops()
+    def get_value(self, eval_width=None):
+        n = int(self.n.get_value())
         return(int(n != 0))
         
 class NorReduce(_ReductionExpr):
-    def get_value(self):
-        n = self.get_ops()
+    def get_value(self, eval_width=None):
+        n = int(self.n.get_value())
         return(int(n == 0))
 
 class XorReduce(_ReductionExpr):
-    def get_value(self):
-        n = self.get_ops()
+    def get_value(self, eval_width=None):
+        n = int(self.n.get_value())
         v = 0
         while(n):
             if(n & 1):
@@ -645,8 +602,8 @@ class XorReduce(_ReductionExpr):
         return(v)
 
 class XnorReduce(_ReductionExpr):
-    def get_value(self):
-        n = self.get_ops()
+    def get_value(self, eval_width=None):
+        n = int(self.n.get_value())
         v = 1
         while(n):
             if(n & 1):
@@ -655,8 +612,8 @@ class XnorReduce(_ReductionExpr):
         return(v)
         
 class BoolNot(_ReductionExpr):
-    def get_value(self):
-        n = self.get_ops()
+    def get_value(self, eval_width=None):
+        n = int(self.n.get_value())
         return(not n)
     
     def predict_type(self):
@@ -670,11 +627,12 @@ class BoolNot(_ReductionExpr):
 class _BoolExpr(Expr):
     def __init__(self, compiler, err_ctx, l, r):
         super().__init__(compiler, err_ctx)
-        self.op = [l,r]
+        self.l = l
+        self.r = r
     
     def predict_type(self):
-        l_type = self.op[0].predict_type()
-        r_type = self.op[1].predict_type()
+        l_type = self.l.predict_type()
+        r_type = self.r.predict_type()
         if(not is_castable(l_type, bool)):
             self.msg.fatal(
                 "Left operand of expression is not a compatible boolean type",
@@ -687,34 +645,19 @@ class _BoolExpr(Expr):
             )
         return(bool)
     
-    def resolve_expr_width(self):
-        # All operands are self determined. Do nothing
-        pass
-    
     def get_min_eval_width(self):
         return(1)
     
-    def propagate_eval_width(self, w):
-        """
-        Eval width is ignored. Trigger expression width
-        resolution for both operand since they are self-determined
-        """
-        self.op[0].resolve_expr_width()
-        self.op[1].resolve_expr_width()
-    
-    def get_ops(self):
-        l = bool(self.op[0].get_value())
-        r = bool(self.op[1].get_value())
-        return(l,r)
-        
 class BoolAnd(_BoolExpr):
-    def get_value(self):
-        l,r = self.get_ops()
+    def get_value(self, eval_width=None):
+        l = bool(self.l.get_value())
+        r = bool(self.r.get_value())
         return(l and r)
         
 class BoolOr(_BoolExpr):
-    def get_value(self):
-        l,r = self.get_ops()
+    def get_value(self, eval_width=None):
+        l = bool(self.l.get_value())
+        r = bool(self.r.get_value())
         return(l or r)
         
 #-------------------------------------------------------------------------------
@@ -724,11 +667,12 @@ class BoolOr(_BoolExpr):
 class _ExpShiftExpr(Expr):
     def __init__(self, compiler, err_ctx, l, r):
         super().__init__(compiler, err_ctx)
-        self.op = [l,r]
+        self.l = l
+        self.r = r
     
     def predict_type(self):
-        l_type = self.op[0].predict_type()
-        r_type = self.op[1].predict_type()
+        l_type = self.l.predict_type()
+        r_type = self.r.predict_type()
         if(not is_castable(l_type, int)):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
@@ -741,47 +685,36 @@ class _ExpShiftExpr(Expr):
             )
         return(int)
     
-    def resolve_expr_width(self):
-        """
-        Eval width only depends on the first operand
-        """
-        self.expr_eval_width = self.op[0].get_min_eval_width()
-        self.op[0].propagate_eval_width(self.expr_eval_width)
-        self.op[1].resolve_expr_width()
-    
     def get_min_eval_width(self):
         # Righthand op has no influence in evaluation context
-        return(self.op[0].get_min_eval_width())
-    
-    def propagate_eval_width(self, w):
-        """
-        Propagate eval width as usual, but also trigger expression width
-        resolution for righthand operand since it is self-determined
-        """
-        self.expr_eval_width = w
-        self.op[0].propagate_eval_width(w)
-        
-        self.op[1].resolve_expr_width()
-    
-    def get_ops(self):
-        l = int(self.op[0].get_value())
-        r = int(self.op[1].get_value())
-        return(l,r)
+        return(self.l.get_min_eval_width())
     
 class Exponent(_ExpShiftExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(int(l ** r)))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.l.get_min_eval_width()
+        # Right operand is self-determined
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value())
+        return(truncate_int(int(l ** r), eval_width))
 
 class LShift(_ExpShiftExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(l << r))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.l.get_min_eval_width()
+        # Right operand is self-determined
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value())
+        return(truncate_int(l << r, eval_width))
 
 class RShift(_ExpShiftExpr):
-    def get_value(self):
-        l,r = self.get_ops()
-        return(self.trunc(l >> r))
+    def get_value(self, eval_width=None):
+        if(eval_width is None):
+            eval_width = self.l.get_min_eval_width()
+        # Right operand is self-determined
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value())
+        return(truncate_int(l >> r, eval_width))
 
 #-------------------------------------------------------------------------------
 # Ternary conditional operator
@@ -791,10 +724,13 @@ class RShift(_ExpShiftExpr):
 class TernaryExpr(Expr):
     def __init__(self, compiler, err_ctx, i, j, k):
         super().__init__(compiler, err_ctx)
-        self.op = [i, j, k]
-    
+        self.i = i
+        self.j = j
+        self.k = k
+        self.is_numeric = None
+        
     def predict_type(self):
-        t_i = self.op[0].predict_type()
+        t_i = self.i.predict_type()
         if(not is_castable(t_i, bool)):
             self.msg.fatal(
                 "Conditional operand of expression is not a compatible boolean type",
@@ -802,17 +738,16 @@ class TernaryExpr(Expr):
             )
         
         # Type of j and k shall be compatible
-        t_j = self.op[1].predict_type()
-        t_k = self.op[2].predict_type()
+        t_j = self.j.predict_type()
+        t_k = self.k.predict_type()
         
-        if(t_j == t_k):
-            # Same types. Inherently compatible
-            # Resolves to same type
-            return(t_j)
-        elif(is_castable(t_j, int) and is_castable(t_k, int)):
-            # Since types are not equal, the only remaining option is that they
-            # are both numeric-compatible.
+        if(is_castable(t_j, int) and is_castable(t_k, int)):
+            self.is_numeric = True
             return(int)
+        elif(t_j == t_k):
+            # Same types. Inherently compatible
+            self.is_numeric = False
+            return(t_j)
         else:
             # Incompatible
             self.msg.fatal(
@@ -820,36 +755,30 @@ class TernaryExpr(Expr):
                 self.err_ctx
             )
     
-    def resolve_expr_width(self):
-        wj = self.op[1].get_min_eval_width()
-        wk = self.op[2].get_min_eval_width()
-        self.expr_eval_width = max(1, wj, wk)
-        
-        self.op[1].propagate_eval_width(self.expr_eval_width)
-        self.op[2].propagate_eval_width(self.expr_eval_width)
-    
     def get_min_eval_width(self):
         # Truth operand has no influence in evaluation context
         return(max(
-            self.op[1].get_min_eval_width(),
-            self.op[2].get_min_eval_width()
+            self.j.get_min_eval_width(),
+            self.k.get_min_eval_width()
         ))
     
-    def propagate_eval_width(self, w):
-        """
-        Propagate eval width as usual, but also trigger expression width
-        resolution for truth operand since it is self-determined
-        """
-        self.expr_eval_width = w
-        self.op[1].propagate_eval_width(w)
-        self.op[2].propagate_eval_width(w)
+    def get_value(self, eval_width=None):
+        # i is self-determined
+        i = bool(self.i.get_value())
         
-        self.op[0].resolve_expr_width()
-    
-    def get_value(self):
-        i = bool(self.op[0].get_value())
-        j = self.op[1].get_value()
-        k = self.op[2].get_value()
+        if(self.is_numeric == True):
+            if(eval_width is None):
+                eval_width = max(
+                    self.j.get_min_eval_width(),
+                    self.k.get_min_eval_width()
+                )
+            j = self.j.get_value(eval_width)
+            k = self.k.get_value(eval_width)
+        elif(self.is_numeric == False):
+            j = self.j.get_value()
+            k = self.k.get_value()
+        else:
+            raise RuntimeError # pragma: no cover
         
         if(i):
             return(j)
@@ -866,61 +795,49 @@ class WidthCast(Expr):
         super().__init__(compiler, err_ctx)
         
         if(w_expr is not None):
-            self.op = [v, w_expr]
+            self.v = v
+            self.w_expr = w_expr
             self.cast_width = None
         else:
-            self.op = [v]
+            self.v = v
+            self.w_expr = None
             self.cast_width = w_int
         
     def predict_type(self):
         if(self.cast_width is None):
-            if(not is_castable(self.op[1].predict_type(), int)):
+            if(not is_castable(self.w_expr.predict_type(), int)):
                 self.msg.fatal(
                     "Width operand of cast expression is not a compatible numeric type",
-                    self.op[1].err_ctx
+                    self.w_expr.err_ctx
                 )
-        if(not is_castable(self.op[0].predict_type(), int)):
+        if(not is_castable(self.v.predict_type(), int)):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to an integer",
-                self.op[0].err_ctx
+                self.v.err_ctx
             )
         
         return(int)
     
-    def resolve_expr_width(self):
-        self.resolve_cast_width()
-        self.expr_eval_width = self.cast_width
-        w = self.op[0].get_min_eval_width()
-        self.expr_eval_width = max(self.expr_eval_width, w)
-        self.op[0].propagate_eval_width(self.expr_eval_width)
-    
     def get_min_eval_width(self):
-        self.resolve_cast_width()
+        if(self.cast_width is None):
+            self.cast_width = self.w_expr.get_value()
         return(self.cast_width)
         
-    def propagate_eval_width(self, w):
-        """
-        Ignore parent's width and start a new expression context using
-        the cast's width
-        """
-        self.resolve_expr_width()
     
-    def resolve_cast_width(self):
-        if(self.cast_width is None):
-            # Need to force evaluation of the width value in order to proceed
-            self.op[1].resolve_expr_width()
-            self.cast_width = self.op[1].get_value()
-    
-    def get_value(self):
+    def get_value(self, eval_width=None):
         # Truncate to cast width instead of eval width
-        n = int(self.op[0].get_value())
-        self.expr_eval_width = self.cast_width
-        if(self.expr_eval_width == 0):
+        if(self.cast_width is None):
+            self.cast_width = self.w_expr.get_value()
+        if(self.cast_width == 0):
             self.msg.fatal(
                 "Cannot cast to width of zero",
                 self.err_ctx
             )
-        return(self.trunc(n))
+        
+        eval_width = max(self.cast_width, self.v.get_min_eval_width())
+        n = int(self.v.get_value(eval_width))
+        
+        return(truncate_int(n, self.cast_width))
 
 #-------------------------------------------------------------------------------
 # Boolean cast operator
@@ -928,10 +845,10 @@ class WidthCast(Expr):
 class BoolCast(Expr):
     def __init__(self, compiler, err_ctx, n):
         super().__init__(compiler, err_ctx)
-        self.op = [n]
+        self.n = n
     
     def predict_type(self):
-        if(not is_castable(self.op[0].predict_type(), bool)):
+        if(not is_castable(self.n.predict_type(), bool)):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to a boolean",
                 self.err_ctx
@@ -941,14 +858,8 @@ class BoolCast(Expr):
     def get_min_eval_width(self):
         return(1)
         
-    def propagate_eval_width(self, w):
-        """
-        Ignore parent's width and start a new expression context
-        """
-        self.resolve_expr_width()
-        
-    def get_value(self):
-        n = int(self.op[0].get_value())
+    def get_value(self, eval_width=None):
+        n = int(self.n.get_value())
         return(n != 0)
 
 #-------------------------------------------------------------------------------
@@ -962,15 +873,6 @@ class ParameterRef(Expr):
     def predict_type(self):
         return(self.param.param_type)
     
-    def resolve_expr_width(self):
-        if(self.param.expr is None):
-            self.msg.fatal(
-                "Value for parameter '%s' was never assigned" % self.param.name,
-                self.err_ctx
-            )
-        self.op = [self.param.expr]
-        super().resolve_expr_width()
-    
     def get_min_eval_width(self):
         if(self.param.expr is None):
             self.msg.fatal(
@@ -979,11 +881,13 @@ class ParameterRef(Expr):
             )
         return(self.param.expr.get_min_eval_width())
     
-    def propagate_eval_width(self, w):
-        self.resolve_expr_width()
-        
-    def get_value(self):
-        return(self.param.expr.get_value())
+    def get_value(self, eval_width=None):
+        if(self.param.expr is None):
+            self.msg.fatal(
+                "Value for parameter '%s' was never assigned" % self.param.name,
+                self.err_ctx
+            )
+        return(self.param.expr.get_value(eval_width))
 
 
 class InstRef(Expr):
@@ -1071,19 +975,7 @@ class InstRef(Expr):
         
         return(type(current_inst))
         
-    def resolve_expr_width(self):
-        # Resolve expression widths of all array suffixes in ref_elements
-        for name_token, array_suffixes in self.ref_elements:
-            for array_suffix in array_suffixes:
-                array_suffix.resolve_expr_width()
-    
-    def get_min_eval_width(self):
-        return(1) # Don't care
-    
-    def propagate_eval_width(self, w):
-        self.resolve_expr_width()
-    
-    def get_value(self):
+    def get_value(self, eval_width=None):
         """
         Build a resolved ComponentRef container that describes the relative path
         """
@@ -1135,11 +1027,11 @@ class AssignmentCast(Expr):
     def __init__(self, compiler, err_ctx, v, dest_type):
         super().__init__(compiler, err_ctx)
         
-        self.op = [v]
+        self.v = v
         self.dest_type = dest_type
     
     def predict_type(self):
-        op_type = self.op[0].predict_type()
+        op_type = self.v.predict_type()
         
         if(not is_castable(op_type, self.dest_type)):
             self.msg.fatal(
@@ -1150,13 +1042,10 @@ class AssignmentCast(Expr):
         return(self.dest_type)
     
     def get_min_eval_width(self):
-        return(self.op[0].get_min_eval_width())
+        return(self.v.get_min_eval_width())
     
-    def propagate_eval_width(self, w):
-        self.resolve_expr_width()
-    
-    def get_value(self):
-        v = self.op[0].get_value()
+    def get_value(self, eval_width=None):
+        v = self.v.get_value()
         
         if(self.dest_type == bool):
             return(bool(v))
@@ -1164,7 +1053,6 @@ class AssignmentCast(Expr):
             return(int(v))
         else:
             return(v)
-
 
 
 #===============================================================================

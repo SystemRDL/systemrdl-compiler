@@ -25,3 +25,7 @@ def get_ID_text(token):
     
     text = text.lstrip('\\')
     return(text)
+
+def truncate_int(v, width):
+    mask = (1 << width) - 1
+    return(v & mask)

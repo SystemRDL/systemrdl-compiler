@@ -72,7 +72,6 @@ class UDPVisitor(BaseVisitor):
             
             # OK to immediately evaluate the expression since there is no way that it
             # can depend on any post-elaborate references (parameters)
-            expr.resolve_expr_width()
             self.attr['default'] = expr.get_value()
         
         # Create and register the new property rule

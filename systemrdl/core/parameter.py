@@ -19,7 +19,6 @@ class Parameter:
         Evaluate self.expr to get the parameter's value
         """
         if((self._value is None) and (self.expr is not None)):
-            self.expr.resolve_expr_width()
             self._value = self.expr.get_value()
         
         return(self._value)
