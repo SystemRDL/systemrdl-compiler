@@ -97,7 +97,7 @@ expr: op=(PLUS|MINUS|BNOT|NOT|AND|NAND|OR|NOR|XOR|XNOR) expr_primary  #UnaryExpr
     | expr op=OR expr               #BinaryExpr
     | expr op=BAND expr             #BinaryExpr
     | expr op=BOR expr              #BinaryExpr
-    | expr op='?' expr ':' expr     #TernaryExpr
+    | <assoc=right> expr op='?' expr ':' expr #TernaryExpr
     | expr_primary                  #NOP
     ;
 

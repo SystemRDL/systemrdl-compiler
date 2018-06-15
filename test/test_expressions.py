@@ -4,7 +4,7 @@ from rdl_unittest import RDLSourceTestCase
 import systemrdl.rdltypes as rdlt
 
 #===============================================================================
-class TestLiterals(RDLSourceTestCase):
+class TestIntLiterals(RDLSourceTestCase):
     
     def test_verilog(self):
         with self.subTest("hex"):
@@ -36,69 +36,146 @@ class TestLiterals(RDLSourceTestCase):
     def test_bool(self):
         self.assertEqual((int, 1), self.eval_RDL_expr("(true)"))
         self.assertEqual((int, 0), self.eval_RDL_expr("(false)"))
-    
+
+#===============================================================================
+class TestStrLiteral(RDLSourceTestCase):
     def test_string(self):
         self.assertEqual((str, ''), self.eval_RDL_expr('""'))
         self.assertEqual((str, 'Hello World'), self.eval_RDL_expr('"Hello World"'))
         self.assertEqual((str, '"quotes" quotes!"'), self.eval_RDL_expr('"\\"quotes\\" quotes!\\""'))
     
-    
+#===============================================================================
+class TestBuiltinLiteral(RDLSourceTestCase):
     def test_builtin(self):
         self.assertEqual((rdlt.AccessType, rdlt.AccessType.na), self.eval_RDL_expr('(na)'))
         self.assertEqual((rdlt.AddressingType, rdlt.AddressingType.fullalign), self.eval_RDL_expr('(fullalign)'))
         self.assertEqual((rdlt.OnReadType, rdlt.OnReadType.rclr), self.eval_RDL_expr('(rclr)'))
         self.assertEqual((rdlt.OnWriteType, rdlt.OnWriteType.woclr), self.eval_RDL_expr('(woclr)'))
-    
-    
-    def test_array(self):
-        with self.subTest("valid"):
-            self.assertEqual((rdlt.ArrayPlaceholder(None), []), self.eval_RDL_expr("('{})"))
-            self.assertEqual((rdlt.ArrayPlaceholder(int), [1,2,3,4]), self.eval_RDL_expr("('{1,2,3,4})"))
-            self.assertEqual((rdlt.ArrayPlaceholder(str), ["foo", "bar", "baz"]), self.eval_RDL_expr('(\'{"foo", "bar", "baz"})'))
-            self.assertEqual(
-                (rdlt.ArrayPlaceholder(rdlt.AccessType), [rdlt.AccessType.rw, rdlt.AccessType.na]),
-                self.eval_RDL_expr("('{rw, na})")
-            )
+
+#===============================================================================
+class TestArrayLiteral(RDLSourceTestCase):
+    def test_valid(self):
+        self.assertEqual((rdlt.ArrayPlaceholder(None), []), self.eval_RDL_expr("('{})"))
+        self.assertEqual((rdlt.ArrayPlaceholder(int), [1,2,3,4]), self.eval_RDL_expr("('{1,2,3,4})"))
+        self.assertEqual((rdlt.ArrayPlaceholder(str), ["foo", "bar", "baz"]), self.eval_RDL_expr('(\'{"foo", "bar", "baz"})'))
+        self.assertEqual(
+            (rdlt.ArrayPlaceholder(rdlt.AccessType), [rdlt.AccessType.rw, rdlt.AccessType.na]),
+            self.eval_RDL_expr("('{rw, na})")
+        )
         
-        with self.subTest("err"):
-            self.assertRDLExprError("('{rw, 1234})", "Elements of an array shall be the same type")
+    def test_invalid(self):
+        self.assertRDLExprError("('{rw, 1234})", "Elements of an array shall be the same type")
     
 #===============================================================================
-class TestListOperators(RDLSourceTestCase):
-    def test_concatenate(self):
-        with self.subTest("int"):
-            self.assertEqual((int, 123), self.eval_RDL_expr("{123}"))
-            self.assertEqual((int, 0xABCD), self.eval_RDL_expr("{8'hAB, 8'hCD}"))
-            self.assertEqual((int, 0xAB0000000000000000), self.eval_RDL_expr("{8'hAB, 0}"))
-            self.assertEqual((int, 0xFF), self.eval_RDL_expr("{1'b1, 7'h7F}"))
-            self.assertEqual((int, 0xFF), self.eval_RDL_expr("{true, 7'h7F}"))
-            self.assertEqual((int, 0xABCDEF), self.eval_RDL_expr("{{4'hA, 8'hBC}, {8'hDE, 4'hF}}"))
+class TestConcatenate(RDLSourceTestCase):
+    def test_int(self):
+        self.assertEqual((int, 123), self.eval_RDL_expr("{123}"))
+        self.assertEqual((int, 0xABCD), self.eval_RDL_expr("{8'hAB, 8'hCD}"))
+        self.assertEqual((int, 0xAB0000000000000000), self.eval_RDL_expr("{8'hAB, 0}"))
+        self.assertEqual((int, 0xFF), self.eval_RDL_expr("{1'b1, 7'h7F}"))
+        self.assertEqual((int, 0xFF), self.eval_RDL_expr("{true, 7'h7F}"))
     
-        with self.subTest("str"):
-            self.assertEqual((str, ''), self.eval_RDL_expr('{""}'))
-            self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"foobar"}'))
-            self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"foo","bar"}'))
-            self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"fo","ob", "ar"}'))
-            self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"foobar", ""}'))
+    def test_str(self):
+        self.assertEqual((str, ''), self.eval_RDL_expr('{""}'))
+        self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"foobar"}'))
+        self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"foo","bar"}'))
+        self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"fo","ob", "ar"}'))
+        self.assertEqual((str, 'foobar'), self.eval_RDL_expr('{"foobar", ""}'))
 
-        with self.subTest("err"):
-            self.assertRDLExprError('{woclr}', "Concatenation operator can only be used for integral or string types")
-            self.assertRDLExprError('{"hi", 123}', "Elements of a concatenation shall be the same type")
+    def test_err(self):
+        self.assertRDLExprError('{woclr}', "Concatenation operator can only be used for integral or string types")
+        self.assertRDLExprError('{"hi", 123}', "Elements of a concatenation shall be the same type")
     
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            self.assertEqual((int, 0xABCDEF), self.eval_RDL_expr("{{4'hA, 8'hBC}, {8'hDE, 4'hF}}"))
+            self.assertEqual((str, 'foobarabcdefgh'), self.eval_RDL_expr('{{"foo", "bar"}, {"abcd", "efgh"}}'))
+        
+        with self.subTest('replicate'):
+            self.assertEqual((int, 0xABCABC), self.eval_RDL_expr("{{2{4'hA, 8'hBC}}, {0{8'hDE, 4'hF}}}"))
+            self.assertEqual((str, 'foofoo'), self.eval_RDL_expr('{{2{"foo"}}, {0{"abcd"}}}'))
+        
+        with self.subTest('binary'):
+            self.assertEqual((int, 0xF0C00D), self.eval_RDL_expr("{4'hF, 8'h0B + 1'b1, 2'b11 + 12'hA}"))
+        
+        with self.subTest('unary'):
+            self.assertEqual((int, 0x25), self.eval_RDL_expr("{~2'b1, ~4'b1010}"))
+        
+        with self.subTest('relational'):
+            self.assertEqual((int, 0x2), self.eval_RDL_expr("{30 > 20, 1 < 0}"))
+        
+        with self.subTest('reduction'):
+            self.assertEqual((int, 0x2), self.eval_RDL_expr("{|8'hFF, &16'hFF}"))
+        
+        with self.subTest('boolean'):
+            self.assertEqual((int, 0x2), self.eval_RDL_expr("{true && true, false && true}"))
+        
+        with self.subTest('shift/exp'):
+            self.assertEqual((int, 0xAB04), self.eval_RDL_expr("{8'hAB, 8'h01 << 2}"))
+        
+        with self.subTest('ternary'):
+            self.assertEqual((int, 0xAB0F), self.eval_RDL_expr("{8'hAB, false ? 8'h01 : 4'hF}"))
+            self.assertEqual((int, 0xAB01), self.eval_RDL_expr("{8'hAB, true ? 8'h01 : 4'hF}"))
+        
+        with self.subTest('width_cast'):
+            self.assertEqual((int, 0xABC), self.eval_RDL_expr("{8'hAB, (4)'(16'hC)}"))
+        
+        with self.subTest('bool_cast'):
+            self.assertEqual((int, 0x3), self.eval_RDL_expr("{boolean'(16'hC), boolean'(16'hC)}"))
+        
+#===============================================================================
+class TestReplicate(RDLSourceTestCase):
+    def test_int(self):
+        self.assertEqual((int, 0xFFF), self.eval_RDL_expr("{3{4'hF}}"))
+        self.assertEqual((int, 0), self.eval_RDL_expr("{0{4'hF}}"))
+        self.assertEqual((int, 0xAB), self.eval_RDL_expr("{4'hA, {0{4'hF}}, 4'hB}"))
+        
+    def test_str(self):
+        self.assertEqual((str, "hihihi"), self.eval_RDL_expr('{3{"hi"}}'))
+        self.assertEqual((str, ""), self.eval_RDL_expr('{3{""}}'))
+        self.assertEqual((str, ""), self.eval_RDL_expr('{0{"hi"}}'))
+        
+    def test_err(self):
+        self.assertRDLExprError('{"hi"{"hi"}}', "Replication count operand of replication expression is not a compatible numeric type")
     
-    def test_replicate(self):
-        with self.subTest("int"):
-            self.assertEqual((int, 0xFFF), self.eval_RDL_expr("{3{4'hF}}"))
-            self.assertEqual((int, 0), self.eval_RDL_expr("{0{4'hF}}"))
-            self.assertEqual((int, 0xAB), self.eval_RDL_expr("{4'hA, {0{4'hF}}, 4'hB}"))
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            self.assertEqual((int, 0xABCABC), self.eval_RDL_expr("{2{4'hA, 8'hBC}}"))
+            self.assertEqual((int, 0xABCABC), self.eval_RDL_expr("{{1'b1, 1'b0}{4'hA, 8'hBC}}"))
+            self.assertEqual((str, 'foobarfoobar'), self.eval_RDL_expr('{2{"foo", "bar"}}'))
         
-        with self.subTest("str"):
-            self.assertEqual((str, "hihihi"), self.eval_RDL_expr('{3{"hi"}}'))
-            self.assertEqual((str, ""), self.eval_RDL_expr('{3{""}}'))
-            self.assertEqual((str, ""), self.eval_RDL_expr('{0{"hi"}}'))
+        with self.subTest('replicate'):
+            self.assertEqual((int, 0xABCABCABCABC), self.eval_RDL_expr("{2{{2{4'hA, 8'hBC}}}}"))
+            self.assertEqual((int, 0xABCABCABC), self.eval_RDL_expr("{{2{1'b1}}{4'hA, 8'hBC}}"))
+            self.assertEqual((str, 'foofoofoofoo'), self.eval_RDL_expr('{2{{2{"foo"}}}}'))
         
-        with self.subTest("err"):
-            self.assertRDLExprError('{"hi"{"hi"}}', "Replication count operand of replication expression is not a compatible numeric type")
+        with self.subTest('binary'):
+            self.assertEqual((int, 0x092), self.eval_RDL_expr("{3{2'b1 + 3'b1}}"))
+        
+        with self.subTest('unary'):
+            self.assertEqual((int, 0x2A), self.eval_RDL_expr("{3{~2'b1}}"))
+        
+        with self.subTest('relational'):
+            self.assertEqual((int, 0x7), self.eval_RDL_expr("{3{30 > 20}}"))
+        
+        with self.subTest('reduction'):
+            self.assertEqual((int, 0x7), self.eval_RDL_expr("{3{|16'h1}}"))
+        
+        with self.subTest('boolean'):
+            self.assertEqual((int, 0x7), self.eval_RDL_expr("{3{true && true}}"))
+        
+        with self.subTest('shift/exp'):
+            self.assertEqual((int, 0x040404), self.eval_RDL_expr("{3{8'h01 << 2}}"))
+        
+        with self.subTest('ternary'):
+            self.assertEqual((int, 0x0F0F0F), self.eval_RDL_expr("{3{false ? 8'h01 : 4'hF}}"))
+            self.assertEqual((int, 0x010101), self.eval_RDL_expr("{3{true ? 8'h01 : 4'hF}}"))
+        
+        with self.subTest('width_cast'):
+            self.assertEqual((int, 0xCCC), self.eval_RDL_expr("{3{(4)'(16'hC)}}"))
+        
+        with self.subTest('bool_cast'):
+            self.assertEqual((int, 0x7), self.eval_RDL_expr("{3{boolean'(16'hC)}}"))
         
 #===============================================================================
 class TestBinaryOperators(RDLSourceTestCase):
@@ -128,6 +205,40 @@ class TestBinaryOperators(RDLSourceTestCase):
         self.assertRDLExprError('100 / 0', "Division by zero")
         self.assertRDLExprError('100 % 0', "Modulo by zero")
     
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            pass # TODO
+        
+        with self.subTest('replicate'):
+            pass # TODO
+        
+        with self.subTest('binary'):
+            pass # TODO
+        
+        with self.subTest('unary'):
+            pass # TODO
+        
+        with self.subTest('relational'):
+            pass # TODO
+        
+        with self.subTest('reduction'):
+            pass # TODO
+        
+        with self.subTest('boolean'):
+            pass # TODO
+        
+        with self.subTest('shift/exp'):
+            pass # TODO
+        
+        with self.subTest('ternary'):
+            pass # TODO
+        
+        with self.subTest('width_cast'):
+            pass # TODO
+        
+        with self.subTest('bool_cast'):
+            pass # TODO
+    
 #===============================================================================
 class TestUnaryOperators(RDLSourceTestCase):
     #   +  -  ~
@@ -140,6 +251,40 @@ class TestUnaryOperators(RDLSourceTestCase):
     
     def test_err(self):
         self.assertRDLExprError('~"hi"', "Operand of expression is not a compatible numeric type")
+    
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            pass # TODO
+        
+        with self.subTest('replicate'):
+            pass # TODO
+        
+        with self.subTest('binary'):
+            pass # TODO
+        
+        with self.subTest('unary'):
+            pass # TODO
+        
+        with self.subTest('relational'):
+            pass # TODO
+        
+        with self.subTest('reduction'):
+            pass # TODO
+        
+        with self.subTest('boolean'):
+            pass # TODO
+        
+        with self.subTest('shift/exp'):
+            pass # TODO
+        
+        with self.subTest('ternary'):
+            pass # TODO
+        
+        with self.subTest('width_cast'):
+            pass # TODO
+        
+        with self.subTest('bool_cast'):
+            pass # TODO
 
 #===============================================================================
 class TestRelationalOperators(RDLSourceTestCase):
@@ -178,6 +323,40 @@ class TestRelationalOperators(RDLSourceTestCase):
         self.assertRDLExprError('"hi" > 10', "Left operand of expression is not a compatible numeric type")
         self.assertRDLExprError('10 == "hi"', "Left and right operands of expression are not compatible types")
     
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            pass # TODO
+        
+        with self.subTest('replicate'):
+            pass # TODO
+        
+        with self.subTest('binary'):
+            pass # TODO
+        
+        with self.subTest('unary'):
+            pass # TODO
+        
+        with self.subTest('relational'):
+            pass # TODO
+        
+        with self.subTest('reduction'):
+            pass # TODO
+        
+        with self.subTest('boolean'):
+            pass # TODO
+        
+        with self.subTest('shift/exp'):
+            pass # TODO
+        
+        with self.subTest('ternary'):
+            pass # TODO
+        
+        with self.subTest('width_cast'):
+            pass # TODO
+        
+        with self.subTest('bool_cast'):
+            pass # TODO
+    
 #===============================================================================
 class TestReductionOperators(RDLSourceTestCase):
     #   &  ~&  |  ~|  ^  ^~  !
@@ -203,6 +382,40 @@ class TestReductionOperators(RDLSourceTestCase):
         
     def test_err(self):
         self.assertRDLExprError('!"hi"', "Operand of expression is not a compatible numeric type")
+    
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            pass # TODO
+        
+        with self.subTest('replicate'):
+            pass # TODO
+        
+        with self.subTest('binary'):
+            pass # TODO
+        
+        with self.subTest('unary'):
+            pass # TODO
+        
+        with self.subTest('relational'):
+            pass # TODO
+        
+        with self.subTest('reduction'):
+            pass # TODO
+        
+        with self.subTest('boolean'):
+            pass # TODO
+        
+        with self.subTest('shift/exp'):
+            pass # TODO
+        
+        with self.subTest('ternary'):
+            pass # TODO
+        
+        with self.subTest('width_cast'):
+            pass # TODO
+        
+        with self.subTest('bool_cast'):
+            pass # TODO
 
 #===============================================================================
 class TestBooleanOperators(RDLSourceTestCase):
@@ -221,6 +434,40 @@ class TestBooleanOperators(RDLSourceTestCase):
     def test_err(self):
         self.assertRDLExprError('10 && "hi"', "Right operand of expression is not a compatible boolean type")
         self.assertRDLExprError('"hi" && 10', "Left operand of expression is not a compatible boolean type")
+    
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            pass # TODO
+        
+        with self.subTest('replicate'):
+            pass # TODO
+        
+        with self.subTest('binary'):
+            pass # TODO
+        
+        with self.subTest('unary'):
+            pass # TODO
+        
+        with self.subTest('relational'):
+            pass # TODO
+        
+        with self.subTest('reduction'):
+            pass # TODO
+        
+        with self.subTest('boolean'):
+            pass # TODO
+        
+        with self.subTest('shift/exp'):
+            pass # TODO
+        
+        with self.subTest('ternary'):
+            pass # TODO
+        
+        with self.subTest('width_cast'):
+            pass # TODO
+        
+        with self.subTest('bool_cast'):
+            pass # TODO
 
 #===============================================================================
 class TestShiftExpOperators(RDLSourceTestCase):
@@ -253,6 +500,40 @@ class TestShiftExpOperators(RDLSourceTestCase):
     def test_err(self):
         self.assertRDLExprError('10 ** "hi"', "Right operand of expression is not a compatible numeric type")
         self.assertRDLExprError('"hi" ** 10', "Left operand of expression is not a compatible numeric type")
+    
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            pass # TODO
+        
+        with self.subTest('replicate'):
+            pass # TODO
+        
+        with self.subTest('binary'):
+            pass # TODO
+        
+        with self.subTest('unary'):
+            pass # TODO
+        
+        with self.subTest('relational'):
+            pass # TODO
+        
+        with self.subTest('reduction'):
+            pass # TODO
+        
+        with self.subTest('boolean'):
+            pass # TODO
+        
+        with self.subTest('shift/exp'):
+            pass # TODO
+        
+        with self.subTest('ternary'):
+            pass # TODO
+        
+        with self.subTest('width_cast'):
+            pass # TODO
+        
+        with self.subTest('bool_cast'):
+            pass # TODO
 
 #===============================================================================
 class TestTernaryOperator(RDLSourceTestCase):
@@ -267,9 +548,52 @@ class TestTernaryOperator(RDLSourceTestCase):
         self.assertEqual((rdlt.ArrayPlaceholder(str), ['foo','bar']), self.eval_RDL_expr('true ? \'{"foo", "bar"} : \'{"baz"}'))
         self.assertEqual((rdlt.ArrayPlaceholder(str), ['baz']), self.eval_RDL_expr('false ? \'{"foo", "bar"} : \'{"baz"}'))
     
+    def test_right_associative(self):
+        # A ? B : C ? D : E
+        # Right assoc: A ? B : (C ? D : E)
+        self.assertEqual((int, 0), self.eval_RDL_expr("1 ? 0 : 2 ? 3 : 4"))
+        
+        # A ? B : C ? D : E ? F : G
+        # Right: A ? B : (C ? D : (E ? F : G))
+        self.assertEqual((int, 3), self.eval_RDL_expr("0 ? 1 : 2 ? 3 : 4 ? 5 : 6"))
+        
     def test_err(self):
         self.assertRDLExprError('"hey" ? 0 : 1234', "Conditional operand of expression is not a compatible boolean type")
         self.assertRDLExprError('true ? \'{"foo", "bar"} : 1234', "True/False results of ternary conditional are not compatible types")
+    
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            pass # TODO
+        
+        with self.subTest('replicate'):
+            pass # TODO
+        
+        with self.subTest('binary'):
+            pass # TODO
+        
+        with self.subTest('unary'):
+            pass # TODO
+        
+        with self.subTest('relational'):
+            pass # TODO
+        
+        with self.subTest('reduction'):
+            pass # TODO
+        
+        with self.subTest('boolean'):
+            pass # TODO
+        
+        with self.subTest('shift/exp'):
+            pass # TODO
+        
+        with self.subTest('ternary'):
+            pass # TODO
+        
+        with self.subTest('width_cast'):
+            pass # TODO
+        
+        with self.subTest('bool_cast'):
+            pass # TODO
     
 #===============================================================================
 class TestCast(RDLSourceTestCase):
@@ -278,6 +602,7 @@ class TestCast(RDLSourceTestCase):
         self.assertEqual((int, 0x000F), self.eval_RDL_expr("(4)'(8'hFF)"))
         self.assertEqual((int, 0x00FE), self.eval_RDL_expr("(8)'(-3 + 1)"))
         self.assertEqual((int, 0x00FE), self.eval_RDL_expr("(8)'(1 - 3)"))
+        self.assertEqual((int, 0xABCD1234DEADBEEF), self.eval_RDL_expr("longint'(68'hF_ABCD1234_DEADBEEF)"))
     
     def test_bool_cast(self):
         self.assertEqual((bool, True), self.eval_RDL_expr("boolean'(0x10)"))
@@ -288,6 +613,40 @@ class TestCast(RDLSourceTestCase):
         self.assertRDLExprError("(woclr)'(1 - 3)", "Width operand of cast expression is not a compatible numeric type")
         self.assertRDLExprError("(12)'(woclr)", "Value operand of cast expression cannot be cast to an integer")
         self.assertRDLExprError("boolean'(woclr)", "Value operand of cast expression cannot be cast to a boolean")
+    
+    def test_interaction(self):
+        with self.subTest('concatenate'):
+            pass # TODO
+        
+        with self.subTest('replicate'):
+            pass # TODO
+        
+        with self.subTest('binary'):
+            pass # TODO
+        
+        with self.subTest('unary'):
+            pass # TODO
+        
+        with self.subTest('relational'):
+            pass # TODO
+        
+        with self.subTest('reduction'):
+            pass # TODO
+        
+        with self.subTest('boolean'):
+            pass # TODO
+        
+        with self.subTest('shift/exp'):
+            pass # TODO
+        
+        with self.subTest('ternary'):
+            pass # TODO
+        
+        with self.subTest('width_cast'):
+            pass # TODO
+        
+        with self.subTest('bool_cast'):
+            pass # TODO
 
 #===============================================================================
 class TestAdvanced(RDLSourceTestCase):
@@ -314,6 +673,3 @@ class TestAdvanced(RDLSourceTestCase):
         self.assertEqual((int, 0x0008), self.eval_RDL_expr("(1'b1 << 3) + 8'b0"))
         self.assertEqual((int, 0x0000), self.eval_RDL_expr("(|(~(4'hF))) + 8'b0"))
         self.assertEqual((int, 0x00FF), self.eval_RDL_expr("(~(&(4'b1))) + 8'b0"))
-    
-    
-

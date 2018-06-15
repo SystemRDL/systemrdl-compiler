@@ -240,10 +240,9 @@ class Replicate(Expr):
             self.type = str
             return(str)
         else:
-            self.msg.fatal(
-                "Replication operator can only be used for integral or string types",
-                self.concat.err_ctx
-            )
+            # All replications contain a nested concatenation
+            # Type check for invalid type is already halded there
+            raise RuntimeError # pragma: no cover
     
     def get_min_eval_width(self):
         # Evaluate number of repetitions
