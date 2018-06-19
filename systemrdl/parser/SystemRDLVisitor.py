@@ -384,5 +384,85 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SystemRDLParser#struct_def.
+    def visitStruct_def(self, ctx:SystemRDLParser.Struct_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#struct_body.
+    def visitStruct_body(self, ctx:SystemRDLParser.Struct_bodyContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#struct_elem.
+    def visitStruct_elem(self, ctx:SystemRDLParser.Struct_elemContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#struct_type.
+    def visitStruct_type(self, ctx:SystemRDLParser.Struct_typeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constraint_def.
+    def visitConstraint_def(self, ctx:SystemRDLParser.Constraint_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constraint_named_def.
+    def visitConstraint_named_def(self, ctx:SystemRDLParser.Constraint_named_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constraint_anon_def.
+    def visitConstraint_anon_def(self, ctx:SystemRDLParser.Constraint_anon_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constraint_body.
+    def visitConstraint_body(self, ctx:SystemRDLParser.Constraint_bodyContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constraint_body_elem.
+    def visitConstraint_body_elem(self, ctx:SystemRDLParser.Constraint_body_elemContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constraint_insts.
+    def visitConstraint_insts(self, ctx:SystemRDLParser.Constraint_instsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constr_relational.
+    def visitConstr_relational(self, ctx:SystemRDLParser.Constr_relationalContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constr_prop_assign.
+    def visitConstr_prop_assign(self, ctx:SystemRDLParser.Constr_prop_assignContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constr_inside_values.
+    def visitConstr_inside_values(self, ctx:SystemRDLParser.Constr_inside_valuesContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constr_inside_enum.
+    def visitConstr_inside_enum(self, ctx:SystemRDLParser.Constr_inside_enumContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constr_lhs.
+    def visitConstr_lhs(self, ctx:SystemRDLParser.Constr_lhsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SystemRDLParser#constr_inside_value.
+    def visitConstr_inside_value(self, ctx:SystemRDLParser.Constr_inside_valueContext):
+        return self.visitChildren(ctx)
+
+
 
 del SystemRDLParser

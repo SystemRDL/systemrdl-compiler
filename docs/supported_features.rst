@@ -79,7 +79,7 @@ The *priority* column denotes how high the item is on my to-do list:
     *   - constraint block
         - :red:`No`
         - 3
-        - 
+        - Silently ignored
 
     *   - user-defined properties
         - :green:`Yes`

@@ -283,7 +283,7 @@ class ExprVisitor(BaseVisitor):
             ref_expr = e.ParameterRef(self.compiler, first_name_token, first_elem)
             
             if(len(first_array_suffixes) != 0):
-                # TODO: Reference bit-slice of parameter
+                # TODO: Reference index of array parameter
                 self.msg.fatal(
                     "Index or bit-slice of a parameter is not supported yet.",
                     first_array_suffixes[0].err_ctx

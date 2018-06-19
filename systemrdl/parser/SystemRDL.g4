@@ -5,8 +5,8 @@ root: (root_elem ';')* EOF;
 root_elem : component_def
           | enum_def
           | udp_def
-// TODO   | struct_def
-// TODO   | constraint_def
+          | struct_def
+          | constraint_def
           | explicit_component_inst
           | local_property_assignment
           | dynamic_property_assignment
@@ -37,8 +37,8 @@ component_body: '{' (component_body_elem ';')* '}';
 
 component_body_elem : component_def
                     | enum_def
-// TODO             | struct_def
-// TODO             | constraint_def
+                    | struct_def
+                    | constraint_def
                     | explicit_component_inst
                     | local_property_assignment
                     | dynamic_property_assignment
@@ -253,6 +253,53 @@ enum_entry: ID (ASSIGN expr)? ('{' (enum_prop_assign ';')* '}')?;
 // Only 'name' and 'desc' properties are allowed in enums
 // No need to invoke the rest of the grammar for property assignments here.
 enum_prop_assign: ID ASSIGN expr;
+
+//------------------------------------------------------------------------------
+// User-defined structs
+//------------------------------------------------------------------------------
+struct_def: ABSTRACT_kw? STRUCT_kw name=ID (':' base=ID)? struct_body;
+
+struct_body: '{' (struct_elem ';')* '}';
+
+struct_elem: struct_type ID array_type_suffix?;
+
+struct_type : data_type
+            | component_type
+            ;
+
+//------------------------------------------------------------------------------
+// Constraints
+//------------------------------------------------------------------------------
+constraint_def: constraint_named_def constraint_insts?
+              | constraint_anon_def constraint_insts
+              ;
+
+constraint_named_def: CONSTRAINT_kw ID constraint_body;
+constraint_anon_def: CONSTRAINT_kw constraint_body;
+
+constraint_body: '{' (constraint_body_elem ';')* '}';
+
+constraint_body_elem: constr_relational
+                    | constr_prop_assign
+                    | constr_inside_values
+                    | constr_inside_enum
+                    ;
+
+
+constraint_insts: ID (',' ID)*;
+
+constr_relational: expr op=(LT|LEQ|GT|GEQ|EQ|NEQ) expr;
+constr_prop_assign: ID ASSIGN expr;
+constr_inside_values: constr_lhs INSIDE_kw '{' constr_inside_value (',' constr_inside_value)*'}';
+constr_inside_enum: constr_lhs INSIDE_kw ID;
+
+constr_lhs: THIS_kw
+          | instance_ref
+          ;
+
+constr_inside_value : val=expr
+                    | '[' l_val=expr ':' r_val=expr ']'
+                    ;
 
 //==============================================================================
 // Lexer

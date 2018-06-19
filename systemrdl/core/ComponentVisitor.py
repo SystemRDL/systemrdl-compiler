@@ -782,6 +782,20 @@ class ComponentVisitor(BaseVisitor):
         visitor = EnumVisitor(self.compiler)
         enum_type, name_ctx = visitor.visit(ctx)
         self.compiler.namespace.register_type(get_ID_text(name_ctx), enum_type, name_ctx)
+    
+    #---------------------------------------------------------------------------
+    # User-defined struct
+    #---------------------------------------------------------------------------
+    def visitStruct_def(self, ctx:SystemRDLParser.Struct_defContext):
+        # TODO: Implement struct defs
+        pass
+    
+    #---------------------------------------------------------------------------
+    # Constraint Definition
+    #---------------------------------------------------------------------------
+    def visitConstraint_def(self, ctx:SystemRDLParser.Constraint_defContext):
+        # TODO: Implement constraints
+        pass
         
 #===============================================================================
 # Root meta-component visitor

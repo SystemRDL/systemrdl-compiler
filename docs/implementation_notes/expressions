@@ -73,15 +73,6 @@ The SV spec is slightly vague, but the general process is as follows:
 Implementation:
     - Construct Expr class tree as usual
     - Each Expr has:
-        Expr.eval_width
-            Defaults to None
-            Number of bits to use/truncate to for the expression
-            
-        Expr.resolve_expr_width()
-            when called:
-            w = max(<<children>>.get_min_eval_width())
-            self.eval_width = w
-            <<children>>.propagate_eval_width(w)
             
         Expr.get_min_eval_width()
             - literals return their declared size
@@ -89,14 +80,21 @@ Implementation:
             - size casts return the fixed size
             - everything else returns the bit width based on children
               according to SV rules
+            - non-integral expressions raise a RuntimeError.
+              It is up to the caller to know the type of the expression result
+              and only call this if width resolution is needed
         
-        Expr.propagate_eval_width(w)
-            parent passes new eval width to all children
-            - Literals get zero-padded with new width
-            - ordinary expressions save value and propagate to all children
-            - unary reductions, size casts, etc. ignore value passed,
-              ... but call self's resolve_expr_width()
-    
-    - During elaboration phase, value of expression is calculated by:
-        Call Expr.resolve_expr_width() <-- Only called if the predicted result is an integer
-        X = Expr.get_value()
+        Expr.get_value(eval_width=None)
+            Recursively calls all operands and computes expression's result
+            - If eval_width is unset:
+                Parent expression has dictated that this is a self-determined context.
+                Query relevant operands to determine the context's evaluation width.
+            - If eval_width is irrelevant (ex. comparison operator)
+                ignore the eval_width parameter if it was passed in.
+                dont bother resolving anything. Nothing to do here.
+            - Get operand values
+                If eval_width context propagates down to an operand, pass width
+                down when calling op.get_value()
+                If an operand is self-determined, call op.get_value() without the width.
+            - Resolve expression
+            - Truncate result down based on the current eval_width
