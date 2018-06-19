@@ -316,32 +316,32 @@ class Add(_BinaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        l = self.l.get_value(eval_width)
-        r = self.r.get_value(eval_width)
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value(eval_width))
         return(truncate_int(l + r, eval_width))
 
 class Sub(_BinaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        l = self.l.get_value(eval_width)
-        r = self.r.get_value(eval_width)
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value(eval_width))
         return(truncate_int(l - r, eval_width))
 
 class Mult(_BinaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        l = self.l.get_value(eval_width)
-        r = self.r.get_value(eval_width)
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value(eval_width))
         return(truncate_int(l * r, eval_width))
 
 class Div(_BinaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        l = self.l.get_value(eval_width)
-        r = self.r.get_value(eval_width)
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value(eval_width))
         
         if(r == 0):
             self.msg.fatal(
@@ -354,8 +354,8 @@ class Mod(_BinaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        l = self.l.get_value(eval_width)
-        r = self.r.get_value(eval_width)
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value(eval_width))
         
         if(r == 0):
             self.msg.fatal(
@@ -368,32 +368,32 @@ class BitwiseAnd(_BinaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        l = self.l.get_value(eval_width)
-        r = self.r.get_value(eval_width)
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value(eval_width))
         return(truncate_int(l & r, eval_width))
         
 class BitwiseOr(_BinaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        l = self.l.get_value(eval_width)
-        r = self.r.get_value(eval_width)
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value(eval_width))
         return(truncate_int(l | r, eval_width))
         
 class BitwiseXor(_BinaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        l = self.l.get_value(eval_width)
-        r = self.r.get_value(eval_width)
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value(eval_width))
         return(truncate_int(l ^ r, eval_width))
 
 class BitwiseXnor(_BinaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        l = self.l.get_value(eval_width)
-        r = self.r.get_value(eval_width)
+        l = int(self.l.get_value(eval_width))
+        r = int(self.r.get_value(eval_width))
         return(truncate_int(l ^~ r, eval_width))
 
 #-------------------------------------------------------------------------------
@@ -421,21 +421,21 @@ class UnaryPlus(_UnaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        n = self.n.get_value(eval_width)
+        n = int(self.n.get_value(eval_width))
         return(truncate_int(n, eval_width))
 
 class UnaryMinus(_UnaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        n = self.n.get_value(eval_width)
+        n = int(self.n.get_value(eval_width))
         return(truncate_int(-n, eval_width))
 
 class BitwiseInvert(_UnaryIntExpr):
     def get_value(self, eval_width=None):
         if(eval_width is None):
             eval_width = self.get_min_eval_width()
-        n = self.n.get_value(eval_width)
+        n = int(self.n.get_value(eval_width))
         return(truncate_int(~n, eval_width))
 
 #-------------------------------------------------------------------------------
@@ -819,14 +819,14 @@ class WidthCast(Expr):
     
     def get_min_eval_width(self):
         if(self.cast_width is None):
-            self.cast_width = self.w_expr.get_value()
+            self.cast_width = int(self.w_expr.get_value())
         return(self.cast_width)
         
     
     def get_value(self, eval_width=None):
         # Truncate to cast width instead of eval width
         if(self.cast_width is None):
-            self.cast_width = self.w_expr.get_value()
+            self.cast_width = int(self.w_expr.get_value())
         if(self.cast_width == 0):
             self.msg.fatal(
                 "Cannot cast to width of zero",
