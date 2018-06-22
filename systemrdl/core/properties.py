@@ -94,6 +94,8 @@ class PropertyRule:
             assign_type = bool
         elif(type(value) == rdltypes.PrecedenceType):
             assign_type = rdltypes.PrecedenceType
+        elif(type(value) == rdltypes.InterruptType):
+            assign_type = rdltypes.InterruptType
         elif(issubclass(type(value), expressions.Expr)):
             assign_type = value.predict_type()
         elif(rdltypes.is_user_enum(value)):
@@ -834,14 +836,27 @@ class Prop_decrthreshold(PropertyRule):
 # Field access interrupt properties
 #-------------------------------------------------------------------------------
 
-# TODO: Implement a storage location for interrupt modifiers somehow
-
 class Prop_intr(PropertyRule):
     bindable_to = [comp.Field]
     valid_types = [bool]
     default = False
     dyn_assign_allowed = True
     mutex_group = "E"
+
+class Prop_intr_type(PropertyRule):
+    bindable_to = [comp.Field]
+    valid_types = [rdltypes.InterruptType]
+    default = rdltypes.InterruptType.level
+    dyn_assign_allowed = True
+    mutex_group = None
+    
+    @classmethod
+    def get_name(cls):
+        # Interrupt modifier type is a "special" hidden property
+        # Intentinally override the property name to something that is impossible
+        # to define in RDL and collide with
+        # Use of space in an ID works!
+        return("intr type")
 
 class Prop_enable(PropertyRule):
     bindable_to = [comp.Field]
@@ -884,6 +899,19 @@ class Prop_stickybit(PropertyRule):
     default = False
     dyn_assign_allowed = True
     mutex_group = "I"
+    
+    def get_default(self, node):
+        """
+        Unless specified otherwise, intr fields are implicitly stickybit
+        """
+        if(node.inst.properties.get("intr", False)):
+            # Interrupt is set!
+            # Default is implicitly stickybit, unless the mutually-exclusive 
+            # sticky property was set instead
+            return(not node.inst.properties.get("sticky", False))
+        else:
+            return(False)
+                
 
 #-------------------------------------------------------------------------------
 # Misc properties

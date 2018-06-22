@@ -8,7 +8,7 @@ enum my_enum {
     };
     four {};
     five {
-        desc = "this is five";
+        desc = "five";
         name = "this is five";
     };
 };

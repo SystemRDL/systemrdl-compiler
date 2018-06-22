@@ -27,12 +27,13 @@ class NamespaceRegistry():
             )
         self.element_ns_stack[-1][name] = ref
     
-    def register_default_property(self, name:str, ref, err_token):
-        if(name in self.default_property_ns_stack[-1]):
-            self.msg.fatal(
-                "Default property '%s' was already assigned in this scope" % name,
-                err_token
-            )
+    def register_default_property(self, name:str, ref, err_token, overwrite_ok=False):
+        if(not overwrite_ok):
+            if(name in self.default_property_ns_stack[-1]):
+                self.msg.fatal(
+                    "Default property '%s' was already assigned in this scope" % name,
+                    err_token
+                )
         
         # TODO: default properties that resolve to an instance reference
         # won't work properly yet.

@@ -107,8 +107,8 @@ The *priority* column denotes how high the item is on my to-do list:
         - 
 
     *   - interrupt property modifier
-        - :red:`No`
-        - 5
+        - :green:`Yes`
+        - 
         - 
 
     *   - Property references

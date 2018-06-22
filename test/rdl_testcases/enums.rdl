@@ -1,0 +1,30 @@
+
+addrmap enum_test1 {
+    enum my_enum {
+        zero;
+        one;
+        three = 3 {};
+        four {};
+        five {
+            name = "five's name";
+            desc = "this is five";
+        };
+    };
+    
+    field my_field_t #(
+        my_enum FOO = my_enum::four
+    ) {
+        fieldwidth=4;
+        reset = FOO + 1;
+        encode = my_enum;
+    };
+    
+    reg {
+        my_field_t f_default[4];
+        my_field_t #(.FOO(my_enum::zero)) f_zero[4];
+        my_field_t #(.FOO(my_enum::one)) f_one[4];
+        my_field_t #(.FOO(my_enum::three)) f_three[4];
+        my_field_t #(.FOO(my_enum::four)) f_four[4];
+        my_field_t #(.FOO(my_enum::five)) f_five[4];
+    } reg1;
+};

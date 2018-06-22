@@ -409,8 +409,6 @@ class ComponentVisitor(BaseVisitor):
             comp_inst.external = True
         elif(inst_type == SystemRDLParser.INTERNAL_kw):
             comp_inst.external = False
-        else:
-            comp_inst.external = False
         
         if(alias_primary_inst is not None):
             if(type(comp_inst) == comp.Reg):
@@ -516,15 +514,38 @@ class ComponentVisitor(BaseVisitor):
             prop_token, prop_name, rhs = self.visit(ctx.encode_prop_assign())
         elif(ctx.prop_mod_assign() is not None):
             prop_mod_token, prop_mod = self.visit(ctx.prop_mod_assign())
-            # TODO: Set intr property to True and apply prop_mod
-            raise NotImplementedError
+            
+            # Implies assignment to intr=true
+            # Do not check for multiple assignments to intr
+            if(default):
+                self.compiler.namespace.register_default_property(
+                    "intr", (prop_mod_token, True), prop_mod_token,
+                    overwrite_ok=True
+                )
+            else:
+                self.property_dict["intr"] = (prop_mod_token, True)
+            
+            if(prop_mod == "nonsticky"):
+                # Implies assignment stickybit = false;
+                prop_token = prop_mod_token
+                prop_name = "stickybit"
+                rhs = False
+            else:
+                # Assign interrupt type modifier
+                prop_token = prop_mod_token
+                prop_name = "intr type"
+                rhs = rdltypes.InterruptType[prop_mod]
+                
         else:
             raise RuntimeError # pragma: no cover
         
         if(default):
             self.compiler.namespace.register_default_property(prop_name, (prop_token, rhs), prop_token)
         else:
-            if(prop_name in self.property_dict):
+            # Check if multiple assignments in current scope.
+            # Exclude "intr" property from this check since interrupt prop mod assignments
+            # make this messy.
+            if((prop_name in self.property_dict) and (prop_name != "intr")):
                 self.msg.fatal(
                     "Property '%s' was already assigned in this scope" % prop_name,
                     prop_token
@@ -645,7 +666,7 @@ class ComponentVisitor(BaseVisitor):
                 "extraneous input '%s' expecting 'intr'" % intr_token.getText(),
                 intr_token
             )
-
+        
         return(prop_mod_token, prop_mod)
         
     def visitProp_assignment_rhs(self, ctx:SystemRDLParser.Prop_assignment_rhsContext):
