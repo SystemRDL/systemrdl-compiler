@@ -149,7 +149,13 @@ class ExprVisitor(BaseVisitor):
     # Built-in RDL Enumeration literals
     #---------------------------------------------------------------------------
     def visitAccesstype_literal(self, ctx:SystemRDLParser.Accesstype_literalContext):
-        return e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.AccessType[ctx.kw.text])
+        if ctx.kw.text == "wr":
+            # same as rw
+            value = rdltypes.AccessType.rw
+        else:
+            value = rdltypes.AccessType[ctx.kw.text]
+        
+        return e.BuiltinEnumLiteral(self.compiler, ctx.kw, value)
 
     def visitOnreadtype_literal(self, ctx:SystemRDLParser.Onreadtype_literalContext):
         return e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.OnReadType[ctx.kw.text])

@@ -244,10 +244,37 @@ class AddressableNode(Node):
     @property
     def absolute_address(self):
         """
-        Calculate the absolute byte address of this node
+        Get the absolute byte address of this node
+        Indexes of all arrays in the node's lineage must be known
         """
-        # TODO: Implement absolute_address getter
-        raise NotImplementedError
+        
+        if self.inst.is_array:
+            if self.current_idx is None:
+                raise ValueError("Index of array element must be known to derive address")
+            
+            # Calculate the "flattened" index of a general multidimensional array
+            # For example, a component array declared as:
+            #   foo[S0][S1][S2]
+            # and referenced as:
+            #   foo[I0][I1][I2]
+            # Is flattened like this:
+            #   idx = I0*S1*S2 + I1*S2 + I2
+            idx = 0
+            for i in range(len(self.current_idx)):
+                sz = 1
+                for j in range(i+1, len(self.inst.array_dimensions)):
+                    sz *= self.inst.array_dimensions[j]
+                idx += sz * self.current_idx[i]
+            
+            offset = self.inst.addr_offset + idx * self.inst.array_stride
+                    
+        else:
+            offset = self.inst.addr_offset
+        
+        if self.parent:
+            return self.parent.absolute_address + offset
+        else:
+            return offset
     
     
     @property
@@ -308,16 +335,23 @@ class FieldNode(VectorNode):
         """
         Field is writable by software
         """
-        # TODO: Implement is_sw_writable getter
-        raise NotImplementedError
+        return (sw == rdltypes.AccessType.rw
+            or sw == rdltypes.AccessType.rw1
+            or sw == rdltypes.AccessType.w
+            or sw == rdltypes.AccessType.w1
+        )
         
     @property
     def is_sw_readable(self):
         """
         Field is readable by software
         """
-        # TODO: Implement is_sw_readable getter
-        raise NotImplementedError
+        sw = self.get_property('sw')
+        
+        return (sw == rdltypes.AccessType.rw
+            or sw == rdltypes.AccessType.rw1
+            or sw == rdltypes.AccessType.r
+        )
         
     @property
     def implements_storage(self):
@@ -326,9 +360,18 @@ class FieldNode(VectorNode):
         field implements a storage element.
         (Section 9.4.1, Table 12)
         """
-        # TODO: Implement implements_storage getter
-        raise NotImplementedError
-    
+        sw = self.get_property('sw')
+        hw = self.get_property('hw')
+        
+        return (sw == rdltypes.AccessType.rw
+            or sw == rdltypes.AccessType.rw1
+            or ((sw == rdltypes.AccessType.r) and (hw == rdltypes.AccessType.rw))
+            or ((sw == rdltypes.AccessType.w) and (hw == rdltypes.AccessType.rw))
+            or ((sw == rdltypes.AccessType.w1) and (hw == rdltypes.AccessType.rw))
+            or ((sw == rdltypes.AccessType.w) and (hw == rdltypes.AccessType.r))
+            or ((sw == rdltypes.AccessType.w1) and (hw == rdltypes.AccessType.r))
+        )
+
 #===============================================================================
 class RegNode(AddressableNode):
     

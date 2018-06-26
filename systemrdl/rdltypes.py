@@ -13,7 +13,6 @@ class AutoEnum(enum.Enum):
 class AccessType(AutoEnum):
     na  = ()
     rw  = ()
-    wr  = ()
     r   = ()
     w   = ()
     rw1 = ()
