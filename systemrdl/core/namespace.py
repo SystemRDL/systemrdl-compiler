@@ -12,7 +12,7 @@ class NamespaceRegistry():
         self.default_property_ns_stack = [{}]
     
     def register_type(self, name:str, ref, err_token):
-        if(name in self.type_ns_stack[-1]):
+        if name in self.type_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of type '%s'" % name,
                 err_token
@@ -20,7 +20,7 @@ class NamespaceRegistry():
         self.type_ns_stack[-1][name] = ref
         
     def register_element(self, name:str, ref, err_token):
-        if(name in self.element_ns_stack[-1]):
+        if name in self.element_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of instance '%s'" % name,
                 err_token
@@ -28,8 +28,8 @@ class NamespaceRegistry():
         self.element_ns_stack[-1][name] = ref
     
     def register_default_property(self, name:str, ref, err_token, overwrite_ok=False):
-        if(not overwrite_ok):
-            if(name in self.default_property_ns_stack[-1]):
+        if not overwrite_ok:
+            if name in self.default_property_ns_stack[-1]:
                 self.msg.fatal(
                     "Default property '%s' was already assigned in this scope" % name,
                     err_token
@@ -38,9 +38,9 @@ class NamespaceRegistry():
         # TODO: default properties that resolve to an instance reference
         # won't work properly yet.
         prop_token, rhs = ref
-        if(issubclass(type(rhs), expressions.Expr)):
+        if isinstance(rhs, expressions.Expr):
             result_type = rhs.predict_type()
-            if(issubclass(result_type, comp.Component)):
+            if issubclass(result_type, comp.Component):
                 self.msg.fatal(
                     "Assigning a reference to a component instance in a property default is not supported yet",
                     prop_token
@@ -50,23 +50,23 @@ class NamespaceRegistry():
     
     def lookup_type(self, name:str):
         for scope in reversed(self.type_ns_stack):
-            if(name in scope):
-                return(scope[name])
-        return(None)
+            if name in scope:
+                return scope[name]
+        return None
     
     def lookup_element(self, name:str):
         for idx, scope in enumerate(reversed(self.element_ns_stack)):
-            if(name in scope):
+            if name in scope:
                 el = scope[name]
-                if(idx == 0):
+                if idx == 0:
                     # Return anything from local namespace
-                    return(el)
-                elif(type(el) == comp.Signal):
+                    return el
+                elif isinstance(el, comp.Signal):
                     # Signals are allowed to be found in parent namespaces
-                    return(el)
+                    return el
                 else:
-                    return(None)
-        return(None)
+                    return None
+        return None
     
     def get_default_properties(self, comp_type):
         """
@@ -82,15 +82,15 @@ class NamespaceRegistry():
         prop_names = list(props.keys())
         for prop_name in prop_names:
             rule = self.compiler.property_rules.lookup_property(prop_name)
-            if(rule is None):
+            if rule is None:
                 self.msg.fatal(
                     "Unrecognized property '%s'" % prop_name,
                     props[prop_name][0]
                 )
-            if(comp_type not in rule.bindable_to):
+            if comp_type not in rule.bindable_to:
                 del props[prop_name]
             
-        return(props)
+        return props
     
     def enter_scope(self):
         self.type_ns_stack.append({})

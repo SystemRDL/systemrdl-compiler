@@ -54,17 +54,17 @@ class Component:
         result = cls.__new__(cls)
         memo[id(self)] = result
         for k, v in self.__dict__.items():
-            if(k in copy_by_ref):
+            if k in copy_by_ref:
                 setattr(result, k, v)
             else:
                 setattr(result, k, deepcopy(v, memo))
-        return(result)
+        return result
     
     def get_child_by_name(self, inst_name):
         for child in self.children:
-            if(child.inst_name == inst_name):
-                return(child)
-        return(None)
+            if child.inst_name == inst_name:
+                return child
+        return None
 
 class AddressableComponent(Component):
     """
@@ -156,4 +156,3 @@ class Addrmap(AddressableComponent):
     
 class Mem(AddressableComponent):
     pass
-

@@ -20,7 +20,7 @@ class RDLCompiler:
     def __init__(self, message_printer=None):
         
         # Set up message handling
-        if(message_printer is None):
+        if message_printer is None:
             message_printer = messages.MessagePrinter()
         self.msg = messages.MessageHandler(message_printer)
         
@@ -56,13 +56,13 @@ class RDLCompiler:
         
         # Run Antlr parser on input
         parsed_tree = parser.root()
-        if(self.msg.error_count):
+        if self.msg.error_count:
             self.msg.fatal("Parse aborted due to previous errors")
         
         # Traverse parse tree with RootVisitor
         self.root = self.visitor.visit(parsed_tree)
         
-        if(self.msg.error_count):
+        if self.msg.error_count:
             self.msg.fatal("Compile aborted due to previous errors")
     
     def elaborate(self, top_def_name, inst_name=None, parameters=None):
@@ -86,27 +86,27 @@ class RDLCompiler:
         :class:`~systemrdl.node.AddrmapNode`
             Elaborated top-level component's Node object.
         """
-        if(parameters is None):
+        if parameters is None:
             parameters = {}
         
         # Lookup top_def_name
-        if(top_def_name not in self.root.comp_defs):
+        if top_def_name not in self.root.comp_defs:
             self.msg.fatal("Elaboration target '%s' not found" % top_def_name)
         top_def = self.root.comp_defs[top_def_name]
         
-        if(type(top_def) != comp.Addrmap):
+        if not isinstance(top_def, comp.Addrmap):
             self.msg.fatal("Elaboration target '%s' is not an 'addrmap' component" % top_def_name)
         
         # Create a top-level instance
         top_inst = deepcopy(top_def)
         top_inst.is_instance = True
-        if(inst_name is not None):
+        if inst_name is not None:
             top_inst.inst_name = inst_name
         else:
             top_inst.inst_name = top_def_name
         
         # Override parameters as needed
-        if(len(parameters)):
+        if len(parameters):
             # TODO: Add mechanism to set parameters of top-level component
             raise NotImplementedError
         
@@ -128,7 +128,7 @@ class RDLCompiler:
         # Validate design
         walker.RDLWalker().walk(top_node, ValidateListener(self))
         
-        if(self.msg.error_count):
+        if self.msg.error_count:
             self.msg.fatal("Elaborate aborted due to previous errors")
         
-        return(top_node)
+        return top_node

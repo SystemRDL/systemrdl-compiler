@@ -18,10 +18,10 @@ class Parameter:
         """
         Evaluate self.expr to get the parameter's value
         """
-        if((self._value is None) and (self.expr is not None)):
+        if (self._value is None) and (self.expr is not None):
             self._value = self.expr.get_value()
         
-        return(self._value)
+        return self._value
             
         
     def get_normalized_parameter(self):
@@ -32,25 +32,25 @@ class Parameter:
         Returns the whole parameter string:
             <parameter name> + "_" + <normalized value>
         """
-        return(self.name + "_" + normalize(self.get_value()))
+        return self.name + "_" + normalize(self.get_value())
         
 #===============================================================================
 # Parameter value normalizing functions (5.1.1.4-c)
 #===============================================================================
 def normalize(value):
     # Determine what type it is supposed to be
-    if(type(value) == int):
-        return(normalize_scalar(value))
-    elif(type(value) == bool):
-        return(normalize_boolean(value))
-    elif(type(value) == str):
-        return(normalize_string(value))
-    elif(type(value) == list):
-        return(normalize_array(value))
-    elif(issubclass(type(value), enum.Enum)):
-        return(normalize_enum(value))
-    elif(issubclass(type(value), rdltypes.UserStruct)):
-        return(normalize_struct(value))
+    if type(value) == int:
+        return normalize_scalar(value)
+    elif type(value) == bool:
+        return normalize_boolean(value)
+    elif type(value) == str:
+        return normalize_string(value)
+    elif type(value) == list:
+        return normalize_array(value)
+    elif isinstance(value, enum.Enum):
+        return normalize_enum(value)
+    elif isinstance(value, rdltypes.UserStruct):
+        return normalize_struct(value)
     else:
         # Should never get here
         raise RuntimeError
@@ -61,7 +61,7 @@ def normalize_scalar(value):
     5.1.1.4 - c.1:
         Scalar values shall be rendered using their hexadecimal representation.
     """
-    return("%x" % value)
+    return "%x" % value
 
 
 def normalize_boolean(value):
@@ -69,10 +69,10 @@ def normalize_boolean(value):
     5.1.1.4 - c.2:
         Boolean values shall be rendered using either t for true or f for false.
     """
-    if(value):
-        return("t")
+    if value:
+        return "t"
     else:
-        return("f")
+        return "f"
 
 
 def normalize_string(value):
@@ -82,7 +82,7 @@ def normalize_string(value):
         their md5 (Message-Digest Algorithm) checksum.
     """
     md5 = hashlib.md5(value.encode('utf-8')).hexdigest()
-    return(md5[:8])
+    return md5[:8]
 
 
 def normalize_enum(value):
@@ -90,7 +90,7 @@ def normalize_enum(value):
     5.1.1.4 - c.4:
         Enum values shall be rendered using their enumerator literal.
     """
-    return(value.name)
+    return value.name
 
 
 def normalize_array(value):
@@ -112,7 +112,7 @@ def normalize_array(value):
     
     norm_str = "_".join(norm_elements)
     md5 = hashlib.md5(norm_str.encode('utf-8')).hexdigest()
-    return(md5[:8])
+    return md5[:8]
 
 
 def normalize_struct(value):

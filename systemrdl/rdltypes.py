@@ -63,21 +63,21 @@ class UserEnum(enum.Enum):
     
     @property
     def rdl_desc(self):
-        return(self._rdl_desc_)
+        return self._rdl_desc_
     
     @property
     def rdl_name(self):
-        return(self._rdl_name_)
+        return self._rdl_name_
     
     def __int__(self):
-        return(self.value)
+        return self.value
     
     def __bool__(self):
-        return(bool(self.value))
+        return bool(self.value)
         
     def __deepcopy__(self, memo):
         # Do not deepcopy enumerations
-        return(self)
+        return self
 
 
 def is_user_enum(t):
@@ -85,7 +85,7 @@ def is_user_enum(t):
     Test if type t is a UserEnum
     NOTE: Returns false if t is referencing a UserEnum value member
     """
-    return(inspect.isclass(t) and (issubclass(t, UserEnum)))
+    return inspect.isclass(t) and (issubclass(t, UserEnum))
 
 #===============================================================================
 class UserStruct():
@@ -98,7 +98,7 @@ def is_user_struct(t):
     """
     Test if type t is a UserStruct
     """
-    return(inspect.isclass(t) and (issubclass(t, UserStruct)))
+    return inspect.isclass(t) and (issubclass(t, UserStruct))
 
 #===============================================================================
 class ComponentRef:
@@ -127,21 +127,21 @@ class ComponentRef:
         
         # Traverse up from assignee as needed
         for _ in range(self.uplevels_to_ref):
-            if(current_node.parent is None):
+            if current_node.parent is None:
                 raise RuntimeError("Upref attempted past last parent")
             current_node = current_node.parent
         
         for inst_name, idx_list in self.ref_elements:
             # find instance
             current_node = current_node.get_child_by_name(inst_name)
-            if(current_node is None):
+            if current_node is None:
                 raise RuntimeError
             
             # Assign indexes if appropriate
-            if((issubclass(type(current_node), AddressableNode)) and current_node.inst.is_array):
+            if (isinstance(current_node, AddressableNode)) and current_node.inst.is_array:
                 current_node.current_idx = idx_list
             
-        return(current_node)
+        return current_node
         
 #===============================================================================
 
@@ -157,7 +157,7 @@ class ArrayPlaceholder():
         self.element_type = element_type
     
     def __eq__(self, other):
-        if(type(other) == ArrayPlaceholder):
-            return(self.element_type == other.element_type)
+        if isinstance(other, ArrayPlaceholder):
+            return self.element_type == other.element_type
         else:
-            return(False)
+            return False

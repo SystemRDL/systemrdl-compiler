@@ -118,13 +118,27 @@ disable=
         deprecated-string-function,
         deprecated-str-translate-call,
         
-        # Disable convention warnings for now
-        C,R,
         
-        # Other ignored
-        unused-wildcard-import,
-        wildcard-import,
-        relative-beyond-top-level,
+        # User ignored
+        cyclic-import,
+        inconsistent-return-statements,
+        too-many-locals,
+        too-many-branches,
+        no-else-return,
+        no-self-use,
+        too-few-public-methods,
+        too-many-public-methods,
+        too-many-statements,
+        too-many-instance-attributes,
+        line-too-long,
+        trailing-whitespace,
+        bad-whitespace,
+        invalid-name,
+        missing-docstring,
+        len-as-condition,
+        bad-continuation,
+        unidiomatic-typecheck,
+        consider-using-enumerate,
         abstract-method,
         unused-variable
 
@@ -178,7 +192,7 @@ ignore-docstrings=yes
 ignore-imports=no
 
 # Minimum lines number of a similarity.
-min-similarity-lines=4
+min-similarity-lines=10
 
 
 [VARIABLES]
@@ -243,10 +257,10 @@ indent-after-paren=4
 indent-string='    '
 
 # Maximum number of characters on a single line.
-max-line-length=100
+max-line-length=110
 
 # Maximum number of lines in a module
-max-module-lines=1000
+max-module-lines=2000
 
 # List of optional constructs for which whitespace checking is disabled. `dict-
 # separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
@@ -467,7 +481,7 @@ known-third-party=enchant
 [DESIGN]
 
 # Maximum number of arguments for function / method
-max-args=5
+max-args=8
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=7

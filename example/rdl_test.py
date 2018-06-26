@@ -23,6 +23,6 @@ class hier_printer(RDLListener):
 RDLWalker(unroll=True).walk(top, hier_printer())
 
 f = top.find_by_path("reg_b.asdf")
-if(f):
+if f:
     print(f.get_path())
 

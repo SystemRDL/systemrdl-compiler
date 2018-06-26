@@ -21,13 +21,13 @@ class EnumVisitor(BaseVisitor):
             name_token, value_expr_ctx, rdl_name, rdl_desc = self.visit(enum_entry_ctx)
             
             entry_name = get_ID_text(name_token)
-            if(entry_name in entries):
+            if entry_name in entries:
                 self.msg.fatal(
                     "Entry '%s' has already been defined in this enum" % entry_name,
                     name_token
                 )
             
-            if(value_expr_ctx is not None):
+            if value_expr_ctx is not None:
                 # explicit enumerator assignment
                 
                 visitor = ExprVisitor(self.compiler, None)
@@ -40,12 +40,12 @@ class EnumVisitor(BaseVisitor):
                 entry_value = expr.get_value()
             else:
                 # automatic enumerator assignment
-                if(len(entry_values) == 0):
+                if len(entry_values) == 0:
                     entry_value = 0
                 else:
                     entry_value = entry_values[-1] + 1
             
-            if(entry_value in entry_values):
+            if entry_value in entry_values:
                 # Value was already assigned
                 self.msg.fatal(
                     "Enumeration encoding values must be unique",
@@ -60,7 +60,7 @@ class EnumVisitor(BaseVisitor):
         enum_type = rdltypes.UserEnum(enum_name, entries) #pylint: disable=no-value-for-parameter
         
         self.compiler.namespace.exit_scope()
-        return(enum_type, ctx.ID())
+        return enum_type, ctx.ID()
 
     def visitEnum_entry(self, ctx:SystemRDLParser.Enum_entryContext):
         name_token = ctx.ID()
@@ -73,16 +73,16 @@ class EnumVisitor(BaseVisitor):
             prop_token, prop_value = self.visit(pa_ctx)
             prop_name = get_ID_text(prop_token)
             
-            if(prop_name == "desc"):
-                if(rdl_desc is not None):
+            if prop_name == "desc":
+                if rdl_desc is not None:
                     self.msg.error(
                         "Property 'desc' was already assigned in this scope",
                         prop_token
                     )
                     continue
                 rdl_desc = prop_value
-            elif(prop_name == "name"):
-                if(rdl_name is not None):
+            elif prop_name == "name":
+                if rdl_name is not None:
                     self.msg.error(
                         "Property 'name' was already assigned in this scope",
                         prop_token
@@ -95,7 +95,7 @@ class EnumVisitor(BaseVisitor):
                     prop_token
                 )
         
-        return(name_token, value_expr_ctx, rdl_name, rdl_desc)
+        return name_token, value_expr_ctx, rdl_name, rdl_desc
 
     def visitEnum_prop_assign(self, ctx:SystemRDLParser.Enum_prop_assignContext):
         prop_token = ctx.ID()
@@ -109,4 +109,4 @@ class EnumVisitor(BaseVisitor):
         # can depend on any external references
         prop_value = prop_expr.get_value()
         
-        return(prop_token, prop_value)
+        return prop_token, prop_value

@@ -99,42 +99,42 @@ class RDLWalker:
     def do_enter(self, node, listener:RDLListener):
         listener.enter_Component(node)
         
-        if(issubclass(type(node), AddressableNode)):
+        if isinstance(node, AddressableNode):
             listener.enter_AddressableComponent(node)
-        elif(issubclass(type(node), VectorNode)):
+        elif isinstance(node, VectorNode):
             listener.enter_VectorComponent(node)
         
-        if(type(node) == FieldNode):
+        if isinstance(node, FieldNode):
             listener.enter_Field(node)
-        elif(type(node) == RegNode):
+        elif isinstance(node, RegNode):
             listener.enter_Reg(node)
-        elif(type(node) == RegfileNode):
+        elif isinstance(node, RegfileNode):
             listener.enter_Regfile(node)
-        elif(type(node) == AddrmapNode):
+        elif isinstance(node, AddrmapNode):
             listener.enter_Addrmap(node)
-        elif(type(node) == MemNode):
+        elif isinstance(node, MemNode):
             listener.enter_Mem(node)
-        elif(type(node) == SignalNode):
+        elif isinstance(node, SignalNode):
             listener.enter_Signal(node)
     
     
     def do_exit(self, node, listener:RDLListener):
-        if(type(node) == FieldNode):
+        if isinstance(node, FieldNode):
             listener.exit_Field(node)
-        elif(type(node) == RegNode):
+        elif isinstance(node, RegNode):
             listener.exit_Reg(node)
-        elif(type(node) == RegfileNode):
+        elif isinstance(node, RegfileNode):
             listener.exit_Regfile(node)
-        elif(type(node) == AddrmapNode):
+        elif isinstance(node, AddrmapNode):
             listener.exit_Addrmap(node)
-        elif(type(node) == MemNode):
+        elif isinstance(node, MemNode):
             listener.exit_Mem(node)
-        elif(type(node) == SignalNode):
+        elif isinstance(node, SignalNode):
             listener.exit_Signal(node)
         
-        if(issubclass(type(node), AddressableNode)):
+        if isinstance(node, AddressableNode):
             listener.exit_AddressableComponent(node)
-        elif(issubclass(type(node), VectorNode)):
+        elif isinstance(node, VectorNode):
             listener.exit_VectorComponent(node)
         
         listener.exit_Component(node)

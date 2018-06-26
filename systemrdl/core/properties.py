@@ -16,29 +16,29 @@ class PropertyRuleBook:
         # Auto-discover all properties defined below and load into dict
         self.rdl_properties = {}
         for prop in get_all_subclasses(PropertyRule):
-            if(prop.__name__.startswith("Prop_")):
+            if prop.__name__.startswith("Prop_"):
                 prop_name = prop.get_name()
                 self.rdl_properties[prop_name] = prop(self.compiler)
         
         self.user_properties = {}
     
     def lookup_property(self, prop_name):
-        if(prop_name in self.rdl_properties):
-            return(self.rdl_properties[prop_name])
-        elif(prop_name in self.user_properties):
-            return(self.user_properties[prop_name])
+        if prop_name in self.rdl_properties:
+            return self.rdl_properties[prop_name]
+        elif prop_name in self.user_properties:
+            return self.user_properties[prop_name]
         else:
-            return(None)
+            return None
     
     def register_udp(self, udp, err_token):
-        if(udp.name in self.user_properties):
+        if udp.name in self.user_properties:
             self.compiler.msg.fatal(
                 "Multiple declarations of user-defined property '%s'"
                 % udp.name,
                 err_token
             )
         
-        if(udp.name in self.rdl_properties):
+        if udp.name in self.rdl_properties:
             self.compiler.msg.fatal(
                 "User-defined property '%s' cannot be the same name as a built-in SystemRDL property"
                 % udp.name,
@@ -64,7 +64,7 @@ class PropertyRule:
     #---------------------------------------------------------------------------
     @classmethod
     def get_name(cls):
-        return(cls.__name__.replace("Prop_", ""))
+        return cls.__name__.replace("Prop_", "")
     
     #---------------------------------------------------------------------------
     def assign_value(self, comp_def, value, err_ctx):
@@ -78,9 +78,10 @@ class PropertyRule:
         """
         
         # Check if property is allowed in this component
-        if(type(comp_def) not in self.bindable_to):
+        if type(comp_def) not in self.bindable_to:
             self.compiler.msg.fatal(
-                "The property '%s' is not valid for '%s' components" % (self.get_name(), type(comp_def).__name__.lower()),
+                "The property '%s' is not valid for '%s' components"
+                % (self.get_name(), type(comp_def).__name__.lower()),
                 err_ctx
             )
         
@@ -90,22 +91,22 @@ class PropertyRule:
         #   - precedencetype literal (instance of PrecedenceType)
         #   - user-defined enum type (subclass of UserEnum)
         #   - An expression (instance of an Expr subclass)
-        if(type(value) == bool):
+        if type(value) == bool:
             assign_type = bool
-        elif(type(value) == rdltypes.PrecedenceType):
+        elif isinstance(value, rdltypes.PrecedenceType):
             assign_type = rdltypes.PrecedenceType
-        elif(type(value) == rdltypes.InterruptType):
+        elif isinstance(value, rdltypes.InterruptType):
             assign_type = rdltypes.InterruptType
-        elif(issubclass(type(value), expressions.Expr)):
+        elif isinstance(value, expressions.Expr):
             assign_type = value.predict_type()
-        elif(rdltypes.is_user_enum(value)):
+        elif rdltypes.is_user_enum(value):
             assign_type = rdltypes.UserEnum
         else:
             raise RuntimeError
         
         # Check if value's type is compatible
         for valid_type in self.valid_types:
-            if(expressions.is_castable(assign_type, valid_type)):
+            if expressions.is_castable(assign_type, valid_type):
                 break
         else:
             self.compiler.msg.fatal(
@@ -127,7 +128,7 @@ class PropertyRule:
         Properties with more complex rules can override this to implement
         other default value derivations
         """
-        return(self.default)
+        return self.default
     
     #---------------------------------------------------------------------------
     def validate(self, node, value):
@@ -148,7 +149,7 @@ class PropertyRuleBoolPair(PropertyRule):
         overridden
         """
         super().assign_value(comp_def, value, err_ctx)
-        if(self.opposite_property in comp_def.properties):
+        if self.opposite_property in comp_def.properties:
             del comp_def.properties[self.opposite_property]
     
     def get_default(self, node):
@@ -156,10 +157,10 @@ class PropertyRuleBoolPair(PropertyRule):
         If not explicitly set, check if the opposite was set first before returning
         default
         """
-        if(self.opposite_property in node.inst.properties):
-            return(not node.inst.properties[self.opposite_property])
+        if self.opposite_property in node.inst.properties:
+            return not node.inst.properties[self.opposite_property]
         else:
-            return(self.default)
+            return self.default
 
 #===============================================================================
 # Placeholder for all my todos below
@@ -184,7 +185,7 @@ class Prop_name(PropertyRule):
         If name is undefined, it is presumed to be the instance name.
         (5.2.1.1)
         """
-        return(node.inst.name)
+        return node.inst.name
     
 
 class Prop_desc(PropertyRule):
@@ -242,7 +243,7 @@ class Prop_errextbus(PropertyRule):
     
     def validate(self, node, value):
         # 10.6.1-h: errextbus is only valid for external registers
-        if((node.inst.external == False) and (value == True)):
+        if (node.inst.external is False) and (value is True):
             self.compiler.msg.error(
                 "The 'errextbus' property is set to 'true', but instance '%s' is not external"
                 % (node.inst.inst_name),
@@ -296,7 +297,7 @@ class Prop_signalwidth(PropertyRule):
         """
         If not explicitly set, inherits the instantiation's width
         """
-        return(node.inst.width)
+        return node.inst.width
     
 class Prop_sync(PropertyRuleBoolPair):
     """
@@ -416,7 +417,7 @@ class Prop_next(PropertyRule):
     
     def validate(self, node, value):
         # 9.5.1-e: next cannot be self-referencing
-        if(node.get_path() == value.get_path()):
+        if node.get_path() == value.get_path():
             self.compiler.msg.error(
                 "Field '%s' cannot reference itself in next property"
                 % (node.inst.inst_name),
@@ -435,18 +436,18 @@ class Prop_reset(PropertyRule):
     mutex_group = None
     
     def validate(self, node, value):
-        if(type(value) == int):
+        if type(value) == int:
             # 9.5.1-c: The reset value cannot be larger than can fit in the field
-            if(value >= (2**node.inst.width)):
+            if value >= (2**node.inst.width):
                 self.compiler.msg.error(
                     "The reset value (%d) of field '%s' cannot fit within it's width (%d)"
                     % (value, node.inst.inst_name, node.inst.width),
                     node.inst.inst_err_ctx
                 )
-        elif(type(value) == FieldNode):
+        elif isinstance(value, FieldNode):
             # 9.5.1-d: When reset is a reference, it shall reference another
             # field of the same size.
-            if(node.inst.width != value.inst.width):
+            if node.inst.width != value.inst.width:
                 self.compiler.msg.error(
                     "Field '%s' references field '%s' as its reset value but they are not the same size (%d != %d)"
                     % (node.inst.inst_name, value.inst.inst_name, node.inst.width, value.inst.width),
@@ -454,7 +455,7 @@ class Prop_reset(PropertyRule):
                 )
             
             # 9.5.1-e: reset cannot be self-referencing
-            if(node.get_path() == value.get_path()):
+            if node.get_path() == value.get_path():
                 self.compiler.msg.error(
                     "Field '%s' cannot reference itself in reset property"
                     % (node.inst.inst_name),
@@ -656,7 +657,7 @@ class Prop_fieldwidth(PropertyRule):
         """
         If not explicitly set, inherits the instantiation's width
         """
-        return(node.inst.width)
+        return node.inst.width
     
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwclr(PropertyRule):
@@ -856,7 +857,7 @@ class Prop_intr_type(PropertyRule):
         # Intentinally override the property name to something that is impossible
         # to define in RDL and collide with
         # Use of space in an ID works!
-        return("intr type")
+        return "intr type"
 
 class Prop_enable(PropertyRule):
     bindable_to = [comp.Field]
@@ -904,13 +905,13 @@ class Prop_stickybit(PropertyRule):
         """
         Unless specified otherwise, intr fields are implicitly stickybit
         """
-        if(node.inst.properties.get("intr", False)):
+        if node.inst.properties.get("intr", False):
             # Interrupt is set!
             # Default is implicitly stickybit, unless the mutually-exclusive 
             # sticky property was set instead
-            return(not node.inst.properties.get("sticky", False))
+            return not node.inst.properties.get("sticky", False)
         else:
-            return(False)
+            return False
                 
 
 #-------------------------------------------------------------------------------
@@ -967,7 +968,7 @@ class Prop_accesswidth(PropertyRule):
         10.6.1.d: The default value of the accesswidth property shall be
         identical to the width of the register.
         """
-        return(node.get_property('regwidth'))
+        return node.get_property('regwidth')
 
 class Prop_shared(PropertyRule):
     bindable_to = [comp.Reg]
@@ -1103,18 +1104,18 @@ class UserProperty(PropertyRule):
         self.constr_componentwidth = constr_componentwidth
     
     def get_name(self):
-        return(self.name)
+        return self.name
         
     def validate(self, node, value):
-        if(self.constr_componentwidth):
+        if self.constr_componentwidth:
             # 15.1.1-g: If constraint is set to componentwidth, the assigned
             #   value of the property shall not have a value of 1 for any bit
             #   beyond the width of the field.
             
             # Spec does not specify, but assuming this check gets ignored for
             # non-vector nodes
-            if(issubclass(type(node), VectorNode)):
-                if(value >= (2**node.inst.width)):
+            if isinstance(node, VectorNode):
+                if value >= (2**node.inst.width):
                     self.compiler.msg.error(
                         "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
                         % (value, self.name, node.inst.width, node.inst.inst_name),

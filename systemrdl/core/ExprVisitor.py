@@ -68,14 +68,14 @@ class ExprVisitor(BaseVisitor):
         l = self.visit(ctx.expr(0))
         r = self.visit(ctx.expr(1))
         expr_class = self._BinaryExpr_map[ctx.op.type]
-        return(expr_class(self.compiler, ctx.op,l,r))
+        return expr_class(self.compiler, ctx.op,l,r)
 
 
     # Visit a parse tree produced by SystemRDLParser#UnaryExpr.
     def visitUnaryExpr(self, ctx:SystemRDLParser.UnaryExprContext):
         n = self.visit(ctx.expr_primary())
         expr_class = self._UnaryExpr_map[ctx.op.type]
-        return(expr_class(self.compiler, ctx.op,n))
+        return expr_class(self.compiler, ctx.op,n)
 
 
     # Visit a parse tree produced by SystemRDLParser#TernaryExpr.
@@ -83,12 +83,12 @@ class ExprVisitor(BaseVisitor):
         i = self.visit(ctx.expr(0))
         j = self.visit(ctx.expr(1))
         k = self.visit(ctx.expr(2))
-        return(e.TernaryExpr(self.compiler, ctx.op,i,j,k))
+        return e.TernaryExpr(self.compiler, ctx.op,i,j,k)
     
     
     # Visit a parse tree produced by SystemRDLParser#paren_expr.
     def visitParen_expr(self, ctx:SystemRDLParser.Paren_exprContext):
-        return(self.visit(ctx.expr()))
+        return self.visit(ctx.expr())
     
     #---------------------------------------------------------------------------
     # Numeric Literals
@@ -97,14 +97,14 @@ class ExprVisitor(BaseVisitor):
     def visitNumberInt(self, ctx:SystemRDLParser.NumberIntContext):
         s = ctx.INT().getText()
         s = s.replace("_","")
-        return(e.IntLiteral(self.compiler, ctx.INT(), int(s)))
+        return e.IntLiteral(self.compiler, ctx.INT(), int(s))
     
     
     # Visit a parse tree produced by SystemRDLParser#NumberHex.
     def visitNumberHex(self, ctx:SystemRDLParser.NumberHexContext):
         s = ctx.HEX_INT().getText()
         s = s.replace("_","")
-        return(e.IntLiteral(self.compiler, ctx.HEX_INT(), int(s,16)))
+        return e.IntLiteral(self.compiler, ctx.HEX_INT(), int(s,16))
     
     
     # Visit a parse tree produced by SystemRDLParser#NumberVerilog.
@@ -114,51 +114,51 @@ class ExprVisitor(BaseVisitor):
         m = re.fullmatch(r"(\d+)'(b|d|h)([\da-f]+)", s, re.IGNORECASE)
         width = int(m.group(1))
         basechar = m.group(2).lower()
-        if(basechar == "b"):
+        if basechar == "b":
             base = 2
-        elif(basechar == "d"):
+        elif basechar == "d":
             base = 10
         else:
             base = 16
         
         val = int(m.group(3), base)
         
-        if(width < 1):
+        if width < 1:
             self.msg.fatal(
                 "Integer literal width must be greater than zero",
                 ctx.VLOG_INT()
             )
             
-        if(val >= (1 << width)):
+        if val >= (1 << width):
             self.msg.fatal(
                 "Value of integer literal exceeds the specified width",
                 ctx.VLOG_INT()
             )
         
-        return(e.IntLiteral(self.compiler, ctx.VLOG_INT(), val, width))
+        return e.IntLiteral(self.compiler, ctx.VLOG_INT(), val, width)
         
     
     # Visit a parse tree produced by SystemRDLParser#boolean_literal.
     def visitBoolean_literal(self, ctx:SystemRDLParser.Boolean_literalContext):
-        if(ctx.val.type == SystemRDLParser.TRUE_kw):
-            return(e.IntLiteral(self.compiler, ctx.val, 1, 1))
+        if ctx.val.type == SystemRDLParser.TRUE_kw:
+            return e.IntLiteral(self.compiler, ctx.val, 1, 1)
         else:
-            return(e.IntLiteral(self.compiler, ctx.val, 0, 1))
+            return e.IntLiteral(self.compiler, ctx.val, 0, 1)
         
     #---------------------------------------------------------------------------
     # Built-in RDL Enumeration literals
     #---------------------------------------------------------------------------
     def visitAccesstype_literal(self, ctx:SystemRDLParser.Accesstype_literalContext):
-        return(e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.AccessType[ctx.kw.text]))
+        return e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.AccessType[ctx.kw.text])
 
     def visitOnreadtype_literal(self, ctx:SystemRDLParser.Onreadtype_literalContext):
-        return(e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.OnReadType[ctx.kw.text]))
+        return e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.OnReadType[ctx.kw.text])
 
     def visitOnwritetype_literal(self, ctx:SystemRDLParser.Onwritetype_literalContext):
-        return(e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.OnWriteType[ctx.kw.text]))
+        return e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.OnWriteType[ctx.kw.text])
 
     def visitAddressingtype_literal(self, ctx:SystemRDLParser.Addressingtype_literalContext):
-        return(e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.AddressingType[ctx.kw.text]))
+        return e.BuiltinEnumLiteral(self.compiler, ctx.kw, rdltypes.AddressingType[ctx.kw.text])
 
     #---------------------------------------------------------------------------
     # Misc other literals
@@ -172,7 +172,7 @@ class ExprVisitor(BaseVisitor):
         # Remove backslashes from any escaped characters
         string = re.sub(r'\\(.)', r'\1', string)
         
-        return(e.StringLiteral(self.compiler, ctx.STRING(), string))
+        return e.StringLiteral(self.compiler, ctx.STRING(), string)
     
     
     def visitEnum_literal(self, ctx:SystemRDLParser.Enum_literalContext):
@@ -181,27 +181,27 @@ class ExprVisitor(BaseVisitor):
         
         # Lookup the enum type
         enum_type = self.compiler.namespace.lookup_type(enum_type_name)
-        if(enum_type is None):
+        if enum_type is None:
             self.msg.fatal(
                 "Enumeration type '%s' not found" % enum_type_name,
                 ctx.ID(0)
             )
         
-        if(not rdltypes.is_user_enum(enum_type)):
+        if not rdltypes.is_user_enum(enum_type):
             self.msg.fatal(
                 "Identifier '%s' is not an enum" % enum_type_name,
                 ctx.ID(0)
             )
         
         # Get it's value
-        if(enum_entry_name not in enum_type.__members__):
+        if enum_entry_name not in enum_type.__members__:
             self.msg.fatal(
                 "'%s' is not a valid member of enum '%s'"
                 % (enum_entry_name, enum_type_name),
                 ctx.ID(1)
             )
         
-        return(e.EnumLiteral(self.compiler, ctx, enum_type[enum_entry_name]))
+        return e.EnumLiteral(self.compiler, ctx, enum_type[enum_entry_name])
     
     
     def visitArray_literal(self, ctx:SystemRDLParser.Array_literalContext):
@@ -212,7 +212,7 @@ class ExprVisitor(BaseVisitor):
         
         expr = e.ArrayLiteral(self.compiler, ctx, elements)
         expr.predict_type()
-        return(expr)
+        return expr
         
     #---------------------------------------------------------------------------
     # Aggregate Operators
@@ -225,7 +225,7 @@ class ExprVisitor(BaseVisitor):
         
         expr = e.Concatenate(self.compiler, ctx, elements)
         expr.predict_type()
-        return(expr)
+        return expr
     
     
     def visitReplicate(self, ctx:SystemRDLParser.ReplicateContext):
@@ -233,29 +233,29 @@ class ExprVisitor(BaseVisitor):
         concat_expr = self.visit(ctx.concatenate())
         expr = e.Replicate(self.compiler, ctx, reps_expr, concat_expr)
         expr.predict_type()
-        return(expr)
+        return expr
     
     #---------------------------------------------------------------------------
     # Cast
     #---------------------------------------------------------------------------
     # Visit a parse tree produced by SystemRDLParser#CastType.
     def visitCastType(self, ctx:SystemRDLParser.CastTypeContext):
-        if(ctx.typ.type == SystemRDLParser.LONGINT_kw):
+        if ctx.typ.type == SystemRDLParser.LONGINT_kw:
             # Longint gets truncated to 64-bits
-            return(e.WidthCast(self.compiler, ctx.op, self.visit(ctx.expr()), w_int=64))
-        elif(ctx.typ.type == SystemRDLParser.BIT_kw):
+            return e.WidthCast(self.compiler, ctx.op, self.visit(ctx.expr()), w_int=64)
+        elif ctx.typ.type == SystemRDLParser.BIT_kw:
             # Cast to bit remains unaffected, but in self-determined context
             # Use assignment cast to isolate evaluation
-            return(e.AssignmentCast(self.compiler, ctx.op, self.visit(ctx.expr()), int))
-        elif(ctx.typ.type == SystemRDLParser.BOOLEAN_kw):
-            return(e.BoolCast(self.compiler, ctx.op, self.visit(ctx.expr())))
+            return e.AssignmentCast(self.compiler, ctx.op, self.visit(ctx.expr()), int)
+        elif ctx.typ.type == SystemRDLParser.BOOLEAN_kw:
+            return e.BoolCast(self.compiler, ctx.op, self.visit(ctx.expr()))
         else:
             raise RuntimeError # pragma: no cover
 
     # Visit a parse tree produced by SystemRDLParser#CastWidth.
     def visitCastWidth(self, ctx:SystemRDLParser.CastWidthContext):
         w = self.visit(ctx.cast_width_expr())
-        return(e.WidthCast(self.compiler, ctx.op, self.visit(ctx.expr()), w_expr=w))
+        return e.WidthCast(self.compiler, ctx.op, self.visit(ctx.expr()), w_expr=w)
     
     #---------------------------------------------------------------------------
     # References
@@ -272,32 +272,32 @@ class ExprVisitor(BaseVisitor):
         first_name_token, first_array_suffixes = ref_elements[0]
         first_name = get_ID_text(first_name_token)
         first_elem = self.compiler.namespace.lookup_element(first_name)
-        if(first_elem is None):
+        if first_elem is None:
             self.msg.fatal(
                 "Reference to '%s' not found" % first_name,
                 first_name_token
             )
         
-        if(type(first_elem) == Parameter):
+        if isinstance(first_elem, Parameter):
             # Reference is to a local parameter
             ref_expr = e.ParameterRef(self.compiler, first_name_token, first_elem)
             
-            if(len(first_array_suffixes) != 0):
+            if len(first_array_suffixes) != 0:
                 # TODO: Reference index of array parameter
                 self.msg.fatal(
                     "Index or bit-slice of a parameter is not supported yet.",
                     first_array_suffixes[0].err_ctx
                 )
-            if(len(ref_elements) > 1):
+            if len(ref_elements) > 1:
                 # TODO: Reference struct member of parameter
                 self.msg.fatal(
                     "Referencing child elements of a parameter is not supported yet.",
                     ctx.instance_ref_element(1)
                 )
-        elif(type(first_elem) == comp.Signal):
+        elif isinstance(first_elem, comp.Signal):
             # TODO: Need to handle signals differently. They are non-hierarchical (or something)
             raise NotImplementedError
-        elif(issubclass(type(first_elem), comp.Component)):
+        elif isinstance(first_elem, comp.Component):
             # Reference is to a component instance
             ref_expr = e.InstRef(
                 self.compiler, 
@@ -308,7 +308,7 @@ class ExprVisitor(BaseVisitor):
         else:
             raise RuntimeError # pragma: no cover
         
-        return(ref_expr)
+        return ref_expr
 
     def visitInstance_ref_element(self, ctx:SystemRDLParser.Instance_ref_elementContext):
         name_token = ctx.ID()
@@ -317,12 +317,12 @@ class ExprVisitor(BaseVisitor):
         for as_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Array_suffixContext):
             array_suffixes.append(self.visit(as_ctx))
         
-        return(name_token, array_suffixes)
+        return name_token, array_suffixes
 
     def visitProp_ref(self, ctx:SystemRDLParser.Prop_refContext):
         ref_expr = self.visit(ctx.instance_ref())
         
-        if(ctx.prop_keyword() is not None):
+        if ctx.prop_keyword() is not None:
             prop_token = self.visit(ctx.prop_keyword())
         else:
             prop_token = ctx.ID()
@@ -336,7 +336,7 @@ class ExprVisitor(BaseVisitor):
         expr = self.visit(ctx.expr())
         expr = e.AssignmentCast(self.compiler, ctx.expr(), expr, int)
         expr.predict_type()
-        return(expr)
+        return expr
     
     #---------------------------------------------------------------------------
 

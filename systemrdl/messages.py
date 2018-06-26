@@ -21,21 +21,21 @@ class MessageHandler:
         self.error_count = 0
     
     def warning(self, text, context=None):
-        if(context is not None):
+        if context is not None:
             context = MessageContext(context)
         
         self.printer.print_message("warning", text, context)
         self.warning_count += 1
     
     def error(self, text, context=None):
-        if(context is not None):
+        if context is not None:
             context = MessageContext(context)
         
         self.printer.print_message("error", text, context)
         self.error_count += 1
     
     def fatal(self, text, context=None):
-        if(context is not None):
+        if context is not None:
             context = MessageContext(context)
         
         self.printer.print_message("error", text, context)
@@ -55,11 +55,11 @@ class MessageContext:
         self.width = None
         self.line_text = None
         
-        if(type(antlr_obj) == CommonToken):
+        if isinstance(antlr_obj, CommonToken):
             self.init_from_single_token(antlr_obj)
-        elif(type(antlr_obj) == TerminalNodeImpl):
+        elif isinstance(antlr_obj, TerminalNodeImpl):
             self.init_from_single_token(antlr_obj.symbol)
-        elif(issubclass(type(antlr_obj), ParserRuleContext)):
+        elif isinstance(antlr_obj, ParserRuleContext):
             # antlr_obj is an entire context (multiple tokens)
             self.init_from_token_range(antlr_obj.start, antlr_obj.stop)
         else:
@@ -70,7 +70,7 @@ class MessageContext:
         self.line = token.line
         self.column = token.column
         inputStream = token.getInputStream()
-        if(type(inputStream) == FileStream):
+        if isinstance(inputStream, FileStream):
             self.filename = inputStream.fileName
         
         file_lines = inputStream.strdata.splitlines()
@@ -82,7 +82,7 @@ class MessageContext:
         self.line = start_token.line
         self.column = start_token.column
         inputStream = start_token.getInputStream()
-        if(type(inputStream) == FileStream):
+        if isinstance(inputStream, FileStream):
             self.filename = inputStream.fileName
         
         file_lines = inputStream.strdata.splitlines()
@@ -90,7 +90,7 @@ class MessageContext:
         self.line_text = file_lines[self.line-1]
         
         # Select entire token range
-        if(self.line == end_token.line):
+        if self.line == end_token.line:
             # range is within the same line
             self.width = end_token.stop - start_token.start + 1
         else:
@@ -126,35 +126,42 @@ class MessagePrinter:
         """
         lines = []
         
-        if(severity == "error"):
+        if severity == "error":
             color = Fore.RED
         else:
             color = Fore.YELLOW
             
-        if(context is None):
+        if context is None:
             lines.append(
                 color + Style.BRIGHT + severity + ": " + Style.RESET_ALL + text
             )
         else:
             lines.append(
-                Fore.WHITE + Style.BRIGHT + "%s:%d:%d: " % (context.filename, context.line, context.column)
-                + color + severity + ": " + Style.RESET_ALL + text
+                Fore.WHITE + Style.BRIGHT
+                + "%s:%d:%d: " % (context.filename, context.line, context.column)
+                + color + severity + ": "
+                + Style.RESET_ALL
+                + text
             )
             
             # If context highlights anything interesting, print it
-            if(context.width != 0):
+            if context.width != 0:
                 lines.append(
                     context.line_text[:context.column] 
-                    + Fore.RED + Style.BRIGHT + context.line_text[context.column:context.column+context.width] + Style.RESET_ALL 
+                    + Fore.RED + Style.BRIGHT
+                    + context.line_text[context.column:context.column+context.width]
+                    + Style.RESET_ALL 
                     + context.line_text[context.column+context.width:]
                 )
                 
                 lines.append(
                     " "*context.column 
-                    + Fore.RED + Style.BRIGHT + "^"*context.width + Style.RESET_ALL
+                    + Fore.RED + Style.BRIGHT
+                    + "^"*context.width
+                    + Style.RESET_ALL
                 )
             
-        return(lines)
+        return lines
         
         
     def emit_message(self, lines):

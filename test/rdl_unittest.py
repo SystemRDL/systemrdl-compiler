@@ -32,7 +32,7 @@ class RDLSourceTestCase(unittest.TestCase):
         rdlc = RDLCompiler(message_printer=TestPrinter())
         for file in files:
             rdlc.compile_file(os.path.join(this_dir, file))
-        return(rdlc.elaborate(top_name))
+        return rdlc.elaborate(top_name)
     
     
     def eval_RDL_expr(self, expr_text):
@@ -48,7 +48,7 @@ class RDLSourceTestCase(unittest.TestCase):
         result = visitor.visit(tree)
         
         pred_type = result.predict_type()
-        return(pred_type, result.get_value())
+        return pred_type, result.get_value()
     
     
     def assertRDLExprError(self, expr_text, msg_regex):
@@ -57,7 +57,7 @@ class RDLSourceTestCase(unittest.TestCase):
                 self.eval_RDL_expr(expr_text)
         
         for record in cm.records:
-            if(re.search(msg_regex, record.getMessage())):
+            if re.search(msg_regex, record.getMessage()):
                 break
         else:
             msg = []
@@ -78,7 +78,7 @@ class RDLSourceTestCase(unittest.TestCase):
                 self.compile(files, top_name)
         
         for record in cm.records:
-            if(re.search(msg_regex, record.getMessage())):
+            if re.search(msg_regex, record.getMessage()):
                 break
         else:
             msg = []

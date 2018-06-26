@@ -27,7 +27,7 @@ class ValidateListener(walker.RDLListener):
         
     def exit_Reg(self, node):
         # 10.1-c: At least one field shall be instantiated within a register
-        if(self.prev_field is None):
+        if self.prev_field is None:
             self.msg.error(
                 "Register '%s' does not contain any fields" % node.inst.inst_name,
                 node.inst.inst_err_ctx
@@ -38,25 +38,25 @@ class ValidateListener(walker.RDLListener):
         # 9.4.1-Table 12: Check for bad sw/hw combinations
         this_f_hw = node.get_property('hw')
         this_f_sw = node.get_property('sw')
-        if((this_f_sw == rdltypes.AccessType.w) and (this_f_hw == rdltypes.AccessType.w)):
+        if (this_f_sw == rdltypes.AccessType.w) and (this_f_hw == rdltypes.AccessType.w):
             self.msg.error(
                 "Field '%s' access property combination is meaningless: sw=w; hw=w;"
                 % (node.inst.inst_name),
                 node.inst.inst_err_ctx
             )
-        elif((this_f_sw == rdltypes.AccessType.w) and (this_f_hw == rdltypes.AccessType.na)):
+        elif (this_f_sw == rdltypes.AccessType.w) and (this_f_hw == rdltypes.AccessType.na):
             self.msg.error(
                 "Field '%s' access property combination is meaningless: sw=w; hw=na;"
                 % (node.inst.inst_name),
                 node.inst.inst_err_ctx
             )
-        elif((this_f_sw == rdltypes.AccessType.na) and (this_f_hw == rdltypes.AccessType.w)):
+        elif (this_f_sw == rdltypes.AccessType.na) and (this_f_hw == rdltypes.AccessType.w):
             self.msg.error(
                 "Field '%s' access property combination results in an unloaded net: sw=na; hw=w;"
                 % (node.inst.inst_name),
                 node.inst.inst_err_ctx
             )
-        elif((this_f_sw == rdltypes.AccessType.na) and (this_f_hw == rdltypes.AccessType.na)):
+        elif (this_f_sw == rdltypes.AccessType.na) and (this_f_hw == rdltypes.AccessType.na):
             self.msg.error(
                 "Field '%s' access property combination results in a nonexistent net: sw=na; hw=na;"
                 % (node.inst.inst_name),
@@ -66,16 +66,14 @@ class ValidateListener(walker.RDLListener):
         # 10.1-d: Two field instances shall not occupy overlapping bit positions
         # within a register unless one field is read-only and the other field
         # is write-only.
-        if((self.prev_field is not None) and (self.prev_field.inst.high >= node.inst.low)):
+        if (self.prev_field is not None) and (self.prev_field.inst.high >= node.inst.low):
             prev_f_sw = self.prev_field.get_property('sw')
             
-            if(
-                (prev_f_sw == rdltypes.AccessType.r)
+            if((prev_f_sw == rdltypes.AccessType.r)
                 and ((this_f_sw == rdltypes.AccessType.w) or this_f_sw == rdltypes.AccessType.w1)
             ):
                 pass
-            elif(
-                (this_f_sw == rdltypes.AccessType.r)
+            elif((this_f_sw == rdltypes.AccessType.r)
                 and ((prev_f_sw == rdltypes.AccessType.w) or prev_f_sw == rdltypes.AccessType.w1)
             ):
                 pass
@@ -89,7 +87,7 @@ class ValidateListener(walker.RDLListener):
         
         # 10.1-e: Field instances shall not occupy a bit position exceeding the
         # MSB of the register
-        if(node.inst.high >= node.parent.get_property('regwidth')):
+        if node.inst.high >= node.parent.get_property('regwidth'):
             self.msg.error(
                 "High bit (%d) of field '%s' exceeds MSb of parent register"
                 % (node.inst.high, node.inst.inst_name),
@@ -99,4 +97,3 @@ class ValidateListener(walker.RDLListener):
     
     def exit_Field(self, node):
         self.prev_field = node
-
