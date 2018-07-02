@@ -101,6 +101,12 @@ class MessageContext:
 
 #===============================================================================
 class MessagePrinter:
+    """
+    Printer class that handles formatting and emitting compiler messages
+    
+    This class can be extended in order to provide custom compiler message
+    formatting or logging
+    """
     
     def print_message(self, severity, text, context):
         lines = self.format_message(severity, text, context)

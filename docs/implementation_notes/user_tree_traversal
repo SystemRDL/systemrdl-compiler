@@ -42,24 +42,24 @@ Direct RDL property access:
         - If the rulebook contains <TBD> as the default, then
           a more dynamic resolution needs to be made
 
-Meta-properties:
-    Additional meta-properties are defined to make translation of a bunch of RDL
+Derived properties:
+    Additional derived properties are defined to make translation of a bunch of RDL
     properties into useful information easier.
     These are implemented as Python attribute getters:
         https://docs.python.org/3.6/library/functions.html#property
     
-    For example, a meta-property for a field could be:
+    For example, a derived property for a field could be:
         node.implements_storage
     Where the getter would check the values of hw/sw properties to determine the
     answer.
     
-    Meta-properties don't always need to operate on RDL properties. Could be any
+    Derived properties don't always need to operate on RDL properties. Could be any
     part of the internal object model.
     
-    Users can also define their own meta-properties.
+    Users can also define their own derived properties.
     User provides a getter function of the following prototype:
-        def my_meta_property_getter(node)
-    And registers it via Node.add_meta_property(my_meta_property_getter, "my_meta")
+        def my_derived_property_getter(node)
+    And registers it via Node.add_derived_property(my_derived_property_getter, "my_derived")
 
 ================================================================================
 Walker + Listener Tree Traversal

@@ -86,4 +86,4 @@ Dynamic property assignments:
 User traversal
     Use a Node overlay in order to provide consistent array unrolling lineage
     This is also a good way to divide model storage from model manipulation/interpretation
-    Meta-properties go here.
+    derived properties go here.

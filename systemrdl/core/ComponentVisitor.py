@@ -720,6 +720,9 @@ class ComponentVisitor(BaseVisitor):
         
             # Apply property
             rule.assign_value(self.component, prop_rhs, prop_token)
+        
+        # Clear out pending assignments now that they have been resolved
+        self.property_dict = {}
     
     def apply_dynamic_properties(self):
         
@@ -755,7 +758,10 @@ class ComponentVisitor(BaseVisitor):
                 
                 # Apply property
                 rule.assign_value(target_inst, prop_rhs, prop_token)
-
+        
+        # Clear out pending assignments now that they have been resolved
+        self.dynamic_property_dict = {}
+        
     #---------------------------------------------------------------------------
     # Array and Range suffixes
     #---------------------------------------------------------------------------
@@ -828,7 +834,7 @@ class RootVisitor(ComponentVisitor):
     
     def visitRoot(self, ctx:SystemRDLParser.RootContext):
         self.visitChildren(ctx)
-        return self.component
+        self.apply_dynamic_properties()
     
     
     def define_component(self, body, type_token, def_name, param_defs):

@@ -18,6 +18,14 @@ from .node import Node
 class RDLCompiler:
     
     def __init__(self, message_printer=None):
+        """
+        RDLCompiler constructor.
+        
+        Parameters
+        ----------
+        message_printer: :class:`~systemrdl.messages.MessagePrinter`
+            Override the default message printer
+        """
         
         # Set up message handling
         if message_printer is None:
@@ -28,18 +36,23 @@ class RDLCompiler:
         self.property_rules = PropertyRuleBook(self)
         
         self.visitor = RootVisitor(self)
-        self.root = None
+        self.root = self.visitor.component
     
     
     def compile_file(self, path):
         """
-        Parse & compile a single file and append it to the current root namespace
+        Parse & compile a single file and append it to RDLCompiler's root
+        namespace
         
         Parameters
         ----------
         path:str
             Path to an RDL source file
         
+        Raises
+        ------
+        :class:`~systemrdl.messages.RDLCompileError`
+            If any fatal compile error is encountered
         """
         
         input_stream = FileStream(path)
@@ -60,26 +73,41 @@ class RDLCompiler:
             self.msg.fatal("Parse aborted due to previous errors")
         
         # Traverse parse tree with RootVisitor
-        self.root = self.visitor.visit(parsed_tree)
+        self.visitor.visit(parsed_tree)
+        
+        # Reset default property assignments from namespace.
+        # They should not leak between files since that would be confusing.
+        self.namespace.default_property_ns_stack = [{}]
         
         if self.msg.error_count:
             self.msg.fatal("Compile aborted due to previous errors")
     
-    def elaborate(self, top_def_name, inst_name=None, parameters=None):
+    def elaborate(self, top_def_name=None, inst_name=None, parameters=None):
         """
         Elaborates the design with the specified component definition from
         the root namespace as the top-level component.
         
+        Currently, an RDLCompiler instance can only be elaborated once.
+        
         Parameters
         ----------
         top_def_name: str
-            Defined name of the top-level addrmap component in the root namespace.
+            Explicitly choose which addrmap  in the root namespace will be the
+            top-level component.
+            
+            If unset, The last addrmap defined will be chosen.
+            
         inst_name: str
             Overrides the top-component's instantiated name.
-            By default, instantiated name is the same as *top_def_name*
+            By default, instantiated name is the same as ``top_def_name``
         
         parameters: TBD
             Assign the top-component instance parameters
+        
+        Raises
+        ------
+        :class:`~systemrdl.messages.RDLCompileError`
+            If any fatal elaboration error is encountered
         
         Returns
         -------
@@ -89,13 +117,24 @@ class RDLCompiler:
         if parameters is None:
             parameters = {}
         
-        # Lookup top_def_name
-        if top_def_name not in self.root.comp_defs:
-            self.msg.fatal("Elaboration target '%s' not found" % top_def_name)
-        top_def = self.root.comp_defs[top_def_name]
-        
-        if not isinstance(top_def, comp.Addrmap):
-            self.msg.fatal("Elaboration target '%s' is not an 'addrmap' component" % top_def_name)
+        # Get top-level component definition to elaborate
+        if top_def_name is not None:
+            # Lookup top_def_name
+            if top_def_name not in self.root.comp_defs:
+                self.msg.fatal("Elaboration target '%s' not found" % top_def_name)
+            top_def = self.root.comp_defs[top_def_name]
+            
+            if not isinstance(top_def, comp.Addrmap):
+                self.msg.fatal("Elaboration target '%s' is not an 'addrmap' component" % top_def_name)
+        else:
+            # Not specified. Find the last addrmap defined
+            for comp_def in reversed(self.root.comp_defs.values()):
+                if isinstance(comp_def, comp.Addrmap):
+                    top_def = comp_def
+                    top_def_name = comp_def.type_name
+                    break
+            else:
+                self.msg.fatal("Could not find any 'addrmap' components to elaborate")
         
         # Create a top-level instance
         top_inst = deepcopy(top_def)

@@ -1,17 +1,22 @@
 from copy import deepcopy
+from collections import OrderedDict
 
 class Component:
     """
-    Base class for all component types:
-        field, reg, regfile, addrmap, signal, mem
+    Base class for all component types
+    
+    .. inheritance-diagram:: systemrdl.component
+        :top-classes: ~Component
     """
     
     def __init__(self):
         #------------------------------
         # Component definition
         #------------------------------
-        # Named definition identifier.
-        # If declaration was anonymous, inherits the first instance's name
+        #: Named definition identifier.
+        #: If declaration was anonymous, inherits the first instance's name.
+        #: The type name of parameterized components is normalized based on the
+        #: instance's parameter values.
         self.type_name = None
         
         # Child elements instantiated inside this component
@@ -30,16 +35,16 @@ class Component:
         #------------------------------
         # Component instantiation
         #------------------------------
-        # If instantiated, set to True
+        #: If instantiated, set to True
         self.is_instance = False
         
-        # Name of instantiated element
+        #: Name of instantiated element
         self.inst_name = None
         
-        # Reference to original component definition this instance is derived from
+        #: Reference to original component definition this instance is derived from
         self.original_def = None
         
-        # If internal vs external. None if undefined (will inherit default)
+        #: If internal vs external. None if undefined (will inherit default)
         self.external = None
         
         # Antlr error context for the component instantiation
@@ -68,8 +73,7 @@ class Component:
 
 class AddressableComponent(Component):
     """
-    Base class for all components that can have an address:
-        reg, regfile, addrmap, mem
+    Base class for all components that can have an address
     """
     
     def __init__(self):
@@ -77,31 +81,30 @@ class AddressableComponent(Component):
         #------------------------------
         # Component instantiation
         #------------------------------
-        # Address offset from the parent component
-        # If left as None, compiler will resolve with inferred value
+        #: Address offset from the parent component.
+        #: If left as None, compiler will resolve with inferred value.
         self.addr_offset = None
         
-        # Address alignment if explicitly defined by user
+        #: Address alignment if explicitly defined by user.
         self.addr_align = None
         
         #------------------------------
         # Array Properties
         #------------------------------
-        # If true, then array_dimensions and array_stride are valid
+        #: If true, then array_dimensions and array_stride are valid.
         self.is_array = False
         
-        # List of sizes for each array dimension.
-        # Last item in list iterates the most frequently
+        #: List of sizes for each array dimension.
+        #: Last item in list iterates the most frequently.
         self.array_dimensions = None
         
-        # Address offset between array elements
-        # If left as None, compiler will resolve with inferred value
+        #: Address offset between array elements.
+        #: If left as None, compiler will resolve with inferred value.
         self.array_stride = None
         
 class VectorComponent(Component):
     """
-    Base class for all components that are vector-like:
-        field, signal
+    Base class for all components that are vector-like
     """
     
     def __init__(self):
@@ -109,14 +112,14 @@ class VectorComponent(Component):
         #------------------------------
         # Component instantiation
         #------------------------------
-        # Width of vector in bits
+        #: Width of vector in bits
         self.width = None
         
-        # bit positions of most and least significant bits
+        #: bit positions of most and least significant bits
         self.msb = None
         self.lsb = None
         
-        # bit range
+        #: bit range
         self.high = None
         self.low = None
 
@@ -128,7 +131,7 @@ class Root(Component):
     def __init__(self):
         super().__init__()
         # Component definitions in the global root scope
-        self.comp_defs = {}
+        self.comp_defs = OrderedDict()
     
 class Signal(VectorComponent):
     pass
@@ -142,10 +145,10 @@ class Reg(AddressableComponent):
         #------------------------------
         # Alias Register
         #------------------------------
-        # If true, then alias_primary_inst is valid
+        #: If true, then alias_primary_inst is valid
         self.is_alias = False
         
-        # Reference to primary register instance
+        #: Reference to primary register instance
         self.alias_primary_inst = None
     
 class Regfile(AddressableComponent):

@@ -11,49 +11,116 @@ class AutoEnum(enum.Enum):
 
 #===============================================================================
 class AccessType(AutoEnum):
+    #: Not Accessible
     na  = ()
+    
+    #: Readable and writable
     rw  = ()
+    
+    #: Read-only
     r   = ()
+    
+    #: Write-only
     w   = ()
+    
+    #: Readable and writable. After a reset occurs, can only be written once.
     rw1 = ()
+    
+    #: Write-only. After a reset occurs, can only be written once.
     w1  = ()
 
 class OnReadType(AutoEnum):
+    #: Cleared on read
     rclr    = ()
+    
+    #: Set on read
     rset    = ()
+    
+    #: User-defined read side-effect
     ruser   = ()
 
 class OnWriteType(AutoEnum):
+    #: Bitwise write one to set
     woset   = ()
+    
+    #: Bitwise write one to clear
     woclr   = ()
+    
+    #: Bitwise write one to toggle
     wot     = ()
+    
+    #: Bitwise write zero to set
     wzs     = ()
+    
+    #: Bitwise write zero to clear
     wzc     = ()
+    
+    #: Bitwise write zero to toggle
     wzt     = ()
+    
+    #: All bits are cleared on write
     wclr    = ()
+    
+    #: All bits are set on write
     wset    = ()
+    
+    #: Write modification is user-defined
     wuser   = ()
 
 class AddressingType(AutoEnum):
+    #: Components are packed tightly together
     compact     = ()
+    
+    #: Components are packed so each component’s start address is a multiple of its size
     regalign    = ()
+    
+    #: Same as regalign, except arrays are aligned to their entire size
     fullalign   = ()
 
 class PrecedenceType(AutoEnum):
+    #: Hardware writes take precedence over software
     hw  = ()
+    
+    #: Software writes take precedence over hardware
     sw  = ()
 
 class InterruptType(AutoEnum):
+    """
+    A field's interrupt type is set when using an RDL interrupt property modifier:
+    
+    .. code-block:: none
+        
+        field f {
+            negedge intr;
+        };
+    
+    The modifier is stored in the internal "intr type" property. (note the intentional space in the name)
+    
+    It can be fetched the same way as other properties:
+    
+    .. code-block:: python
+    
+        intr_type = my_field_node.get_property("intr type")
+    
+    """
+    #: Interrupt when asserted and maintained
     level  = ()
+    
+    #: Interrupt on low-to-high transition
     posedge  = ()
+    
+    #: Interrupt on high-to-low transition
     negedge  = ()
+    
+    #: Interrupt on any transition
     bothedge  = ()
 
 #===============================================================================
 class UserEnum(enum.Enum):
     """
-    All user-defined enumerations are based on this class
-    UserEnum types can be identified using: is_user_enum()
+    All user-defined enumerations are based on this class.
+    
+    UserEnum types can be identified using: :meth:`is_user_enum`
     """
     def __init__(self, value, rdl_name, rdl_desc):
         self._value_ = value
@@ -62,10 +129,16 @@ class UserEnum(enum.Enum):
     
     @property
     def rdl_desc(self):
+        """
+        Enum entry's ``desc`` property
+        """
         return self._rdl_desc_
     
     @property
     def rdl_name(self):
+        """
+        Enum entry's ``name`` property
+        """
         return self._rdl_name_
     
     def __int__(self):
@@ -81,21 +154,26 @@ class UserEnum(enum.Enum):
 
 def is_user_enum(t):
     """
-    Test if type t is a UserEnum
-    NOTE: Returns false if t is referencing a UserEnum value member
+    Test if type ``t`` is a :class:`~UserEnum`
+    
+    .. note:: Returns false if ``t`` is referencing a UserEnum value member
     """
     return inspect.isclass(t) and (issubclass(t, UserEnum))
 
 #===============================================================================
 class UserStruct():
     """
-    TODO Implementation TBD,
-    but whatever it is, shall be identifiable using is_user_struct()
+    All user-defined structs are based on this class.
+    
+    UserStruct types can be identified using: :meth:`is_user_struct`
+    
+    .. note:: Not implemented yet.
     """
-
+    # TODO: Implement structs
+    
 def is_user_struct(t):
     """
-    Test if type t is a UserStruct
+    Test if type ``t`` is a :class:`~UserStruct`
     """
     return inspect.isclass(t) and (issubclass(t, UserStruct))
 

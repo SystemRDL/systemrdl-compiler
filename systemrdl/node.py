@@ -10,6 +10,10 @@ class Node:
     """
     The Node object is a higher-level overlay that provides a more user-friendly
     interface to query the compiled RDL object model.
+    
+    .. inheritance-diagram:: systemrdl.node
+        :top-classes: ~Node
+    
     """
     
     def __init__(self, inst, compiler, parent):
@@ -18,7 +22,11 @@ class Node:
         Do not call directly. Use factory() static method instead
         """
         self.compiler = compiler
+        
+        #: Reference to :class:`~systemrdl.component.Component` that instantiates this node
         self.inst = inst
+        
+        #: Reference to parent :class:`~Node`
         self.parent = parent
     
     
@@ -41,16 +49,16 @@ class Node:
     
     
     @classmethod
-    def add_meta_property(cls, getter_function, name=None):
+    def add_derived_property(cls, getter_function, name=None):
         """
-        Register a user-defined meta-property
+        Register a user-defined derived property
         
         Parameters
         ----------
         getter_function : function
-            Function that fetches the result of the user-defined meta-property
+            Function that fetches the result of the user-defined derived property
         name : str
-            Meta-property name
+            Derived property name
             If unassigned, will default to the function's name
         """
         
@@ -75,7 +83,7 @@ class Node:
         
         Yields
         ------
-        :class:`~systemrdl.node.Node`
+        :class:`~Node`
             All immediate children
         """
         for child_inst in self.inst.children:
@@ -98,8 +106,9 @@ class Node:
     
     def get_child_by_name(self, inst_name):
         """
-        Returns an immediate child Node whose instance name matches *inst_name*
-        Returns None if not inst_name does not match
+        Returns an immediate child :class:`~Node` whose instance name matches ``inst_name``
+        
+        Returns ``None`` if ``inst_name`` does not match
         
         Parameters
         ----------
@@ -108,7 +117,7 @@ class Node:
         
         Returns
         -------
-        :class:`~systemrdl.node.Node` or None
+        :class:`~Node` or None
             Child Node. None if not found.
         """
         child_inst = self.inst.get_child_by_name(inst_name)
@@ -120,7 +129,7 @@ class Node:
     def find_by_path(self, path):
         """
         Finds the descendant node that is located at the relative path
-        Returns None if not found
+        Returns ``None`` if not found
         Raises exception if path is malformed, or array index is out of range
         
         Parameters
@@ -130,7 +139,7 @@ class Node:
         
         Returns
         -------
-        :class:`~systemrdl.node.Node` or None
+        :class:`~Node` or None
             Descendant Node. None if not found.
         
         Raises
@@ -171,6 +180,26 @@ class Node:
     
     
     def get_property(self, prop_name):
+        """
+        Gets the SystemRDL component property
+        
+        If a property was not explicitly set in the RDL source, its default
+        value is derived. In some cases, a default value is implied according to
+        other property values.
+        
+        Properties values that are a reference to a component instance are
+        converted to a :class:`~Node` overlay object.
+        
+        Parameters
+        ----------
+        prop_name: str
+            SystemRDL property name
+        
+        Raises
+        ------
+        LookupError
+            If prop_name is invalid
+        """
         # If its already in the component, then safe to bypass checks
         if prop_name in self.inst.properties:
             prop_value = self.inst.properties[prop_name]
@@ -181,6 +210,7 @@ class Node:
             
             return prop_value
         
+        # Otherwise, return its default value based on the property's rules
         rule = self.compiler.property_rules.lookup_property(prop_name)
         
         # Is it even a valid property or allowed for this component type?
@@ -191,26 +221,48 @@ class Node:
         
         # Return the default value as specified by the rulebook
         return rule.get_default(self)
-        
+    
+    
+    def get_path_segment(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
+        """
+        Gets the hierarchical path segment for just this node
+        """
+        # pylint: disable=unused-argument
+        return self.inst.inst_name
+    
     
     def get_path(self, hier_separator=".", array_suffix="[{index:d}]", empty_array_suffix="[]"):
         """
         Generate an absolute path string to this node
+        
+        Parameters
+        ----------
+        hier_separator: str
+            Override the hierarchy separator
+        array_suffix: str
+            Override how array suffixes are represented when the index is known
+        empty_array_suffix: str
+            Override how array suffixes are represented when the index is not known
         """
         if self.parent:
             return(
                 self.parent.get_path(hier_separator, array_suffix, empty_array_suffix)
                 + hier_separator
-                + self.inst.inst_name
+                + self.get_path_segment(array_suffix, empty_array_suffix)
             )
         else:
-            return self.inst.inst_name
-
+            return self.get_path_segment(array_suffix, empty_array_suffix)
+    
+    
+    def __eq__(self, other):
+        # Nodes are equal if they represent the same hierarchical position
+        # in the register model
+        return self.get_path() == other.get_path()
+    
 #===============================================================================
 class AddressableNode(Node):
     """
     Base-class for any kind of node that can have an address
-    (addrmap, regfile, reg, mem)
     """
     
     def __init__(self, inst, compiler, parent):
@@ -222,30 +274,36 @@ class AddressableNode(Node):
         self.current_idx = None
     
     
-    def get_path(self, hier_separator=".", array_suffix="[{index:d}]", empty_array_suffix="[]"):
-        """
-        Extends get_path() in order to append any array suffixes
-        """
-        path = super().get_path(hier_separator, array_suffix, empty_array_suffix)
+    def get_path_segment(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
+        # Extends get_path_segment() in order to append any array suffixes
+        path_segment = super().get_path_segment(array_suffix, empty_array_suffix)
         
         if self.inst.is_array:
             if self.current_idx is None:
                 # Index is not known. append empty array suffixes
-                return path + empty_array_suffix * len(self.inst.array_dimensions)
+                return path_segment + empty_array_suffix * len(self.inst.array_dimensions)
             else:
                 # Index list is known
                 for idx in self.current_idx:
-                    path += array_suffix.format(index=idx)
-                return path
+                    path_segment += array_suffix.format(index=idx)
+                return path_segment
         else:
-            return path
+            return path_segment
     
     
     @property
     def absolute_address(self):
         """
-        Get the absolute byte address of this node
+        Get the absolute byte address of this node.
+        
         Indexes of all arrays in the node's lineage must be known
+        
+        Raises
+        ------
+        ValueError
+            If this property is referenced on a node whose array lineage is not
+            fully defined
+        
         """
         
         if self.inst.is_array:
@@ -281,6 +339,7 @@ class AddressableNode(Node):
     def size(self):
         """
         Determine the size (in bytes) of this node.
+        
         If an array, returns the size of a single element
         """
         # must be overridden
@@ -302,8 +361,7 @@ class AddressableNode(Node):
 #===============================================================================
 class VectorNode(Node):
     """
-    Base-class for any kind of node that is vector-like
-    (signal, field)
+    Base-class for any kind of node that is vector-like.
     """
 
 #===============================================================================
@@ -323,8 +381,8 @@ class FieldNode(VectorNode):
     @property
     def is_volatile(self):
         """
-        Returns True if combination of field access properties result in a field
-        that should be interpreted as volatile.
+        True if combination of field access properties result in a field that
+        should be interpreted as volatile.
         (Any hardware-writable field is inherently volatile)
         """
         # TODO: Implement is_volatile getter
@@ -335,6 +393,8 @@ class FieldNode(VectorNode):
         """
         Field is writable by software
         """
+        sw = self.get_property('sw')
+        
         return (sw == rdltypes.AccessType.rw
             or sw == rdltypes.AccessType.rw1
             or sw == rdltypes.AccessType.w
@@ -356,8 +416,8 @@ class FieldNode(VectorNode):
     @property
     def implements_storage(self):
         """
-        Returns True if combination of field access properties imply that the
-        field implements a storage element.
+        True if combination of field access properties imply that the field
+        implements a storage element.
         (Section 9.4.1, Table 12)
         """
         sw = self.get_property('sw')
@@ -382,7 +442,8 @@ class RegNode(AddressableNode):
     @property
     def is_virtual(self):
         """
-        Determines if this node represents a virtual register (child of a mem component)
+        True if this node represents a virtual register.
+        (child of a mem component)
         """
         # since mem components can only contain reg instances, a reg can only be
         # virtual if its direct parent is of type mem

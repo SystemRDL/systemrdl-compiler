@@ -1,0 +1,85 @@
+
+addrmap atxmega_spi {
+    name = "ATXMEGA SPI controller";
+    desc = "Register description of Atmel XMEGA AU's SPI controller
+    Transcribed from original manual as an example exercise:
+    http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-8331-8-and-16-bit-AVR-Microcontroller-XMEGA-AU_Manual.pdf
+    ";
+    
+    default regwidth = 8;
+    default sw = rw;
+    default hw = r;
+    
+    reg {
+        name = "Control Register";
+        
+        field {
+            desc = "Controls the SPI clock rate when configured in master mode";
+        } PRESCALER[1:0] = 0;
+        
+        field {
+            desc = "These bits select the transfer mode";
+        } MODE[3:2] = 0;
+        
+        field {
+            desc = "Selects master mode when written to one, and slave mode when
+            written to zero. If SS is configured as an input and driven low while
+            master mode is set, master mode will be cleared";
+            
+            hw=rw; we;
+        } MASTER[4:4] = 0;
+        
+        field {
+            desc = "DORD decides the data order when a byte is shifted out from
+            the DATA register. When DORD is written to one, the least-significant
+            bit (lsb) of the data byte is transmitted first, and when DORD is
+            written to zero, the most-significant bit (msb) of the data byte is
+            transmitted first";
+        } DORD[5:5] = 0;
+        
+        field {
+            desc = "Setting this bit enables the SPI module. This bit must be
+            set to enable any SPI operations";
+        } ENABLE[6:6] = 0;
+        
+        field {
+            desc = "When this bit is set, the SPI speed (SCK frequency) will be
+            doubled in master mode";
+        } CLK2X[7:7] = 0;
+    } CTRL @ 0x0;
+    
+    reg {
+        name = "Interrupt Control";
+        
+        field {
+            desc = "These bits enable the SPI interrupt and select the interrupt level";
+        } INTLVL[1:0] = 0;
+    } INTCTRL @ 0x1;
+    
+    reg {
+        field {
+            sw=r; hw=rw; we;
+        } WRCOL[6:6] = 0;
+        
+        field {
+            sw=r; hw=rw; we;
+        } IF[7:7] = 0;
+    } STATUS @ 0x2;
+    
+    reg {
+        desc = "The DATA register is used for sending and receiving data.
+        Writing to the register initiates the data transmission, and the byte
+        written to the register will be shifted out on the SPI output line.
+        Reading the register causes the shift register receive buffer to be read,
+        returning the last byte successfully received";
+        
+        field {
+            sw=w; hw=r;
+        } WDATA[7:0];
+        
+        field {
+            sw=r; hw=w;
+        } RDATA[7:0];
+        
+    } DATA @ 0x3;
+};

@@ -1,0 +1,16 @@
+ atxmega_spi
+	 CTRL
+		 [1:0] PRESCALER sw=rw
+		 [3:2] MODE sw=rw
+		 [4:4] MASTER sw=rw
+		 [5:5] DORD sw=rw
+		 [6:6] ENABLE sw=rw
+		 [7:7] CLK2X sw=rw
+	 INTCTRL
+		 [1:0] INTLVL sw=rw
+	 STATUS
+		 [6:6] WRCOL sw=r
+		 [7:7] IF sw=r
+	 DATA
+		 [7:0] WDATA sw=w
+		 [7:0] RDATA sw=r

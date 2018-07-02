@@ -4,7 +4,9 @@ from .node import AddrmapNode, MemNode, SignalNode
 
 #===============================================================================
 class RDLListener:
-    
+    """
+    Base class for user-defined RDL traversal listeners
+    """
     def enter_Component(self, node):
         pass
     
@@ -63,7 +65,18 @@ class RDLListener:
 class RDLWalker:
     """
     Implements a walker instance that traverses the elaborated RDL instance tree
-    Each node is visited exactly once
+    Each node is visited exactly once.
+    
+    Each node is visited as follows:
+    
+    1. Run :func:`~RDLListener.enter_Component` callback
+    2. Run :func:`~RDLListener.enter_AddressableComponent` or :func:`~RDLListener.enter_VectorComponent` callback
+    3. Run type-specific ``enter_*()`` callback, such as :func:`~RDLListener.enter_Reg`
+    4. Traverse any children
+    5. Run type-specific ``exit_*()`` callback, such as :func:`~RDLListener.exit_Reg`
+    6. Run :func:`~RDLListener.exit_AddressableComponent` or :func:`~RDLListener.exit_VectorComponent` callback
+    7. Run :func:`~RDLListener.exit_Component` callback
+    
     """
     def __init__(self, unroll=False, skip_not_present=True):
         """
@@ -84,10 +97,24 @@ class RDLWalker:
         
     def walk(self, node, *listeners:RDLListener):
         """
-        Initiates the walker to traverse the current *node* and its children.
-        Calls the corresponding callback for each of the *listeners* provided in
+        Initiates the walker to traverse the current ``node`` and its children.
+        Calls the corresponding callback for each of the ``listeners`` provided in
         the order that they are listed.
+        
+        Parameters
+        ----------
+        node : :class:`~systemrdl.node.Node`
+            Node to start traversing.
+            Listener traversal includes this node.
+            
+        listeners : list
+            List of :class:`~RDLListener` that are invoked during
+            node traversal.
+            Listener callbacks are executed in the same order as provided by this
+            parameter.
         """
+        
+        
         for listener in listeners:
             self.do_enter(node, listener)
         for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):

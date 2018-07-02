@@ -3,16 +3,27 @@
 SystemRDL Compiler
 ==================
 
-Hello World
+The ``systemrdl-compiler`` module implements a generic compiler front-end for
+Accellera's `SystemRDL 2.0`_ register description language. The goal of this
+project is to provide a free and open compiler that lowers the barrier to entry
+to using an industry standard register description language.
 
-.. note::   systemrdl-compiler is still under development!
-            Check back later for an official release.
+By providing an elaborated register model that is easy to traverse and query,
+it should be far easier to write custom register space view generators.
+
+.. image:: img/overview.svg
+   :align: center
+
+.. _SystemRDL 2.0: http://accellera.org/downloads/standards/systemrdl
 
 Installing
 ----------
 
-TODO: Add install instructions
+Install using pip
 
+.. code-block:: bash
+   
+   pip3 install systemrdl-compiler
 
 
 .. toctree::
@@ -25,9 +36,10 @@ TODO: Add install instructions
    :hidden:
    :caption: Getting Started
    
-   example
    model_structure
    model_traversal
+   properties
+   examples
    
 .. toctree::
    :hidden:
@@ -35,10 +47,14 @@ TODO: Add install instructions
    
    api/compiler
    api/node
+   api/walker
+   api/component
+   api/types
+   api/messages
 
 .. toctree::
    :hidden:
    :caption: Other
    
-   supported_features
+   known_issues
    genindex
