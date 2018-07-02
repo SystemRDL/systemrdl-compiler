@@ -23,7 +23,7 @@ Install using pip
 
 .. code-block:: bash
    
-   pip3 install systemrdl-compiler
+   python3 -m pip install systemrdl-compiler
 
 
 .. toctree::
