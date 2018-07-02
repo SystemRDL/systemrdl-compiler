@@ -11,7 +11,7 @@ register description language.
 By providing an elaborated register model that is easy to traverse and query,
 it should be far easier to write custom register space view generators.
 
-![overview](doc/img/overview.svg)
+![overview](docs/img/overview.svg)
 
 ## Documentation
 See the [SystemRDL Compiler Documentation](http://systemrdl-compiler.readthedocs.io/en/latest) for more details
