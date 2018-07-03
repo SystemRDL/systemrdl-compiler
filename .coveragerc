@@ -4,8 +4,10 @@ omit =
     */.local/*
     /usr/*
     
-    # Omit unittest
-    ./*
+    # Omit non-module scripts
+    ./setup.py
+    ./test/*
+    ./examples/*
     
     # Omit Antlr-generated parser templates
-    ../systemrdl/parser/*
+    ./systemrdl/parser/*
