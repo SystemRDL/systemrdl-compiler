@@ -1,5 +1,5 @@
 
-from rdl_unittest import RDLSourceTestCase
+from .unittest_utils import RDLSourceTestCase
 
 import systemrdl.rdltypes as rdlt
 

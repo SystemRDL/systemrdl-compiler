@@ -6,10 +6,6 @@ import os
 import logging
 import re
 
-this_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, os.path.join(this_dir, "../"))
-
-
 from antlr4 import InputStream, CommonTokenStream
 from systemrdl import RDLCompiler
 from systemrdl.parser.SystemRDLLexer import SystemRDLLexer
@@ -29,6 +25,7 @@ class RDLSourceTestCase(unittest.TestCase):
     Implements mechanisms and tests common to interpreting an RDL testcase file
     """
     def compile(self, files, top_name):
+        this_dir = os.path.dirname(os.path.realpath(__file__))
         rdlc = RDLCompiler(message_printer=TestPrinter())
         for file in files:
             rdlc.compile_file(os.path.join(this_dir, file))
@@ -91,9 +88,3 @@ class RDLSourceTestCase(unittest.TestCase):
                 msg.append("\t%s" % record.getMessage())
             
             self.fail("\n".join(msg))
-
-#===============================================================================
-if __name__ == '__main__':
-    suite = unittest.TestLoader().discover(this_dir)
-    runner = unittest.TextTestRunner()
-    runner.run(suite)
