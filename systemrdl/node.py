@@ -225,7 +225,14 @@ class Node:
     
     def get_path_segment(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
         """
-        Gets the hierarchical path segment for just this node
+        Gets the hierarchical path segment for just this node.
+        
+        Parameters
+        ----------
+        array_suffix: str
+            Override how array suffixes are represented when the index is known
+        empty_array_suffix: str
+            Override how array suffixes are represented when the index is not known
         """
         # pylint: disable=unused-argument
         return self.inst.inst_name

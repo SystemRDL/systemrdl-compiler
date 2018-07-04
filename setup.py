@@ -11,7 +11,7 @@ long_description = long_description.replace(
 
 setuptools.setup(
     name="systemrdl-compiler",
-    version="0.1",
+    version="0.3",
     author="Alex Mykyta",
     author_email="amykyta3@github.com",
     description="Parse and elaborate front-end for SystemRDL 2.0",

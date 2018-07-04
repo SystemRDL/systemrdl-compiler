@@ -52,11 +52,11 @@ References to an instance's property in the RHS of an expression are not impleme
 
 
 
-Hierarchical Instances in Default Property Assignments
-------------------------------------------------------
+Instance References in Default Property Assignments
+---------------------------------------------------
 
-Default property assignments do not support hierarchical instance references
-in the RHS of the assignment yet.
+Default property assignments do not support instance references in the RHS of
+the assignment yet. One exception is references to signal components.
 
 All other assignment values are OK.
 
@@ -75,12 +75,10 @@ Example:
         } my_reg;
         
         default desc = "Default Description"; // Non-reference assignment is OK
-        default my_udp = my_reg; // Local instance reference is OK
+        // default my_udp = my_reg; // Local instance reference is NOT OK
         // default my_udp = my_reg.my_field; // Hierarchical instance reference NOT OK
         
     };
-
-In practice, encountering this limitation should be pretty rare.
 
 
 
