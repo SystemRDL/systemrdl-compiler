@@ -1,3 +1,4 @@
+import os
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -9,9 +10,14 @@ long_description = long_description.replace(
     "https://raw.githubusercontent.com/SystemRDL/systemrdl-compiler/master/docs/img/overview.svg?sanitize=true"
 )
 
+with open(os.path.join("systemrdl", "__about__.py")) as f:
+    v_dict = {}
+    exec(f.read(), v_dict)
+    rdl_version = v_dict['__version__']
+
 setuptools.setup(
     name="systemrdl-compiler",
-    version="0.3.0",
+    version=rdl_version,
     author="Alex Mykyta",
     author_email="amykyta3@github.com",
     description="Parse and elaborate front-end for SystemRDL 2.0",
