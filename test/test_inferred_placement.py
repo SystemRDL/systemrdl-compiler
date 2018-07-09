@@ -226,10 +226,14 @@ class TestAddressingModes(RDLSourceTestCase):
         with self.subTest("reg a"):
             reg = top.find_by_path("example_5_1_2_2_2_ex1.a")
             self.assertEqual(reg.inst.addr_offset, 0)
+            self.assertEqual(reg.absolute_address, 0)
+            self.assertEqual(reg.size, 4)
         
         with self.subTest("reg b"):
             reg = top.find_by_path("example_5_1_2_2_2_ex1.b")
             self.assertEqual(reg.inst.addr_offset, 4)
+            self.assertEqual(reg.absolute_address, 4)
+            self.assertEqual(reg.size, 8)
         
         with self.subTest("reg c"):
             reg = top.find_by_path("example_5_1_2_2_2_ex1.c")
@@ -237,6 +241,12 @@ class TestAddressingModes(RDLSourceTestCase):
             self.assertEqual(reg.inst.is_array, True)
             self.assertEqual(reg.inst.array_dimensions, [20])
             self.assertEqual(reg.inst.array_stride, 4)
+            self.assertEqual(reg.size, 4)
+            self.assertEqual(reg.total_size, 20*4)
+            
+            for i in range(20):
+                reg = top.find_by_path("example_5_1_2_2_2_ex1.c[%d]" % i)
+                self.assertEqual(reg.absolute_address, 0x0C + i * 4)
     
     def test_example_5_1_2_2_2_ex2(self):
         top = self.compile(
@@ -247,10 +257,14 @@ class TestAddressingModes(RDLSourceTestCase):
         with self.subTest("reg a"):
             reg = top.find_by_path("example_5_1_2_2_2_ex2.a")
             self.assertEqual(reg.inst.addr_offset, 0)
+            self.assertEqual(reg.absolute_address, 0)
+            self.assertEqual(reg.size, 4)
         
         with self.subTest("reg b"):
             reg = top.find_by_path("example_5_1_2_2_2_ex2.b")
             self.assertEqual(reg.inst.addr_offset, 8)
+            self.assertEqual(reg.absolute_address, 8)
+            self.assertEqual(reg.size, 8)
         
         with self.subTest("reg c"):
             reg = top.find_by_path("example_5_1_2_2_2_ex2.c")
@@ -258,6 +272,12 @@ class TestAddressingModes(RDLSourceTestCase):
             self.assertEqual(reg.inst.is_array, True)
             self.assertEqual(reg.inst.array_dimensions, [20])
             self.assertEqual(reg.inst.array_stride, 4)
+            self.assertEqual(reg.size, 4)
+            self.assertEqual(reg.total_size, 20*4)
+            
+            for i in range(20):
+                reg = top.find_by_path("example_5_1_2_2_2_ex2.c[%d]" % i)
+                self.assertEqual(reg.absolute_address, 0x10 + i * 4)
     
     def test_example_5_1_2_2_2_ex3(self):
         top = self.compile(
@@ -268,10 +288,14 @@ class TestAddressingModes(RDLSourceTestCase):
         with self.subTest("reg a"):
             reg = top.find_by_path("example_5_1_2_2_2_ex3.a")
             self.assertEqual(reg.inst.addr_offset, 0)
+            self.assertEqual(reg.absolute_address, 0)
+            self.assertEqual(reg.size, 4)
         
         with self.subTest("reg b"):
             reg = top.find_by_path("example_5_1_2_2_2_ex3.b")
             self.assertEqual(reg.inst.addr_offset, 8)
+            self.assertEqual(reg.absolute_address, 8)
+            self.assertEqual(reg.size, 8)
         
         with self.subTest("reg c"):
             reg = top.find_by_path("example_5_1_2_2_2_ex3.c")
@@ -279,6 +303,12 @@ class TestAddressingModes(RDLSourceTestCase):
             self.assertEqual(reg.inst.is_array, True)
             self.assertEqual(reg.inst.array_dimensions, [20])
             self.assertEqual(reg.inst.array_stride, 4)
+            self.assertEqual(reg.size, 4)
+            self.assertEqual(reg.total_size, 20*4)
+            
+            for i in range(20):
+                reg = top.find_by_path("example_5_1_2_2_2_ex3.c[%d]" % i)
+                self.assertEqual(reg.absolute_address, 0x10 + i * 4)
     
     def test_example_5_1_2_2_2_ex4(self):
         top = self.compile(
@@ -289,10 +319,14 @@ class TestAddressingModes(RDLSourceTestCase):
         with self.subTest("reg a"):
             reg = top.find_by_path("example_5_1_2_2_2_ex4.a")
             self.assertEqual(reg.inst.addr_offset, 0)
+            self.assertEqual(reg.absolute_address, 0)
+            self.assertEqual(reg.size, 4)
         
         with self.subTest("reg b"):
             reg = top.find_by_path("example_5_1_2_2_2_ex4.b")
             self.assertEqual(reg.inst.addr_offset, 8)
+            self.assertEqual(reg.absolute_address, 8)
+            self.assertEqual(reg.size, 8)
         
         with self.subTest("reg c"):
             reg = top.find_by_path("example_5_1_2_2_2_ex4.c")
@@ -300,6 +334,12 @@ class TestAddressingModes(RDLSourceTestCase):
             self.assertEqual(reg.inst.is_array, True)
             self.assertEqual(reg.inst.array_dimensions, [20])
             self.assertEqual(reg.inst.array_stride, 4)
+            self.assertEqual(reg.size, 4)
+            self.assertEqual(reg.total_size, 20*4)
+            
+            for i in range(20):
+                reg = top.find_by_path("example_5_1_2_2_2_ex4.c[%d]" % i)
+                self.assertEqual(reg.absolute_address, 0x80 + i * 4)
 
 #-------------------------------------------------------------------------------
 class TestAddressAllocators(RDLSourceTestCase):
@@ -313,18 +353,26 @@ class TestAddressAllocators(RDLSourceTestCase):
         with self.subTest("reg a"):
             reg = top.find_by_path("example_5_1_2_5_ex1.example.a")
             self.assertEqual(reg.inst.addr_offset, 0x0)
+            self.assertEqual(reg.absolute_address, 0x0)
+            self.assertEqual(reg.size, 4)
         
         with self.subTest("reg b"):
             reg = top.find_by_path("example_5_1_2_5_ex1.example.b")
             self.assertEqual(reg.inst.addr_offset, 0x4)
+            self.assertEqual(reg.absolute_address, 0x4)
+            self.assertEqual(reg.size, 4)
         
         with self.subTest("reg c"):
             reg = top.find_by_path("example_5_1_2_5_ex1.example.c")
             self.assertEqual(reg.inst.addr_offset, 0x8)
+            self.assertEqual(reg.absolute_address, 0x8)
+            self.assertEqual(reg.size, 4)
         
         with self.subTest("reg d"):
             reg = top.find_by_path("example_5_1_2_5_ex1.example.d")
             self.assertEqual(reg.inst.addr_offset, 0x10)
+            self.assertEqual(reg.absolute_address, 0x10)
+            self.assertEqual(reg.size, 4)
     
     def test_example_5_1_2_5_ex2(self):
         top = self.compile(
@@ -338,6 +386,12 @@ class TestAddressAllocators(RDLSourceTestCase):
             self.assertEqual(reg.inst.is_array, True)
             self.assertEqual(reg.inst.array_dimensions, [10])
             self.assertEqual(reg.inst.array_stride, 4)
+            self.assertEqual(reg.size, 4)
+            self.assertEqual(reg.total_size, 40)
+            
+            for i in range(10):
+                reg = top.find_by_path("example_5_1_2_5_ex2.example.a[%d]" % i)
+                self.assertEqual(reg.absolute_address, 0x0 + i * 4)
         
         with self.subTest("reg b"):
             reg = top.find_by_path("example_5_1_2_5_ex2.example.b")
@@ -345,6 +399,12 @@ class TestAddressAllocators(RDLSourceTestCase):
             self.assertEqual(reg.inst.is_array, True)
             self.assertEqual(reg.inst.array_dimensions, [10])
             self.assertEqual(reg.inst.array_stride, 0x10)
+            self.assertEqual(reg.size, 4)
+            self.assertEqual(reg.total_size, 10*16-12)
+            
+            for i in range(10):
+                reg = top.find_by_path("example_5_1_2_5_ex2.example.b[%d]" % i)
+                self.assertEqual(reg.absolute_address, 0x100 + i * 0x10)
     
     def test_example_5_1_2_5_ex3(self):
         top = self.compile(
@@ -358,6 +418,12 @@ class TestAddressAllocators(RDLSourceTestCase):
             self.assertEqual(reg.inst.is_array, True)
             self.assertEqual(reg.inst.array_dimensions, [10])
             self.assertEqual(reg.inst.array_stride, 4)
+            self.assertEqual(reg.size, 4)
+            self.assertEqual(reg.total_size, 40)
+            
+            for i in range(10):
+                reg = top.find_by_path("example_5_1_2_5_ex3.example.a[%d]" % i)
+                self.assertEqual(reg.absolute_address, 0x0 + i * 4)
         
         with self.subTest("reg b"):
             reg = top.find_by_path("example_5_1_2_5_ex3.example.b")
@@ -365,8 +431,53 @@ class TestAddressAllocators(RDLSourceTestCase):
             self.assertEqual(reg.inst.is_array, True)
             self.assertEqual(reg.inst.array_dimensions, [10])
             self.assertEqual(reg.inst.array_stride, 0x10)
+            self.assertEqual(reg.size, 4)
+            self.assertEqual(reg.total_size, 10*16-12)
+            
+            for i in range(10):
+                reg = top.find_by_path("example_5_1_2_5_ex3.example.b[%d]" % i)
+                self.assertEqual(reg.absolute_address, 0x100 + i * 0x10)
         
         with self.subTest("reg c"):
             reg = top.find_by_path("example_5_1_2_5_ex3.example.c")
             self.assertEqual(reg.inst.addr_offset, 0x200)
+            self.assertEqual(reg.absolute_address, 0x200)
+            self.assertEqual(reg.size, 4)
+
+#-------------------------------------------------------------------------------
+class TestHierarchicalAddressing(RDLSourceTestCase):
+    
+    def test_hier(self):
+        top = self.compile(
+            ["rdl_testcases/address_packing.rdl"],
+            "hier"
+        )
         
+        # Spot-check a few nodes
+        with self.subTest():
+            node = top.find_by_path("hier.x")
+            self.assertEqual(node.absolute_address, 0x0)
+            self.assertEqual(node.size, 148)
+            self.assertEqual(node.total_size, 148)
+        
+        with self.subTest():
+            node = top.find_by_path("hier.x.a[0][1]")
+            self.assertEqual(node.absolute_address, 0x4)
+            self.assertEqual(node.size, 4)
+            self.assertEqual(node.total_size, 60)
+        
+        with self.subTest():
+            node = top.find_by_path("hier.x.a[1][1]")
+            self.assertEqual(node.absolute_address, 0x10)
+        
+        with self.subTest():
+            node = top.find_by_path("hier.y[0]")
+            self.assertEqual(node.absolute_address, 0x100)
+            self.assertEqual(node.size, 148)
+            self.assertEqual(node.total_size, 148*4)
+        
+        with self.subTest():
+            node = top.find_by_path("hier.y[2]")
+            self.assertEqual(node.absolute_address, 0x100+148*2)
+            self.assertEqual(node.size, 148)
+            self.assertEqual(node.total_size, 148*4)

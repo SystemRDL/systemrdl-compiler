@@ -42,7 +42,10 @@ class RDLCompiler:
     def compile_file(self, path):
         """
         Parse & compile a single file and append it to RDLCompiler's root
-        namespace
+        namespace.
+        
+        If any exceptions (:class:`~systemrdl.messages.RDLCompileError` or other)
+        occur during compilation, then the RDLCompiler object should be discarded.
         
         Parameters
         ----------
@@ -52,7 +55,7 @@ class RDLCompiler:
         Raises
         ------
         :class:`~systemrdl.messages.RDLCompileError`
-            If any fatal compile error is encountered
+            If any fatal compile error is encountered.
         """
         
         input_stream = FileStream(path)
@@ -76,7 +79,7 @@ class RDLCompiler:
         self.visitor.visit(parsed_tree)
         
         # Reset default property assignments from namespace.
-        # They should not leak between files since that would be confusing.
+        # They should not be shared between files since that would be confusing.
         self.namespace.default_property_ns_stack = [{}]
         
         if self.msg.error_count:
@@ -84,10 +87,21 @@ class RDLCompiler:
     
     def elaborate(self, top_def_name=None, inst_name=None, parameters=None):
         """
-        Elaborates the design with the specified component definition from
-        the root namespace as the top-level component.
+        Elaborates the design for the given top-level addrmap component.
         
-        Currently, an RDLCompiler instance can only be elaborated once.
+        During elaboration, the following occurs:
+        
+        - An instance of the ``$root`` meta-component is created.
+        - The addrmap component specified by ``top_def_name`` is instantiated as a
+          child of ``$root``.
+        - Expressions, parameters, and inferred address/field placements are elaborated.
+        - Validation checks are performed.
+        
+        If a design contains multiple root-level addrmaps, ``elaborate()`` can be
+        called multiple times in order to elaborate each individually.
+        
+        If any exceptions (:class:`~systemrdl.messages.RDLCompileError` or other)
+        occur during elaboration, then the RDLCompiler object should be discarded.
         
         Parameters
         ----------
@@ -102,7 +116,7 @@ class RDLCompiler:
             By default, instantiated name is the same as ``top_def_name``
         
         parameters: TBD
-            Assign the top-component instance parameters
+            This feature is not implemented yet.
         
         Raises
         ------
@@ -146,6 +160,7 @@ class RDLCompiler:
         top_inst = deepcopy(top_def)
         top_inst.is_instance = True
         top_inst.original_def = top_def
+        top_inst.addr_offset = 0
         if inst_name is not None:
             top_inst.inst_name = inst_name
         else:

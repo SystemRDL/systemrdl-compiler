@@ -104,3 +104,19 @@ User-defined property's "type" attribute can not be "signal"?
     Resolution:
         None for now.
         Implemented according to spec until I hear otherwise.
+
+--------------------------------------------------------------------------------
+Compilation units and their scope not described in SystemRDL spec
+    The SystemRDL 2.0 spec does not address the concept of "compilation units"
+    and how multiple RDL files share namespaces.
+    
+    If multiple RDL files are compiled together, how are their namespaces shared?
+    
+    Resolution:
+        I have provided my own interpretation of how compilation units in
+        SystemRDL should work.
+        Some concepts are borrowed from SystemVerilog, but are simplified significantly
+        in order to have the least "surprising" effects.
+        
+        See "multi-file_compilation" notes for more details.
+        

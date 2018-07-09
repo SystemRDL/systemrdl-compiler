@@ -27,20 +27,20 @@ Once compiled, the resulting component tree is as follows:
 
 The resulting tree has the following characteristics:
 
-- Each component instance is represented by a :class:`~systemrdl.component.Component`
+-   Each component instance is represented by a :class:`~systemrdl.component.Component`
     object.
-- Any instances within a component are referenced as children of the component.
-- The ``$root`` meta-component contains an instance of the elaborated top-level
+-   Any instances within a component are referenced as children of the component.
+-   The ``$root`` meta-component contains an instance of the elaborated top-level
     addrmap, as well as any signals that were instantiated in the root namespace.
-- All instances and their descendants are unique objects.
-- Arrays of instances are encoded as a single object and storing the array's
+-   All instances and their descendants are unique objects.
+-   Arrays of instances are encoded as a single object and storing the array's
     dimensions.
-- Each instance in the component tree keeps a reference back to its original
+-   Each instance in the component tree keeps a reference back to its original
     "as-defined" non-instance object.
 
-    - For example, instances ``A`` and ``B`` are both based off of the common
+    -   For example, instances ``A`` and ``B`` are both based off of the common
         component definition ``my_reg_t`` (shown in gray).
-    - Note that ``top`` and ``$root`` instances also have similar references, but
+    -   Note that ``top`` and ``$root`` instances also have similar references, but
         are not shown in the diagram above.
 
 Node Overlay
@@ -51,10 +51,10 @@ unambiguous.
 
 Each :class:`~systemrdl.node.Node` object provides the following:
 
-- Reference to its corresponding :class:`~systemrdl.component.Component` instance.
-- Reference to its immediate parent
-- The current array index of an instance.
-- Helper functions that simplify querying and traversing the register model.
+-   Reference to its corresponding :class:`~systemrdl.component.Component` instance.
+-   Reference to its immediate parent
+-   The current array index of an instance.
+-   Helper functions that simplify querying and traversing the register model.
 
 Most of the your interaction with the register model should be through
 :class:`~systemrdl.node.Node` objects.

@@ -82,3 +82,17 @@ addrmap example_5_1_2_5_ex3 {
                             // and ((address % 0x80) == 0)
     } example;
 };
+
+//------------------------------------------------------------------------------
+// Hierarchical addressing
+//------------------------------------------------------------------------------
+addrmap hier {
+    reg some_reg { field {} a; };
+    
+    regfile {
+        some_reg a[5][3]; // @ 0, size=4*5*3=60=0x3C
+        some_reg b[10]; // @ 0x3C, size=40=0x28
+        some_reg c[3][4]; // @0x64, size=48=0x30
+    } x, // @0, size=148=0x94
+    y[4]; // @0x100 size=148*4=592
+}; // @0, size=740
