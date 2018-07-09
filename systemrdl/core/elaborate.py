@@ -463,3 +463,57 @@ class StructuralPlacementListener(walker.RDLListener):
             else:
                 return inst.addr_offset
         node.inst.children.sort(key=get_child_sort_key)
+
+#-------------------------------------------------------------------------------
+class LateElabListener(walker.RDLListener):
+    """
+    Elaboration listener for misc late-stage things
+    """
+    def __init__(self, msg_handler):
+        self.msg = msg_handler
+    
+    def enter_Field(self, node):
+        
+        # 9.6.1-d: swwe and swwel have precedence over the software access
+        # property in determining its current access state, e.g., if a field is
+        # declared as sw=rw, has a swwe property, and the value is currently
+        # false, the effective software access property is sw=r.
+        #
+        # Extending this idea further: if swwe/swwel has a field/signal reference
+        # then it implies that the software access CAN be writable, and therefore
+        # overrides sw to include the "w"
+        override_to_writable = False
+        override_to_not_writable = False
+        if "swwe" in node.inst.properties:
+            swwe = node.inst.properties['swwe']
+            if isinstance(swwe, rdltypes.ComponentRef):
+                override_to_writable = True
+            elif swwe is True:
+                override_to_writable = True
+            else:
+                override_to_not_writable = True
+            
+        elif "swwel" in node.inst.properties:
+            swwel = node.inst.properties['swwel']
+            if isinstance(swwel, rdltypes.ComponentRef):
+                override_to_writable = True
+            elif swwel is False:
+                override_to_writable = True
+            else:
+                override_to_not_writable = True
+        
+        this_f_sw = node.get_property('sw')
+        if override_to_writable:
+            if this_f_sw == rdltypes.AccessType.r:
+                node.inst.properties['sw'] = rdltypes.AccessType.rw
+            elif this_f_sw == rdltypes.AccessType.na:
+                node.inst.properties['sw'] = rdltypes.AccessType.w
+        elif override_to_not_writable:
+            if this_f_sw == rdltypes.AccessType.rw:
+                node.inst.properties['sw'] = rdltypes.AccessType.r
+            elif this_f_sw == rdltypes.AccessType.w:
+                node.inst.properties['sw'] = rdltypes.AccessType.na
+            elif this_f_sw == rdltypes.AccessType.rw1:
+                node.inst.properties['sw'] = rdltypes.AccessType.r
+            elif this_f_sw == rdltypes.AccessType.w1:
+                node.inst.properties['sw'] = rdltypes.AccessType.na

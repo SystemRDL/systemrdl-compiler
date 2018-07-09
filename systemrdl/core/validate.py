@@ -34,10 +34,18 @@ class ValidateListener(walker.RDLListener):
             )
         
     def enter_Field(self, node):
-        
-        # 9.4.1-Table 12: Check for bad sw/hw combinations
         this_f_hw = node.get_property('hw')
         this_f_sw = node.get_property('sw')
+        
+        # hw property values of w1 or rw1 don't make sense
+        if (this_f_hw == rdltypes.AccessType.w1) or (this_f_hw == rdltypes.AccessType.rw1):
+            self.msg.error(
+                "Field '%s' hw access property value of %s is meaningless"
+                % (node.inst.inst_name, this_f_hw.name),
+                node.inst.inst_err_ctx
+            )
+        
+        # 9.4.1-Table 12: Check for bad sw/hw combinations
         if (this_f_sw == rdltypes.AccessType.w) and (this_f_hw == rdltypes.AccessType.w):
             self.msg.error(
                 "Field '%s' access property combination is meaningless: sw=w; hw=w;"
@@ -59,6 +67,12 @@ class ValidateListener(walker.RDLListener):
         elif (this_f_sw == rdltypes.AccessType.na) and (this_f_hw == rdltypes.AccessType.na):
             self.msg.error(
                 "Field '%s' access property combination results in a nonexistent net: sw=na; hw=na;"
+                % (node.inst.inst_name),
+                node.inst.inst_err_ctx
+            )
+        elif this_f_sw == rdltypes.AccessType.na:
+            self.msg.error(
+                "Field '%s' sw access property value of na results in undefined behavior."
                 % (node.inst.inst_name),
                 node.inst.inst_err_ctx
             )

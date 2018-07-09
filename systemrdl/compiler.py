@@ -8,7 +8,7 @@ from .parser.SystemRDLParser import SystemRDLParser
 from .core.ComponentVisitor import RootVisitor
 from .core.properties import PropertyRuleBook
 from .core.namespace import NamespaceRegistry
-from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener
+from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
 from .core.elaborate import StructuralPlacementListener
 from .core.validate import ValidateListener
 from . import component as comp
@@ -186,7 +186,8 @@ class RDLCompiler:
         walker.RDLWalker(skip_not_present=False).walk(
             root_node,
             PrePlacementValidateListener(self.msg),
-            StructuralPlacementListener(self.msg)
+            StructuralPlacementListener(self.msg),
+            LateElabListener(self.msg)
         )
         
         # Validate design

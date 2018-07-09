@@ -548,20 +548,24 @@ class Prop_onwrite(PropertyRule):
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_swwe(PropertyRule):
     """
-    TODO: Not sure I understand the design intent of this property
+    Override software-writeability of this field.
+    Field is writable if signal/field/value is True
+    (9.6)
     """
     bindable_to = [comp.Field]
-    valid_types = [bool]
+    valid_types = [bool, comp.Signal, comp.Field]
     default = False
     dyn_assign_allowed = True
     mutex_group = "R"
 
 class Prop_swwel(PropertyRule):
     """
-    TODO: Not sure I understand the design intent of this property
+    Override software-writeability of this field.
+    Field is writable if signal/field/value is False
+    (9.6)
     """
     bindable_to = [comp.Field]
-    valid_types = [bool]
+    valid_types = [bool, comp.Signal, comp.Field]
     default = False
     dyn_assign_allowed = True
     mutex_group = "R"
