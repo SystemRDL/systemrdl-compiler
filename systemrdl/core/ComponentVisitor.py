@@ -59,7 +59,7 @@ class ComponentVisitor(BaseVisitor):
         
         # Re-Load any parameters into the local scope
         for param in self.component.parameters:
-            self.compiler.namespace.register_element(param.name, param, None)
+            self.compiler.namespace.register_element(param.name, param, None, None)
         
         # Visit all component elements.
         # Their visitors will apply changes to the current component
@@ -183,7 +183,7 @@ class ComponentVisitor(BaseVisitor):
 
     def visitComponent_inst_alias(self, ctx:SystemRDLParser.Component_inst_aliasContext):
         name = get_ID_text(ctx.ID())
-        inst = self.compiler.namespace.lookup_element(name)
+        inst, _ = self.compiler.namespace.lookup_element(name)
         if inst is None:
             self.msg.fatal(
                 "Reference to '%s' not found" % name,
@@ -272,7 +272,7 @@ class ComponentVisitor(BaseVisitor):
         if ctx is None:
             return None
         
-        visitor = ExprVisitor(self.compiler, self.component)
+        visitor = ExprVisitor(self.compiler)
         expr = visitor.visit(ctx.expr())
         expr = expressions.AssignmentCast(self.compiler, ctx.op, expr, int)
         expr.predict_type()
@@ -419,7 +419,7 @@ class ComponentVisitor(BaseVisitor):
         
         self.component.children.append(comp_inst)
         
-        self.compiler.namespace.register_element(inst_name, comp_inst, ctx.ID())
+        self.compiler.namespace.register_element(inst_name, comp_inst, self.component, ctx.ID())
         
         return None
         
@@ -460,7 +460,7 @@ class ComponentVisitor(BaseVisitor):
         
         # Get expression for parameter default, if any
         if ctx.expr() is not None:
-            visitor = ExprVisitor(self.compiler, self.component)
+            visitor = ExprVisitor(self.compiler)
             default_expr = visitor.visit(ctx.expr())
             default_expr = expressions.AssignmentCast(self.compiler, ctx.ID(), default_expr, param_type)
             default_expr.predict_type()
@@ -471,7 +471,7 @@ class ComponentVisitor(BaseVisitor):
         param = Parameter(param_type, param_name, default_expr)
         
         # Register it in the parameter def namespace scope
-        self.compiler.namespace.register_element(param_name, param, ctx.ID())
+        self.compiler.namespace.register_element(param_name, param, None, ctx.ID())
         
         return param
     
@@ -492,7 +492,7 @@ class ComponentVisitor(BaseVisitor):
     def visitParam_assignment(self, ctx:SystemRDLParser.Param_assignmentContext):
         param_name = get_ID_text(ctx.ID())
         
-        visitor = ExprVisitor(self.compiler, self.component)
+        visitor = ExprVisitor(self.compiler)
         # Note: AssignmentCast is handled in the visitComponent_insts Visitor
         assign_expr = visitor.visit(ctx.expr())
         return param_name, assign_expr
@@ -503,10 +503,6 @@ class ComponentVisitor(BaseVisitor):
     def visitLocal_property_assignment(self, ctx:SystemRDLParser.Local_property_assignmentContext):
         
         default = (ctx.DEFAULT_kw() is not None)
-        
-        # _tmp is used to store assignment target depth so that it can be passed
-        # to the ExprVisitor. This is 0 for local property assignments
-        self._tmp = 0
         
         if ctx.normal_prop_assign() is not None:
             prop_token, prop_name, rhs = self.visit(ctx.normal_prop_assign())
@@ -557,11 +553,6 @@ class ComponentVisitor(BaseVisitor):
         
         # List of component instance names in the hierarchical path
         name_tokens = self.visit(ctx.instance_ref())
-        
-        # Keep track of assignment target's depth.
-        # This needs to be passed to the ExprVisitor that generates RHS in order
-        # to properly evaluate component references
-        self._tmp = len(name_tokens)
         
         if ctx.normal_prop_assign() is not None:
             prop_token, prop_name, rhs = self.visit(ctx.normal_prop_assign())
@@ -670,10 +661,9 @@ class ComponentVisitor(BaseVisitor):
         return prop_mod_token, prop_mod
         
     def visitProp_assignment_rhs(self, ctx:SystemRDLParser.Prop_assignment_rhsContext):
-        target_depth = self._tmp
         
         if ctx.expr() is not None:
-            visitor = ExprVisitor(self.compiler, self.component, target_depth)
+            visitor = ExprVisitor(self.compiler)
             rhs = visitor.visit(ctx.expr())
         else:
             rhs = self.visit(ctx.precedencetype_literal())
@@ -766,7 +756,7 @@ class ComponentVisitor(BaseVisitor):
     # Array and Range suffixes
     #---------------------------------------------------------------------------
     def visitRange_suffix(self, ctx:SystemRDLParser.Range_suffixContext):
-        visitor = ExprVisitor(self.compiler, self.component)
+        visitor = ExprVisitor(self.compiler)
         expr1 = visitor.visit(ctx.expr(0))
         expr1 = expressions.AssignmentCast(self.compiler, ctx.expr(0), expr1, int)
         expr1.predict_type()
@@ -778,7 +768,7 @@ class ComponentVisitor(BaseVisitor):
         return expr1, expr2
 
     def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
-        visitor = ExprVisitor(self.compiler, self.component)
+        visitor = ExprVisitor(self.compiler)
         expr = visitor.visit(ctx.expr())
         expr = expressions.AssignmentCast(self.compiler, ctx.expr(), expr, int)
         expr.predict_type()
@@ -862,7 +852,7 @@ class RootVisitor(ComponentVisitor):
     # User-defined Properties
     #---------------------------------------------------------------------------
     def visitUdp_def(self, ctx:SystemRDLParser.Udp_defContext):
-        visitor = UDPVisitor(self.compiler, self.component)
+        visitor = UDPVisitor(self.compiler)
         visitor.visit(ctx)
     
 #===============================================================================

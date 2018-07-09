@@ -706,7 +706,7 @@ class Prop_threshold(PropertyRule):
     alias of incrthreshold.
     """
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal]
+    valid_types = [bool, int, comp.Signal, comp.Field]
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -723,7 +723,7 @@ class Prop_saturate(PropertyRule):
     alias of incrsaturate.
     """
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal]
+    valid_types = [bool, int, comp.Signal, comp.Field]
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -737,7 +737,7 @@ class Prop_saturate(PropertyRule):
 
 class Prop_incrthreshold(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal]
+    valid_types = [bool, int, comp.Signal, comp.Field]
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -751,7 +751,7 @@ class Prop_incrthreshold(PropertyRule):
 
 class Prop_incrsaturate(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal]
+    valid_types = [bool, int, comp.Signal, comp.Field]
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -779,14 +779,14 @@ class Prop_underflow(PropertyRule):
 
 class Prop_incr(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.Signal]
+    valid_types = [comp.Signal, comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_incrvalue(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [int, comp.Signal]
+    valid_types = [int, comp.Signal, comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = "F"
@@ -800,14 +800,14 @@ class Prop_incrwidth(PropertyRule):
 
 class Prop_decrvalue(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [int, comp.Signal]
+    valid_types = [int, comp.Signal, comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = "G"
 
 class Prop_decr(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.Signal]
+    valid_types = [comp.Signal, comp.Field]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -821,14 +821,14 @@ class Prop_decrwidth(PropertyRule):
 
 class Prop_decrsaturate(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal]
+    valid_types = [bool, int, comp.Signal, comp.Field]
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_decrthreshold(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal]
+    valid_types = [bool, int, comp.Signal, comp.Field]
     default = False
     dyn_assign_allowed = True
     mutex_group = None

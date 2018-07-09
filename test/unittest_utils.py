@@ -41,7 +41,7 @@ class RDLSourceTestCase(unittest.TestCase):
         
         rdlc = RDLCompiler(message_printer=TestPrinter())
         
-        visitor = ExprVisitor(rdlc, None)
+        visitor = ExprVisitor(rdlc)
         result = visitor.visit(tree)
         
         pred_type = result.predict_type()

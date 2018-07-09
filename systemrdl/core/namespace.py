@@ -1,5 +1,4 @@
 from .. import component as comp
-from . import expressions
 
 class NamespaceRegistry():
     
@@ -19,13 +18,13 @@ class NamespaceRegistry():
             )
         self.type_ns_stack[-1][name] = ref
         
-    def register_element(self, name:str, ref, err_token):
+    def register_element(self, name:str, ref, parent_comp_def, err_token):
         if name in self.element_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of instance '%s'" % name,
                 err_token
             )
-        self.element_ns_stack[-1][name] = ref
+        self.element_ns_stack[-1][name] = (ref, parent_comp_def)
     
     def register_default_property(self, name:str, ref, err_token, overwrite_ok=False):
         if not overwrite_ok:
@@ -33,17 +32,6 @@ class NamespaceRegistry():
                 self.msg.fatal(
                     "Default property '%s' was already assigned in this scope" % name,
                     err_token
-                )
-        
-        # TODO: default properties that resolve to an instance reference
-        # won't work properly yet.
-        prop_token, rhs = ref
-        if isinstance(rhs, expressions.Expr):
-            result_type = rhs.predict_type()
-            if issubclass(result_type, comp.Component):
-                self.msg.fatal(
-                    "Assigning a reference to a component instance in a property default is not supported yet",
-                    prop_token
                 )
         
         self.default_property_ns_stack[-1][name] = ref
@@ -57,15 +45,15 @@ class NamespaceRegistry():
     def lookup_element(self, name:str):
         for idx, scope in enumerate(reversed(self.element_ns_stack)):
             if name in scope:
-                el = scope[name]
+                el, parent_def = scope[name]
                 if idx == 0:
                     # Return anything from local namespace
-                    return el
+                    return (el, parent_def)
                 elif isinstance(el, comp.Signal):
                     # Signals are allowed to be found in parent namespaces
-                    return el
+                    return (el, parent_def)
                 else:
-                    return None
+                    return (None, None)
         return None
     
     def get_default_properties(self, comp_type):
@@ -73,9 +61,11 @@ class NamespaceRegistry():
         Returns a flattened dictionary of all default property assignments
         visible in the current scope that apply to the current component type.
         """
-        # Flatten current scope's assignments
+        # Flatten out all the default assignments that apply to the current scope
+        # This does not include any default assignments made within the current
+        # scope, so exclude those.
         props = {}
-        for scope in self.default_property_ns_stack:
+        for scope in self.default_property_ns_stack[:-1]:
             props.update(scope)
             
         # filter out properties that are not relevant

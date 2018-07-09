@@ -1,0 +1,29 @@
+property ref_prop {
+    component = all;
+    type = ref;
+};
+
+
+signal {} glbl_sig;
+
+reg my_reg {
+    signal {} sig;
+    
+    field {
+        resetsignal = glbl_sig;
+    } x;
+    
+    field {
+        resetsignal = sig;
+    } y;
+    
+    ref_prop = x;
+};
+
+addrmap top {
+    my_reg reg1;
+    my_reg reg2[2];
+    
+    ref_prop = reg2[1].x;
+};
+

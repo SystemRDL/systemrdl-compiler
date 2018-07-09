@@ -15,11 +15,15 @@ Semantic rule 10.6.1.c is violated in 5.1.2.2.2-Example 2
 
 --------------------------------------------------------------------------------
 Likely typo in semantic rule 11.2-f
-    "Virtual registers, REGISTER FILES, and fields shall have the same software access (sw property value) as the parent memory."
+    "Virtual registers, REGISTER FILES, and fields shall have the same software
+    access (sw property value) as the parent memory."
     
     Mentions "register files", even though they are not allowed in "mem" components
     as per 11.1-b-1-ii.
-
+    
+    Resolution:
+        N/A
+    
 --------------------------------------------------------------------------------
 Example in 6.2.6 uses an invalid hierarchical reference
     In section 6.2.6, an example shows a child component definition incorrectly 
@@ -34,6 +38,10 @@ Example in 6.2.6 uses an invalid hierarchical reference
     This is inconsistent with the namespace rules described in 5.1.4
     Also, 5.1.1.2-d explicitly says that nested component definitions do not inherit
     parents' parameters.
+    
+    Resolution:
+        Invalid example appears to be an accidental oversight.
+        Implementation will enforce semantics described in 5.1.1.2-d
 
 --------------------------------------------------------------------------------
 Grammar does not allow empty array literals
@@ -48,3 +56,51 @@ Grammar does not allow empty array literals
     Resolution:
         Arrays of zero-size seem like a reasonable concept, especially since 6.3.1-d
         explicitly makes note of them. Grammar will be revised to allow this.
+        
+--------------------------------------------------------------------------------
+Automatic address allocation rules have many ambiguities
+    <fill in details>
+    
+    Resolution:
+        <fill in details of my interpretation>
+    
+--------------------------------------------------------------------------------
+Invalid SystemRDL 2.0 in Table E1
+    In Annex E, Table E1, many of the cells in the "SystemRDL 2.0" column show
+    what appears to be incorrect usage of the "onread" and "onwrite" side-effect
+    properties. 
+    
+    The table shows assignments of invalid rhs keywords such as:
+        onread = r
+        onwrite = w
+    ... where 'r' and 'w' do not seem to be allowed in this context.
+    
+    Section 9.6 shows that these properties only accept the "onreadtype" and
+    "onwritetype" enumeration values.
+    These enumerations are defined in Table 15 and 16, as well as the grammar:
+        onreadtype ::= rclr | rset | ruser
+        onwritetype ::= woset | woclr | wot | wzs | wzc | wzt | wclr | wset | wuser
+    
+    Resolution:
+        Ignore illegal assignments in Table E1.
+        This looks like a mistake by the Accelera team.
+        Invalid entries appear to be redundant anyways.
+    
+--------------------------------------------------------------------------------
+User-defined property's "type" attribute can not be "signal"?
+    Grammar seems to describe that a property's type attribute does not allow
+    "signal" types.
+    Furthermore, text in 15.1, Table 31 implies that the "ref" type generalization
+    also does not include "signal".
+    
+    The spec is pretty clear about this, and it appears to be intentional.
+    I'm just a little surprised since it seems like an odd exclusion to make.
+    UDPs are basically user-extensions that can be used to describe things
+    outside of the RDL spec.
+    Why restrict a user's ability to use these?
+    Plus, there are several built-in properties that expect signal reference
+    types, so the precedent is simply not there... (resetsignal, some counter properties)
+    
+    Resolution:
+        None for now.
+        Implemented according to spec until I hear otherwise.

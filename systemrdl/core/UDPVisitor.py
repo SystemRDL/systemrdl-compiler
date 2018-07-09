@@ -11,9 +11,8 @@ from .. import component as comp
 from .. import rdltypes
 
 class UDPVisitor(BaseVisitor):
-    def __init__(self, compiler, current_component):
+    def __init__(self, compiler):
         super().__init__(compiler)
-        self.current_component = current_component
         
         # Attributes
         self.attr = {}
@@ -55,7 +54,7 @@ class UDPVisitor(BaseVisitor):
         if 'default' in self.attr:
             expr_ctx = self.attr['default']
             
-            visitor = ExprVisitor(self.compiler, self.current_component)
+            visitor = ExprVisitor(self.compiler)
             expr = visitor.visit(expr_ctx)
             expr_type = expr.predict_type()
         

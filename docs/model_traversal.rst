@@ -18,6 +18,9 @@ through the register model as shown in the diagram below:
 .. image:: img/walker-listener.svg
    :align: center
 
+.. note:: Since the :class:`~systemrdl.node.RootNode` does not actually represent
+        a register model component, the :class:`~systemrdl.walker.RDLWalker` 
+        intentionally skips it during traversal.
 
 To create a listener, extend :class:`~systemrdl.walker.RDLListener` and implement
 your custom callback methods. In the example below, ``MyListener`` prints a message
@@ -105,8 +108,10 @@ is explored. The :meth:`Node.children() <systemrdl.node.Node.children>` method
 provides an iterator that can be used to manually traverse the tree.
 
 .. code-block:: python
-
-    for child in root_node.children(unroll=True):
+    
+    top_node = root_node.get_child_by_name("top")
+    
+    for child in top_node.children(unroll=True):
         print(child.get_path())
 
 The above outputs the following:

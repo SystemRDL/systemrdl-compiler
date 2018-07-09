@@ -8,11 +8,6 @@ This page lists anything from the SystemRDL 2.0 spec that the
 Limitations are listed roughly in order of priority, where the first items are
 likely to be fixed the soonest.
 
-Signal References
--------------------
-Signal references in property assignments are not supported yet.
-
-
 
 Semantic Checking is Incomplete
 -------------------------------
@@ -49,36 +44,6 @@ References to an instance's property in the RHS of an expression are not impleme
 
     LHS = some_intr_reg->intr;
     //                 ^^^^^^^ Not supported yet
-
-
-
-Instance References in Default Property Assignments
----------------------------------------------------
-
-Default property assignments do not support instance references in the RHS of
-the assignment yet. One exception is references to signal components.
-
-All other assignment values are OK.
-
-Example:
-
-.. code-block:: none
-    
-    property my_udp {
-        component = all;
-        type = ref;
-    };
-    
-    addrmap my_addrmap {
-        reg {
-            field {} my_field;
-        } my_reg;
-        
-        default desc = "Default Description"; // Non-reference assignment is OK
-        // default my_udp = my_reg; // Local instance reference is NOT OK
-        // default my_udp = my_reg.my_field; // Hierarchical instance reference NOT OK
-        
-    };
 
 
 

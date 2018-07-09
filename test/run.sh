@@ -2,8 +2,9 @@
 
 set -e
 
-this_dir=$(dirname "${BASH_SOURCE[0]}")
+this_dir="$( cd "$(dirname "$0")" ; pwd -P )"
 cd $this_dir/../
+
 
 # Run unit tests while collecting coverage
 coverage3 run $this_dir/../setup.py test

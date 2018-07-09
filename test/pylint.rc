@@ -118,6 +118,8 @@ disable=
         deprecated-string-function,
         deprecated-str-translate-call,
         
+        # Disable for now during development
+        fixme,
         
         # User ignored
         cyclic-import,

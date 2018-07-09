@@ -10,19 +10,6 @@ from .parameter import Parameter
 from .helpers import get_ID_text
 
 class ExprVisitor(BaseVisitor):
-    
-    def __init__(self, compiler, current_component, target_depth=0):
-        super().__init__(compiler)
-        
-        # Reference to the current component that this expression was found in.
-        # This is used for context when constructing hierarchical references
-        self.current_component = current_component
-        
-        # Nonzero if target of an expression assignment is not within the 
-        # current_component instance. (i.e. dynamic property assignments)
-        # Number denotes how many instance levels deep the dynamic property
-        # assignment "reaches in"
-        self.target_depth = target_depth
         
     #---------------------------------------------------------------------------
     # Numerical Expressions
@@ -277,7 +264,7 @@ class ExprVisitor(BaseVisitor):
         # Resolve reference of first element, since it is in the local scope
         first_name_token, first_array_suffixes = ref_elements[0]
         first_name = get_ID_text(first_name_token)
-        first_elem = self.compiler.namespace.lookup_element(first_name)
+        first_elem, first_elem_parent_def = self.compiler.namespace.lookup_element(first_name)
         if first_elem is None:
             self.msg.fatal(
                 "Reference to '%s' not found" % first_name,
@@ -300,15 +287,10 @@ class ExprVisitor(BaseVisitor):
                     "Referencing child elements of a parameter is not supported yet.",
                     ctx.instance_ref_element(1)
                 )
-        elif isinstance(first_elem, comp.Signal):
-            # TODO: Need to handle signals differently. They are non-hierarchical (or something)
-            raise NotImplementedError
         elif isinstance(first_elem, comp.Component):
-            # Reference is to a component instance
             ref_expr = e.InstRef(
                 self.compiler, 
-                ref_inst=self.current_component,
-                uplevels_to_ref=self.target_depth,
+                ref_root=first_elem_parent_def,
                 ref_elements=ref_elements
             )
         else:

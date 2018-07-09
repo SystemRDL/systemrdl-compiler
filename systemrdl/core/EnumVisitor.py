@@ -30,7 +30,7 @@ class EnumVisitor(BaseVisitor):
             if value_expr_ctx is not None:
                 # explicit enumerator assignment
                 
-                visitor = ExprVisitor(self.compiler, None)
+                visitor = ExprVisitor(self.compiler)
                 expr = visitor.visit(value_expr_ctx)
                 expr = expressions.AssignmentCast(self.compiler, value_expr_ctx, expr, int)
                 expr.predict_type()
@@ -100,7 +100,7 @@ class EnumVisitor(BaseVisitor):
     def visitEnum_prop_assign(self, ctx:SystemRDLParser.Enum_prop_assignContext):
         prop_token = ctx.ID()
         
-        visitor = ExprVisitor(self.compiler, None)
+        visitor = ExprVisitor(self.compiler)
         prop_expr = visitor.visit(ctx.expr())
         prop_expr = expressions.AssignmentCast(self.compiler, ctx.expr(), prop_expr, str)
         prop_expr.predict_type()

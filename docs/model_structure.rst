@@ -23,16 +23,25 @@ Consider the following snippet of SystemRDL:
 Once compiled, the resulting component tree is as follows:
 
 .. image:: img/component-tree.svg
-   :align: center
+    :align: center
 
 The resulting tree has the following characteristics:
 
-- Each component instance is represented by a :class:`~systemrdl.component.Component` object.
+- Each component instance is represented by a :class:`~systemrdl.component.Component`
+    object.
 - Any instances within a component are referenced as children of the component.
+- The ``$root`` meta-component contains an instance of the elaborated top-level
+    addrmap, as well as any signals that were instantiated in the root namespace.
 - All instances and their descendants are unique objects.
-- Instances of a named definition (for example, ``my_reg_t``) including their descendants are unique, but
-  refer back to copy of the original defined component.
-- Arrays of instances are encoded as a single object and storing the array's dimensions.
+- Arrays of instances are encoded as a single object and storing the array's
+    dimensions.
+- Each instance in the component tree keeps a reference back to its original
+    "as-defined" non-instance object.
+
+    - For example, instances ``A`` and ``B`` are both based off of the common
+        component definition ``my_reg_t`` (shown in gray).
+    - Note that ``top`` and ``$root`` instances also have similar references, but
+        are not shown in the diagram above.
 
 Node Overlay
 ------------
@@ -57,7 +66,7 @@ Consider the following lineage of instances from the previous example ``top -> A
 Note that register "A" is declared as an array of 4 instances.
 
 .. image:: img/node-overlay.svg
-   :align: center
+    :align: center
 
 Since the overlay provides references back up to each node's parent as well as an array index,
 the unambiguous lineage can be known. (purple ``f1`` node vs orange ``f1`` node)

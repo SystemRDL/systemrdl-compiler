@@ -1,6 +1,7 @@
 
 from .node import AddressableNode, VectorNode, FieldNode, RegNode, RegfileNode
 from .node import AddrmapNode, MemNode, SignalNode
+from .node import RootNode
 
 #===============================================================================
 class RDLListener:
@@ -124,7 +125,10 @@ class RDLWalker:
     
     
     def do_enter(self, node, listener:RDLListener):
-        listener.enter_Component(node)
+        
+        # Skip RootNode since it isn't really a component
+        if not isinstance(node, RootNode):
+            listener.enter_Component(node)
         
         if isinstance(node, AddressableNode):
             listener.enter_AddressableComponent(node)
@@ -164,4 +168,6 @@ class RDLWalker:
         elif isinstance(node, VectorNode):
             listener.exit_VectorComponent(node)
         
-        listener.exit_Component(node)
+        # Skip RootNode since it isn't really a component
+        if not isinstance(node, RootNode):
+            listener.exit_Component(node)

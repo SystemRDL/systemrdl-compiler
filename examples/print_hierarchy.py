@@ -25,7 +25,7 @@ try:
         rdlc.compile_file(input_file)
     
     # Elaborate the design
-    top = rdlc.elaborate()
+    root = rdlc.elaborate()
 except RDLCompileError:
     # A compilation error occurred. Exit with error code
     sys.exit(1)
@@ -55,4 +55,4 @@ class MyModelPrintingListener(RDLListener):
 # Traverse the register model!
 walker = RDLWalker(unroll=True)
 listener = MyModelPrintingListener()
-walker.walk(top, listener)
+walker.walk(root, listener)

@@ -13,7 +13,7 @@ from .core.elaborate import StructuralPlacementListener
 from .core.validate import ValidateListener
 from . import component as comp
 from . import walker
-from .node import Node
+from .node import RootNode
 
 class RDLCompiler:
     
@@ -111,8 +111,8 @@ class RDLCompiler:
         
         Returns
         -------
-        :class:`~systemrdl.node.AddrmapNode`
-            Elaborated top-level component's Node object.
+        :class:`~systemrdl.node.RootNode`
+            Elaborated root meta-component's Node object.
         """
         if parameters is None:
             parameters = {}
@@ -136,9 +136,16 @@ class RDLCompiler:
             else:
                 self.msg.fatal("Could not find any 'addrmap' components to elaborate")
         
+        # Create an instance of the root component
+        root_inst = deepcopy(self.root)
+        root_inst.is_instance = True
+        root_inst.original_def = self.root
+        root_inst.inst_name = "$root"
+        
         # Create a top-level instance
         top_inst = deepcopy(top_def)
         top_inst.is_instance = True
+        top_inst.original_def = top_def
         if inst_name is not None:
             top_inst.inst_name = inst_name
         else:
@@ -149,25 +156,28 @@ class RDLCompiler:
             # TODO: Add mechanism to set parameters of top-level component
             raise NotImplementedError
         
-        top_node = Node._factory(top_inst, self)
+        # instantiate top_inst into the root component instance
+        root_inst.children.append(top_inst)
+        
+        root_node = RootNode(root_inst, self, None)
         
         # Resolve all expressions
         walker.RDLWalker(skip_not_present=False).walk(
-            top_node,
+            root_node,
             ElabExpressionsListener(self.msg)
         )
         
         # Resolve address and field placement
         walker.RDLWalker(skip_not_present=False).walk(
-            top_node,
+            root_node,
             PrePlacementValidateListener(self.msg),
             StructuralPlacementListener(self.msg)
         )
         
         # Validate design
-        walker.RDLWalker().walk(top_node, ValidateListener(self))
+        walker.RDLWalker().walk(root_node, ValidateListener(self))
         
         if self.msg.error_count:
             self.msg.fatal("Elaborate aborted due to previous errors")
         
-        return top_node
+        return root_node

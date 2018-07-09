@@ -890,16 +890,14 @@ class ParameterRef(Expr):
 
 
 class InstRef(Expr):
-    def __init__(self, compiler, ref_inst, uplevels_to_ref, ref_elements):
+    def __init__(self, compiler, ref_root, ref_elements):
         super().__init__(compiler, None) # single err_ctx doesn't make sense for InstRef
         
-        # Points to the component inst that the ref_elements 'path' is relative to
-        self.ref_inst = ref_inst
-        
-        # Number of parents to traverse up from the assignee to reach ref_inst
-        # For InstRefs in local property assignments, this is 0
-        # For dynamic (hierarchical) property assignments, this is > 0
-        self.uplevels_to_ref = uplevels_to_ref
+        # Handle to the component definition where ref_elements is relative to
+        # This is the original_def, and NOT the actual instance
+        # When deepcopying, this is copied by reference in order to preserve
+        # the original def object
+        self.ref_root = ref_root
         
         # List of hierarchical reference element tuples that make up the path
         # to the reference.
@@ -915,7 +913,7 @@ class InstRef(Expr):
         """
         Copy any Antlr tokens by ref within the ref_elements list when deepcopying
         """
-        copy_by_ref = ["err_ctx", "compiler", "msg"]
+        copy_by_ref = ["err_ctx", "compiler", "msg", "ref_root"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -939,13 +937,13 @@ class InstRef(Expr):
         referenced.
         Also do some checks on the array indexes
         """
-        current_inst = self.ref_inst
+        current_comp = self.ref_root
         for name_token, array_suffixes in self.ref_elements:
             name = get_ID_text(name_token)
             
             # find instance
-            current_inst = current_inst.get_child_by_name(name)
-            if current_inst is None:
+            current_comp = current_comp.get_child_by_name(name)
+            if current_comp is None:
                 # Not found!
                 self.msg.fatal(
                     "Could not resolve hierarchical reference to '%s'" % name,
@@ -957,12 +955,12 @@ class InstRef(Expr):
                 array_suffix.predict_type()
                 
             # Check array suffixes
-            if (isinstance(current_inst, comp.AddressableComponent)) and current_inst.is_array:
+            if (isinstance(current_comp, comp.AddressableComponent)) and current_comp.is_array:
                 # is an array
-                if len(array_suffixes) != len(current_inst.array_dimensions):
+                if len(array_suffixes) != len(current_comp.array_dimensions):
                     self.msg.fatal(
                         "Incompatible number of index dimensions after '%s'. Expected %d, found %d."
-                        % (name, len(current_inst.array_dimensions), len(array_suffixes)),
+                        % (name, len(current_comp.array_dimensions), len(array_suffixes)),
                         name_token
                     )
             elif len(array_suffixes):
@@ -972,7 +970,7 @@ class InstRef(Expr):
                     name_token
                 )
         
-        return type(current_inst)
+        return type(current_comp)
         
     def get_value(self, eval_width=None):
         """
@@ -981,33 +979,13 @@ class InstRef(Expr):
         
         resolved_ref_elements = []
         
-        current_inst = self.ref_inst
         for name_token, array_suffixes in self.ref_elements:
             name = get_ID_text(name_token)
-            
-            # find instance
-            current_inst = current_inst.get_child_by_name(name)
-            if current_inst is None:
-                raise RuntimeError # pragma: no cover
-            
-            # Evaluate array suffixes if appropriate
-            idx_list = None
-            if (isinstance(current_inst, comp.AddressableComponent)) and current_inst.is_array:
-                idx_list = [ suffix.get_value() for suffix in array_suffixes ]
-                
-                # Check ranges on suffixes
-                for i in range(len(idx_list)):
-                    if idx_list[i] >= current_inst.array_dimensions[i]:
-                        self.msg.fatal(
-                            "Array index out of range. Expected 0-%d, got %d."
-                            % (current_inst.array_dimensions[i]-1, idx_list[i]),
-                            array_suffixes[i].err_ctx
-                        )
-            
+            idx_list = [ suffix.get_value() for suffix in array_suffixes ]
             resolved_ref_elements.append((name, idx_list))
         
         # Create container
-        cref = rdltypes.ComponentRef(self.uplevels_to_ref, resolved_ref_elements)
+        cref = rdltypes.ComponentRef(self.ref_root, resolved_ref_elements)
         
         return cref
         

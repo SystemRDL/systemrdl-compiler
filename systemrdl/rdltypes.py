@@ -185,13 +185,14 @@ class ComponentRef:
     When a user requests the reference value, it is resolved into a Node object
     """
     
-    def __init__(self, uplevels_to_ref, ref_elements):
-        # Number of Node parents to traverse up from the assignee to reach the
-        # root of the relative path specified by ref_elements
-        self.uplevels_to_ref = uplevels_to_ref
+    def __init__(self, ref_root, ref_elements):
+        # Handle to the component definition where ref_elements is relative to
+        # This is the original_def, and NOT the actual instance
+        self.ref_root = ref_root
         
         # List of hierarchical reference element tuples that make up the path
         # to the reference.
+        # Path is relative to the instance of ref_root
         # Each tuple in the list represents a segment of the path:
         # [
         #   ( <ID string> , [ <Index int> , ... ] ),
@@ -199,13 +200,15 @@ class ComponentRef:
         # ]
         self.ref_elements = ref_elements
     
-    def build_node_ref(self, assignee_node):
+    def build_node_ref(self, assignee_node, compiler):
         current_node = assignee_node
         
-        # Traverse up from assignee as needed
-        for _ in range(self.uplevels_to_ref):
-            if current_node.parent is None:
-                raise RuntimeError("Upref attempted past last parent")
+        # Traverse up from assignee until ref_root is reached
+        while True:
+            if current_node is None:
+                raise RuntimeError("Upwards traverse to ref_root failed")
+            if current_node.inst.original_def is self.ref_root:
+                break
             current_node = current_node.parent
         
         for inst_name, idx_list in self.ref_elements:
@@ -213,6 +216,15 @@ class ComponentRef:
             current_node = current_node.get_child_by_name(inst_name)
             if current_node is None:
                 raise RuntimeError
+            
+            # Check if indexes are valid
+            for i in range(len(idx_list)):
+                if idx_list[i] >= current_node.inst.array_dimensions[i]:
+                    compiler.msg.fatal(
+                        "Array index out of range. Expected 0-%d, got %d."
+                        % (current_node.inst.array_dimensions[i]-1, idx_list[i]),
+                        None # TODO: Provide context here
+                    )
             
             # Assign indexes if appropriate
             if (isinstance(current_node, AddressableNode)) and current_node.inst.is_array:

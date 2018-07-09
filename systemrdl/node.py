@@ -206,7 +206,7 @@ class Node:
             
             # If this is a hierarchical component reference, convert it to a Node reference
             if isinstance(prop_value, rdltypes.ComponentRef):
-                prop_value = prop_value.build_node_ref(self)
+                prop_value = prop_value.build_node_ref(self, self.compiler)
             
             return prop_value
         
@@ -251,7 +251,7 @@ class Node:
         empty_array_suffix: str
             Override how array suffixes are represented when the index is not known
         """
-        if self.parent:
+        if self.parent and not isinstance(self.parent, RootNode):
             return(
                 self.parent.get_path(hier_separator, array_suffix, empty_array_suffix)
                 + hier_separator
@@ -336,7 +336,7 @@ class AddressableNode(Node):
         else:
             offset = self.inst.addr_offset
         
-        if self.parent:
+        if self.parent and not isinstance(self.parent, RootNode):
             return self.parent.absolute_address + offset
         else:
             return offset
@@ -371,6 +371,10 @@ class VectorNode(Node):
     Base-class for any kind of node that is vector-like.
     """
 
+#===============================================================================
+class RootNode(Node):
+    pass
+    
 #===============================================================================
 class SignalNode(VectorNode):
     pass

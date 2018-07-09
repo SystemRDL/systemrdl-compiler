@@ -54,14 +54,14 @@ regfile fifoRfile {
     field {} almost_full[5:5];
 
     full->reset  = 1'b0;
-    //TODO: full->resetsignal = generic_reset;                     // Just the full signal uses generic reset. Others use reset...
+    full->resetsignal = generic_reset;                     // Just the full signal uses generic reset. Others use reset...
     empty->reset = 1'b1;
     almost_empty->reset = 1'b1;
     almost_full ->reset = 1'b0;
   };
 
   pointerReg head;                                         // Define a register pointing to the head of the fifo
-  //TODO: head.data->resetsignal = generic_reset;                       // Assign an alternate reset to register head
+  head.data->resetsignal = generic_reset;                       // Assign an alternate reset to register head
 
   pointerReg tail;                                         // Define a register pointing to the tail of a fifo
   fifoStatusReg status;                                    // Define a register for the Fifo's Status
