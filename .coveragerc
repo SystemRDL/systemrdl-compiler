@@ -3,9 +3,9 @@ omit =
     # omit Python packages
     */.local/*
     /usr/*
+    */setup.py
     
     # Omit non-module scripts
-    ./setup.py
     ./test/*
     ./examples/*
     
