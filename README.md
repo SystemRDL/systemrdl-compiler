@@ -1,4 +1,6 @@
-[![Documentation Status](https://readthedocs.org/projects/systemrdl-compiler/badge/?version=latest)](http://systemrdl-compiler.readthedocs.io/en/latest/?badge=latest)[![Build Status](https://travis-ci.org/SystemRDL/systemrdl-compiler.svg?branch=master)](https://travis-ci.org/SystemRDL/systemrdl-compiler)
+[![Documentation Status](https://readthedocs.org/projects/systemrdl-compiler/badge/?version=latest)](http://systemrdl-compiler.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.org/SystemRDL/systemrdl-compiler.svg?branch=master)](https://travis-ci.org/SystemRDL/systemrdl-compiler)
+[![Coverage Status](https://coveralls.io/repos/github/SystemRDL/systemrdl-compiler/badge.svg?branch=master)](https://coveralls.io/github/SystemRDL/systemrdl-compiler?branch=master)
 
 # SystemRDL Compiler
 
