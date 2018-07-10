@@ -4,4 +4,6 @@ python:
   - "3.6"
 #  - "3.7"
 script:
-  - python setup.py test
+  - coverage3 run setup.py test
+after_success:
+  - coveralls
