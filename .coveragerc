@@ -4,6 +4,8 @@ omit =
     */.local/*
     /usr/*
     */setup.py
+    /.eggs/*
+    */site-packages/*
     
     # Omit non-module scripts
     ./test/*
