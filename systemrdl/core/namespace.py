@@ -54,7 +54,7 @@ class NamespaceRegistry():
                     return (el, parent_def)
                 else:
                     return (None, None)
-        return None
+        return (None, None)
     
     def get_default_properties(self, comp_type):
         """

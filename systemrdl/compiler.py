@@ -191,7 +191,7 @@ class RDLCompiler:
         )
         
         # Validate design
-        walker.RDLWalker().walk(root_node, ValidateListener(self))
+        walker.RDLWalker(skip_not_present=False).walk(root_node, ValidateListener(self))
         
         if self.msg.error_count:
             self.msg.fatal("Elaborate aborted due to previous errors")

@@ -19,7 +19,14 @@ class Component:
         #: instance's parameter values.
         self.type_name = None
         
-        # Child elements instantiated inside this component
+        #: Child elements instantiated inside this component
+        #: 
+        #: Child components are sorted as follows:
+        #: 
+        #: - Signals first
+        #: - All other components follow.
+        #: - AddressableComponents are sorted by ascending base_addr
+        #: - Fields are sorted by ascending low bit
         self.children = []
         
         # Parameters of this component definition.

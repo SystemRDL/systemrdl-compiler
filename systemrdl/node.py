@@ -104,6 +104,26 @@ class Node:
                 yield Node._factory(child_inst, self.compiler, self)
     
     
+    def signals(self, skip_not_present=True):
+        """
+        Returns an iterator that provides nodes for all immediate signals of
+        this component.
+        
+        Parameters
+        ----------
+        skip_not_present : bool
+            If True, skips fields whose 'ispresent' property is set to False
+        
+        Yields
+        ------
+        :class:`~FieldNode`
+            All signals in this component
+        """
+        for child in self.children(skip_not_present=skip_not_present):
+            if isinstance(child, SignalNode):
+                yield child
+    
+    
     def get_child_by_name(self, inst_name):
         """
         Returns an immediate child :class:`~Node` whose instance name matches ``inst_name``
@@ -396,8 +416,11 @@ class FieldNode(VectorNode):
         should be interpreted as volatile.
         (Any hardware-writable field is inherently volatile)
         """
-        # TODO: Implement is_volatile getter
-        raise NotImplementedError
+        
+        # TODO: There are way more conditions that make a field volatile (counters, next, ...)
+        hw = self.get_property('hw')
+        return hw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
+                        rdltypes.AccessType.w, rdltypes.AccessType.w1)
     
     @property
     def is_sw_writable(self):
@@ -406,11 +429,8 @@ class FieldNode(VectorNode):
         """
         sw = self.get_property('sw')
         
-        return (sw == rdltypes.AccessType.rw
-            or sw == rdltypes.AccessType.rw1
-            or sw == rdltypes.AccessType.w
-            or sw == rdltypes.AccessType.w1
-        )
+        return sw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
+                        rdltypes.AccessType.w, rdltypes.AccessType.w1)
         
     @property
     def is_sw_readable(self):
@@ -419,10 +439,8 @@ class FieldNode(VectorNode):
         """
         sw = self.get_property('sw')
         
-        return (sw == rdltypes.AccessType.rw
-            or sw == rdltypes.AccessType.rw1
-            or sw == rdltypes.AccessType.r
-        )
+        return sw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
+                        rdltypes.AccessType.r)
         
     @property
     def implements_storage(self):
@@ -446,6 +464,26 @@ class FieldNode(VectorNode):
 #===============================================================================
 class RegNode(AddressableNode):
     
+    def fields(self, skip_not_present=True):
+        """
+        Returns an iterator that provides nodes for all fields of
+        this register.
+        
+        Parameters
+        ----------
+        skip_not_present : bool
+            If True, skips fields whose 'ispresent' property is set to False
+        
+        Yields
+        ------
+        :class:`~FieldNode`
+            All fields in this register
+        """
+        for child in self.children(skip_not_present=skip_not_present):
+            if isinstance(child, FieldNode):
+                yield child
+    
+    
     @property
     def size(self):
         return self.get_property('regwidth') // 8
@@ -459,6 +497,26 @@ class RegNode(AddressableNode):
         # since mem components can only contain reg instances, a reg can only be
         # virtual if its direct parent is of type mem
         return isinstance(self.parent, MemNode)
+    
+    @property
+    def has_sw_writable(self):
+        """
+        Register contains one or more present fields writable by software
+        """
+        for field in self.fields():
+            if field.is_sw_writable:
+                return True
+        return False
+    
+    @property
+    def has_sw_readable(self):
+        """
+        Register contains one or more present fields readable by software
+        """
+        for field in self.fields():
+            if field.is_sw_readable:
+                return True
+        return False
 
 #===============================================================================
 class RegfileNode(AddressableNode):

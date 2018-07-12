@@ -33,7 +33,7 @@ class Expr:
         even if the child type is not relevant to the resulting type.
         Raises exception if input types are not compatible.
         """
-        raise NotImplementedError # pragma: no cover
+        raise NotImplementedError
         
     def get_min_eval_width(self):
         """
@@ -41,7 +41,7 @@ class Expr:
         self-determined expression bit-width rules
         (SystemVerilog LRM: IEEE Std 1800-2012, Table 11-21)
         """
-        raise RuntimeError # pragma: no cover
+        raise RuntimeError
         
     def get_value(self, eval_width=None):
         """
@@ -61,7 +61,7 @@ class Expr:
         - If eval_width is set to a value:
             Parent expression is propagating the eval_width
         """
-        raise NotImplementedError # pragma: no cover
+        raise NotImplementedError
     
 #-------------------------------------------------------------------------------
 class IntLiteral(Expr):
@@ -194,7 +194,7 @@ class Concatenate(Expr):
             
             return width
         else:
-            raise RuntimeError # pragma: no cover
+            raise RuntimeError
     
     def get_value(self, eval_width=None):
         if self.type == int:
@@ -212,7 +212,7 @@ class Concatenate(Expr):
             return result
         
         else:
-            raise RuntimeError # pragma: no cover
+            raise RuntimeError
 
 #-------------------------------------------------------------------------------
 class Replicate(Expr):
@@ -242,7 +242,7 @@ class Replicate(Expr):
         else:
             # All replications contain a nested concatenation
             # Type check for invalid type is already halded there
-            raise RuntimeError # pragma: no cover
+            raise RuntimeError
     
     def get_min_eval_width(self):
         # Evaluate number of repetitions
@@ -255,7 +255,7 @@ class Replicate(Expr):
             width *= self.reps_value
             return width
         else:
-            raise RuntimeError # pragma: no cover
+            raise RuntimeError
     
     def get_value(self, eval_width=None):
         # Evaluate number of repetitions
@@ -279,7 +279,7 @@ class Replicate(Expr):
             return result
         
         else:
-            raise RuntimeError # pragma: no cover
+            raise RuntimeError
     
 #-------------------------------------------------------------------------------
 # Integer binary operators:
@@ -488,7 +488,7 @@ class _RelationalExpr(Expr):
             l = self.l.get_value()
             r = self.r.get_value()
         else:
-            raise RuntimeError # pragma: no cover
+            raise RuntimeError
         
         return l,r
 
@@ -777,7 +777,7 @@ class TernaryExpr(Expr):
             j = self.j.get_value()
             k = self.k.get_value()
         else:
-            raise RuntimeError # pragma: no cover
+            raise RuntimeError
         
         if i:
             return j
