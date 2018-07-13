@@ -63,3 +63,12 @@ MemNode
 .. autoclass:: systemrdl.node.MemNode
     :members:
     :undoc-members:
+
+Other
+-----
+
+RootNode
+^^^^^^^^^^
+.. autoclass:: systemrdl.node.RootNode
+    :members:
+    :undoc-members:

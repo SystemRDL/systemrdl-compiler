@@ -163,7 +163,7 @@ class ValidateListener(walker.RDLListener):
                     )
                 # Keep it in the list since it could collide again
                 new_field_check_buffer.append(prev_field)
-        self.new_field_check_buffer = new_field_check_buffer
+        self.field_check_buffer = new_field_check_buffer
             
         
         # 10.1-e: Field instances shall not occupy a bit position exceeding the

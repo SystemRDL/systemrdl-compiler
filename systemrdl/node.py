@@ -112,15 +112,58 @@ class Node:
         Parameters
         ----------
         skip_not_present : bool
-            If True, skips fields whose 'ispresent' property is set to False
+            If True, skips children whose 'ispresent' property is set to False
         
         Yields
         ------
-        :class:`~FieldNode`
+        :class:`~SignalNode`
             All signals in this component
         """
         for child in self.children(skip_not_present=skip_not_present):
             if isinstance(child, SignalNode):
+                yield child
+    
+    
+    def fields(self, skip_not_present=True):
+        """
+        Returns an iterator that provides nodes for all immediate fields of
+        this component.
+        
+        Parameters
+        ----------
+        skip_not_present : bool
+            If True, skips children whose 'ispresent' property is set to False
+        
+        Yields
+        ------
+        :class:`~FieldNode`
+            All fields in this component
+        """
+        for child in self.children(skip_not_present=skip_not_present):
+            if isinstance(child, FieldNode):
+                yield child
+    
+    
+    def registers(self, unroll=False, skip_not_present=True):
+        """
+        Returns an iterator that provides nodes for all immediate registers of
+        this component.
+        
+        Parameters
+        ----------
+        unroll : bool
+            If True, any children that are arrays are unrolled.
+        
+        skip_not_present : bool
+            If True, skips children whose 'ispresent' property is set to False
+        
+        Yields
+        ------
+        :class:`~RegNode`
+            All fields in this component
+        """
+        for child in self.children(unroll, skip_not_present):
+            if isinstance(child, RegNode):
                 yield child
     
     
@@ -463,26 +506,6 @@ class FieldNode(VectorNode):
 
 #===============================================================================
 class RegNode(AddressableNode):
-    
-    def fields(self, skip_not_present=True):
-        """
-        Returns an iterator that provides nodes for all fields of
-        this register.
-        
-        Parameters
-        ----------
-        skip_not_present : bool
-            If True, skips fields whose 'ispresent' property is set to False
-        
-        Yields
-        ------
-        :class:`~FieldNode`
-            All fields in this register
-        """
-        for child in self.children(skip_not_present=skip_not_present):
-            if isinstance(child, FieldNode):
-                yield child
-    
     
     @property
     def size(self):
