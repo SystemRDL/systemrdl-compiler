@@ -57,7 +57,7 @@ class ElabExpressionsListener(walker.RDLListener):
             if node.inst.addr_align == 0:
                 self.msg.fatal(
                     "Alignment allocator '%=' must be greater than zero",
-                    node.inst.inst_err_ctx
+                    node.inst.inst_src_ref
                 )
         
         if node.inst.array_dimensions is not None:
@@ -67,7 +67,7 @@ class ElabExpressionsListener(walker.RDLListener):
                     if node.inst.array_dimensions[i] == 0:
                         self.msg.fatal(
                             "Array dimension must be greater than zero",
-                            node.inst.inst_err_ctx
+                            node.inst.inst_src_ref
                         )
         
         if isinstance(node.inst.array_stride, Expr):
@@ -75,7 +75,7 @@ class ElabExpressionsListener(walker.RDLListener):
             if node.inst.array_stride == 0:
                 self.msg.fatal(
                     "Array stride allocator '+=' must be greater than zero",
-                    node.inst.inst_err_ctx
+                    node.inst.inst_src_ref
                 )
     
     def enter_VectorComponent(self, node):
@@ -85,7 +85,7 @@ class ElabExpressionsListener(walker.RDLListener):
             if node.inst.width == 0:
                 self.msg.fatal(
                     "Vector width must be greater than zero",
-                    node.inst.inst_err_ctx
+                    node.inst.inst_src_ref
                 )
         
         if isinstance(node.inst.msb, Expr):
@@ -120,13 +120,13 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'alignment' property must be greater than zero",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
             # 12.3.1-a, 13.4.1-b: All alignment values shall be a power of two (1, 2, 4, etc.)
             if not is_pow2(n):
                 self.msg.fatal(
                     "'alignment' property must be a power of 2",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
         
     
@@ -138,12 +138,12 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n < 8:
                 self.msg.fatal(
                     "'regwidth' property must be at least 8",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
             if not is_pow2(n):
                 self.msg.fatal(
                     "'regwidth' property must be a power of 2",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
         
         # 10.6.1-b: All registers shall have a accesswidth = 2 N , where N >=3.
@@ -152,12 +152,12 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n < 8:
                 self.msg.fatal(
                     "'accesswidth' property must be at least 8",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
             if not is_pow2(n):
                 self.msg.fatal(
                     "'accesswidth' property must be a power of 2",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
         
     def enter_Field(self, node):
@@ -166,7 +166,7 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'fieldwidth' property must be greater than zero",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
     
     def enter_Signal(self, node):
@@ -175,7 +175,7 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'signalwidth' property must be greater than zero",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
         
     def enter_Mem(self, node):
@@ -185,7 +185,7 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'mementries' property must be greater than zero",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
         
         # 11.3.1-a: memwidth shall be greater than 0.
@@ -194,7 +194,7 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'memwidth' property must be greater than zero",
-                    node.inst.def_err_ctx
+                    node.inst.def_src_ref
                 )
     
 #-------------------------------------------------------------------------------
@@ -249,7 +249,7 @@ class StructuralPlacementListener(walker.RDLListener):
             self.msg.fatal(
                 "Width of field instance (%d) must match field's 'fieldwidth' property (%d)"
                 % (node.inst.width, fieldwidth),
-                node.inst.inst_err_ctx
+                node.inst.inst_src_ref
             )
     
     def exit_Signal(self, node):
@@ -281,7 +281,7 @@ class StructuralPlacementListener(walker.RDLListener):
             self.msg.fatal(
                 "Width of signal instance (%d) must match signal's 'signalwidth' property (%d)"
                 % (node.inst.width, signalwidth),
-                node.inst.inst_err_ctx
+                node.inst.inst_src_ref
             )
     
     
@@ -314,7 +314,7 @@ class StructuralPlacementListener(walker.RDLListener):
             self.msg.fatal(
                 "Both the [low:high] (field '%s') and [high:low] (field '%s') bit specification forms shall not be used together in the same register."
                 % (implied_msb_inst.inst_name, implied_lsb_inst.inst_name),
-                node.inst.def_err_ctx
+                node.inst.def_src_ref
             )
         
         # Any implied lsb/msb modes override the property set by a parent

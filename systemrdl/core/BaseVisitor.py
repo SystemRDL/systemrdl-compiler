@@ -1,5 +1,6 @@
 from .helpers import get_ID_text
 
+from ..messages import SourceRef
 from ..parser.SystemRDLParser import SystemRDLParser
 from ..parser.SystemRDLVisitor import SystemRDLVisitor
 
@@ -38,7 +39,7 @@ class BaseVisitor(SystemRDLVisitor):
             if typ is None:
                 self.msg.fatal(
                     "Type '%s' is not defined" % get_ID_text(token),
-                    token
+                    SourceRef.from_antlr(token)
                 )
             
             if rdltypes.is_user_enum(typ) or rdltypes.is_user_struct(typ):
@@ -46,7 +47,7 @@ class BaseVisitor(SystemRDLVisitor):
             else:
                 self.msg.fatal(
                     "Type '%s' is not a struct or enum" % get_ID_text(token),
-                    token
+                    SourceRef.from_antlr(token)
                 )
             
         else:

@@ -30,19 +30,19 @@ class PropertyRuleBook:
         else:
             return None
     
-    def register_udp(self, udp, err_token):
+    def register_udp(self, udp, src_ref):
         if udp.name in self.user_properties:
             self.compiler.msg.fatal(
                 "Multiple declarations of user-defined property '%s'"
                 % udp.name,
-                err_token
+                src_ref
             )
         
         if udp.name in self.rdl_properties:
             self.compiler.msg.fatal(
                 "User-defined property '%s' cannot be the same name as a built-in SystemRDL property"
                 % udp.name,
-                err_token
+                src_ref
             )
         
         self.user_properties[udp.name] = udp
@@ -67,7 +67,7 @@ class PropertyRule:
         return cls.__name__.replace("Prop_", "")
     
     #---------------------------------------------------------------------------
-    def assign_value(self, comp_def, value, err_ctx):
+    def assign_value(self, comp_def, value, src_ref):
         """
         Used by the compiler for either local or dynamic prop assignments
         This does the following:
@@ -82,7 +82,7 @@ class PropertyRule:
             self.compiler.msg.fatal(
                 "The property '%s' is not valid for '%s' components"
                 % (self.get_name(), type(comp_def).__name__.lower()),
-                err_ctx
+                src_ref
             )
         
         # unpack true type of value
@@ -111,7 +111,7 @@ class PropertyRule:
         else:
             self.compiler.msg.fatal(
                 "Incompatible assignment to property '%s'" % self.get_name(),
-                err_ctx
+                src_ref
             )
         
         # Store the property
@@ -143,12 +143,12 @@ class PropertyRuleBoolPair(PropertyRule):
     opposite_property = ""
     
     
-    def assign_value(self, comp_def, value, err_ctx):
+    def assign_value(self, comp_def, value, src_ref):
         """
         Side effect: Ensure assignment of the opposite is cleared since it is being
         overridden
         """
-        super().assign_value(comp_def, value, err_ctx)
+        super().assign_value(comp_def, value, src_ref)
         if self.opposite_property in comp_def.properties:
             del comp_def.properties[self.opposite_property]
     
@@ -247,7 +247,7 @@ class Prop_errextbus(PropertyRule):
             self.compiler.msg.error(
                 "The 'errextbus' property is set to 'true', but instance '%s' is not external"
                 % (node.inst.inst_name),
-                node.inst.inst_err_ctx
+                node.inst.inst_src_ref
             )
 
 class Prop_hdl_path(PropertyRule):
@@ -421,7 +421,7 @@ class Prop_next(PropertyRule):
             self.compiler.msg.error(
                 "Field '%s' cannot reference itself in next property"
                 % (node.inst.inst_name),
-                node.inst.inst_err_ctx
+                node.inst.inst_src_ref
             )
 
 class Prop_reset(PropertyRule):
@@ -442,7 +442,7 @@ class Prop_reset(PropertyRule):
                 self.compiler.msg.error(
                     "The reset value (%d) of field '%s' cannot fit within it's width (%d)"
                     % (value, node.inst.inst_name, node.inst.width),
-                    node.inst.inst_err_ctx
+                    node.inst.inst_src_ref
                 )
         elif isinstance(value, FieldNode):
             # 9.5.1-d: When reset is a reference, it shall reference another
@@ -451,7 +451,7 @@ class Prop_reset(PropertyRule):
                 self.compiler.msg.error(
                     "Field '%s' references field '%s' as its reset value but they are not the same size (%d != %d)"
                     % (node.inst.inst_name, value.inst.inst_name, node.inst.width, value.inst.width),
-                    node.inst.inst_err_ctx
+                    node.inst.inst_src_ref
                 )
             
             # 9.5.1-e: reset cannot be self-referencing
@@ -459,7 +459,7 @@ class Prop_reset(PropertyRule):
                 self.compiler.msg.error(
                     "Field '%s' cannot reference itself in reset property"
                     % (node.inst.inst_name),
-                    node.inst.inst_err_ctx
+                    node.inst.inst_src_ref
                 )
         else:
             raise RuntimeError
@@ -715,11 +715,11 @@ class Prop_threshold(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
     
-    def assign_value(self, comp_def, value, err_ctx):
+    def assign_value(self, comp_def, value, src_ref):
         """
         Set both alias and actual value
         """
-        super().assign_value(comp_def, value, err_ctx)
+        super().assign_value(comp_def, value, src_ref)
         comp_def.properties['incrthreshold'] = value
 
 class Prop_saturate(PropertyRule):
@@ -732,11 +732,11 @@ class Prop_saturate(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
     
-    def assign_value(self, comp_def, value, err_ctx):
+    def assign_value(self, comp_def, value, src_ref):
         """
         Set both alias and actual value
         """
-        super().assign_value(comp_def, value, err_ctx)
+        super().assign_value(comp_def, value, src_ref)
         comp_def.properties['incrsaturate'] = value
 
 class Prop_incrthreshold(PropertyRule):
@@ -746,11 +746,11 @@ class Prop_incrthreshold(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
     
-    def assign_value(self, comp_def, value, err_ctx):
+    def assign_value(self, comp_def, value, src_ref):
         """
         Set both alias and actual value
         """
-        super().assign_value(comp_def, value, err_ctx)
+        super().assign_value(comp_def, value, src_ref)
         comp_def.properties['incrthreshold'] = value
 
 class Prop_incrsaturate(PropertyRule):
@@ -760,11 +760,11 @@ class Prop_incrsaturate(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
     
-    def assign_value(self, comp_def, value, err_ctx):
+    def assign_value(self, comp_def, value, src_ref):
         """
         Set both alias and actual value
         """
-        super().assign_value(comp_def, value, err_ctx)
+        super().assign_value(comp_def, value, src_ref)
         comp_def.properties['incrsaturate'] = value
 
 class Prop_overflow(PropertyRule):
@@ -1123,5 +1123,5 @@ class UserProperty(PropertyRule):
                     self.compiler.msg.error(
                         "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
                         % (value, self.name, node.inst.width, node.inst.inst_name),
-                        node.inst.inst_err_ctx
+                        node.inst.inst_src_ref
                     )

@@ -10,31 +10,31 @@ class NamespaceRegistry():
         self.element_ns_stack = [{}]
         self.default_property_ns_stack = [{}]
     
-    def register_type(self, name:str, ref, err_token):
+    def register_type(self, name:str, ref, src_ref):
         if name in self.type_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of type '%s'" % name,
-                err_token
+                src_ref
             )
         self.type_ns_stack[-1][name] = ref
         
-    def register_element(self, name:str, ref, parent_comp_def, err_token):
+    def register_element(self, name:str, ref, parent_comp_def, src_ref):
         if name in self.element_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of instance '%s'" % name,
-                err_token
+                src_ref
             )
         self.element_ns_stack[-1][name] = (ref, parent_comp_def)
     
-    def register_default_property(self, name:str, ref, err_token, overwrite_ok=False):
+    def register_default_property(self, name:str, ref, src_ref, overwrite_ok=False):
         if not overwrite_ok:
             if name in self.default_property_ns_stack[-1]:
                 self.msg.fatal(
                     "Default property '%s' was already assigned in this scope" % name,
-                    err_token
+                    src_ref
                 )
         
-        self.default_property_ns_stack[-1][name] = ref
+        self.default_property_ns_stack[-1][name] = (src_ref, ref)
     
     def lookup_type(self, name:str):
         for scope in reversed(self.type_ns_stack):

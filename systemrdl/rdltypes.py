@@ -195,8 +195,8 @@ class ComponentRef:
         # Path is relative to the instance of ref_root
         # Each tuple in the list represents a segment of the path:
         # [
-        #   ( <ID string> , [ <Index int> , ... ] ),
-        #   ( <ID string> , None )
+        #   ( <ID string> , [ <Index int> , ... ], SourceRef ),
+        #   ( <ID string> , None, SourceRef )
         # ]
         self.ref_elements = ref_elements
     
@@ -211,7 +211,7 @@ class ComponentRef:
                 break
             current_node = current_node.parent
         
-        for inst_name, idx_list in self.ref_elements:
+        for inst_name, idx_list, name_src_ref in self.ref_elements:
             # find instance
             current_node = current_node.get_child_by_name(inst_name)
             if current_node is None:
@@ -223,7 +223,7 @@ class ComponentRef:
                     compiler.msg.fatal(
                         "Array index out of range. Expected 0-%d, got %d."
                         % (current_node.inst.array_dimensions[i]-1, idx_list[i]),
-                        None # TODO: Provide context here
+                        name_src_ref
                     )
             
             # Assign indexes if appropriate

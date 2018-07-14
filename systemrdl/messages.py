@@ -20,84 +20,75 @@ class MessageHandler:
         self.warning_count = 0
         self.error_count = 0
     
-    def warning(self, text, context=None):
-        if context is not None:
-            context = MessageContext(context)
-        
-        self.printer.print_message("warning", text, context)
+    def warning(self, text, src_ref=None):
+        self.printer.print_message("warning", text, src_ref)
         self.warning_count += 1
     
-    def error(self, text, context=None):
-        if context is not None:
-            context = MessageContext(context)
-        
-        self.printer.print_message("error", text, context)
+    def error(self, text, src_ref=None):
+        self.printer.print_message("error", text, src_ref)
         self.error_count += 1
     
-    def fatal(self, text, context=None):
-        if context is not None:
-            context = MessageContext(context)
-        
-        self.printer.print_message("error", text, context)
+    def fatal(self, text, src_ref=None):
+        self.printer.print_message("error", text, src_ref)
         raise RDLCompileError(text)
         
 #===============================================================================
-class MessageContext:
+class SourceRef:
     """
-    Wrapper class for the various types of Antlr objects that can provide message
-    context.
+    Reference to a segment of compiled source
     """
+    def __init__(self, filename, start_line, start_col, end_line, end_col):
+        self.filename = filename
+        self.start_line = start_line
+        self.start_col = start_col
+        self.end_line = end_line
+        self.end_col = end_col
     
-    def __init__(self, antlr_obj):
-        self.filename = ""
-        self.line = 0
-        self.column = 0
-        self.width = None
-        self.line_text = None
+    def get_line_text(self):
+        with open(self.filename) as fp:
+            for i,line_text in enumerate(fp):
+                if i == self.start_line - 1:
+                    return line_text.rstrip("\n")
+    
+    @classmethod
+    def from_antlr(cls, antlr_ref):
         
-        if isinstance(antlr_obj, CommonToken):
-            self.init_from_single_token(antlr_obj)
-        elif isinstance(antlr_obj, TerminalNodeImpl):
-            self.init_from_single_token(antlr_obj.symbol)
-        elif isinstance(antlr_obj, ParserRuleContext):
-            # antlr_obj is an entire context (multiple tokens)
-            self.init_from_token_range(antlr_obj.start, antlr_obj.stop)
+        # Normalize
+        if isinstance(antlr_ref, CommonToken):
+            token = antlr_ref
+            end_token = None
+        elif isinstance(antlr_ref, TerminalNodeImpl):
+            token = antlr_ref.symbol
+            end_token = None
+        elif isinstance(antlr_ref, ParserRuleContext):
+            # antlr_ref is an entire context (token range)
+            token = antlr_ref.start
+            end_token = antlr_ref.stop
         else:
-            print(antlr_obj)
+            print(antlr_ref)
             raise NotImplementedError
         
-    def init_from_single_token(self, token):
-        self.line = token.line
-        self.column = token.column
+        # Get filename
         inputStream = token.getInputStream()
         if isinstance(inputStream, FileStream):
-            self.filename = inputStream.fileName
-        
-        file_lines = inputStream.strdata.splitlines()
-        file_lines.append("") # append an empty line just in case error is at EOF
-        self.line_text = file_lines[self.line-1]
-        self.width = token.stop - token.start + 1
-    
-    def init_from_token_range(self, start_token, end_token):
-        self.line = start_token.line
-        self.column = start_token.column
-        inputStream = start_token.getInputStream()
-        if isinstance(inputStream, FileStream):
-            self.filename = inputStream.fileName
-        
-        file_lines = inputStream.strdata.splitlines()
-        file_lines.append("") # append an empty line just in case error is at EOF
-        self.line_text = file_lines[self.line-1]
-        
-        # Select entire token range
-        if self.line == end_token.line:
-            # range is within the same line
-            self.width = end_token.stop - start_token.start + 1
+            filename = inputStream.fileName
         else:
-            # Range spans multiple lines. Only select the first line
-            self.width = len(self.line_text) - start_token.column
+            filename = None
             
+        # Derive properties
+        start_line = token.line
+        start_col = token.column
+        if end_token is None:
+            end_line = start_line
+            end_col = token.column + token.stop - token.start
+        else:
+            # Token range
+            end_line = end_token.line
+            end_col = end_token.column + end_token.stop - end_token.start
         
+        # Create object
+        src_ref = cls(filename, start_line, start_col, end_line, end_col)
+        return src_ref
 
 #===============================================================================
 class MessagePrinter:
@@ -108,11 +99,11 @@ class MessagePrinter:
     formatting or logging
     """
     
-    def print_message(self, severity, text, context):
-        lines = self.format_message(severity, text, context)
+    def print_message(self, severity, text, src_ref):
+        lines = self.format_message(severity, text, src_ref)
         self.emit_message(lines)
         
-    def format_message(self, severity, text, context):
+    def format_message(self, severity, text, src_ref):
         """
         Formats the message prior to emitting it.
         
@@ -122,8 +113,8 @@ class MessagePrinter:
             Message severity. "error" or "warning"
         text: str
             Body of message
-        context: :class:`MessageContext`
-            Antlr message context wrapper
+        src_ref: :class:`SourceRef`
+            Antlr message src_ref wrapper
         
         Returns
         -------
@@ -137,33 +128,57 @@ class MessagePrinter:
         else:
             color = Fore.YELLOW
             
-        if context is None:
+        if src_ref is None:
             lines.append(
                 color + Style.BRIGHT + severity + ": " + Style.RESET_ALL + text
             )
         else:
             lines.append(
                 Fore.WHITE + Style.BRIGHT
-                + "%s:%d:%d: " % (context.filename, context.line, context.column)
+                + "%s:%d:%d: " % (src_ref.filename, src_ref.start_line, src_ref.start_col)
                 + color + severity + ": "
                 + Style.RESET_ALL
                 + text
             )
             
-            # If context highlights anything interesting, print it
-            if context.width != 0:
+            # If src_ref highlights anything interesting, print it
+            if src_ref.start_line != src_ref.end_line:
+                # multi-line reference
+                # Select remainder of the line
+                line_text = src_ref.get_line_text()
+                width = len(line_text) - src_ref.start_col
+                
                 lines.append(
-                    context.line_text[:context.column] 
+                    line_text[:src_ref.start_col] 
                     + Fore.RED + Style.BRIGHT
-                    + context.line_text[context.column:context.column+context.width]
+                    + line_text[src_ref.start_col:]
                     + Style.RESET_ALL 
-                    + context.line_text[context.column+context.width:]
                 )
                 
                 lines.append(
-                    " "*context.column 
+                    " "*src_ref.start_col 
                     + Fore.RED + Style.BRIGHT
-                    + "^"*context.width
+                    + "^"*width
+                    + Style.RESET_ALL
+                )
+                
+            elif src_ref.start_col != src_ref.end_col:
+                # Single line, Nonzero width
+                width = src_ref.end_col - src_ref.start_col + 1
+                line_text = src_ref.get_line_text()
+                
+                lines.append(
+                    line_text[:src_ref.start_col] 
+                    + Fore.RED + Style.BRIGHT
+                    + line_text[src_ref.start_col : src_ref.end_col+1]
+                    + Style.RESET_ALL 
+                    + line_text[src_ref.end_col+1:]
+                )
+                
+                lines.append(
+                    " "*src_ref.start_col 
+                    + Fore.RED + Style.BRIGHT
+                    + "^"*width
                     + Style.RESET_ALL
                 )
             
@@ -195,5 +210,5 @@ class RDLAntlrErrorListener(ErrorListener) :
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         self.msg.error(
             msg,
-            offendingSymbol
+            SourceRef.from_antlr(offendingSymbol)
         )

@@ -1,21 +1,21 @@
 from copy import deepcopy
 from .. import component as comp
 from .. import rdltypes
-from .helpers import get_ID_text, truncate_int
+from .helpers import truncate_int
 
 class Expr:
-    def __init__(self, compiler, err_ctx):
+    def __init__(self, compiler, src_ref):
         self.compiler = compiler
         self.msg = compiler.msg
         
-        # Handle to Antlr object to use for error context
-        self.err_ctx = err_ctx
+        # SourceRef to use for error context
+        self.src_ref = src_ref
     
     def __deepcopy__(self, memo):
         """
         Deepcopy all members except for ones that should be copied by reference
         """
-        copy_by_ref = ["err_ctx", "compiler", "msg"]
+        copy_by_ref = ["src_ref", "compiler", "msg"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -65,8 +65,8 @@ class Expr:
     
 #-------------------------------------------------------------------------------
 class IntLiteral(Expr):
-    def __init__(self, compiler, err_ctx, val, width=64):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, val, width=64):
+        super().__init__(compiler, src_ref)
         self.val = val
         self.width = width
     
@@ -85,8 +85,8 @@ class BuiltinEnumLiteral(Expr):
     Expr wrapper for builtin RDL enumeration types:
     AccessType, OnReadType, OnWriteType, AddressingType, PrecedenceType
     """
-    def __init__(self, compiler, err_ctx, val):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, val):
+        super().__init__(compiler, src_ref)
         self.val = val
     
     def predict_type(self):
@@ -97,8 +97,8 @@ class BuiltinEnumLiteral(Expr):
 
 #-------------------------------------------------------------------------------
 class EnumLiteral(Expr):
-    def __init__(self, compiler, err_ctx, val):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, val):
+        super().__init__(compiler, src_ref)
         self.val = val
     
     def predict_type(self):
@@ -112,8 +112,8 @@ class EnumLiteral(Expr):
 
 #-------------------------------------------------------------------------------
 class StringLiteral(Expr):
-    def __init__(self, compiler, err_ctx, val):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, val):
+        super().__init__(compiler, src_ref)
         self.val = val
     
     def predict_type(self):
@@ -124,8 +124,8 @@ class StringLiteral(Expr):
 
 #-------------------------------------------------------------------------------
 class ArrayLiteral(Expr):
-    def __init__(self, compiler, err_ctx, elements):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, elements):
+        super().__init__(compiler, src_ref)
         self.elements = elements
     
     def predict_type(self):
@@ -143,7 +143,7 @@ class ArrayLiteral(Expr):
             if element_type != element.predict_type():
                 self.msg.fatal(
                     "Elements of an array shall be the same type",
-                    self.err_ctx
+                    self.src_ref
                 )
         
         return rdltypes.ArrayPlaceholder(element_type)
@@ -156,8 +156,8 @@ class ArrayLiteral(Expr):
     
 #-------------------------------------------------------------------------------
 class Concatenate(Expr):
-    def __init__(self, compiler, err_ctx, elements):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, elements):
+        super().__init__(compiler, src_ref)
         self.elements = elements
         self.type = None
     
@@ -172,7 +172,7 @@ class Concatenate(Expr):
             if element_type != element.predict_type():
                 self.msg.fatal(
                     "Elements of a concatenation shall be the same type",
-                    self.err_ctx
+                    self.src_ref
                 )
         if is_castable(element_type, int):
             self.type = int
@@ -183,7 +183,7 @@ class Concatenate(Expr):
         else:
             self.msg.fatal(
                 "Concatenation operator can only be used for integral or string types",
-                self.err_ctx
+                self.src_ref
             )
             
     def get_min_eval_width(self):
@@ -216,8 +216,8 @@ class Concatenate(Expr):
 
 #-------------------------------------------------------------------------------
 class Replicate(Expr):
-    def __init__(self, compiler, err_ctx, reps, concat):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, reps, concat):
+        super().__init__(compiler, src_ref)
         self.reps = reps
         self.concat = concat
         self.type = None
@@ -228,7 +228,7 @@ class Replicate(Expr):
         if not is_castable(self.reps.predict_type(), int):
             self.msg.fatal(
                 "Replication count operand of replication expression is not a compatible numeric type",
-                self.reps.err_ctx
+                self.reps.src_ref
             )
         
         element_type = self.concat.predict_type()
@@ -286,8 +286,8 @@ class Replicate(Expr):
 #   +  -  *  /  %  &  |  ^  ^~  ~^
 # Normal expression context rules
 class _BinaryIntExpr(Expr):
-    def __init__(self, compiler, err_ctx, l, r):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, l, r):
+        super().__init__(compiler, src_ref)
         self.l = l
         self.r = r
         
@@ -297,12 +297,12 @@ class _BinaryIntExpr(Expr):
         if not is_castable(l_type, int):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
-                self.err_ctx
+                self.src_ref
             )
         if not is_castable(r_type, int):
             self.msg.fatal(
                 "Right operand of expression is not a compatible numeric type",
-                self.err_ctx
+                self.src_ref
             )
         return int
     
@@ -346,7 +346,7 @@ class Div(_BinaryIntExpr):
         if r == 0:
             self.msg.fatal(
                 "Division by zero",
-                self.err_ctx
+                self.src_ref
             )
         return truncate_int(l // r, eval_width)
 
@@ -360,7 +360,7 @@ class Mod(_BinaryIntExpr):
         if r == 0:
             self.msg.fatal(
                 "Modulo by zero",
-                self.err_ctx
+                self.src_ref
             )
         return truncate_int(l % r, eval_width)
         
@@ -401,8 +401,8 @@ class BitwiseXnor(_BinaryIntExpr):
 #   +  -  ~
 # Normal expression context rules
 class _UnaryIntExpr(Expr):
-    def __init__(self, compiler, err_ctx, n):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, n):
+        super().__init__(compiler, src_ref)
         self.n = n
         
     def predict_type(self):
@@ -410,7 +410,7 @@ class _UnaryIntExpr(Expr):
         if not is_castable(op_type, int):
             self.msg.fatal(
                 "Operand of expression is not a compatible numeric type",
-                self.err_ctx
+                self.src_ref
             )
         return int
     
@@ -446,8 +446,8 @@ class BitwiseInvert(_UnaryIntExpr):
 # Child operands are evaluated in the same width context, sized to the max
 # of either op.
 class _RelationalExpr(Expr):
-    def __init__(self, compiler, err_ctx, l, r):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, l, r):
+        super().__init__(compiler, src_ref)
         self.l = l
         self.r = r
         self.is_numeric = None
@@ -466,7 +466,7 @@ class _RelationalExpr(Expr):
             # Incompatible
             self.msg.fatal(
                 "Left and right operands of expression are not compatible types",
-                self.err_ctx
+                self.src_ref
             )
         return bool
     
@@ -503,12 +503,12 @@ class _NumericRelationalExpr(_RelationalExpr):
         if not is_castable(l_type, int):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
-                self.err_ctx
+                self.src_ref
             )
         if not is_castable(r_type, int):
             self.msg.fatal(
                 "Right operand of expression is not a compatible numeric type",
-                self.err_ctx
+                self.src_ref
             )
         return bool
         
@@ -550,8 +550,8 @@ class Geq(_NumericRelationalExpr):
 # Result is always 1 bit bool
 # Creates a new evaluation context
 class _ReductionExpr(Expr):
-    def __init__(self, compiler, err_ctx, n):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, n):
+        super().__init__(compiler, src_ref)
         self.n = n
     
     def predict_type(self):
@@ -559,7 +559,7 @@ class _ReductionExpr(Expr):
         if not is_castable(op_type, int):
             self.msg.fatal(
                 "Operand of expression is not a compatible numeric type",
-                self.err_ctx
+                self.src_ref
             )
         return int
     
@@ -624,8 +624,8 @@ class BoolNot(_ReductionExpr):
 #   && ||
 # Both operands are self-determined
 class _BoolExpr(Expr):
-    def __init__(self, compiler, err_ctx, l, r):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, l, r):
+        super().__init__(compiler, src_ref)
         self.l = l
         self.r = r
     
@@ -635,12 +635,12 @@ class _BoolExpr(Expr):
         if not is_castable(l_type, bool):
             self.msg.fatal(
                 "Left operand of expression is not a compatible boolean type",
-                self.err_ctx
+                self.src_ref
             )
         if not is_castable(r_type, bool):
             self.msg.fatal(
                 "Right operand of expression is not a compatible boolean type",
-                self.err_ctx
+                self.src_ref
             )
         return bool
     
@@ -664,8 +664,8 @@ class BoolOr(_BoolExpr):
 #   **  <<  >>
 # Righthand operand is self-determined
 class _ExpShiftExpr(Expr):
-    def __init__(self, compiler, err_ctx, l, r):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, l, r):
+        super().__init__(compiler, src_ref)
         self.l = l
         self.r = r
     
@@ -675,12 +675,12 @@ class _ExpShiftExpr(Expr):
         if not is_castable(l_type, int):
             self.msg.fatal(
                 "Left operand of expression is not a compatible numeric type",
-                self.err_ctx
+                self.src_ref
             )
         if not is_castable(r_type, int):
             self.msg.fatal(
                 "Right operand of expression is not a compatible numeric type",
-                self.err_ctx
+                self.src_ref
             )
         return int
     
@@ -721,8 +721,8 @@ class RShift(_ExpShiftExpr):
 # Truth expression is self-determined and does not contribute to context
 
 class TernaryExpr(Expr):
-    def __init__(self, compiler, err_ctx, i, j, k):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, i, j, k):
+        super().__init__(compiler, src_ref)
         self.i = i
         self.j = j
         self.k = k
@@ -733,7 +733,7 @@ class TernaryExpr(Expr):
         if not is_castable(t_i, bool):
             self.msg.fatal(
                 "Conditional operand of expression is not a compatible boolean type",
-                self.err_ctx
+                self.src_ref
             )
         
         # Type of j and k shall be compatible
@@ -751,7 +751,7 @@ class TernaryExpr(Expr):
             # Incompatible
             self.msg.fatal(
                 "True/False results of ternary conditional are not compatible types",
-                self.err_ctx
+                self.src_ref
             )
     
     def get_min_eval_width(self):
@@ -790,8 +790,8 @@ class TernaryExpr(Expr):
 # The cast width determines the result's width
 # Also influences the min eval width of the value expression
 class WidthCast(Expr):
-    def __init__(self, compiler, err_ctx, v, w_expr=None, w_int=64):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, v, w_expr=None, w_int=64):
+        super().__init__(compiler, src_ref)
         
         if w_expr is not None:
             self.v = v
@@ -807,12 +807,12 @@ class WidthCast(Expr):
             if not is_castable(self.w_expr.predict_type(), int):
                 self.msg.fatal(
                     "Width operand of cast expression is not a compatible numeric type",
-                    self.w_expr.err_ctx
+                    self.w_expr.src_ref
                 )
         if not is_castable(self.v.predict_type(), int):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to an integer",
-                self.v.err_ctx
+                self.v.src_ref
             )
         
         return int
@@ -830,7 +830,7 @@ class WidthCast(Expr):
         if self.cast_width == 0:
             self.msg.fatal(
                 "Cannot cast to width of zero",
-                self.err_ctx
+                self.src_ref
             )
         
         eval_width = max(self.cast_width, self.v.get_min_eval_width())
@@ -842,15 +842,15 @@ class WidthCast(Expr):
 # Boolean cast operator
 
 class BoolCast(Expr):
-    def __init__(self, compiler, err_ctx, n):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, n):
+        super().__init__(compiler, src_ref)
         self.n = n
     
     def predict_type(self):
         if not is_castable(self.n.predict_type(), bool):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to a boolean",
-                self.err_ctx
+                self.src_ref
             )
         return bool
     
@@ -865,8 +865,8 @@ class BoolCast(Expr):
 # References
 
 class ParameterRef(Expr):
-    def __init__(self, compiler, err_ctx, param):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, param):
+        super().__init__(compiler, src_ref)
         self.param = param
     
     def predict_type(self):
@@ -876,7 +876,7 @@ class ParameterRef(Expr):
         if self.param.expr is None:
             self.msg.fatal(
                 "Value for parameter '%s' was never assigned" % self.param.name,
-                self.err_ctx
+                self.src_ref
             )
         return self.param.expr.get_min_eval_width()
     
@@ -884,14 +884,14 @@ class ParameterRef(Expr):
         if self.param.expr is None:
             self.msg.fatal(
                 "Value for parameter '%s' was never assigned" % self.param.name,
-                self.err_ctx
+                self.src_ref
             )
         return self.param.expr.get_value(eval_width)
 
 
 class InstRef(Expr):
     def __init__(self, compiler, ref_root, ref_elements):
-        super().__init__(compiler, None) # single err_ctx doesn't make sense for InstRef
+        super().__init__(compiler, None) # single src_ref doesn't make sense for InstRef
         
         # Handle to the component definition where ref_elements is relative to
         # This is the original_def, and NOT the actual instance
@@ -904,16 +904,16 @@ class InstRef(Expr):
         # Path is relative to ref_inst
         # Each tuple in the list represents a segment of the path:
         # [
-        #   ( <Antlr ID token> , [ <Index Expr> , ... ] ),
-        #   ( <Antlr ID token> , [ <Index Expr> , ... ] )
+        #   ( str , [ <Index Expr> , ... ] , SourceRef),
+        #   ( str , [ <Index Expr> , ... ] , SourceRef)
         # ]
         self.ref_elements = ref_elements
     
     def __deepcopy__(self, memo):
         """
-        Copy any Antlr tokens by ref within the ref_elements list when deepcopying
+        Copy any SourceRef by ref within the ref_elements list when deepcopying
         """
-        copy_by_ref = ["err_ctx", "compiler", "msg", "ref_root"]
+        copy_by_ref = ["src_ref", "compiler", "msg", "ref_root"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -923,9 +923,9 @@ class InstRef(Expr):
             elif k == "ref_elements":
                 # Manually deepcopy the ref_elements list
                 new_ref_elements = []
-                for src_name_token, src_array_suffixes in v:
+                for src_name, src_array_suffixes, src_src_ref in v:
                     new_array_suffixes = deepcopy(src_array_suffixes, memo)
-                    new_ref_elements.append((src_name_token, new_array_suffixes))
+                    new_ref_elements.append((src_name, new_array_suffixes, src_src_ref))
                 setattr(result, k, new_ref_elements)
             else:
                 setattr(result, k, deepcopy(v, memo))
@@ -938,8 +938,7 @@ class InstRef(Expr):
         Also do some checks on the array indexes
         """
         current_comp = self.ref_root
-        for name_token, array_suffixes in self.ref_elements:
-            name = get_ID_text(name_token)
+        for name, array_suffixes, name_src_ref in self.ref_elements:
             
             # find instance
             current_comp = current_comp.get_child_by_name(name)
@@ -947,7 +946,7 @@ class InstRef(Expr):
                 # Not found!
                 self.msg.fatal(
                     "Could not resolve hierarchical reference to '%s'" % name,
-                    name_token
+                    name_src_ref
                 )
             
             # Do type-check in array suffixes
@@ -961,13 +960,13 @@ class InstRef(Expr):
                     self.msg.fatal(
                         "Incompatible number of index dimensions after '%s'. Expected %d, found %d."
                         % (name, len(current_comp.array_dimensions), len(array_suffixes)),
-                        name_token
+                        name_src_ref
                     )
             elif len(array_suffixes):
                 # Has array suffixes. Check if compatible with referenced component
                 self.msg.fatal(
                     "Unable to index non-array component '%s'" % name,
-                    name_token
+                    name_src_ref
                 )
         
         return type(current_comp)
@@ -979,10 +978,9 @@ class InstRef(Expr):
         
         resolved_ref_elements = []
         
-        for name_token, array_suffixes in self.ref_elements:
-            name = get_ID_text(name_token)
+        for name, array_suffixes, name_src_ref in self.ref_elements:
             idx_list = [ suffix.get_value() for suffix in array_suffixes ]
-            resolved_ref_elements.append((name, idx_list))
+            resolved_ref_elements.append((name, idx_list, name_src_ref))
         
         # Create container
         cref = rdltypes.ComponentRef(self.ref_root, resolved_ref_elements)
@@ -1001,8 +999,8 @@ class InstRef(Expr):
 # When getting value:
 #   Ensures that the expression result gets converted to the resulting type
 class AssignmentCast(Expr):
-    def __init__(self, compiler, err_ctx, v, dest_type):
-        super().__init__(compiler, err_ctx)
+    def __init__(self, compiler, src_ref, v, dest_type):
+        super().__init__(compiler, src_ref)
         
         self.v = v
         self.dest_type = dest_type
@@ -1013,7 +1011,7 @@ class AssignmentCast(Expr):
         if not is_castable(op_type, self.dest_type):
             self.msg.fatal(
                 "Result of expression is not compatible with the expected type",
-                self.err_ctx
+                self.src_ref
             )
         
         return self.dest_type

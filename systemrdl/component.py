@@ -36,8 +36,8 @@ class Component:
         # Properties applied to this component
         self.properties = {}
         
-        # Antlr error context for the component definition
-        self.def_err_ctx = None
+        # SourceRef for the component definition
+        self.def_src_ref = None
         
         #------------------------------
         # Component instantiation
@@ -54,14 +54,14 @@ class Component:
         #: If internal vs external. None if undefined (will inherit default)
         self.external = None
         
-        # Antlr error context for the component instantiation
-        self.inst_err_ctx = None
+        # SourceRef for the component instantiation
+        self.inst_src_ref = None
     
     def __deepcopy__(self, memo):
         """
         Deepcopy all members except for ones that should be copied by reference
         """
-        copy_by_ref = ["original_def", "def_err_ctx", "inst_err_ctx"]
+        copy_by_ref = ["original_def", "def_src_ref", "inst_src_ref"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
