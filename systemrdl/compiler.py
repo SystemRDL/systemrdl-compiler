@@ -26,14 +26,18 @@ class RDLCompiler:
         message_printer: :class:`~systemrdl.messages.MessagePrinter`
             Override the default message printer
         """
+        self.env = Environment()
         
         # Set up message handling
         if message_printer is None:
             message_printer = messages.MessagePrinter()
         self.msg = messages.MessageHandler(message_printer)
         
-        self.namespace = NamespaceRegistry(self)
-        self.property_rules = PropertyRuleBook(self)
+        self.env.msg = self.msg
+        
+        self.namespace = NamespaceRegistry(self.env)
+        self.property_rules = PropertyRuleBook(self.env)
+        self.env.property_rules = self.property_rules
         
         self.visitor = RootVisitor(self)
         self.root = self.visitor.component
@@ -174,7 +178,7 @@ class RDLCompiler:
         # instantiate top_inst into the root component instance
         root_inst.children.append(top_inst)
         
-        root_node = RootNode(root_inst, self, None)
+        root_node = RootNode(root_inst, self.env, None)
         
         # Resolve all expressions
         walker.RDLWalker(skip_not_present=False).walk(
@@ -191,9 +195,19 @@ class RDLCompiler:
         )
         
         # Validate design
-        walker.RDLWalker(skip_not_present=False).walk(root_node, ValidateListener(self))
+        walker.RDLWalker(skip_not_present=False).walk(root_node, ValidateListener(self.env))
         
         if self.msg.error_count:
             self.msg.fatal("Elaborate aborted due to previous errors")
         
         return root_node
+
+
+class Environment:
+    """
+    Container object for misc resources that are preserved outside the lifetime
+    of source compilation
+    """
+    def __init__(self):
+        self.msg = None
+        self.property_rules = None

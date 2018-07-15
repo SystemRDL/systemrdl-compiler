@@ -33,7 +33,7 @@ class EnumVisitor(BaseVisitor):
                 
                 visitor = ExprVisitor(self.compiler)
                 expr = visitor.visit(value_expr_ctx)
-                expr = expressions.AssignmentCast(self.compiler, value_expr_ctx, expr, int)
+                expr = expressions.AssignmentCast(self.compiler.env, value_expr_ctx, expr, int)
                 expr.predict_type()
                 
                 # OK to immediately evaluate the expression since there is no way that it
@@ -103,7 +103,7 @@ class EnumVisitor(BaseVisitor):
         
         visitor = ExprVisitor(self.compiler)
         prop_expr = visitor.visit(ctx.expr())
-        prop_expr = expressions.AssignmentCast(self.compiler, ctx.expr(), prop_expr, str)
+        prop_expr = expressions.AssignmentCast(self.compiler.env, ctx.expr(), prop_expr, str)
         prop_expr.predict_type()
         
         # OK to immediately evaluate the expression since there is no way that it

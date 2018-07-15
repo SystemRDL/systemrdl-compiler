@@ -4,9 +4,9 @@ from .. import rdltypes
 from .helpers import truncate_int
 
 class Expr:
-    def __init__(self, compiler, src_ref):
-        self.compiler = compiler
-        self.msg = compiler.msg
+    def __init__(self, env, src_ref):
+        self.env = env
+        self.msg = env.msg
         
         # SourceRef to use for error context
         self.src_ref = src_ref
@@ -15,7 +15,7 @@ class Expr:
         """
         Deepcopy all members except for ones that should be copied by reference
         """
-        copy_by_ref = ["src_ref", "compiler", "msg"]
+        copy_by_ref = ["src_ref", "env", "msg"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -65,8 +65,8 @@ class Expr:
     
 #-------------------------------------------------------------------------------
 class IntLiteral(Expr):
-    def __init__(self, compiler, src_ref, val, width=64):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, val, width=64):
+        super().__init__(env, src_ref)
         self.val = val
         self.width = width
     
@@ -85,8 +85,8 @@ class BuiltinEnumLiteral(Expr):
     Expr wrapper for builtin RDL enumeration types:
     AccessType, OnReadType, OnWriteType, AddressingType, PrecedenceType
     """
-    def __init__(self, compiler, src_ref, val):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, val):
+        super().__init__(env, src_ref)
         self.val = val
     
     def predict_type(self):
@@ -97,8 +97,8 @@ class BuiltinEnumLiteral(Expr):
 
 #-------------------------------------------------------------------------------
 class EnumLiteral(Expr):
-    def __init__(self, compiler, src_ref, val):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, val):
+        super().__init__(env, src_ref)
         self.val = val
     
     def predict_type(self):
@@ -112,8 +112,8 @@ class EnumLiteral(Expr):
 
 #-------------------------------------------------------------------------------
 class StringLiteral(Expr):
-    def __init__(self, compiler, src_ref, val):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, val):
+        super().__init__(env, src_ref)
         self.val = val
     
     def predict_type(self):
@@ -124,8 +124,8 @@ class StringLiteral(Expr):
 
 #-------------------------------------------------------------------------------
 class ArrayLiteral(Expr):
-    def __init__(self, compiler, src_ref, elements):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, elements):
+        super().__init__(env, src_ref)
         self.elements = elements
     
     def predict_type(self):
@@ -156,8 +156,8 @@ class ArrayLiteral(Expr):
     
 #-------------------------------------------------------------------------------
 class Concatenate(Expr):
-    def __init__(self, compiler, src_ref, elements):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, elements):
+        super().__init__(env, src_ref)
         self.elements = elements
         self.type = None
     
@@ -216,8 +216,8 @@ class Concatenate(Expr):
 
 #-------------------------------------------------------------------------------
 class Replicate(Expr):
-    def __init__(self, compiler, src_ref, reps, concat):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, reps, concat):
+        super().__init__(env, src_ref)
         self.reps = reps
         self.concat = concat
         self.type = None
@@ -286,8 +286,8 @@ class Replicate(Expr):
 #   +  -  *  /  %  &  |  ^  ^~  ~^
 # Normal expression context rules
 class _BinaryIntExpr(Expr):
-    def __init__(self, compiler, src_ref, l, r):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, l, r):
+        super().__init__(env, src_ref)
         self.l = l
         self.r = r
         
@@ -401,8 +401,8 @@ class BitwiseXnor(_BinaryIntExpr):
 #   +  -  ~
 # Normal expression context rules
 class _UnaryIntExpr(Expr):
-    def __init__(self, compiler, src_ref, n):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, n):
+        super().__init__(env, src_ref)
         self.n = n
         
     def predict_type(self):
@@ -446,8 +446,8 @@ class BitwiseInvert(_UnaryIntExpr):
 # Child operands are evaluated in the same width context, sized to the max
 # of either op.
 class _RelationalExpr(Expr):
-    def __init__(self, compiler, src_ref, l, r):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, l, r):
+        super().__init__(env, src_ref)
         self.l = l
         self.r = r
         self.is_numeric = None
@@ -550,8 +550,8 @@ class Geq(_NumericRelationalExpr):
 # Result is always 1 bit bool
 # Creates a new evaluation context
 class _ReductionExpr(Expr):
-    def __init__(self, compiler, src_ref, n):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, n):
+        super().__init__(env, src_ref)
         self.n = n
     
     def predict_type(self):
@@ -624,8 +624,8 @@ class BoolNot(_ReductionExpr):
 #   && ||
 # Both operands are self-determined
 class _BoolExpr(Expr):
-    def __init__(self, compiler, src_ref, l, r):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, l, r):
+        super().__init__(env, src_ref)
         self.l = l
         self.r = r
     
@@ -664,8 +664,8 @@ class BoolOr(_BoolExpr):
 #   **  <<  >>
 # Righthand operand is self-determined
 class _ExpShiftExpr(Expr):
-    def __init__(self, compiler, src_ref, l, r):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, l, r):
+        super().__init__(env, src_ref)
         self.l = l
         self.r = r
     
@@ -721,8 +721,8 @@ class RShift(_ExpShiftExpr):
 # Truth expression is self-determined and does not contribute to context
 
 class TernaryExpr(Expr):
-    def __init__(self, compiler, src_ref, i, j, k):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, i, j, k):
+        super().__init__(env, src_ref)
         self.i = i
         self.j = j
         self.k = k
@@ -790,8 +790,8 @@ class TernaryExpr(Expr):
 # The cast width determines the result's width
 # Also influences the min eval width of the value expression
 class WidthCast(Expr):
-    def __init__(self, compiler, src_ref, v, w_expr=None, w_int=64):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, v, w_expr=None, w_int=64):
+        super().__init__(env, src_ref)
         
         if w_expr is not None:
             self.v = v
@@ -842,8 +842,8 @@ class WidthCast(Expr):
 # Boolean cast operator
 
 class BoolCast(Expr):
-    def __init__(self, compiler, src_ref, n):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, n):
+        super().__init__(env, src_ref)
         self.n = n
     
     def predict_type(self):
@@ -865,8 +865,8 @@ class BoolCast(Expr):
 # References
 
 class ParameterRef(Expr):
-    def __init__(self, compiler, src_ref, param):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, param):
+        super().__init__(env, src_ref)
         self.param = param
     
     def predict_type(self):
@@ -890,8 +890,8 @@ class ParameterRef(Expr):
 
 
 class InstRef(Expr):
-    def __init__(self, compiler, ref_root, ref_elements):
-        super().__init__(compiler, None) # single src_ref doesn't make sense for InstRef
+    def __init__(self, env, ref_root, ref_elements):
+        super().__init__(env, None) # single src_ref doesn't make sense for InstRef
         
         # Handle to the component definition where ref_elements is relative to
         # This is the original_def, and NOT the actual instance
@@ -913,7 +913,7 @@ class InstRef(Expr):
         """
         Copy any SourceRef by ref within the ref_elements list when deepcopying
         """
-        copy_by_ref = ["src_ref", "compiler", "msg", "ref_root"]
+        copy_by_ref = ["src_ref", "env", "msg", "ref_root"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -999,8 +999,8 @@ class InstRef(Expr):
 # When getting value:
 #   Ensures that the expression result gets converted to the resulting type
 class AssignmentCast(Expr):
-    def __init__(self, compiler, src_ref, v, dest_type):
-        super().__init__(compiler, src_ref)
+    def __init__(self, env, src_ref, v, dest_type):
+        super().__init__(env, src_ref)
         
         self.v = v
         self.dest_type = dest_type

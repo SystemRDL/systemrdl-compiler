@@ -10,15 +10,15 @@ def get_all_subclasses(cls):
     ]
 
 class PropertyRuleBook:
-    def __init__(self, compiler):
-        self.compiler = compiler
+    def __init__(self, env):
+        self.env = env
         
         # Auto-discover all properties defined below and load into dict
         self.rdl_properties = {}
         for prop in get_all_subclasses(PropertyRule):
             if prop.__name__.startswith("Prop_"):
                 prop_name = prop.get_name()
-                self.rdl_properties[prop_name] = prop(self.compiler)
+                self.rdl_properties[prop_name] = prop(self.env)
         
         self.user_properties = {}
     
@@ -32,14 +32,14 @@ class PropertyRuleBook:
     
     def register_udp(self, udp, src_ref):
         if udp.name in self.user_properties:
-            self.compiler.msg.fatal(
+            self.env.msg.fatal(
                 "Multiple declarations of user-defined property '%s'"
                 % udp.name,
                 src_ref
             )
         
         if udp.name in self.rdl_properties:
-            self.compiler.msg.fatal(
+            self.env.msg.fatal(
                 "User-defined property '%s' cannot be the same name as a built-in SystemRDL property"
                 % udp.name,
                 src_ref
@@ -58,8 +58,8 @@ class PropertyRule:
     mutex_group = None
     
     #---------------------------------------------------------------------------
-    def __init__(self, compiler):
-        self.compiler = compiler
+    def __init__(self, env):
+        self.env = env
     
     #---------------------------------------------------------------------------
     @classmethod
@@ -79,7 +79,7 @@ class PropertyRule:
         
         # Check if property is allowed in this component
         if type(comp_def) not in self.bindable_to:
-            self.compiler.msg.fatal(
+            self.env.msg.fatal(
                 "The property '%s' is not valid for '%s' components"
                 % (self.get_name(), type(comp_def).__name__.lower()),
                 src_ref
@@ -109,7 +109,7 @@ class PropertyRule:
             if expressions.is_castable(assign_type, valid_type):
                 break
         else:
-            self.compiler.msg.fatal(
+            self.env.msg.fatal(
                 "Incompatible assignment to property '%s'" % self.get_name(),
                 src_ref
             )
@@ -244,7 +244,7 @@ class Prop_errextbus(PropertyRule):
     def validate(self, node, value):
         # 10.6.1-h: errextbus is only valid for external registers
         if (node.inst.external is False) and (value is True):
-            self.compiler.msg.error(
+            self.env.msg.error(
                 "The 'errextbus' property is set to 'true', but instance '%s' is not external"
                 % (node.inst.inst_name),
                 node.inst.inst_src_ref
@@ -418,7 +418,7 @@ class Prop_next(PropertyRule):
     def validate(self, node, value):
         # 9.5.1-e: next cannot be self-referencing
         if node.get_path() == value.get_path():
-            self.compiler.msg.error(
+            self.env.msg.error(
                 "Field '%s' cannot reference itself in next property"
                 % (node.inst.inst_name),
                 node.inst.inst_src_ref
@@ -439,7 +439,7 @@ class Prop_reset(PropertyRule):
         if type(value) == int:
             # 9.5.1-c: The reset value cannot be larger than can fit in the field
             if value >= (2**node.inst.width):
-                self.compiler.msg.error(
+                self.env.msg.error(
                     "The reset value (%d) of field '%s' cannot fit within it's width (%d)"
                     % (value, node.inst.inst_name, node.inst.width),
                     node.inst.inst_src_ref
@@ -448,7 +448,7 @@ class Prop_reset(PropertyRule):
             # 9.5.1-d: When reset is a reference, it shall reference another
             # field of the same size.
             if node.inst.width != value.inst.width:
-                self.compiler.msg.error(
+                self.env.msg.error(
                     "Field '%s' references field '%s' as its reset value but they are not the same size (%d != %d)"
                     % (node.inst.inst_name, value.inst.inst_name, node.inst.width, value.inst.width),
                     node.inst.inst_src_ref
@@ -456,7 +456,7 @@ class Prop_reset(PropertyRule):
             
             # 9.5.1-e: reset cannot be self-referencing
             if node.get_path() == value.get_path():
-                self.compiler.msg.error(
+                self.env.msg.error(
                     "Field '%s' cannot reference itself in reset property"
                     % (node.inst.inst_name),
                     node.inst.inst_src_ref
@@ -1098,8 +1098,8 @@ class Prop_bridge(PropertyRule):
 #===============================================================================
 
 class UserProperty(PropertyRule):
-    def __init__(self, compiler, name, bindable_to, valid_types, default = None, constr_componentwidth=False):
-        super().__init__(compiler)
+    def __init__(self, env, name, bindable_to, valid_types, default = None, constr_componentwidth=False):
+        super().__init__(env)
         
         self.name = name
         self.bindable_to = bindable_to
@@ -1120,7 +1120,7 @@ class UserProperty(PropertyRule):
             # non-vector nodes
             if isinstance(node, VectorNode):
                 if value >= (2**node.inst.width):
-                    self.compiler.msg.error(
+                    self.env.msg.error(
                         "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
                         % (value, self.name, node.inst.width, node.inst.inst_name),
                         node.inst.inst_src_ref

@@ -8,9 +8,9 @@ from ..node import RegNode
 #===============================================================================
 class ValidateListener(walker.RDLListener):
     # TODO: Finish Validate design
-    def __init__(self, compiler):
-        self.compiler = compiler
-        self.msg = compiler.msg
+    def __init__(self, env):
+        self.env = env
+        self.msg = env.msg
         
         # Used in field overlap checks
         # This is a rolling buffer of previous fields that still have a chance
@@ -27,7 +27,7 @@ class ValidateListener(walker.RDLListener):
         # Validate all properties that were applied to the component
         for prop_name in node.inst.properties.keys():
             prop_value = node.get_property(prop_name)
-            prop_rule = self.compiler.property_rules.lookup_property(prop_name)
+            prop_rule = self.env.property_rules.lookup_property(prop_name)
             prop_rule.validate(node, prop_value)
     
     

@@ -238,7 +238,7 @@ class ComponentVisitor(BaseVisitor):
                 )
             
             # Override the value
-            assign_expr = expressions.AssignmentCast(self.compiler, src_ref, assign_expr, param.param_type)
+            assign_expr = expressions.AssignmentCast(self.compiler.env, src_ref, assign_expr, param.param_type)
             assign_expr.predict_type()
             param.expr = assign_expr
         
@@ -275,7 +275,7 @@ class ComponentVisitor(BaseVisitor):
         
         visitor = ExprVisitor(self.compiler)
         expr = visitor.visit(ctx.expr())
-        expr = expressions.AssignmentCast(self.compiler, SourceRef.from_antlr(ctx.op), expr, int)
+        expr = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.op), expr, int)
         expr.predict_type()
         return expr
         
@@ -466,7 +466,7 @@ class ComponentVisitor(BaseVisitor):
         if ctx.expr() is not None:
             visitor = ExprVisitor(self.compiler)
             default_expr = visitor.visit(ctx.expr())
-            default_expr = expressions.AssignmentCast(self.compiler, SourceRef.from_antlr(ctx.ID()), default_expr, param_type)
+            default_expr = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.ID()), default_expr, param_type)
             default_expr.predict_type()
         else:
             default_expr = None
@@ -683,7 +683,7 @@ class ComponentVisitor(BaseVisitor):
         
         # First, apply default property assignments inherited from namespace
         for prop_name, (prop_src_ref, prop_rhs) in self.compiler.namespace.get_default_properties(type(self.component)).items():
-            rule = self.compiler.property_rules.lookup_property(prop_name)
+            rule = self.compiler.env.property_rules.lookup_property(prop_name)
             if rule is None:
                 self.msg.fatal(
                     "Unrecognized property '%s'" % prop_name,
@@ -694,7 +694,7 @@ class ComponentVisitor(BaseVisitor):
         # Apply locally-assigned properties
         mutex_bins = {}
         for prop_name, (prop_src_ref, prop_rhs) in self.property_dict.items():
-            rule = self.compiler.property_rules.lookup_property(prop_name)
+            rule = self.compiler.env.property_rules.lookup_property(prop_name)
             if rule is None:
                 self.msg.fatal(
                     "Unrecognized property '%s'" % prop_name,
@@ -725,7 +725,7 @@ class ComponentVisitor(BaseVisitor):
         for target_inst, target_inst_dict in self.dynamic_property_dict.items():
             mutex_bins = {}
             for prop_name, (prop_src_ref, prop_rhs) in target_inst_dict.items():
-                rule = self.compiler.property_rules.lookup_property(prop_name)
+                rule = self.compiler.env.property_rules.lookup_property(prop_name)
                 if rule is None:
                     self.msg.fatal(
                         "Unrecognized property '%s'" % prop_name,
@@ -764,11 +764,11 @@ class ComponentVisitor(BaseVisitor):
     def visitRange_suffix(self, ctx:SystemRDLParser.Range_suffixContext):
         visitor = ExprVisitor(self.compiler)
         expr1 = visitor.visit(ctx.expr(0))
-        expr1 = expressions.AssignmentCast(self.compiler, SourceRef.from_antlr(ctx.expr(0)), expr1, int)
+        expr1 = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr(0)), expr1, int)
         expr1.predict_type()
         
         expr2 = visitor.visit(ctx.expr(1))
-        expr2 = expressions.AssignmentCast(self.compiler, SourceRef.from_antlr(ctx.expr(1)), expr2, int)
+        expr2 = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr(1)), expr2, int)
         expr2.predict_type()
         
         return expr1, expr2
@@ -776,7 +776,7 @@ class ComponentVisitor(BaseVisitor):
     def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
         visitor = ExprVisitor(self.compiler)
         expr = visitor.visit(ctx.expr())
-        expr = expressions.AssignmentCast(self.compiler, SourceRef.from_antlr(ctx.expr()), expr, int)
+        expr = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr()), expr, int)
         expr.predict_type()
         return expr
     

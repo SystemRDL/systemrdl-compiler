@@ -2,9 +2,9 @@ from .. import component as comp
 
 class NamespaceRegistry():
     
-    def __init__(self, compiler):
-        self.compiler = compiler
-        self.msg = compiler.msg
+    def __init__(self, env):
+        self.env = env
+        self.msg = env.msg
         
         self.type_ns_stack = [{}]
         self.element_ns_stack = [{}]
@@ -71,7 +71,7 @@ class NamespaceRegistry():
         # filter out properties that are not relevant
         prop_names = list(props.keys())
         for prop_name in prop_names:
-            rule = self.compiler.property_rules.lookup_property(prop_name)
+            rule = self.env.property_rules.lookup_property(prop_name)
             if rule is None:
                 self.msg.fatal(
                     "Unrecognized property '%s'" % prop_name,

@@ -10,7 +10,7 @@ class BaseVisitor(SystemRDLVisitor):
     
     def __init__(self, compiler):
         self.compiler = compiler
-        self.msg = compiler.msg
+        self.msg = compiler.env.msg
         
     #---------------------------------------------------------------------------
     # Type Handling

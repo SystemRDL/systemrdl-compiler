@@ -75,8 +75,8 @@ class UDPVisitor(BaseVisitor):
             self.attr['default'] = expr.get_value()
         
         # Create and register the new property rule
-        udp = properties.UserProperty(self.compiler, udp_name, **self.attr)
-        self.compiler.property_rules.register_udp(udp, SourceRef.from_antlr(ctx.ID()))
+        udp = properties.UserProperty(self.compiler.env, udp_name, **self.attr)
+        self.compiler.env.property_rules.register_udp(udp, SourceRef.from_antlr(ctx.ID()))
         
     
     def visitUdp_type(self, ctx:SystemRDLParser.Udp_typeContext):

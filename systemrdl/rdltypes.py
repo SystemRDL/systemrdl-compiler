@@ -200,7 +200,7 @@ class ComponentRef:
         # ]
         self.ref_elements = ref_elements
     
-    def build_node_ref(self, assignee_node, compiler):
+    def build_node_ref(self, assignee_node, env):
         current_node = assignee_node
         
         # Traverse up from assignee until ref_root is reached
@@ -220,7 +220,7 @@ class ComponentRef:
             # Check if indexes are valid
             for i in range(len(idx_list)):
                 if idx_list[i] >= current_node.inst.array_dimensions[i]:
-                    compiler.msg.fatal(
+                    env.msg.fatal(
                         "Array index out of range. Expected 0-%d, got %d."
                         % (current_node.inst.array_dimensions[i]-1, idx_list[i]),
                         name_src_ref

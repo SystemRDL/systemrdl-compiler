@@ -16,12 +16,12 @@ class Node:
     
     """
     
-    def __init__(self, inst, compiler, parent):
+    def __init__(self, inst, env, parent):
         """
         Generic Node constructor.
         Do not call directly. Use factory() static method instead
         """
-        self.compiler = compiler
+        self.env = env
         
         #: Reference to :class:`~systemrdl.component.Component` that instantiates this node
         self.inst = inst
@@ -31,19 +31,19 @@ class Node:
     
     
     @staticmethod
-    def _factory(inst, compiler, parent=None):
+    def _factory(inst, env, parent=None):
         if isinstance(inst, comp.Field):
-            return FieldNode(inst, compiler, parent)
+            return FieldNode(inst, env, parent)
         elif isinstance(inst, comp.Reg):
-            return RegNode(inst, compiler, parent)
+            return RegNode(inst, env, parent)
         elif isinstance(inst, comp.Regfile):
-            return RegfileNode(inst, compiler, parent)
+            return RegfileNode(inst, env, parent)
         elif isinstance(inst, comp.Addrmap):
-            return AddrmapNode(inst, compiler, parent)
+            return AddrmapNode(inst, env, parent)
         elif isinstance(inst, comp.Mem):
-            return MemNode(inst, compiler, parent)
+            return MemNode(inst, env, parent)
         elif isinstance(inst, comp.Signal):
-            return SignalNode(inst, compiler, parent)
+            return SignalNode(inst, env, parent)
         else:
             raise RuntimeError
     
@@ -97,11 +97,11 @@ class Node:
                 # Unroll the array
                 range_list = [range(n) for n in child_inst.array_dimensions]
                 for idxs in itertools.product(*range_list):
-                    N = Node._factory(child_inst, self.compiler, self)
+                    N = Node._factory(child_inst, self.env, self)
                     N.current_idx = idxs # pylint: disable=attribute-defined-outside-init
                     yield N
             else:
-                yield Node._factory(child_inst, self.compiler, self)
+                yield Node._factory(child_inst, self.env, self)
     
     
     def signals(self, skip_not_present=True):
@@ -186,7 +186,7 @@ class Node:
         child_inst = self.inst.get_child_by_name(inst_name)
         if child_inst is None:
             return None
-        return Node._factory(child_inst, self.compiler, self)
+        return Node._factory(child_inst, self.env, self)
     
     
     def find_by_path(self, path):
@@ -269,12 +269,12 @@ class Node:
             
             # If this is a hierarchical component reference, convert it to a Node reference
             if isinstance(prop_value, rdltypes.ComponentRef):
-                prop_value = prop_value.build_node_ref(self, self.compiler)
+                prop_value = prop_value.build_node_ref(self, self.env)
             
             return prop_value
         
         # Otherwise, return its default value based on the property's rules
-        rule = self.compiler.property_rules.lookup_property(prop_name)
+        rule = self.env.property_rules.lookup_property(prop_name)
         
         # Is it even a valid property or allowed for this component type?
         if rule is None:
@@ -335,8 +335,8 @@ class AddressableNode(Node):
     Base-class for any kind of node that can have an address
     """
     
-    def __init__(self, inst, compiler, parent):
-        super().__init__(inst, compiler, parent)
+    def __init__(self, inst, env, parent):
+        super().__init__(inst, env, parent)
         
         # Keeps track of the current array indices this node is referencing
         # The last item in this list iterates the most frequently
@@ -577,7 +577,7 @@ def get_group_node_size(node):
         return 0
     
     # Current node's size is based on last child
-    last_child_node = Node._factory(node.inst.children[-1], node.compiler, node)
+    last_child_node = Node._factory(node.inst.children[-1], node.env, node)
     return(
         last_child_node.inst.addr_offset
         + last_child_node.total_size
