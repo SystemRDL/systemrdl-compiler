@@ -624,8 +624,9 @@ class ComponentVisitor(BaseVisitor):
         if ctx.prop_assignment_rhs() is not None:
             rhs = self.visit(ctx.prop_assignment_rhs())
         else:
-            # No RHS implies "true" assignment
-            rhs = True
+            # No explicit RHS
+            # What this implies is resolved later
+            rhs = None
         
         return SourceRef.from_antlr(prop_token), prop_name, rhs
     

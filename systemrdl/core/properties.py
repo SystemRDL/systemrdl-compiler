@@ -85,6 +85,11 @@ class PropertyRule:
                 src_ref
             )
         
+        # Property assignments with no rhs show up as None here
+        # For built-in properties, this implies a True value
+        if value is None:
+            value = True
+        
         # unpack true type of value
         # Contents of value can be:
         #   - implied "true" assignment (bool literal, True)
@@ -1109,7 +1114,24 @@ class UserProperty(PropertyRule):
     
     def get_name(self):
         return self.name
+    
+    
+    def assign_value(self, comp_def, value, src_ref):
+        # Property assignments with no rhs show up as None here
+        # For user-defined properties, this implies the default value
+        # (15.2.2)
+        if value is None:
+            value = self.default
         
+        super().assign_value(comp_def, value, src_ref)
+    
+    def get_default(self, node):
+        # pylint: disable=unused-argument
+        
+        # If a user-defined property is not explicitly assigned, then it
+        # does not get bound with its default value
+        return None
+    
     def validate(self, node, value):
         if self.constr_componentwidth:
             # 15.1.1-g: If constraint is set to componentwidth, the assigned
