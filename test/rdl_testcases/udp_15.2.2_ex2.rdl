@@ -1,0 +1,16 @@
+enum myEncoding {
+    alpha = 1'b0;
+    beta = 1'b1;
+};
+
+property my_enc_prop {
+    type = myEncoding;
+    component = field;
+    default = myEncoding::beta;
+};
+
+addrmap top {
+    reg {
+        field { my_enc_prop = myEncoding::alpha ; } f ;
+    } regA ;
+} ;

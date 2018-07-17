@@ -49,6 +49,7 @@ class SourceRef:
             for i,line_text in enumerate(fp):
                 if i == self.start_line - 1:
                     return line_text.rstrip("\n")
+        raise RuntimeError
     
     @classmethod
     def from_antlr(cls, antlr_ref):

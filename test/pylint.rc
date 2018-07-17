@@ -123,6 +123,7 @@ disable=
         
         # User ignored
         cyclic-import,
+        useless-return,
         inconsistent-return-statements,
         too-many-locals,
         too-many-branches,

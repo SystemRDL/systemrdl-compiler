@@ -119,4 +119,11 @@ Compilation units and their scope not described in SystemRDL spec
         in order to have the least "surprising" effects.
         
         See "multi-file_compilation" notes for more details.
-        
+
+--------------------------------------------------------------------------------
+Misc typos in examples
+    15.2.2, Example 1
+        Missing semicolon in some_num_p after "regfile"
+    
+    15.2.2, Example 2
+        Enumeration literals are missing their "myEncoding::" prefix

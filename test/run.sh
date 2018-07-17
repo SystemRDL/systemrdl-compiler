@@ -14,4 +14,4 @@ coverage3 html -d $this_dir/htmlcov
 $this_dir/../examples/print_hierarchy.py $this_dir/../examples/atxmega_spi.rdl > $this_dir/../docs/print_hierarchy_spi.stdout
 
 # Run lint
-pylint3 --rcfile $this_dir/pylint.rc systemrdl | tee $this_dir/lint.rpt
+pylint --rcfile $this_dir/pylint.rc systemrdl | tee $this_dir/lint.rpt

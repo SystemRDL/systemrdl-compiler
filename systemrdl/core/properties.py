@@ -98,6 +98,8 @@ class PropertyRule:
         #   - An expression (instance of an Expr subclass)
         if type(value) == bool:
             assign_type = bool
+        elif type(value) == int:
+            assign_type = int
         elif isinstance(value, rdltypes.PrecedenceType):
             assign_type = rdltypes.PrecedenceType
         elif isinstance(value, rdltypes.InterruptType):
@@ -107,6 +109,11 @@ class PropertyRule:
         elif rdltypes.is_user_enum(value):
             assign_type = rdltypes.UserEnum
         else:
+            print(value)
+            self.env.msg.fatal(
+                "LALALA",
+                src_ref
+            )
             raise RuntimeError
         
         # Check if value's type is compatible
@@ -1121,6 +1128,11 @@ class UserProperty(PropertyRule):
         # For user-defined properties, this implies the default value
         # (15.2.2)
         if value is None:
+            
+            if self.default is None:
+                # No default was set. Skip assignment entirely
+                return
+            
             value = self.default
         
         super().assign_value(comp_def, value, src_ref)

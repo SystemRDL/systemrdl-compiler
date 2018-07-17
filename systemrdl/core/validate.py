@@ -93,7 +93,7 @@ class ValidateListener(walker.RDLListener):
         this_f_sw = node.get_property('sw')
         
         # hw property values of w1 or rw1 don't make sense
-        if (this_f_hw == rdltypes.AccessType.w1) or (this_f_hw == rdltypes.AccessType.rw1):
+        if this_f_hw in (rdltypes.AccessType.w1, rdltypes.AccessType.rw1):
             self.msg.error(
                 "Field '%s' hw access property value of %s is meaningless"
                 % (node.inst.inst_name, this_f_hw.name),
@@ -147,11 +147,11 @@ class ValidateListener(walker.RDLListener):
                 prev_f_sw = prev_field.get_property('sw')
                 
                 if((prev_f_sw == rdltypes.AccessType.r)
-                    and ((this_f_sw == rdltypes.AccessType.w) or this_f_sw == rdltypes.AccessType.w1)
+                    and (this_f_sw in (rdltypes.AccessType.w, rdltypes.AccessType.w1))
                 ):
                     pass
                 elif((this_f_sw == rdltypes.AccessType.r)
-                    and ((prev_f_sw == rdltypes.AccessType.w) or prev_f_sw == rdltypes.AccessType.w1)
+                    and (prev_f_sw in (rdltypes.AccessType.w, rdltypes.AccessType.w1))
                 ):
                     pass
                 else:
