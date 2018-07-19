@@ -109,11 +109,6 @@ class PropertyRule:
         elif rdltypes.is_user_enum(value):
             assign_type = rdltypes.UserEnum
         else:
-            print(value)
-            self.env.msg.fatal(
-                "LALALA",
-                src_ref
-            )
             raise RuntimeError
         
         # Check if value's type is compatible
@@ -277,14 +272,14 @@ class Prop_hdl_path_gate(PropertyRule):
     mutex_group = None
 
 class Prop_hdl_path_gate_slice(PropertyRule):
-    bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
+    bindable_to = [comp.Field, comp.Mem]
     valid_types = [rdltypes.ArrayPlaceholder(str)]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hdl_path_slice(PropertyRule):
-    bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
+    bindable_to = [comp.Field, comp.Mem]
     valid_types = [rdltypes.ArrayPlaceholder(str)]
     default = None
     dyn_assign_allowed = True
@@ -501,6 +496,25 @@ class Prop_rclr(PropertyRule):
     default = False
     dyn_assign_allowed = True
     mutex_group = "P"
+    
+    def assign_value(self, comp_def, value, src_ref):
+        """
+        Overrides other related properties
+        """
+        super().assign_value(comp_def, value, src_ref)
+        if "rset" in comp_def.properties:
+            del comp_def.properties["rset"]
+        if "onread" in comp_def.properties:
+            del comp_def.properties["onread"]
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, check if onread sets the equivalent
+        """
+        if node.inst.properties.get("onread", None) == rdltypes.OnReadType.rclr:
+            return True
+        else:
+            return self.default
 
 class Prop_rset(PropertyRule):
     """
@@ -513,6 +527,25 @@ class Prop_rset(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "P"
     
+    def assign_value(self, comp_def, value, src_ref):
+        """
+        Overrides other related properties
+        """
+        super().assign_value(comp_def, value, src_ref)
+        if "rclr" in comp_def.properties:
+            del comp_def.properties["rclr"]
+        if "onread" in comp_def.properties:
+            del comp_def.properties["onread"]
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, check if onread sets the equivalent
+        """
+        if node.inst.properties.get("onread", None) == rdltypes.OnReadType.rset:
+            return True
+        else:
+            return self.default
+    
 class Prop_onread(PropertyRule):
     """
     Read side-effect.
@@ -523,6 +556,27 @@ class Prop_onread(PropertyRule):
     default = None
     dyn_assign_allowed = True
     mutex_group = "P"
+    
+    def assign_value(self, comp_def, value, src_ref):
+        """
+        Overrides other related properties
+        """
+        super().assign_value(comp_def, value, src_ref)
+        if "rclr" in comp_def.properties:
+            del comp_def.properties["rclr"]
+        if "rset" in comp_def.properties:
+            del comp_def.properties["rset"]
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, check if rset or rclr imply the value
+        """
+        if node.inst.properties.get("rset", False):
+            return rdltypes.OnReadType.rset
+        elif node.inst.properties.get("rclr", False):
+            return rdltypes.OnReadType.rclr
+        else:
+            return self.default
     
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_woset(PropertyRule):

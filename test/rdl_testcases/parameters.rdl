@@ -1,0 +1,54 @@
+
+// From 5.1.2.1.2
+mem fixed_mem #(longint unsigned word_size = 32,
+    longint unsigned memory_size = word_size * 4096) {
+    mementries = memory_size / word_size ;
+    memwidth = word_size ;
+};
+
+// From 5.1.2.1.1
+reg myReg #(longint unsigned SIZE = 32, boolean SHARED = true) {
+    regwidth = SIZE;
+    shared = SHARED;
+    field {} data[SIZE - 1];
+};
+
+addrmap myAmap {
+    myReg reg32;
+    myReg reg32_arr[8];
+    myReg #(.SIZE(16)) reg16;
+    myReg #(.SIZE(8), .SHARED(false)) reg8;
+    
+    fixed_mem mem32;
+    fixed_mem #(.word_size(64)) mem64;
+};
+
+//------------------------------------------------------------------------------
+
+reg param_reg #(
+    string NAME = "myname",
+    boolean SHARED = false,
+    string FIELD_SLICES[] = '{"dat"}
+){
+    name = NAME;
+    shared = SHARED;
+    field {} data;
+    
+    data->hdl_path_slice = FIELD_SLICES;
+};
+
+addrmap amap2 {
+    param_reg reg1;
+    
+    param_reg #(
+        .NAME("myname"),
+        .SHARED(false),
+        .FIELD_SLICES('{"dat"})
+    ) reg2;
+    
+    param_reg #(
+        .NAME("othername"),
+        .SHARED(true),
+        .FIELD_SLICES('{"foo"})
+    ) reg3;
+};
