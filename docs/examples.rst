@@ -51,7 +51,7 @@ about the bit range, and software access policy.
 .. literalinclude:: ../examples/print_hierarchy.py
     :lines: 34-52
 
-Finally, the a walker is created, and is used to traverse the elaborated register
+Finally, the walker is created, and is used to traverse the elaborated register
 model. At each node, the listener callbacks are executed.
 
 .. literalinclude:: ../examples/print_hierarchy.py

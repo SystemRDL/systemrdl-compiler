@@ -108,6 +108,8 @@ class PropertyRule:
             assign_type = value.predict_type()
         elif rdltypes.is_user_enum(value):
             assign_type = rdltypes.UserEnum
+        elif rdltypes.is_user_struct(type(value)):
+            assign_type = type(value)
         else:
             raise RuntimeError
         

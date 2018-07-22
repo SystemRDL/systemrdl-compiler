@@ -4,17 +4,17 @@ from .unittest_utils import RDLSourceTestCase
 class TestEnums(RDLSourceTestCase):
     
     def test_enums(self):
-        top = self.compile(
+        root = self.compile(
             ["rdl_testcases/enums.rdl"],
             "enum_test1"
         )
         
-        f_default = top.find_by_path("enum_test1.reg1.f_default")
-        f_zero = top.find_by_path("enum_test1.reg1.f_zero")
-        f_one = top.find_by_path("enum_test1.reg1.f_one")
-        f_three = top.find_by_path("enum_test1.reg1.f_three")
-        f_four = top.find_by_path("enum_test1.reg1.f_four")
-        f_five = top.find_by_path("enum_test1.reg1.f_five")
+        f_default = root.find_by_path("enum_test1.reg1.f_default")
+        f_zero = root.find_by_path("enum_test1.reg1.f_zero")
+        f_one = root.find_by_path("enum_test1.reg1.f_one")
+        f_three = root.find_by_path("enum_test1.reg1.f_three")
+        f_four = root.find_by_path("enum_test1.reg1.f_four")
+        f_five = root.find_by_path("enum_test1.reg1.f_five")
         self.assertEqual(f_default.get_property("reset"), 5)
         self.assertEqual(f_zero.get_property("reset"), 1)
         self.assertEqual(f_one.get_property("reset"), 2)

@@ -1,0 +1,128 @@
+
+//------------------------------------------------------------------------------
+// Example from 6.3.2.2.1
+//------------------------------------------------------------------------------
+
+struct base_struct {
+    bit foo;
+};
+
+struct derived_struct : base_struct {
+    longint unsigned bar;
+};
+
+struct final_struct : derived_struct {
+    // final_struct's members are foo, bar, and baz.
+    string baz;
+};
+
+
+property p01 {
+    component = all;
+    type = base_struct;
+};
+
+property p02 {
+    component = all;
+    type = derived_struct;
+};
+
+property p03 {
+    component = all;
+    type = final_struct;
+};
+
+//------------------------------------------------------------------------------
+// 6.3.2.3.4 Example 1
+//------------------------------------------------------------------------------
+struct struct1 {
+    boolean abool;
+    string astring;
+};
+
+property p1 {
+    component = field;
+    type = struct1;
+    default = struct1'{abool:true, astring:"hello"};
+};
+
+//------------------------------------------------------------------------------
+// 6.3.2.3.4 Example 2
+//------------------------------------------------------------------------------
+
+abstract struct struct_composed_abs {};
+
+property p2 {
+    component = field;
+    type = struct_composed_abs;
+};
+
+reg ex2_reg_t {
+    struct struct_composed : struct_composed_abs {
+        struct1 s;
+        string str;
+    };
+
+    field my_field #(struct_composed PARAM) {
+        p2 = PARAM;
+    };
+
+    my_field #(
+        .PARAM( struct_composed'{
+                str:"world",
+                s: struct1'{
+                    abool:true,
+                    astring:"blah"
+                }
+            }
+        )
+    ) f1;
+};
+
+//------------------------------------------------------------------------------
+// 6.3.2.3.4 Example 3
+//------------------------------------------------------------------------------
+abstract struct absstruct {
+    string astring;
+};
+
+struct substruct:absstruct {
+    boolean abool;
+};
+
+property p3 {
+    component = field;
+    type = absstruct;
+    default =substruct'{abool:false, astring:"foo"};
+};
+
+//------------------------------------------------------------------------------
+// Instantiate things in order to make them visible to test
+
+addrmap struct_test {
+    p01 = base_struct'{foo:1};
+    p02 = derived_struct'{foo:0, bar:1234};
+    p03 = final_struct'{foo:1, bar:5678, baz:"abcde"};
+    
+    reg {
+        field {
+            p1;
+        } ex1_field1;
+        
+        field {
+            p1 = struct1'{abool:false, astring:"bye"};
+        } ex1_field2;
+    } ex1_reg;
+    
+    ex2_reg_t ex2_reg;
+    
+    reg {
+        field {
+            p3;
+        } ex3_field1;
+        
+        field {
+            p3 = substruct'{abool:true, astring:"bar"};
+        } ex3_field2;
+    } ex3_reg;
+};

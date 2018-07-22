@@ -35,16 +35,32 @@ class MessageHandler:
 #===============================================================================
 class SourceRef:
     """
-    Reference to a segment of compiled source
+    Reference to a segment of compiled source.
+    
+    This is used to provide useful context when reporting error messages.
     """
     def __init__(self, filename, start_line, start_col, end_line, end_col):
+        
+        #: Source filename
         self.filename = filename
+        
+        #: Line number of start of selection
         self.start_line = start_line
+        
+        #: Column of first character in selection
         self.start_col = start_col
+        
+        #: Line number of end of selection
         self.end_line = end_line
+        
+        #: Column of last character in selection
         self.end_col = end_col
     
     def get_line_text(self):
+        """
+        Fetch the line of text from source.
+        If multiple lines, only returns the first one.
+        """
         with open(self.filename) as fp:
             for i,line_text in enumerate(fp):
                 if i == self.start_line - 1:

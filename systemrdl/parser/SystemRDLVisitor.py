@@ -389,11 +389,6 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by SystemRDLParser#struct_body.
-    def visitStruct_body(self, ctx:SystemRDLParser.Struct_bodyContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by SystemRDLParser#struct_elem.
     def visitStruct_elem(self, ctx:SystemRDLParser.Struct_elemContext):
         return self.visitChildren(ctx)

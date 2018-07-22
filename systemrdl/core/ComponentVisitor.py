@@ -6,6 +6,7 @@ from ..parser.SystemRDLParser import SystemRDLParser
 from .BaseVisitor import BaseVisitor
 from .ExprVisitor import ExprVisitor
 from .EnumVisitor import EnumVisitor
+from .StructVisitor import StructVisitor
 from .UDPVisitor import UDPVisitor
 from .parameter import Parameter
 from .helpers import get_ID_text
@@ -813,8 +814,9 @@ class ComponentVisitor(BaseVisitor):
     # User-defined struct
     #---------------------------------------------------------------------------
     def visitStruct_def(self, ctx:SystemRDLParser.Struct_defContext):
-        # TODO: Implement struct defs
-        pass
+        visitor = StructVisitor(self.compiler)
+        struct_type, name, src_ref = visitor.visit(ctx)
+        self.compiler.namespace.register_type(name, struct_type, src_ref)
     
     #---------------------------------------------------------------------------
     # Constraint Definition

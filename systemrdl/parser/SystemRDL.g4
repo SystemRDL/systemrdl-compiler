@@ -257,9 +257,7 @@ enum_prop_assign: ID ASSIGN expr;
 //------------------------------------------------------------------------------
 // User-defined structs
 //------------------------------------------------------------------------------
-struct_def: ABSTRACT_kw? STRUCT_kw name=ID (':' base=ID)? struct_body;
-
-struct_body: '{' (struct_elem ';')* '}';
+struct_def: ABSTRACT_kw? STRUCT_kw name=ID (':' base=ID)? '{' (struct_elem ';')* '}';
 
 struct_elem: struct_type ID array_type_suffix?;
 

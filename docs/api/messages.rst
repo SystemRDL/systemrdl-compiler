@@ -9,8 +9,8 @@ Exceptions
 
 Message Handling
 ----------------
-.. autoclass:: systemrdl.messages.MessagePrinter
+.. autoclass:: systemrdl.messages.SourceRef
     :members:
 
-.. autoclass:: systemrdl.messages.MessageContext
+.. autoclass:: systemrdl.messages.MessagePrinter
     :members:

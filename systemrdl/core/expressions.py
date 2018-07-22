@@ -1,4 +1,6 @@
 from copy import deepcopy
+from collections import OrderedDict
+
 from .. import component as comp
 from .. import rdltypes
 from .helpers import truncate_int
@@ -109,6 +111,33 @@ class EnumLiteral(Expr):
     
     def get_value(self, eval_width=None):
         return self.val
+
+#-------------------------------------------------------------------------------
+class StructLiteral(Expr):
+    def __init__(self, env, src_ref, struct_type, values):
+        super().__init__(env, src_ref)
+        self.struct_type = struct_type
+        # values is a dict of member_name : (member_expr, member_name_src_ref)
+        self.values = values
+    
+    def predict_type(self):
+        for member_name, (member_expr, member_name_src_ref) in self.values.items():
+            member_type = member_expr.predict_type()
+            if not is_castable(member_type, self.struct_type._members[member_name]): # pylint: disable=protected-access
+                self.msg.fatal(
+                    "Expression for member '%s' is not compatible with the expected type"
+                    % member_name,
+                    member_expr.src_ref
+                )
+            
+        return self.struct_type
+    
+    def get_value(self, eval_width=None):
+        resolved_values = OrderedDict()
+        for member_name, (member_expr, member_name_src_ref) in self.values.items():
+            resolved_values[member_name] = member_expr.get_value()
+        
+        return self.struct_type(resolved_values)
 
 #-------------------------------------------------------------------------------
 class StringLiteral(Expr):
@@ -1048,6 +1077,9 @@ def is_castable(src, dst):
             return True
         else:
             return False
+    elif rdltypes.is_user_struct(src) and rdltypes.is_user_struct(dst):
+        # Structs can be assigned their derived counterparts - aka their subclasses
+        return issubclass(src, dst)
     elif src == dst:
         return True
     else:

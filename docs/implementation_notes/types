@@ -41,5 +41,4 @@ comparison: type(x) == type(y)
 RDL array types will still need to be handled a bit more dynamically since
 they are more malleable. Also need to be able to be cast between sub-variants
 of themselves.
-Also, they are not explicitly defined in RDL as types so it doesn't make sense
-to do the same in Python either
+

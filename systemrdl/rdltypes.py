@@ -1,5 +1,7 @@
 import enum
 import inspect
+from collections import OrderedDict
+
 from .node import AddressableNode
 
 class AutoEnum(enum.Enum):
@@ -158,24 +160,71 @@ def is_user_enum(t):
     
     .. note:: Returns false if ``t`` is referencing a UserEnum value member
     """
-    return inspect.isclass(t) and (issubclass(t, UserEnum))
+    return inspect.isclass(t) and issubclass(t, UserEnum)
 
 #===============================================================================
-class UserStruct():
+class UserStruct:
     """
     All user-defined structs are based on this class.
     
     UserStruct types can be identified using: :meth:`is_user_struct`
     
-    .. note:: Not implemented yet.
     """
-    # TODO: Implement structs
     
+    _members = OrderedDict()
+    _is_abstract = True
+    
+    @classmethod
+    def define_new(cls, name, members, is_abstract=False):
+        """
+        Define a new struct type derived from the current type.
+        
+        members is a dictionary of {member_name : type}
+        """
+        m = OrderedDict(cls._members)
+        
+        # Make sure derivation does not have any overlapping keys with its parent
+        if set(m.keys()) & set(members.keys()):
+            raise ValueError("'members' contains keys that overlap with parent")
+        
+        m.update(members)
+        
+        dct = {
+            '_members' : m,
+            '_is_abstract': is_abstract,
+        }
+        newcls = type(name, (cls,), dct)
+        return newcls
+        
+    def __init__(self, values):
+        """
+        Create an instance of the struct
+        
+        values is a dictionary of {member_name : value}
+        """
+        if self._is_abstract:
+            raise TypeError("Cannot create instance of an abstract struct type")
+        
+        # Make sure values dict matches the members allowed
+        if set(values.keys()) != set(self._members.keys()):
+            raise ValueError("Cannot map 'values' to this struct")
+        
+        self._values = values
+    
+    def __getattr__(self, name):
+        if name == "__setstate__":
+            raise AttributeError(name)
+        if name in self._values:
+            return self._values[name]
+        else:
+            raise AttributeError("'%s' object has no attribute '%s'" % (type(self).__name__, name))
+
+
 def is_user_struct(t):
     """
     Test if type ``t`` is a :class:`~UserStruct`
     """
-    return inspect.isclass(t) and (issubclass(t, UserStruct))
+    return inspect.isclass(t) and issubclass(t, UserStruct)
 
 #===============================================================================
 class ComponentRef:

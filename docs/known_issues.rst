@@ -28,13 +28,6 @@ SystemRDL ``constraint`` blocks are not implemented yet.
 
 
 
-Struct Types
-------------
-
-Declaration of ``struct`` types is not implemented yet.
-
-
-
 Property References
 -------------------
 

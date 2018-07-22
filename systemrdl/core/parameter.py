@@ -130,6 +130,10 @@ def normalize_struct(value):
             member_normalization = concat( member_name, '_', normalized_member_value )
             subsequence( md5( join( apply( struct_members, member_normalization ) ), 0, 8)
     """
-    # TODO: Implement struct normalization
-    # pylint: disable=unused-argument
-    raise NotImplementedError
+    norm_elements = []
+    for member_name, member_value in value._values.items(): # pylint: disable=protected-access
+        norm_elements.append("%s_%s" % (member_name, normalize(member_value)))
+    
+    norm_str = "_".join(norm_elements)
+    md5 = hashlib.md5(norm_str.encode('utf-8')).hexdigest()
+    return md5[:8]

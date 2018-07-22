@@ -1,4 +1,5 @@
 import re
+from collections import OrderedDict
 
 from ..parser.SystemRDLParser import SystemRDLParser
 from .. import rdltypes
@@ -207,7 +208,68 @@ class ExprVisitor(BaseVisitor):
         expr = e.ArrayLiteral(self.compiler.env, SourceRef.from_antlr(ctx), elements)
         expr.predict_type()
         return expr
+
+
+    def visitStruct_literal(self, ctx:SystemRDLParser.Struct_literalContext):
+        struct_type_name = get_ID_text(ctx.ID())
         
+        # Lookup the struct type
+        struct_type = self.compiler.namespace.lookup_type(struct_type_name)
+        if struct_type is None:
+            self.msg.fatal(
+                "Struct type '%s' not found" % struct_type_name,
+                SourceRef.from_antlr(ctx.ID())
+            )
+        
+        if not rdltypes.is_user_struct(struct_type):
+            self.msg.fatal(
+                "Identifier '%s' is not a struct" % struct_type_name,
+                SourceRef.from_antlr(ctx.ID())
+            )
+        
+        if struct_type._is_abstract: # pylint: disable=protected-access
+            self.msg.fatal(
+                "Creating a literal from abstract struct '%s' is not allowed" % struct_type_name,
+                SourceRef.from_antlr(ctx.ID())
+            )
+        
+        # collect member values
+        values = OrderedDict()
+        for kv_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Struct_kvContext):
+            member_name, member_expr, member_name_src_ref = self.visit(kv_ctx)
+            
+            if member_name in values:
+                self.msg.error(
+                    "Struct member '%s' already used in this literal" % member_name,
+                    member_name_src_ref
+                )
+                continue
+            
+            if member_name not in struct_type._members: # pylint: disable=protected-access
+                self.msg.fatal(
+                    "'%s' is not a member of struct '%s'"
+                    % (member_name, struct_type_name),
+                    member_name_src_ref
+                )
+            
+            values[member_name] = (member_expr, member_name_src_ref)
+        
+        expr = e.StructLiteral(
+            self.compiler.env,
+            SourceRef.from_antlr(ctx.ID()),
+            struct_type,
+            values
+        )
+        expr.predict_type()
+        return expr
+        
+        
+    def visitStruct_kv(self, ctx:SystemRDLParser.Struct_kvContext):
+        member_name = get_ID_text(ctx.ID())
+        member_name_src_ref = SourceRef.from_antlr(ctx.ID())
+        member_expr = self.visit(ctx.expr())
+        return member_name, member_expr, member_name_src_ref
+
     #---------------------------------------------------------------------------
     # Aggregate Operators
     #---------------------------------------------------------------------------
@@ -326,9 +388,3 @@ class ExprVisitor(BaseVisitor):
         expr = e.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr()), expr, int)
         expr.predict_type()
         return expr
-    
-    #---------------------------------------------------------------------------
-
-    def visitStruct_literal(self, ctx:SystemRDLParser.Struct_literalContext):
-        # TODO: Implement struct literals
-        raise NotImplementedError

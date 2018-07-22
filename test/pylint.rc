@@ -127,6 +127,7 @@ disable=
         inconsistent-return-statements,
         too-many-locals,
         too-many-branches,
+        too-many-return-statements,
         no-else-return,
         no-self-use,
         too-few-public-methods,
