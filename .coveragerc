@@ -19,3 +19,5 @@ omit =
 exclude_lines =
     raise RuntimeError
     raise NotImplementedError
+    msg.fatal
+    msg.error

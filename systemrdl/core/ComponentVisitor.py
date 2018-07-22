@@ -253,18 +253,6 @@ class ComponentVisitor(BaseVisitor):
             self.visit(inst)
         
         return None
-
-    def visitField_inst_reset(self, ctx:SystemRDLParser.Field_inst_resetContext):
-        return self.get_instance_assignment(ctx)
-
-    def visitInst_addr_fixed(self, ctx:SystemRDLParser.Inst_addr_fixedContext):
-        return self.get_instance_assignment(ctx)
-    
-    def visitInst_addr_stride(self, ctx:SystemRDLParser.Inst_addr_strideContext):
-        return self.get_instance_assignment(ctx)
-
-    def visitInst_addr_align(self, ctx:SystemRDLParser.Inst_addr_alignContext):
-        return self.get_instance_assignment(ctx)
     
     def get_instance_assignment(self, ctx):
         """

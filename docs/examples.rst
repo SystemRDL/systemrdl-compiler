@@ -12,7 +12,7 @@ This example walks through a simple program that:
 * Uses the walker/listener traversal method to print a hierarchical text
   representation of the register model
 
-The full example code can be found in the ``systemrdl-conpiler`` repository at:
+The full example code can be found in the ``systemrdl-compiler`` repository at:
 ``examples/print_hierarchy.py``
 
 
