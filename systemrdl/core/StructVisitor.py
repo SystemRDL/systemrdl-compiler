@@ -47,7 +47,7 @@ class StructVisitor(BaseVisitor):
                 )
                 continue
             
-            if member_name in base_type._members: # pylint: disable=protected-access
+            if member_name in base_type._members:
                 self.msg.error(
                     "Struct member '%s' has already been defined in base struct '%s'"
                     % (member_name, base_type.__name__),

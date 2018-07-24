@@ -227,7 +227,7 @@ class ExprVisitor(BaseVisitor):
                 SourceRef.from_antlr(ctx.ID())
             )
         
-        if struct_type._is_abstract: # pylint: disable=protected-access
+        if struct_type._is_abstract:
             self.msg.fatal(
                 "Creating a literal from abstract struct '%s' is not allowed" % struct_type_name,
                 SourceRef.from_antlr(ctx.ID())
@@ -245,12 +245,19 @@ class ExprVisitor(BaseVisitor):
                 )
                 continue
             
-            if member_name not in struct_type._members: # pylint: disable=protected-access
+            if member_name not in struct_type._members:
                 self.msg.fatal(
                     "'%s' is not a member of struct '%s'"
                     % (member_name, struct_type_name),
                     member_name_src_ref
                 )
+            
+            # TODO: Need to detect if type is bit, and not perform a width cast (only do an assign cast)
+            # Current implementation will truncate integers larger than 64-bits
+            if struct_type._members[member_name] == int:
+                member_expr = e.WidthCast(self.compiler.env, member_name_src_ref, member_expr, w_int=64)
+            elif struct_type._members[member_name] == bool:
+                member_expr = e.BoolCast(self.compiler.env, member_name_src_ref, member_expr)
             
             values[member_name] = (member_expr, member_name_src_ref)
         
@@ -337,18 +344,14 @@ class ExprVisitor(BaseVisitor):
             # Reference is to a local parameter
             ref_expr = e.ParameterRef(self.compiler.env, first_name_src_ref, first_elem)
             
-            if len(first_array_suffixes) != 0:
-                # TODO: Reference index of array parameter
-                self.msg.fatal(
-                    "Index or bit-slice of a parameter is not supported yet.",
-                    first_array_suffixes[0].src_ref
-                )
-            if len(ref_elements) > 1:
-                # TODO: Reference struct member of parameter
-                self.msg.fatal(
-                    "Referencing child elements of a parameter is not supported yet.",
-                    SourceRef.from_antlr(ctx.instance_ref_element(1))
-                )
+            # Wrap ref_expr with array/struct dereferencers as appropriate
+            for array_suffix in first_array_suffixes:
+                ref_expr = e.ArrayIndex(self.compiler.env, first_name_src_ref, ref_expr, array_suffix)
+            for name, array_suffixes, name_src_ref in ref_elements[1:]:
+                ref_expr = e.MemberRef(self.compiler.env, name_src_ref, ref_expr, name)
+                for array_suffix in array_suffixes:
+                    ref_expr = e.ArrayIndex(self.compiler.env, name_src_ref, ref_expr, array_suffix)
+            
         elif isinstance(first_elem, comp.Component):
             ref_expr = e.InstRef(
                 self.compiler.env, 

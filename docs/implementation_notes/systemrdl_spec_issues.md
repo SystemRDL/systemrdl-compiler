@@ -1,6 +1,13 @@
 SystemRDL spec issues
 =====================
 
+This document keeps track of all ambiguities, contradictions, and typos found
+in Accelera's [SystemRDL 2.0](http://accellera.org/downloads/standards/systemrdl)
+language specification.
+
+For each issue, I include the resolved interpretation that is used in this
+project.
+
 
 Semantic rule 10.6.1.c is violated in 5.1.2.2.2-Example 2
 ---------------------------------------------------------
@@ -15,19 +22,6 @@ However, in the example:
 ### Resolution:
 The use-case shown in the example seems reasonable.
 Rule 10.6.1.c seems unnecessary. Waiving checks for it.
-
-
-
-Likely typo in semantic rule 11.2-f
------------------------------------
-> Virtual registers, **register files**, and fields shall have the same software
-> access (sw property value) as the parent memory.
-
-Mentions "register files", even though they are not allowed in "mem" components
-as per 11.1-b-1-ii.
-    
-### Resolution:
-N/A
 
 
 
@@ -71,7 +65,9 @@ However based on appendix B.10, this is grammatically incorrect.
 
 ### Resolution:
 Arrays of zero-size seem like a reasonable concept, especially since 6.3.1-d
-explicitly makes note of them. Grammar will be revised to allow this.
+explicitly makes note of them.
+
+Grammar is implemented to allow this.
 
 
 
@@ -113,57 +109,6 @@ Invalid entries appear to be redundant anyways.
 
 
 
-Misc typos in examples
-----------------------
-* 6.3.2.4, Examples 1 and 2
-    * Numerous uses of "bool" instead of "boolean" keyword as described by grammar.
-    
-* 15.2.2, Example 1
-    * Missing semicolon in some_num_p after "regfile"
-    
-* 15.2.2, Example 2
-    * Enumeration literals are missing their "myEncoding::" prefix
-
-
-
-User-defined property's "type" attribute can not be "signal"?
--------------------------------------------------------------
-Grammar seems to describe that a property's type attribute does not allow
-"signal" types.
-Furthermore, text in 15.1, Table 31 implies that the "ref" type generalization
-also does not include "signal".
-    
-The spec is pretty clear about this, and it appears to be intentional.
-I'm just a little surprised since it seems like an odd exclusion to make.
-UDPs are basically user-extensions that can be used to describe things
-outside of the RDL spec.
-Why restrict a user's ability to use these?
-Plus, there are several built-in properties that expect signal reference
-types, so the precedent is simply not there... (resetsignal, some counter properties)
-    
-### Resolution:
-None for now.
-Implemented according to spec until I hear otherwise.
-
-
-
-Compilation units and their scope not described in SystemRDL spec
------------------------------------------------------------------
-The SystemRDL 2.0 spec does not address the concept of "compilation units"
-and how multiple RDL files share namespaces.
-    
-If multiple RDL files are compiled together, how are their namespaces shared?
-    
-### Resolution:
-I have provided my own interpretation of how compilation units in
-SystemRDL should work.
-Some concepts are borrowed from SystemVerilog, but are simplified significantly
-in order to have the least "surprising" effects.
-
-See "multi-file_compilation" notes for more details.
-
-
-
 Constraint example uses struct datatype in an illegal way
 ---------------------------------------------------------
 In 14.2.3, the example declares a struct data type called "RGB".
@@ -200,3 +145,76 @@ reg regfoo {
     field {} blue1[8];
 };
 ```
+
+
+
+Misc typos in examples
+----------------------
+Some very minor typos found while compiling several code snippet examples.
+
+* 6.3.2.4, Examples 1 and 2
+    * Numerous uses of "bool" instead of "boolean" keyword as described by grammar.
+    
+* 15.2.2, Example 1
+    * Missing semicolon in some_num_p after "regfile"
+    
+* 15.2.2, Example 2
+    * Enumeration literals are missing their "myEncoding::" prefix
+
+
+
+Likely typo in semantic rule 11.2-f
+-----------------------------------
+> Virtual registers, **register files**, and fields shall have the same software
+> access (sw property value) as the parent memory.
+
+Mentions "register files", even though they are not allowed in "mem" components
+as per 11.1-b-1-ii.
+    
+### Resolution:
+N/A
+
+
+
+Open Questions
+==============
+
+
+User-defined property's "type" attribute can not be "signal"?
+-------------------------------------------------------------
+Grammar seems to describe that a property's type attribute does not allow
+"signal" types.
+Furthermore, text in 15.1, Table 31 implies that the "ref" type generalization
+also does not include "signal".
+    
+The spec is pretty clear about this, and it appears to be intentional.
+I'm just a little surprised since it seems like an odd exclusion to make.
+UDPs are basically user-extensions that can be used to describe things
+outside of the RDL spec.
+Why restrict a user's ability to use these?
+Plus, there are several built-in properties that expect signal reference
+types, so the precedent is simply not there... (resetsignal, some counter properties)
+    
+### Resolution:
+None for now.
+Implemented according to spec until I hear otherwise.
+
+
+
+Compilation units and their scope not described in SystemRDL spec
+-----------------------------------------------------------------
+The SystemRDL 2.0 spec does not address the concept of "compilation units"
+and how multiple RDL files share namespaces.
+    
+If multiple RDL files are compiled together, how are their namespaces shared?
+    
+### Resolution:
+I have provided my own interpretation of how compilation units in
+SystemRDL should work.
+Some concepts are borrowed from SystemVerilog, but are simplified significantly
+in order to have the least "surprising" effects.
+
+See [multi-file_compilation](multi-file_compilation.md) notes for more details.
+
+
+

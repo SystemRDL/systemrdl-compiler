@@ -123,7 +123,7 @@ class StructLiteral(Expr):
     def predict_type(self):
         for member_name, (member_expr, member_name_src_ref) in self.values.items():
             member_type = member_expr.predict_type()
-            if not is_castable(member_type, self.struct_type._members[member_name]): # pylint: disable=protected-access
+            if not is_castable(member_type, self.struct_type._members[member_name]):
                 self.msg.fatal(
                     "Expression for member '%s' is not compatible with the expected type"
                     % member_name,
@@ -159,7 +159,7 @@ class ArrayLiteral(Expr):
     
     def predict_type(self):
         
-        if len( self.elements) == 0:
+        if len(self.elements) == 0:
             # Empty array. Element type is indeterminate
             return rdltypes.ArrayPlaceholder(None)
         
@@ -916,6 +916,76 @@ class ParameterRef(Expr):
                 self.src_ref
             )
         return self.param.expr.get_value(eval_width)
+
+
+class ArrayIndex(Expr):
+    def __init__(self, env, src_ref, array, index):
+        super().__init__(env, src_ref)
+        self.array = array
+        self.index = index
+        
+    def predict_type(self):
+        if not is_castable(self.index.predict_type(), int):
+            self.msg.fatal(
+                "Array index is not a compatible numeric type",
+                self.index.src_ref
+            )
+        
+        array_type = self.array.predict_type()
+        if not isinstance(array_type, rdltypes.ArrayPlaceholder):
+            self.msg.fatal(
+                "Cannot index non-array type",
+                self.array.src_ref
+            )
+        
+        return array_type.element_type
+    
+    def get_min_eval_width(self):
+        # TODO: Need to actually reach in and get eval width of array element
+        return 64
+    
+    def get_value(self, eval_width=None):
+        index = self.index.get_value()
+        array = self.array.get_value()
+        if index >= len(array):
+            self.msg.fatal(
+                "Array index '%d' is out of range" % index,
+                self.src_ref
+            )
+        return array[index]
+    
+
+class MemberRef(Expr):
+    def __init__(self, env, src_ref, struct, member_name):
+        super().__init__(env, src_ref)
+        self.struct = struct
+        self.member_name = member_name
+        
+    def predict_type(self):
+        struct_type = self.struct.predict_type()
+        
+        if not rdltypes.is_user_struct(struct_type):
+            self.msg.fatal(
+                "Cannot reference member of non-struct type",
+                self.struct.src_ref
+            )
+        
+        if self.member_name not in struct_type._members:
+            self.msg.fatal(
+                "'%s' is not a valid member of struct type '%s'"
+                % (self.member_name, struct_type.__name__),
+                self.src_ref
+            )
+            
+        return struct_type._members[self.member_name]
+    
+    def get_min_eval_width(self):
+        # TODO: Need to actually reach in and get eval width of struct member
+        return 64
+    
+    def get_value(self, eval_width=None):
+        struct = self.struct.get_value()
+        return struct._values[self.member_name]
 
 
 class InstRef(Expr):

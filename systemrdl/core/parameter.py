@@ -131,7 +131,7 @@ def normalize_struct(value):
             subsequence( md5( join( apply( struct_members, member_normalization ) ), 0, 8)
     """
     norm_elements = []
-    for member_name, member_value in value._values.items(): # pylint: disable=protected-access
+    for member_name, member_value in value._values.items():
         norm_elements.append("%s_%s" % (member_name, normalize(member_value)))
     
     norm_str = "_".join(norm_elements)
