@@ -1,5 +1,6 @@
 
 from .unittest_utils import RDLSourceTestCase
+import systemrdl.rdltypes as rdlt
 
 class TestStructs(RDLSourceTestCase):
     
@@ -66,4 +67,24 @@ class TestStructs(RDLSourceTestCase):
             self.assertEqual(set(f2p3._values.keys()), set(["abool", "astring"]))
             self.assertEqual(f2p3.abool, True)
             self.assertEqual(f2p3.astring, "bar")
-            
+    
+    
+    def test_struct_compositions(self):
+        root = self.compile(
+            ["rdl_testcases/struct_compositions.rdl"],
+            "top"
+        )
+        
+        my_reg = root.find_by_path("top.my_reg")
+        x = root.find_by_path("top.my_reg.x")
+        
+        self.assertEqual(my_reg.get_property("desc"), "hey")
+        self.assertEqual(my_reg.get_property("name"), "foo")
+        self.assertEqual(x.get_property("sw"), rdlt.AccessType.r)
+        self.assertEqual(x.get_property("name"), "bar")
+        self.assertEqual(my_reg.get_property("p_bool"), True)
+        self.assertEqual(my_reg.get_property("p_int"), 61)
+        
+        p_s1 = my_reg.get_property("p_s1")
+        self.assertEqual(type(p_s1).__name__, "s1_t")
+        self.assertEqual(p_s1._values, {"bool":False, "str":"foo", "n_arr":[20,40,60,80]})

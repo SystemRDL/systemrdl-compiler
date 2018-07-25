@@ -98,7 +98,7 @@ property p3 {
 
 //------------------------------------------------------------------------------
 // Instantiate things in order to make them visible to test
-
+//------------------------------------------------------------------------------
 addrmap struct_test {
     p01 = base_struct'{foo:1};
     p02 = derived_struct'{foo:0, bar:1234};

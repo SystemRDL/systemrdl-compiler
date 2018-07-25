@@ -1,0 +1,67 @@
+
+struct s1_t {
+    longint n_arr[];
+    boolean bool;
+    string str;
+};
+
+struct s2_t {
+    accesstype access;
+    s1_t nest;
+    s1_t nest_arr[];
+};
+
+property p_int {
+    component = all;
+    type = longint;
+};
+
+property p_bool {
+    component = all;
+    type = boolean;
+};
+
+property p_s1 {
+    component = all;
+    type = s1_t;
+};
+
+//------------------------------------------------------------------------------
+
+reg my_reg_t #(s2_t S) {
+    field {} x;
+    
+    desc = S.nest.str;
+    name = S.nest_arr[0].str;
+    x->sw = S.access;
+    x->name = S.nest_arr[1].str;
+    
+    p_s1 = S.nest_arr[0];
+    p_bool = S.nest.bool;
+    p_int = S.nest_arr[1].n_arr[2];
+};
+
+addrmap top {
+    my_reg_t #(
+        .S(s2_t'{
+            nest_arr: '{
+                s1_t'{
+                    bool: false,
+                    str: "foo",
+                    n_arr: '{20,40,60,80}
+                },
+                s1_t'{
+                    bool: true,
+                    str: "bar",
+                    n_arr: '{21,41,61,81}
+                }
+            },
+            access: r,
+            nest: s1_t'{
+                bool: true,
+                str: "hey",
+                n_arr: '{2,4,6,8}
+            }
+        })
+    ) my_reg;
+};
