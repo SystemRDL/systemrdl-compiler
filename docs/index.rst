@@ -19,11 +19,23 @@ it should be far easier to write custom register space view generators.
 Installing
 ----------
 
-Install using pip
+Install from `PyPi`_ using pip
 
 .. code-block:: bash
    
    python3 -m pip install systemrdl-compiler
+
+.. _PyPi: https://pypi.org/project/systemrdl-compiler
+
+
+Links
+-----
+
+- `Source repository <https://github.com/SystemRDL/systemrdl-compiler>`_
+- `Issue tracker <https://github.com/SystemRDL/systemrdl-compiler/issues>`_
+- `PyPi <https://pypi.org/project/systemrdl-compiler>`_
+- `SystemRDL Specification <http://accellera.org/downloads/standards/systemrdl>`_
+
 
 
 .. toctree::
