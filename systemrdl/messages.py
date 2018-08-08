@@ -225,7 +225,15 @@ class RDLAntlrErrorListener(ErrorListener) :
         self.msg = msg_handler
         
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        if offendingSymbol is not None:
+            src_ref = SourceRef.from_antlr(offendingSymbol)
+        else:
+            # TODO: Need to derive a src_ref in situation where an offending symbol
+            # is not provided (LexerNoViableAltException)
+            src_ref = None
+            
         self.msg.error(
             msg,
-            SourceRef.from_antlr(offendingSymbol)
+            src_ref
         )
+        
