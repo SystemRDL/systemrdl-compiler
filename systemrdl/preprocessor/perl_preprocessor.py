@@ -1,45 +1,38 @@
-#!/usr/bin/env python3
-
-import sys
 import re
-import os
 import subprocess
 import json
 import shutil
 
 from . import segment_map
 
-def preprocess(env, path):
+def preprocess(env, input_text, parent_smap):
     """
-    Run perl preprocessor on the file provided
+    Run perl preprocessor on the text provided
     
     Returns: (text, SegmentMap)
     - text: Resulting preprocessed text
     - SegmentMap: Mapping object that provides back-references to original source
     """
     
-    with open(path, 'r') as f:
-        input_text = f.read()
+    segments = parse_segments(env, input_text)
+    
+    if (len(segments) == 1) and isinstance(segments[0], PPPUnalteredSegment):
+        # The only segment collected was a bypass.
+        # No need to continue perl preprocessor
+        output_text = input_text
         
-        segments = parse_segments(env, input_text)
-        
-        if (len(segments) == 1) and isinstance(segments[0], PPPUnalteredSegment):
-            # The only segment collected was a bypass.
-            # No need to continue perl preprocessor
-            output_text = input_text
-            
-            # Create a pass-through segment map
-            smap = segment_map.SegmentMap()
-            smap.segments.append(
-                segment_map.UnalteredSegment(
-                    segments[0].start, segments[0].end,
-                    segments[0].start, segments[0].end, path
-                )
+        # Create a pass-through segment map
+        smap = segment_map.SegmentMap()
+        smap.segments.append(
+            segment_map.UnalteredSegment(
+                segments[0].start, segments[0].end,
+                segments[0].start, segments[0].end, parent_smap
             )
-        else:
-            # Execute remainder of perl preprocessor
-            emit_list = run_miniscript(env, input_text, segments)
-            output_text, smap = generate_output(path, input_text, segments, emit_list)
+        )
+    else:
+        # Execute remainder of perl preprocessor
+        emit_list = run_miniscript(env, input_text, segments)
+        output_text, smap = generate_output(parent_smap, input_text, segments, emit_list)
     
     return (output_text, smap)
 
@@ -70,6 +63,8 @@ def parse_segments(env, text):
     """
     Parse input text and create a list of PPPSegments
     """
+    # TODO: Rewrite this to use comment-aware tokenization
+    
     segments = []
     pos = 0;
     
@@ -175,7 +170,7 @@ def run_miniscript(env, input_text, segments):
     return emit_list
 
 
-def generate_output(path, input_text, segments, emit_list):
+def generate_output(parent_smap, input_text, segments, emit_list):
     str_parts = []
     smap = segment_map.SegmentMap()
     
@@ -188,23 +183,22 @@ def generate_output(path, input_text, segments, emit_list):
             
             map_seg = segment_map.UnalteredSegment(
                 offset, offset + len(emit_text) - 1,
-                pp_seg.start, pp_seg.end, path
+                pp_seg.start, pp_seg.end, parent_smap
             )
             offset += len(emit_text)
             smap.segments.append(map_seg)
-            
             str_parts.append(emit_text)
+        
         elif entry['type'] == "text":
             pp_seg = segments[entry['ref']]
             emit_text = entry['text']
             
             map_seg = segment_map.MacroSegment(
                 offset, offset + len(emit_text) - 1,
-                pp_seg.start, pp_seg.end, path
+                pp_seg.start, pp_seg.end, parent_smap
             )
             offset += len(emit_text)
             smap.segments.append(map_seg)
-            
             str_parts.append(emit_text)
     
     return ("".join(str_parts), smap)
