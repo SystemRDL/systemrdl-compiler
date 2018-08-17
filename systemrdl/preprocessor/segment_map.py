@@ -4,10 +4,26 @@ class SegmentMap:
     
     def __init__(self):
         self.segments = []
+    
+    def derive_source_offset(self, offset):
+        """
+        Given a post-preprocessed coordinate, derives the corresponding coordinate
+        in the original source file.
+        
+        Returns result in the following tuple:
+            (src_offset, src_path, include_ref)
+        where:
+            - src_offset is the translated coordinate
+                If the input offset lands on a macro expansion, then src_offset
+                is a tuple that selects the unexpanded macro: (start, end)
+            - src_path points to the original source file
+            - include_ref describes any `include lineage using a IncludeRef object
+                Is none if file was not referenced via include
+        """
 
 
 class Segment:
-    def __init__(self, start, end, src_start, src_end, src):
+    def __init__(self, start, end, src_start, src_end, src, incl_ref = None):
         
         # start/end offset of resulting text
         self.start = start
@@ -22,6 +38,9 @@ class Segment:
         # If str, then this is a file path
         # otherwise this is another SegmentMap
         self.src = src
+        
+        # IncludeRef object that describes from where this segment was included
+        self.incl_ref = incl_ref
 
 class UnalteredSegment(Segment):
     """
@@ -32,16 +51,6 @@ class MacroSegment(Segment):
     """
     Segment of text that was the result of a macro transformation
     """
-    
-class IncludedSegment(UnalteredSegment):
-    """
-    Segment of text that was included from another file
-    """
-    def __init__(self, start, end, src_start, src_end, src, parent):
-        super().__init__(start, end, src_start, src_end, src)
-        
-        # IncludeRef object that describes from where this segment was included
-        self.parent = parent
 
 class IncludeRef:
     def __init__(self, start, end, path, parent=None):
@@ -53,7 +62,8 @@ class IncludeRef:
         # Reference to parent IncludeRef if nested include
         self.parent = parent
 
-def print_segment_debug(text, smap):
+
+def print_segment_debug(text, smap): # pragma: no cover
     colors = (
         colorama.Back.RED,
         colorama.Back.GREEN,
