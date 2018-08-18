@@ -39,33 +39,57 @@ class SourceRef:
     
     This is used to provide useful context when reporting error messages.
     """
-    def __init__(self, filename, start_line, start_col, end_line, end_col):
+    def __init__(self, filename, start, end):
         
         #: Source filename
         self.filename = filename
         
+        #: Character position of start of selection
+        self.start = start
+        
+        #: Character position of end of selection
+        self.end = end
+        
         #: Line number of start of selection
-        self.start_line = start_line
+        self.start_line = None
         
         #: Column of first character in selection
-        self.start_col = start_col
+        self.start_col = None
         
         #: Line number of end of selection
-        self.end_line = end_line
+        self.end_line = None
         
         #: Column of last character in selection
-        self.end_col = end_col
+        self.end_col = None
+        
+        self.start_line_text = None
     
-    def get_line_text(self):
-        """
-        Fetch the line of text from source.
-        If multiple lines, only returns the first one.
-        """
+    def derive_coordinates(self):
+        # TODO: For now, assumes selection is contained within a single file
+        line_start = 0
+        lineno = 1
+        
         with open(self.filename) as fp:
-            for i,line_text in enumerate(fp):
-                if i == self.start_line - 1:
-                    return line_text.rstrip("\n")
-        raise RuntimeError
+            
+            while True:
+                line_text = fp.readline()
+                if line_text == "":
+                    break
+                
+                if (self.start_line is None) and (self.start <= fp.tell()):
+                    self.start_line = lineno
+                    self.start_col = self.start - line_start
+                    self.start_line_text = line_text.rstrip("\n")
+                
+                if (self.end_line is None) and (self.end <= fp.tell()):
+                    self.end_line = lineno
+                    self.end_col = self.end - line_start
+                    break
+                
+                lineno += 1
+                line_start = fp.tell()
+        
+        
     
     @classmethod
     def from_antlr(cls, antlr_ref):
@@ -92,19 +116,15 @@ class SourceRef:
         else:
             filename = None
             
-        # Derive properties
-        start_line = token.line
-        start_col = token.column
+        # Extract selection coordinates
+        start = token.start
         if end_token is None:
-            end_line = start_line
-            end_col = token.column + token.stop - token.start
+            end = token.stop
         else:
-            # Token range
-            end_line = end_token.line
-            end_col = end_token.column + end_token.stop - end_token.start
+            end = end_token.stop
         
         # Create object
-        src_ref = cls(filename, start_line, start_col, end_line, end_col)
+        src_ref = cls(filename, start, end)
         return src_ref
 
 #===============================================================================
@@ -150,6 +170,8 @@ class MessagePrinter:
                 color + Style.BRIGHT + severity + ": " + Style.RESET_ALL + text
             )
         else:
+            src_ref.derive_coordinates()
+            
             lines.append(
                 Fore.WHITE + Style.BRIGHT
                 + "%s:%d:%d: " % (src_ref.filename, src_ref.start_line, src_ref.start_col)
@@ -162,13 +184,12 @@ class MessagePrinter:
             if src_ref.start_line != src_ref.end_line:
                 # multi-line reference
                 # Select remainder of the line
-                line_text = src_ref.get_line_text()
-                width = len(line_text) - src_ref.start_col
+                width = len(src_ref.start_line_text) - src_ref.start_col
                 
                 lines.append(
-                    line_text[:src_ref.start_col] 
+                    src_ref.start_line_text[:src_ref.start_col] 
                     + Fore.RED + Style.BRIGHT
-                    + line_text[src_ref.start_col:]
+                    + src_ref.start_line_text[src_ref.start_col:]
                     + Style.RESET_ALL 
                 )
                 
@@ -182,14 +203,13 @@ class MessagePrinter:
             elif src_ref.start_col != src_ref.end_col:
                 # Single line, Nonzero width
                 width = src_ref.end_col - src_ref.start_col + 1
-                line_text = src_ref.get_line_text()
                 
                 lines.append(
-                    line_text[:src_ref.start_col] 
+                    src_ref.start_line_text[:src_ref.start_col] 
                     + Fore.RED + Style.BRIGHT
-                    + line_text[src_ref.start_col : src_ref.end_col+1]
+                    + src_ref.start_line_text[src_ref.start_col : src_ref.end_col+1]
                     + Style.RESET_ALL 
-                    + line_text[src_ref.end_col+1:]
+                    + src_ref.start_line_text[src_ref.end_col+1:]
                 )
                 
                 lines.append(
