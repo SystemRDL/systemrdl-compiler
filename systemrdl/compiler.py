@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from antlr4 import FileStream, CommonTokenStream
+from antlr4 import CommonTokenStream
 
 from . import messages
 from .parser.SystemRDLLexer import SystemRDLLexer
@@ -14,6 +14,7 @@ from .core.validate import ValidateListener
 from . import component as comp
 from . import walker
 from .node import RootNode
+from .preprocessor import preprocessor
 
 class RDLCompiler:
     
@@ -62,7 +63,9 @@ class RDLCompiler:
             If any fatal compile error is encountered.
         """
         
-        input_stream = FileStream(path)
+        fpp = preprocessor.FilePreprocessor(self.env, path, [])
+        preprocessed_text, seg_map = fpp.preprocess()
+        input_stream = preprocessor.PreprocessedInputStream(preprocessed_text, seg_map)
         
         lexer = SystemRDLLexer(input_stream)
         lexer.removeErrorListeners()

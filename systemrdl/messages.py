@@ -3,9 +3,11 @@ import sys
 
 from antlr4.error.ErrorListener import ErrorListener
 from antlr4.Token import CommonToken
-from antlr4 import ParserRuleContext, FileStream
+from antlr4 import ParserRuleContext
 from antlr4.tree.Tree import TerminalNodeImpl
 from colorama import Fore, Style
+
+from .preprocessor.preprocessor import PreprocessedInputStream
 
 #===============================================================================
 class RDLCompileError(Exception):
@@ -39,16 +41,20 @@ class SourceRef:
     
     This is used to provide useful context when reporting error messages.
     """
-    def __init__(self, filename, start, end):
+    def __init__(self, start, end, filename=None, seg_map=None):
         
-        #: Source filename
-        self.filename = filename
+        #: SegmentMap object that provides character coordinate mapping table
+        self.seg_map = seg_map
+        
         
         #: Character position of start of selection
         self.start = start
         
         #: Character position of end of selection
         self.end = end
+        
+        #: Path to file from start of selection
+        self.filename = filename
         
         #: Line number of start of selection
         self.start_line = None
@@ -66,6 +72,12 @@ class SourceRef:
     
     def derive_coordinates(self):
         # TODO: For now, assumes selection is contained within a single file
+        
+        if self.seg_map is not None:
+            # Translate coordinates
+            self.end, self.filename, include_ref = self.seg_map.derive_source_offset(self.end, is_end=True)
+            self.start, self.filename, include_ref = self.seg_map.derive_source_offset(self.start)
+        
         line_start = 0
         lineno = 1
         
@@ -76,12 +88,12 @@ class SourceRef:
                 if line_text == "":
                     break
                 
-                if (self.start_line is None) and (self.start <= fp.tell()):
+                if (self.start_line is None) and (self.start < fp.tell()):
                     self.start_line = lineno
                     self.start_col = self.start - line_start
                     self.start_line_text = line_text.rstrip("\n")
                 
-                if (self.end_line is None) and (self.end <= fp.tell()):
+                if (self.end_line is None) and (self.end < fp.tell()):
                     self.end_line = lineno
                     self.end_col = self.end - line_start
                     break
@@ -109,13 +121,13 @@ class SourceRef:
             print(antlr_ref)
             raise NotImplementedError
         
-        # Get filename
+        # Get source segment map
         inputStream = token.getInputStream()
-        if isinstance(inputStream, FileStream):
-            filename = inputStream.fileName
+        if isinstance(inputStream, PreprocessedInputStream):
+            seg_map = inputStream.seg_map
         else:
-            filename = None
-            
+            seg_map = None
+        
         # Extract selection coordinates
         start = token.start
         if end_token is None:
@@ -124,7 +136,7 @@ class SourceRef:
             end = end_token.stop
         
         # Create object
-        src_ref = cls(filename, start, end)
+        src_ref = cls(start, end, seg_map=seg_map)
         return src_ref
 
 #===============================================================================

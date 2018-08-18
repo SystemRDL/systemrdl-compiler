@@ -5,7 +5,10 @@ import subprocess
 import json
 import shutil
 
+from antlr4 import InputStream
+
 from . import segment_map
+from .. import messages
 
 class FilePreprocessor:
     
@@ -20,7 +23,14 @@ class FilePreprocessor:
     
     #---------------------------------------------------------------------------
     def preprocess(self):
+        """
+        Performs the following preprocess steps:
+        - Expand `include directives
+        - Perl Preprocessor
         
+        Returns tuple:
+            (preprocessed_text, SegmentMap)
+        """
         tokens = self.tokenize()
         pl_segments, has_perl_tags = self.get_perl_segments(tokens)
         
@@ -122,8 +132,8 @@ class FilePreprocessor:
         # check that there is no unexpected text before the include
         if not (self.text[line_start:start] == "" or self.text[line_start:start].isspace()):
             self.env.msg.fatal(
-                "Unexpected text before include"
-                # TODO: add context
+                "Unexpected text before include",
+                messages.SourceRef(line_start, start-1, filename=self.path)
             )
         
         # Capture include contents
@@ -131,8 +141,8 @@ class FilePreprocessor:
         m_inc = inc_regex.match(self.text, start)
         if m_inc is None:
             self.env.msg.fatal(
-                "Invalid usage of include directive"
-                # TODO: add context
+                "Invalid usage of include directive",
+                messages.SourceRef(start, start+7, filename=self.path)
             )
         incl_path_raw = m_inc.group(3) or m_inc.group(4)
         end = m_inc.end(0)-1
@@ -140,9 +150,11 @@ class FilePreprocessor:
         # Check that only comments follow
         tail_regex = re.compile(r'(?:[ \t]*/\*.*?\*/)*[ \t]*(?://.*?|/\*.*?)?$', re.MULTILINE)
         if not tail_regex.match(self.text, end+1):
+            tail_capture_regex = re.compile(r'.*$', re.MULTILINE)
+            m = tail_capture_regex.match(self.text, end+1)
             self.env.msg.fatal(
-                "Unexpected text after include"
-                # TODO: add context
+                "Unexpected text after include",
+                messages.SourceRef(end+1, m.end(0)-1, filename=self.path)
             )
         
         # Resolve include path.
@@ -160,8 +172,8 @@ class FilePreprocessor:
                 incl_path = os.path.join(os.path.dirname(self.path), incl_path_raw)
         if not os.path.isfile(incl_path):
             self.env.msg.fatal(
-                "Could not find '%s' in include search paths" % incl_path_raw
-                # TODO: add context
+                "Could not find '%s' in include search paths" % incl_path_raw,
+                messages.SourceRef(start, end, filename=self.path)
             )
         
         return(end, incl_path)
@@ -198,8 +210,8 @@ class FilePreprocessor:
                 while incl_ref:
                     if os.path.samefile(incl_path, incl_ref.path):
                         self.env.msg.fatal(
-                            "Include of '%s' results in a circular reference" % incl_path
-                            # TODO: add context
+                            "Include of '%s' results in a circular reference" % incl_path,
+                            messages.SourceRef(start, end, filename=self.path)
                         )
                     incl_ref = incl_ref.parent
                 
@@ -265,26 +277,26 @@ class FilePreprocessor:
                 # Check for any illegal characters
                 if re.match(r'[\s;]', var):
                     self.env.msg.fatal(
-                        "Invalid text found in Perl macro expansion"
-                        # TODO: Add context
+                        "Invalid text found in Perl macro expansion",
+                        messages.SourceRef(pp_seg.start, pp_seg.end, filename=self.path)
                     )
-                    raise RuntimeError("Invalid text in var emit thing")
                 
                 lines.append("rdlppp_utils::emit_text(%d, %s);" % (i, var))
         miniscript = '\n'.join(lines)
         
         # Run miniscript
         result = subprocess.run(
-            ["perl","ppp_runner.pl"],
+            ["perl", os.path.join(os.path.dirname(__file__), "ppp_runner.pl")],
             input=miniscript.encode("utf-8"),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             timeout=5
         )
         if result.returncode:
             self.env.msg.fatal(
-                "Encountered errors while executing embedded Perl preprocessor commands:\n"
-                + result.stderr.decode("utf-8")
-                # TODO: Add context
+                "Encountered a Perl syntax error while executing embedded Perl preprocessor commands:\n"
+                + result.stderr.decode("utf-8"),
+                # TODO: Fix useless context somehow
+                messages.SourceRef(0, 0, filename=self.path)
             )
         
         # miniscript returns the emit list in JSON format. Convert it
@@ -292,7 +304,7 @@ class FilePreprocessor:
         
         return emit_list
 
-#===============================================================================
+#---------------------------------------------------------------------------
 
 class PPPSegment:
     def __init__(self, file_pp, start, end):
@@ -313,3 +325,10 @@ class PPPPerlSegment(PPPSegment):
 class PPPMacroSegment(PPPSegment):
     def get_text(self):
         return self.file_pp.text[self.start+3:self.end-1]
+
+#===============================================================================
+
+class PreprocessedInputStream(InputStream):
+    def __init__(self, data, seg_map):
+        super().__init__(data)
+        self.seg_map = seg_map

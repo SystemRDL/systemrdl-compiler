@@ -5,7 +5,7 @@ class SegmentMap:
     def __init__(self):
         self.segments = []
     
-    def derive_source_offset(self, offset):
+    def derive_source_offset(self, offset, is_end=False):
         """
         Given a post-preprocessed coordinate, derives the corresponding coordinate
         in the original source file.
@@ -15,11 +15,34 @@ class SegmentMap:
         where:
             - src_offset is the translated coordinate
                 If the input offset lands on a macro expansion, then src_offset
-                is a tuple that selects the unexpanded macro: (start, end)
+                returns the start or end coordinate according to is_end
             - src_path points to the original source file
             - include_ref describes any `include lineage using a IncludeRef object
                 Is none if file was not referenced via include
         """
+        for segment in self.segments:
+            if offset <= segment.end:
+                if isinstance(segment, MacroSegment):
+                    if is_end:
+                        return (
+                            segment.src_end,
+                            segment.src,
+                            segment.incl_ref
+                        )
+                    else:
+                        return (
+                            segment.src_start,
+                            segment.src,
+                            segment.incl_ref
+                        )
+                else:
+                    return (
+                        segment.src_start + (offset - segment.start),
+                        segment.src,
+                        segment.incl_ref
+                    )
+        
+        raise RuntimeError
 
 
 class Segment:
