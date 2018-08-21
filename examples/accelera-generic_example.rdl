@@ -68,36 +68,23 @@ regfile fifoRfile {
 };
 
 
+//
+// This example shows using perl to do anything you desire
+//
+
 field myField {
   desc = "My example 2bit status field";
   rclr;                                                    // Read to Clear
 };
 
 
+// An example of Apache's ASP standard for embedding Perl
 reg myReg {
-    myField data0 [1:0];
-    data0->reset = 2'd0;
-
-    myField data1 [3:2];
-    data1->reset = 2'd1;
-
-    myField data2 [5:4];
-    data2->reset = 2'd2;
-  
-    myField data3 [7:6];
-    data3->reset = 2'd3;
-  
-    myField data4 [9:8];
-    data4->reset = 2'd0;
-  
-    myField data5 [11:10];
-    data5->reset = 2'd1;
-  
-    myField data6 [13:12];
-    data6->reset = 2'd2;
-  
-    myField data7 [15:14];
-    data7->reset = 2'd3;
+  <% $num_fields = 16;
+     for( $i = 0; $i < $num_fields*2; $i += 2 ) { %>
+    myField data<%=$i/2%> [<%=$i+1%>:<%=$i%>];
+    data<%=$i/2%>->reset = 2'd<%=$i/2%4%>;
+  <% } %>
 };
 
 

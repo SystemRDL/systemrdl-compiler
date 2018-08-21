@@ -104,7 +104,7 @@ class FilePreprocessor:
             ('incl', r'`include'),
         ]
         tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_spec)
-        for m in re.finditer(tok_regex, self.text, re.DOTALL):
+        for m in re.finditer(tok_regex, self.text, re.DOTALL+re.MULTILINE):
             if m.lastgroup in ("incl", "perl"):
                 tokens.append((m.lastgroup, m.start(0), m.end(0)-1))
         return tokens
