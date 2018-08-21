@@ -18,7 +18,7 @@ class FilePreprocessor:
         self.search_paths = search_paths
         self.incl_ref = incl_ref
         
-        with open(path, 'r') as f:
+        with open(path, 'r', newline='') as f:
             self.text = f.read()
     
     #---------------------------------------------------------------------------
@@ -99,12 +99,12 @@ class FilePreprocessor:
         tokens = []
         token_spec = [
             ('mlc', r'/\*.*?\*/'),
-            ('slc', r'//[^\r\n]*?$'),
+            ('slc', r'//[^\r\n]*?\r?\n'),
             ('perl', r'<%.*?%>'),
             ('incl', r'`include'),
         ]
         tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_spec)
-        for m in re.finditer(tok_regex, self.text, re.DOTALL+re.MULTILINE):
+        for m in re.finditer(tok_regex, self.text, re.DOTALL):
             if m.lastgroup in ("incl", "perl"):
                 tokens.append((m.lastgroup, m.start(0), m.end(0)-1))
         return tokens

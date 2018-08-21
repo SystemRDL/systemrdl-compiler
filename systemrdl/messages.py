@@ -80,26 +80,29 @@ class SourceRef:
         
         line_start = 0
         lineno = 1
+        file_pos = 0
         
-        with open(self.filename) as fp:
+        with open(self.filename, 'r', newline='') as fp:
             
             while True:
                 line_text = fp.readline()
+                
+                file_pos += len(line_text)
+                
                 if line_text == "":
                     break
-                
-                if (self.start_line is None) and (self.start < fp.tell()):
+                if (self.start_line is None) and (self.start < file_pos):
                     self.start_line = lineno
                     self.start_col = self.start - line_start
-                    self.start_line_text = line_text.rstrip("\n")
+                    self.start_line_text = line_text.rstrip("\n").rstrip("\r")
                 
-                if (self.end_line is None) and (self.end < fp.tell()):
+                if (self.end_line is None) and (self.end < file_pos):
                     self.end_line = lineno
                     self.end_col = self.end - line_start
                     break
                 
                 lineno += 1
-                line_start = fp.tell()
+                line_start = file_pos
         
         
     
