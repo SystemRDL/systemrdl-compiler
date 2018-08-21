@@ -16,8 +16,8 @@ Consider the following snippet of SystemRDL:
     };
     
     addrmap top {
-        my_reg_t A;
-        my_reg_t B[4];
+        my_reg_t A[4];
+        my_reg_t B;
     };
 
 Once compiled, the resulting component tree is as follows:
@@ -33,7 +33,7 @@ The resulting tree has the following characteristics:
 -   The ``$root`` meta-component contains an instance of the elaborated top-level
     addrmap, as well as any signals that were instantiated in the root namespace.
 -   All instances and their descendants are unique objects.
--   Arrays of instances are encoded as a single object and storing the array's
+-   Arrays of instances are encoded as a single object that stores the array's
     dimensions.
 -   Each instance in the component tree keeps a reference back to its original
     "as-defined" non-instance object.
