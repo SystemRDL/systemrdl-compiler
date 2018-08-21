@@ -146,11 +146,11 @@ class FilePreprocessor:
             )
         incl_path_raw = m_inc.group(3) or m_inc.group(4)
         end = m_inc.end(0)-1
-        
+        #[^\r\n]*?\r?\n
         # Check that only comments follow
-        tail_regex = re.compile(r'(?:[ \t]*/\*.*?\*/)*[ \t]*(?://.*?|/\*.*?)?$', re.MULTILINE)
+        tail_regex = re.compile(r'(?:[ \t]*/\*[^\r\n]*?\*/)*[ \t]*(?://[^\r\n]*?|/\*[^\r\n]*?)?\r?\n')
         if not tail_regex.match(self.text, end+1):
-            tail_capture_regex = re.compile(r'.*$', re.MULTILINE)
+            tail_capture_regex = re.compile(r'[^\r\n]*?\r?\n')
             m = tail_capture_regex.match(self.text, end+1)
             self.env.msg.fatal(
                 "Unexpected text after include",
