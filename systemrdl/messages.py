@@ -46,7 +46,6 @@ class SourceRef:
         #: SegmentMap object that provides character coordinate mapping table
         self.seg_map = seg_map
         
-        
         #: Character position of start of selection
         self.start = start
         
@@ -71,16 +70,23 @@ class SourceRef:
         self.start_line_text = None
     
     def derive_coordinates(self):
-        # TODO: For now, assumes selection is contained within a single file
-        
         if self.seg_map is not None:
             # Translate coordinates
-            self.end, self.filename, include_ref = self.seg_map.derive_source_offset(self.end, is_end=True)
             self.start, self.filename, include_ref = self.seg_map.derive_source_offset(self.start)
+            self.end, end_filename, _ = self.seg_map.derive_source_offset(self.end, is_end=True)
+        else:
+            end_filename = self.filename
         
         line_start = 0
         lineno = 1
         file_pos = 0
+        
+        # Skip deriving end coordinate if selection spans multiple files
+        if self.filename != end_filename:
+            get_end = False
+        else:
+            get_end = True
+        
         
         with open(self.filename, 'r', newline='') as fp:
             
@@ -91,12 +97,15 @@ class SourceRef:
                 
                 if line_text == "":
                     break
+                
                 if (self.start_line is None) and (self.start < file_pos):
                     self.start_line = lineno
                     self.start_col = self.start - line_start
                     self.start_line_text = line_text.rstrip("\n").rstrip("\r")
+                    if not get_end:
+                        break
                 
-                if (self.end_line is None) and (self.end < file_pos):
+                if get_end and (self.end_line is None) and (self.end < file_pos):
                     self.end_line = lineno
                     self.end_col = self.end - line_start
                     break
@@ -104,6 +113,11 @@ class SourceRef:
                 lineno += 1
                 line_start = file_pos
         
+        # If no end coordinate was derived, just do a single char selection
+        if not get_end:
+            self.end_line = self.start_line
+            self.end_col = self.start_col
+            self.end = self.start
         
     
     @classmethod

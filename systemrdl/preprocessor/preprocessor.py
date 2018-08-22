@@ -137,15 +137,16 @@ class FilePreprocessor:
             )
         
         # Capture include contents
-        inc_regex = re.compile(r'(`include\s+("([^\r\n]+)"|<([^\r\n]+)>))')
+        inc_regex = re.compile(r'`include\s+("([^\r\n]+)"|<([^\r\n]+)>)')
         m_inc = inc_regex.match(self.text, start)
         if m_inc is None:
             self.env.msg.fatal(
                 "Invalid usage of include directive",
                 messages.SourceRef(start, start+7, filename=self.path)
             )
-        incl_path_raw = m_inc.group(3) or m_inc.group(4)
+        incl_path_raw = m_inc.group(2) or m_inc.group(3)
         end = m_inc.end(0)-1
+        path_start = m_inc.start(1)
         #[^\r\n]*?\r?\n
         # Check that only comments follow
         tail_regex = re.compile(r'(?:[ \t]*/\*[^\r\n]*?\*/)*[ \t]*(?://[^\r\n]*?|/\*[^\r\n]*?)?\r?\n')
@@ -173,8 +174,18 @@ class FilePreprocessor:
         if not os.path.isfile(incl_path):
             self.env.msg.fatal(
                 "Could not find '%s' in include search paths" % incl_path_raw,
-                messages.SourceRef(start, end, filename=self.path)
+                messages.SourceRef(path_start, end, filename=self.path)
             )
+        
+        # Check if path has already been referenced before
+        incl_ref = self.incl_ref
+        while incl_ref:
+            if os.path.samefile(incl_path, incl_ref.path):
+                self.env.msg.fatal(
+                    "Include of '%s' results in a circular reference" % incl_path_raw,
+                    messages.SourceRef(path_start, end, filename=self.path)
+                )
+            incl_ref = incl_ref.parent
         
         return(end, incl_path)
     
@@ -204,17 +215,6 @@ class FilePreprocessor:
                 
                 # Extract the path and actual end position
                 end, incl_path = self.parse_include(start)
-                
-                # Check if path has already been referenced before
-                incl_ref = self.incl_ref
-                while incl_ref:
-                    if os.path.samefile(incl_path, incl_ref.path):
-                        self.env.msg.fatal(
-                            "Include of '%s' results in a circular reference" % incl_path,
-                            messages.SourceRef(start, end, filename=self.path)
-                        )
-                    incl_ref = incl_ref.parent
-                
                 
                 incl_ref = segment_map.IncludeRef(start, end, self.path, self.incl_ref)
                 incl_file_pp = FilePreprocessor(self.env, incl_path, self.search_paths, incl_ref)
