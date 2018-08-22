@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from antlr4 import FileStream, CommonTokenStream
+from antlr4 import CommonTokenStream
 
 from . import messages
 from .parser.SystemRDLLexer import SystemRDLLexer
@@ -14,6 +14,7 @@ from .core.validate import ValidateListener
 from . import component as comp
 from . import walker
 from .node import RootNode
+from .preprocessor import preprocessor
 
 class RDLCompiler:
     
@@ -43,7 +44,7 @@ class RDLCompiler:
         self.root = self.visitor.component
     
     
-    def compile_file(self, path):
+    def compile_file(self, path, incl_search_paths=None):
         """
         Parse & compile a single file and append it to RDLCompiler's root
         namespace.
@@ -56,13 +57,27 @@ class RDLCompiler:
         path:str
             Path to an RDL source file
         
+        incl_search_paths:list
+            List of additional paths to search to resolve includes.
+            If unset, defaults to an empty list.
+            
+            Relative include paths are resolved in the following order:
+            
+            1. Search each path specified in ``incl_search_paths``.
+            2. Path relative to the source file performing the include.
+            
         Raises
         ------
         :class:`~systemrdl.messages.RDLCompileError`
             If any fatal compile error is encountered.
         """
         
-        input_stream = FileStream(path)
+        if incl_search_paths is None:
+            incl_search_paths = []
+        
+        fpp = preprocessor.FilePreprocessor(self.env, path, incl_search_paths)
+        preprocessed_text, seg_map = fpp.preprocess()
+        input_stream = preprocessor.PreprocessedInputStream(preprocessed_text, seg_map)
         
         lexer = SystemRDLLexer(input_stream)
         lexer.removeErrorListeners()
