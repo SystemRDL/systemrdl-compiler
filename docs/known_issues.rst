@@ -40,13 +40,14 @@ References to an instance's property in the RHS of an expression are not impleme
 
 
 
-Perl and Verilog Preprocessors
-------------------------------
+Partial implementation of Verilog Preprocessor
+----------------------------------------------
 
-Support for Perl and Verilog-style preprocessors has not been implemented yet.
+The Verilog-style preprocessor currently only implements ```include`` directive expansion.
+Conditional and macro directives are not implemented yet. (```ifdef``, ```else``, ```define``, etc.)
 
-I *do* plan on eventually adding support for these, but would prefer to focus on
-resolving the above issues first.
+As a workaround, equivalent preprocessing can be accomplished using the embedded Perl
+preprocessor.
 
 
 

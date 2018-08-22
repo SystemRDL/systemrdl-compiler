@@ -17,4 +17,4 @@ it should be far easier to write custom register space view generators.
 ![overview](docs/img/overview.svg)
 
 ## Documentation
-See the [SystemRDL Compiler Documentation](http://systemrdl-compiler.readthedocs.io/en/latest) for more details
+See the [SystemRDL Compiler Documentation](http://systemrdl-compiler.readthedocs.io) for more details

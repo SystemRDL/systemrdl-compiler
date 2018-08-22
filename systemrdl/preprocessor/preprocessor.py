@@ -24,11 +24,16 @@ class FilePreprocessor:
     #---------------------------------------------------------------------------
     def preprocess(self):
         """
+        Run preprocessor on a top-level file.
+        
         Performs the following preprocess steps:
+        
         - Expand `include directives
         - Perl Preprocessor
         
-        Returns tuple:
+        Returns
+        -------
+        tuple
             (preprocessed_text, SegmentMap)
         """
         tokens = self.tokenize()
@@ -87,12 +92,18 @@ class FilePreprocessor:
     #---------------------------------------------------------------------------
     def tokenize(self):
         """
-        Scans for instances of perl tags and include directives
-        Tokenization skips line and block comments
+        Tokenize the input text
         
-        Returns a list of tuples:
-            (typ, start, end)
-        where:
+        Scans for instances of perl tags and include directives.
+        Tokenization skips line and block comments.
+        
+        Returns
+        -------
+        list
+            List of tuples: (typ, start, end)
+            
+            Where:
+            
             - typ is "perl" or "incl"
             - start/end mark the first/last char offset of the token
         """
@@ -114,9 +125,9 @@ class FilePreprocessor:
         """
         Extract include from text based on start position of token
         
-        returns:
-            (end, incl_path)
-        where:
+        Returns
+        -------
+        (end, incl_path)
             - end: last char in include
             - incl_path: Resolved path to include
         """
