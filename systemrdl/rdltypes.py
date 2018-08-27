@@ -169,6 +169,33 @@ class UserStruct:
     
     UserStruct types can be identified using: :meth:`is_user_struct`
     
+    Values of struct members are accessed as read-only object attributes.
+    
+    For example, the following RDL struct literal:
+    
+    .. code-block:: none
+        
+        struct my_struct {
+            longint foo;
+            longint bar;
+        };
+        ...
+        my_struct_prop = my_struct'{foo:42, bar:123};
+        
+    ... can be queried in Python as follows:
+    
+    .. code-block:: python
+        
+        prop = node.get_property("my_struct_prop")
+        
+        foo = prop.foo
+        bar = getattr(prop, "bar")
+    
+    If necessary, a list of a UserStruct's member names can be accessed by:
+    
+    .. code-block:: python
+        
+        member_names =  prop._members.keys()
     """
     
     _members = OrderedDict()
@@ -179,7 +206,14 @@ class UserStruct:
         """
         Define a new struct type derived from the current type.
         
-        members is a dictionary of {member_name : type}
+        Parameters
+        ----------
+        name: str
+            Name of the struct type
+        members: {member_name : type}
+            Dictionary of struct member types.
+        is_abstract: bool
+            If set, marks the struct as abstract.
         """
         m = OrderedDict(cls._members)
         
