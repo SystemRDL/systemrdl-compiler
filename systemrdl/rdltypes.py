@@ -195,7 +195,7 @@ class UserStruct:
     
     .. code-block:: python
         
-        member_names =  prop._members.keys()
+        member_names = prop._members.keys()
     """
     
     _members = OrderedDict()

@@ -362,20 +362,18 @@ class AddressableNode(Node):
     
     
     @property
-    def absolute_address(self):
+    def address_offset(self):
         """
-        Get the absolute byte address of this node.
+        Get the byte address offset of this node relative to its parent
         
-        Indexes of all arrays in the node's lineage must be known
+        If this node is an array, it's index must be known
         
         Raises
         ------
         ValueError
-            If this property is referenced on a node whose array lineage is not
+            If this property is referenced on a node whose array index is not
             fully defined
-        
         """
-        
         if self.inst.is_array:
             if self.current_idx is None:
                 raise ValueError("Index of array element must be known to derive address")
@@ -399,10 +397,27 @@ class AddressableNode(Node):
         else:
             offset = self.inst.addr_offset
         
+        return offset
+    
+    
+    @property
+    def absolute_address(self):
+        """
+        Get the absolute byte address of this node.
+        
+        Indexes of all arrays in the node's lineage must be known
+        
+        Raises
+        ------
+        ValueError
+            If this property is referenced on a node whose array lineage is not
+            fully defined
+        
+        """
         if self.parent and not isinstance(self.parent, RootNode):
-            return self.parent.absolute_address + offset
+            return self.parent.absolute_address + self.address_offset
         else:
-            return offset
+            return self.address_offset
     
     
     @property
