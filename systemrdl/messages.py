@@ -155,6 +155,20 @@ class SourceRef:
         # Create object
         src_ref = cls(start, end, seg_map=seg_map)
         return src_ref
+    
+    @classmethod
+    def from_antlr_recognizer(cls, recognizer):
+        inputStream = recognizer.inputStream
+        if isinstance(inputStream, PreprocessedInputStream):
+            seg_map = inputStream.seg_map
+        else:
+            seg_map = None
+        
+        idx = recognizer.getCharIndex()
+        
+        # Create object
+        src_ref = cls(idx, idx, seg_map=seg_map)
+        return src_ref
 
 #===============================================================================
 class MessagePrinter:
@@ -229,8 +243,8 @@ class MessagePrinter:
                     + Style.RESET_ALL
                 )
                 
-            elif src_ref.start_col != src_ref.end_col:
-                # Single line, Nonzero width
+            else:
+                # Single line
                 width = src_ref.end_col - src_ref.start_col + 1
                 
                 lines.append(
@@ -276,11 +290,14 @@ class RDLAntlrErrorListener(ErrorListener) :
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         if offendingSymbol is not None:
             src_ref = SourceRef.from_antlr(offendingSymbol)
+        elif recognizer is not None:
+            # If a offendingSymbol is not provided, then the next-best option is
+            # to use the current recognizer's state
+            src_ref = SourceRef.from_antlr_recognizer(recognizer)
         else:
-            # TODO: Need to derive a src_ref in situation where an offending symbol
-            # is not provided (LexerNoViableAltException)
+            # Out of options to provide context
             src_ref = None
-            
+        
         self.msg.error(
             msg,
             src_ref
