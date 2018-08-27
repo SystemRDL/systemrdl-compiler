@@ -18,7 +18,7 @@ class FilePreprocessor:
         self.search_paths = search_paths
         self.incl_ref = incl_ref
         
-        with open(path, 'r', newline='') as f:
+        with open(path, 'r', newline='', encoding='utf_8') as f:
             self.text = f.read()
     
     #---------------------------------------------------------------------------

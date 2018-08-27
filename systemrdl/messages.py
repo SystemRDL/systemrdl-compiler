@@ -88,7 +88,7 @@ class SourceRef:
             get_end = True
         
         
-        with open(self.filename, 'r', newline='') as fp:
+        with open(self.filename, 'r', newline='', encoding='utf_8') as fp:
             
             while True:
                 line_text = fp.readline()
