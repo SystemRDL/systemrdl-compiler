@@ -29,6 +29,12 @@ class Node:
         #: Reference to parent :class:`~Node`
         self.parent = parent
     
+    def __repr__(self):
+        return "<%s %s at 0x%x>" % (
+            self.__class__.__qualname__,
+            self.get_path(),
+            id(self)
+        )
     
     @staticmethod
     def _factory(inst, env, parent=None):

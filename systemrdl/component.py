@@ -72,6 +72,19 @@ class Component:
                 setattr(result, k, deepcopy(v, memo))
         return result
     
+    def __repr__(self):
+        if self.is_instance:
+            name_str = "%s (%s)" % (self.inst_name, self.type_name)
+        else:
+            name_str = self.type_name
+        
+        return "<%s %s at 0x%x>" % (
+            self.__class__.__qualname__,
+            name_str,
+            id(self)
+        )
+        
+        
     def get_child_by_name(self, inst_name):
         for child in self.children:
             if child.inst_name == inst_name:

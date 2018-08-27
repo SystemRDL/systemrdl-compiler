@@ -302,4 +302,3 @@ class RDLAntlrErrorListener(ErrorListener) :
             msg,
             src_ref
         )
-        

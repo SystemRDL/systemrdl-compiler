@@ -252,7 +252,13 @@ class UserStruct:
             return self._values[name]
         else:
             raise AttributeError("'%s' object has no attribute '%s'" % (type(self).__name__, name))
-
+    
+    def __repr__(self):
+        return "<struct '%s' %s at 0x%x>" % (
+            self.__class__.__qualname__,
+            "(%s)" % ", ".join(self._members.keys()),
+            id(self)
+        )
 
 def is_user_struct(t):
     """
