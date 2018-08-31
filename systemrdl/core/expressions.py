@@ -1085,6 +1085,35 @@ class InstRef(Expr):
         cref = rdltypes.ComponentRef(self.ref_root, resolved_ref_elements)
         
         return cref
+    
+    
+class PropRef(Expr):
+    def __init__(self, env, src_ref, inst_ref, prop_ref_type):
+        super().__init__(env, src_ref)
+        # InstRef to the component whose property is being referenced
+        self.inst_ref = inst_ref
+        
+        # PropertyReference class
+        self.prop_ref_type = prop_ref_type
+    
+    def predict_type(self):
+        """
+        Predict the type of the inst_ref, and make sure the property being
+        referenced is allowed
+        """
+        inst_type = self.inst_ref.predict_type()
+        
+        if self.prop_ref_type.allowed_inst_type != inst_type:
+            self.msg.fatal(
+                "'%s' is not a valid property of instance" % self.prop_ref_type.get_name(),
+                self.src_ref
+            )
+        
+        return self.prop_ref_type
+    
+    def get_value(self, eval_width=None):
+        cref = self.inst_ref.get_value()
+        return self.prop_ref_type(self.src_ref, self.env, cref)
         
 #-------------------------------------------------------------------------------
 # Assignment cast
@@ -1147,9 +1176,11 @@ def is_castable(src, dst):
             return True
         else:
             return False
-    elif rdltypes.is_user_struct(src) and rdltypes.is_user_struct(dst):
+    elif rdltypes.is_user_struct(dst):
         # Structs can be assigned their derived counterparts - aka their subclasses
         return issubclass(src, dst)
+    elif dst == rdltypes.PropertyReference:
+        return issubclass(src, rdltypes.PropertyReference)
     elif src == dst:
         return True
     else:

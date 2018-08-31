@@ -1,5 +1,5 @@
 from .. import component as comp
-from ..node import FieldNode, VectorNode
+from .. import node as m_node
 from .. import rdltypes
 from . import expressions
 
@@ -21,6 +21,12 @@ class PropertyRuleBook:
                 self.rdl_properties[prop_name] = prop(self.env)
         
         self.user_properties = {}
+        
+        self.rdl_prop_refs = {}
+        for prop_ref in get_all_subclasses(rdltypes.PropertyReference):
+            if prop_ref.__name__.startswith("PropRef_"):
+                prop_name = prop_ref.get_name()
+                self.rdl_prop_refs[prop_name] = prop_ref
     
     def lookup_property(self, prop_name):
         if prop_name in self.rdl_properties:
@@ -29,6 +35,9 @@ class PropertyRuleBook:
             return self.user_properties[prop_name]
         else:
             return None
+    
+    def lookup_prop_ref_type(self, prop_name):
+        return self.rdl_prop_refs.get(prop_name, None)
     
     def register_udp(self, udp, src_ref):
         if udp.name in self.user_properties:
@@ -170,10 +179,6 @@ class PropertyRuleBoolPair(PropertyRule):
             return not node.inst.properties[self.opposite_property]
         else:
             return self.default
-
-#===============================================================================
-# Placeholder for all my todos below
-TODO = None
 
 #===============================================================================
 # General Properties
@@ -419,14 +424,19 @@ class Prop_next(PropertyRule):
     (9.5)
     """
     bindable_to = [comp.Field]
-    valid_types = [comp.Field]
+    valid_types = [comp.Field, rdltypes.PropertyReference]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
     
     def validate(self, node, value):
         # 9.5.1-e: next cannot be self-referencing
-        if node.get_path() == value.get_path():
+        if isinstance(value, rdltypes.PropertyReference):
+            ref_node = value.node
+        else:
+            ref_node = value
+        
+        if node.get_path() == ref_node.get_path():
             self.env.msg.error(
                 "Field '%s' cannot reference itself in next property"
                 % (node.inst.inst_name),
@@ -453,7 +463,7 @@ class Prop_reset(PropertyRule):
                     % (value, node.inst.inst_name, node.inst.width),
                     node.inst.inst_src_ref
                 )
-        elif isinstance(value, FieldNode):
+        elif isinstance(value, m_node.FieldNode):
             # 9.5.1-d: When reset is a reference, it shall reference another
             # field of the same size.
             if node.inst.width != value.inst.width:
@@ -851,7 +861,7 @@ class Prop_underflow(PropertyRule):
 
 class Prop_incr(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.Signal, comp.Field]
+    valid_types = [comp.Signal, comp.Field, rdltypes.PropertyReference]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -879,7 +889,7 @@ class Prop_decrvalue(PropertyRule):
 
 class Prop_decr(PropertyRule):
     bindable_to = [comp.Field]
-    valid_types = [comp.Signal, comp.Field]
+    valid_types = [comp.Signal, comp.Field, rdltypes.PropertyReference]
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -1208,10 +1218,141 @@ class UserProperty(PropertyRule):
             
             # Spec does not specify, but assuming this check gets ignored for
             # non-vector nodes
-            if isinstance(node, VectorNode):
+            if isinstance(node, m_node.VectorNode):
                 if value >= (2**node.inst.width):
                     self.env.msg.error(
                         "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
                         % (value, self.name, node.inst.width, node.inst.inst_name),
                         node.inst.inst_src_ref
                     )
+
+#===============================================================================
+# Property References
+#===============================================================================
+        
+#-------------------------------------------------------------------------------
+# Reductions
+#-------------------------------------------------------------------------------
+class PropRef_anded(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_ored(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_xored(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+#-------------------------------------------------------------------------------
+# Counter
+#-------------------------------------------------------------------------------
+class CounterPropRef(rdltypes.PropertyReference):
+    def _validate(self):
+        if not self.node.get_property("counter"):
+            self.env.msg.error(
+                "Property reference '%s' is illegal because '%s' is not a counter"
+                % (self.name, self.node.inst.inst_name),
+                self.src_ref
+            )
+    
+class PropRef_incr(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_incrsaturate(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_incrthreshold(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_incrvalue(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_decr(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_decsaturate(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_decthreshold(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_decrvalue(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_overflow(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_underflow(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_threshold(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+class PropRef_saturate(CounterPropRef):
+    allowed_inst_type = comp.Field
+
+#-------------------------------------------------------------------------------
+# Access
+#-------------------------------------------------------------------------------
+class PropRef_swacc(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_swmod(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_swwe(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_swwel(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+#-------------------------------------------------------------------------------
+# HW Signals
+#-------------------------------------------------------------------------------
+class PropRef_we(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_wel(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_hwset(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_hwclr(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+#-------------------------------------------------------------------------------
+# Interrupts
+#-------------------------------------------------------------------------------
+class PropRef_intr(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Reg
+
+class PropRef_enable(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_halt(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Reg
+
+class PropRef_haltenable(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_haltmask(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_mask(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+#-------------------------------------------------------------------------------
+class PropRef_hwenable(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_hwmask(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_next(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_reset(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field
+
+class PropRef_resetsignal(rdltypes.PropertyReference):
+    allowed_inst_type = comp.Field

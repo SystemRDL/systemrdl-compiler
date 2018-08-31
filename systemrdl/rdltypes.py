@@ -2,7 +2,7 @@ import enum
 import inspect
 from collections import OrderedDict
 
-from .node import AddressableNode
+from . import node as m_node
 
 class AutoEnum(enum.Enum):
     def __new__(cls):
@@ -316,13 +316,49 @@ class ComponentRef:
                     )
             
             # Assign indexes if appropriate
-            if (isinstance(current_node, AddressableNode)) and current_node.inst.is_array:
+            if (isinstance(current_node, m_node.AddressableNode)) and current_node.inst.is_array:
                 current_node.current_idx = idx_list
             
         return current_node
         
 #===============================================================================
-
+class PropertyReference:
+    """
+    Base class for all property references used in RHS of an expression.
+    
+    The PropertyReference object represents the expression's reference target.
+    Details of the reference can be determined using its ``node`` and ``name``
+    variables.
+    """
+    allowed_inst_type = None
+    
+    def __init__(self, src_ref, env, comp_ref):
+        self.env = env
+        self.src_ref = src_ref
+        self._comp_ref = comp_ref
+        
+        #: Node object that represents the component instance from which the
+        #: property is being referenced.
+        self.node = None
+    
+    @property
+    def name(self):
+        """
+        Name of the property being referenced
+        """
+        return self.get_name()
+    
+    @classmethod
+    def get_name(cls):
+        return cls.__name__.replace("PropRef_", "")
+    
+    def _resolve_node(self, assignee_node):
+        self.node = self._comp_ref.build_node_ref(assignee_node, self.env)
+    
+    def _validate(self):
+        pass
+    
+#===============================================================================
 class ArrayPlaceholder():
     """
     Placeholder class to describe array types

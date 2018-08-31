@@ -381,10 +381,33 @@ class ExprVisitor(BaseVisitor):
         else:
             prop_token = ctx.ID()
         
-        self.msg.fatal(
-            "Property references in expressions are not supported.",
-            SourceRef.from_antlr(prop_token)
+        if not isinstance(ref_expr, e.InstRef):
+            self.msg.fatal(
+                "Illegal property reference from non-component.",
+                SourceRef.from_antlr(ctx.instance_ref())
+            )
+        
+        prop_name = get_ID_text(prop_token)
+        prop_ref_type = self.compiler.property_rules.lookup_prop_ref_type(prop_name)
+        
+        if prop_ref_type is None:
+            self.msg.fatal(
+                "'%s' is not a known property" % prop_name,
+                SourceRef.from_antlr(prop_token)
+            )
+        
+        propref_expr = e.PropRef(
+            self.compiler.env,
+            SourceRef.from_antlr(prop_token),
+            ref_expr,
+            prop_ref_type
         )
+        
+        #self.msg.fatal(
+        #    "Property references in expressions are not supported.",
+        #    SourceRef.from_antlr(prop_token)
+        #)
+        return propref_expr
     
     def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
         expr = self.visit(ctx.expr())

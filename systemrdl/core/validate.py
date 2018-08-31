@@ -23,10 +23,13 @@ class ValidateListener(walker.RDLListener):
     
     
     def enter_Component(self, node):
-        
         # Validate all properties that were applied to the component
         for prop_name in node.inst.properties.keys():
             prop_value = node.get_property(prop_name)
+            
+            if isinstance(prop_value, rdltypes.PropertyReference):
+                prop_value._validate()
+            
             prop_rule = self.env.property_rules.lookup_property(prop_name)
             prop_rule.validate(node, prop_value)
     

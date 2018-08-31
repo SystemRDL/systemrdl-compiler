@@ -89,3 +89,8 @@ Structures
     :members:
 
 .. autofunction:: systemrdl.rdltypes.is_user_struct
+
+Property Reference
+------------------
+.. autoclass:: systemrdl.rdltypes.PropertyReference
+    :members:

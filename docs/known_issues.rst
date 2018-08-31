@@ -28,17 +28,6 @@ SystemRDL ``constraint`` blocks are not implemented yet.
 
 
 
-Property References
--------------------
-
-References to an instance's property in the RHS of an expression are not implemented yet.
-
-.. code-block:: none
-
-    LHS = some_intr_reg->intr;
-    //                 ^^^^^^^ Not supported yet
-
-
 
 Partial implementation of Verilog Preprocessor
 ----------------------------------------------

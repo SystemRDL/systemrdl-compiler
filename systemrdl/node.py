@@ -269,13 +269,16 @@ class Node:
         LookupError
             If prop_name is invalid
         """
+        
         # If its already in the component, then safe to bypass checks
         if prop_name in self.inst.properties:
             prop_value = self.inst.properties[prop_name]
             
-            # If this is a hierarchical component reference, convert it to a Node reference
             if isinstance(prop_value, rdltypes.ComponentRef):
+                # If this is a hierarchical component reference, convert it to a Node reference
                 prop_value = prop_value.build_node_ref(self, self.env)
+            if isinstance(prop_value, rdltypes.PropertyReference):
+                prop_value._resolve_node(self)
             
             return prop_value
         
