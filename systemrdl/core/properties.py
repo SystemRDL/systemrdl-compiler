@@ -188,8 +188,8 @@ class Prop_name(PropertyRule):
     Specifies a more descriptive name
     (5.2.1)
     """
-    bindable_to = [comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal]
-    valid_types = [str]
+    bindable_to = (comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal,)
+    valid_types = (str,)
     default = ""
     dyn_assign_allowed = True
     mutex_group = None
@@ -207,8 +207,8 @@ class Prop_desc(PropertyRule):
     Describes the component’s purpose.
     (5.2.1)
     """
-    bindable_to = [comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal]
-    valid_types = [str]
+    bindable_to = (comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal,)
+    valid_types = (str,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -219,8 +219,8 @@ class Prop_dontcompare(PropertyRule):
     against expected results.
     (5.2.2)
     """
-    bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile, comp.Field]
-    valid_types = [bool, int]
+    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile, comp.Field,)
+    valid_types = (bool, int,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "O"
@@ -230,8 +230,8 @@ class Prop_donttest(PropertyRule):
     Indicates the component is not included in structural testing.
     (5.2.2)
     """
-    bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile, comp.Field]
-    valid_types = [bool, int]
+    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile, comp.Field,)
+    valid_types = (bool, int,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "O"
@@ -242,15 +242,15 @@ class Prop_ispresent(PropertyRule):
     from the final specification.
     (5.3)
     """
-    bindable_to = [comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal,)
+    valid_types = (bool,)
     default = True
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_errextbus(PropertyRule):
-    bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = None
@@ -265,29 +265,29 @@ class Prop_errextbus(PropertyRule):
             )
 
 class Prop_hdl_path(PropertyRule):
-    bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
-    valid_types = [str]
+    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile,)
+    valid_types = (str,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hdl_path_gate(PropertyRule):
-    bindable_to = [comp.Addrmap, comp.Reg, comp.Regfile]
-    valid_types = [str]
+    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile,)
+    valid_types = (str,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hdl_path_gate_slice(PropertyRule):
-    bindable_to = [comp.Field, comp.Mem]
-    valid_types = [rdltypes.ArrayPlaceholder(str)]
+    bindable_to = (comp.Field, comp.Mem,)
+    valid_types = (rdltypes.ArrayPlaceholder(str),)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hdl_path_slice(PropertyRule):
-    bindable_to = [comp.Field, comp.Mem]
-    valid_types = [rdltypes.ArrayPlaceholder(str)]
+    bindable_to = (comp.Field, comp.Mem,)
+    valid_types = (rdltypes.ArrayPlaceholder(str),)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -301,8 +301,8 @@ class Prop_signalwidth(PropertyRule):
     Width of the signal.
     (8.2)
     """
-    bindable_to = [comp.Signal]
-    valid_types = [int]
+    bindable_to = (comp.Signal,)
+    valid_types = (int,)
     default = None
     dyn_assign_allowed = False
     mutex_group = None
@@ -318,8 +318,8 @@ class Prop_sync(PropertyRuleBoolPair):
     Signal is synchronous to the clock of the component.
     (8.2)
     """
-    bindable_to = [comp.Signal]
-    valid_types = [bool]
+    bindable_to = (comp.Signal,)
+    valid_types = (bool,)
     default = True
     dyn_assign_allowed = True
     mutex_group = "N"
@@ -331,8 +331,8 @@ class Prop_async(PropertyRuleBoolPair):
     Signal is asynchronous to the clock of the component.
     (8.2)
     """
-    bindable_to = [comp.Signal]
-    valid_types = [bool]
+    bindable_to = (comp.Signal,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "N"
@@ -346,8 +346,8 @@ class Prop_cpuif_reset(PropertyRule):
     parameter only controls the CPU interface of a generated slave.
     (8.2)
     """
-    bindable_to = [comp.Signal]
-    valid_types = [bool]
+    bindable_to = (comp.Signal,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -358,8 +358,8 @@ class Prop_field_reset(PropertyRule):
     is not defined, this reverts to the default reset signal.
     (8.2)
     """
-    bindable_to = [comp.Signal]
-    valid_types = [bool]
+    bindable_to = (comp.Signal,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -369,8 +369,8 @@ class Prop_activelow(PropertyRule):
     Signal is active low (state of 0 means ON).
     (8.2)
     """
-    bindable_to = [comp.Signal]
-    valid_types = [bool]
+    bindable_to = (comp.Signal,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "A"
@@ -380,8 +380,8 @@ class Prop_activehigh(PropertyRule):
     Signal is active high (state of 1 means ON).
     (8.2)
     """
-    bindable_to = [comp.Signal]
-    valid_types = [bool]
+    bindable_to = (comp.Signal,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "A"
@@ -398,8 +398,8 @@ class Prop_hw(PropertyRule):
     Design’s ability to sample/update a field.
     (9.4)
     """
-    bindable_to = [comp.Field]
-    valid_types = [rdltypes.AccessType]
+    bindable_to = (comp.Field,)
+    valid_types = (rdltypes.AccessType,)
     default = rdltypes.AccessType.rw
     dyn_assign_allowed = False
     mutex_group = None
@@ -409,8 +409,8 @@ class Prop_sw(PropertyRule):
     Programmer’s ability to read/write a field.
     (9.4)
     """
-    bindable_to = [comp.Field, comp.Mem]
-    valid_types = [rdltypes.AccessType]
+    bindable_to = (comp.Field, comp.Mem,)
+    valid_types = (rdltypes.AccessType,)
     default = rdltypes.AccessType.rw
     dyn_assign_allowed = True
     mutex_group = None
@@ -423,8 +423,8 @@ class Prop_next(PropertyRule):
     The next value of the field; the D-input for flip-flops.
     (9.5)
     """
-    bindable_to = [comp.Field]
-    valid_types = [comp.Field, rdltypes.PropertyReference]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Field, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -448,8 +448,8 @@ class Prop_reset(PropertyRule):
     The reset value for the field when resetsignal is asserted.
     (9.5)
     """
-    bindable_to = [comp.Field]
-    valid_types = [int, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (int, comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -488,8 +488,8 @@ class Prop_resetsignal(PropertyRule):
     Reference to the signal used to reset the field
     (9.5)
     """
-    bindable_to = [comp.Field]
-    valid_types = [comp.Signal]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -503,8 +503,8 @@ class Prop_rclr(PropertyRule):
     Clear on read (field = 0).
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "P"
@@ -533,8 +533,8 @@ class Prop_rset(PropertyRule):
     Set on read (field = all 1’s).
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "P"
@@ -563,8 +563,8 @@ class Prop_onread(PropertyRule):
     Read side-effect.
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [rdltypes.OnReadType]
+    bindable_to = (comp.Field,)
+    valid_types = (rdltypes.OnReadType,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "P"
@@ -596,8 +596,8 @@ class Prop_woset(PropertyRule):
     Write one to set (field = field | write_data).
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "B"
@@ -607,8 +607,8 @@ class Prop_woclr(PropertyRule):
     Write one to clear (field = field & ~write_data).
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "B"
@@ -617,8 +617,8 @@ class Prop_onwrite(PropertyRule):
     """
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [rdltypes.OnWriteType]
+    bindable_to = (comp.Field,)
+    valid_types = (rdltypes.OnWriteType,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "B"
@@ -630,8 +630,8 @@ class Prop_swwe(PropertyRule):
     Field is writable if signal/field/value is True
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "R"
@@ -642,8 +642,8 @@ class Prop_swwel(PropertyRule):
     Field is writable if signal/field/value is False
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "R"
@@ -655,8 +655,8 @@ class Prop_swmod(PropertyRule):
     modified by software
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -667,8 +667,8 @@ class Prop_swacc(PropertyRule):
     accessed by software
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -681,8 +681,8 @@ class Prop_singlepulse(PropertyRule):
     shall be specified as 0
     (9.6)
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -692,45 +692,45 @@ class Prop_singlepulse(PropertyRule):
 #-------------------------------------------------------------------------------
 
 class Prop_we(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
 
 class Prop_wel(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_anded(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_ored(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_xored(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_fieldwidth(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [int]
+    bindable_to = (comp.Field,)
+    valid_types = (int,)
     default = None
     dyn_assign_allowed = False
     mutex_group = None
@@ -743,30 +743,30 @@ class Prop_fieldwidth(PropertyRule):
     
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwclr(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hwset(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwenable(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
 
 class Prop_hwmask(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
@@ -777,8 +777,8 @@ class Prop_hwmask(PropertyRule):
 #-------------------------------------------------------------------------------
 
 class Prop_counter(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "E"
@@ -787,8 +787,8 @@ class Prop_threshold(PropertyRule):
     """
     alias of incrthreshold.
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (bool, int, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -804,8 +804,8 @@ class Prop_saturate(PropertyRule):
     """
     alias of incrsaturate.
     """
-    bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (bool, int, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -818,8 +818,8 @@ class Prop_saturate(PropertyRule):
         comp_def.properties['incrsaturate'] = value
 
 class Prop_incrthreshold(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (bool, int, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -832,8 +832,8 @@ class Prop_incrthreshold(PropertyRule):
         comp_def.properties['incrthreshold'] = value
 
 class Prop_incrsaturate(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (bool, int, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -846,71 +846,71 @@ class Prop_incrsaturate(PropertyRule):
         comp_def.properties['incrsaturate'] = value
 
 class Prop_overflow(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_underflow(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_incr(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [comp.Signal, comp.Field, rdltypes.PropertyReference]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_incrvalue(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [int, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (int, comp.Signal, comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "F"
 
 class Prop_incrwidth(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [int]
+    bindable_to = (comp.Field,)
+    valid_types = (int,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "F"
 
 class Prop_decrvalue(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [int, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (int, comp.Signal, comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "G"
 
 class Prop_decr(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [comp.Signal, comp.Field, rdltypes.PropertyReference]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_decrwidth(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [int]
+    bindable_to = (comp.Field,)
+    valid_types = (int,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "G"
 
 class Prop_decrsaturate(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (bool, int, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_decrthreshold(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool, int, comp.Signal, comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (bool, int, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -920,15 +920,15 @@ class Prop_decrthreshold(PropertyRule):
 #-------------------------------------------------------------------------------
 
 class Prop_intr(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "E"
 
 class Prop_intr_type(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [rdltypes.InterruptType]
+    bindable_to = (comp.Field,)
+    valid_types = (rdltypes.InterruptType,)
     default = rdltypes.InterruptType.level
     dyn_assign_allowed = True
     mutex_group = None
@@ -942,43 +942,43 @@ class Prop_intr_type(PropertyRule):
         return "intr type"
 
 class Prop_enable(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
 
 class Prop_mask(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
 
 class Prop_haltenable(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"
 
 class Prop_haltmask(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [comp.Field]
+    bindable_to = (comp.Field,)
+    valid_types = (comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"
 
 class Prop_sticky(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "I"
 
 class Prop_stickybit(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "I"
@@ -1000,22 +1000,22 @@ class Prop_stickybit(PropertyRule):
 # Misc properties
 #-------------------------------------------------------------------------------
 class Prop_encode(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [rdltypes.UserEnum]
+    bindable_to = (comp.Field,)
+    valid_types = (rdltypes.UserEnum,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_precedence(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [rdltypes.PrecedenceType]
+    bindable_to = (comp.Field,)
+    valid_types = (rdltypes.PrecedenceType,)
     default = rdltypes.PrecedenceType.sw
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_paritycheck(PropertyRule):
-    bindable_to = [comp.Field]
-    valid_types = [bool]
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = None
@@ -1028,8 +1028,8 @@ class Prop_regwidth(PropertyRule):
     """
     The bit-width of the register (power of two).
     """
-    bindable_to = [comp.Reg]
-    valid_types = [int]
+    bindable_to = (comp.Reg,)
+    valid_types = (int,)
     default = 32
     dyn_assign_allowed = False
     mutex_group = None
@@ -1039,8 +1039,8 @@ class Prop_accesswidth(PropertyRule):
     The minimum software access width (power of two) operation that may be
     performed on the register.
     """
-    bindable_to = [comp.Reg]
-    valid_types = [int]
+    bindable_to = (comp.Reg,)
+    valid_types = (int,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -1053,8 +1053,8 @@ class Prop_accesswidth(PropertyRule):
         return node.get_property('regwidth')
 
 class Prop_shared(PropertyRule):
-    bindable_to = [comp.Reg]
-    valid_types = [bool]
+    bindable_to = (comp.Reg,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = None
@@ -1064,15 +1064,15 @@ class Prop_shared(PropertyRule):
 #===============================================================================
 
 class Prop_mementries(PropertyRule):
-    bindable_to = [comp.Mem]
-    valid_types = [int]
+    bindable_to = (comp.Mem,)
+    valid_types = (int,)
     default = 1
     dyn_assign_allowed = False
     mutex_group = None
 
 class Prop_memwidth(PropertyRule):
-    bindable_to = [comp.Mem]
-    valid_types = [int]
+    bindable_to = (comp.Mem,)
+    valid_types = (int,)
     default = 32
     dyn_assign_allowed = False
     mutex_group = None
@@ -1082,8 +1082,8 @@ class Prop_memwidth(PropertyRule):
 #===============================================================================
 
 class Prop_alignment(PropertyRule):
-    bindable_to = [comp.Addrmap, comp.Regfile]
-    valid_types = [int]
+    bindable_to = (comp.Addrmap, comp.Regfile,)
+    valid_types = (int,)
     default = None
     dyn_assign_allowed = False
     mutex_group = None
@@ -1097,8 +1097,8 @@ class Prop_alignment(PropertyRule):
     # in order to distinguish it as unspecified by the user. 
 
 class Prop_sharedextbus(PropertyRule):
-    bindable_to = [comp.Addrmap, comp.Regfile]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap, comp.Regfile,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = None
@@ -1107,22 +1107,22 @@ class Prop_sharedextbus(PropertyRule):
 #===============================================================================
 
 class Prop_bigendian(PropertyRule):
-    bindable_to = [comp.Addrmap]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "L"
 
 class Prop_littleendian(PropertyRule):
-    bindable_to = [comp.Addrmap]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "L"
 
 class Prop_addressing(PropertyRule):
-    bindable_to = [comp.Addrmap]
-    valid_types = [rdltypes.AddressingType]
+    bindable_to = (comp.Addrmap,)
+    valid_types = (rdltypes.AddressingType,)
     default = rdltypes.AddressingType.regalign
     dyn_assign_allowed = False
     mutex_group = None
@@ -1132,22 +1132,22 @@ class Prop_rsvdset(PropertyRule):
     If true, the read value of all fields not explicitly defined is set to 1
     otherwise, it is set to 0.
     """
-    bindable_to = [comp.Addrmap]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = "Q"
 
 class Prop_rsvdsetX(PropertyRule):
-    bindable_to = [comp.Addrmap]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = "Q"
 
 class Prop_msb0(PropertyRuleBoolPair):
-    bindable_to = [comp.Addrmap]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = "M"
@@ -1155,8 +1155,8 @@ class Prop_msb0(PropertyRuleBoolPair):
     opposite_property = "lsb0"
     
 class Prop_lsb0(PropertyRuleBoolPair):
-    bindable_to = [comp.Addrmap]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap,)
+    valid_types = (bool,)
     default = True
     dyn_assign_allowed = False
     mutex_group = "M"
@@ -1165,8 +1165,8 @@ class Prop_lsb0(PropertyRuleBoolPair):
     
 #-------------------------------------------------------------------------------
 class Prop_bridge(PropertyRule):
-    bindable_to = [comp.Addrmap]
-    valid_types = [bool]
+    bindable_to = (comp.Addrmap,)
+    valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = None

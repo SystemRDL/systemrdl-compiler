@@ -295,6 +295,31 @@ class Node:
         return rule.get_default(self)
     
     
+    def list_properties(self, list_all=False):
+        """
+        Lists properties associated with this node.
+        By default, only lists properties that were explicitly set. If ``list_all`` is
+        set to ``True`` then lists all valid properties of this component type
+        
+        Parameters
+        ----------
+        list_all: bool
+            If true, lists all valid properties of this component type.
+        """
+        
+        if list_all:
+            props = []
+            for k,v in self.env.property_rules.rdl_properties.items():
+                if type(self.inst) in v.bindable_to:
+                    props.append(k)
+            for k,v in self.env.property_rules.user_properties.items():
+                if type(self.inst) in v.bindable_to:
+                    props.append(k)
+            return props
+        else:
+            return list(self.inst.properties.keys())
+    
+    
     def get_path_segment(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
         """
         Gets the hierarchical path segment for just this node.
@@ -484,10 +509,15 @@ class FieldNode(VectorNode):
         (Any hardware-writable field is inherently volatile)
         """
         
-        # TODO: There are way more conditions that make a field volatile (counters, next, ...)
         hw = self.get_property('hw')
-        return hw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
-                        rdltypes.AccessType.w, rdltypes.AccessType.w1)
+        return (
+            (hw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
+                    rdltypes.AccessType.w, rdltypes.AccessType.w1))
+            or self.get_property('counter')
+            or (self.get_property('next') is not None)
+            or self.get_property('hwset')
+            or self.get_property('hwclr')
+        )
     
     @property
     def is_sw_writable(self):
