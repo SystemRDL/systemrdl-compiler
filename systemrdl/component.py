@@ -111,7 +111,7 @@ class AddressableComponent(Component):
         #------------------------------
         # Array Properties
         #------------------------------
-        #: If true, then array_dimensions and array_stride are valid.
+        #: If true, then ``array_dimensions`` and ``array_stride`` are valid.
         self.is_array = False
         
         #: List of sizes for each array dimension.
@@ -135,12 +135,14 @@ class VectorComponent(Component):
         #: Width of vector in bits
         self.width = None
         
-        #: bit positions of most and least significant bits
+        #: Bit position of most significant bit
         self.msb = None
+        #: Bit position of least significant bit
         self.lsb = None
         
-        #: bit range
+        #: High index of bit range
         self.high = None
+        #: Low index of bit range
         self.low = None
 
 #===============================================================================
