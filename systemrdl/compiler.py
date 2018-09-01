@@ -18,7 +18,7 @@ from .preprocessor import preprocessor
 
 class RDLCompiler:
     
-    def __init__(self, message_printer=None):
+    def __init__(self, **kwargs):
         """
         RDLCompiler constructor.
         
@@ -27,11 +27,15 @@ class RDLCompiler:
         message_printer: :class:`~systemrdl.messages.MessagePrinter`
             Override the default message printer
         """
+        
+        # Collect arguments
+        message_printer = kwargs.pop('message_printer', messages.MessagePrinter())
+        if kwargs:
+            raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
+        
         self.env = Environment()
         
         # Set up message handling
-        if message_printer is None:
-            message_printer = messages.MessagePrinter()
         self.msg = messages.MessageHandler(message_printer)
         
         self.env.msg = self.msg

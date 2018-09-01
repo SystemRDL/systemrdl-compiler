@@ -5,9 +5,15 @@ from antlr4.error.ErrorListener import ErrorListener
 from antlr4.Token import CommonToken
 from antlr4 import ParserRuleContext
 from antlr4.tree.Tree import TerminalNodeImpl
+
+import colorama
 from colorama import Fore, Style
 
 from .preprocessor.preprocessor import PreprocessedInputStream
+
+# Colorama needs to be initialized to properly work in Windows
+# This is a no-op in other OSes
+colorama.init()
 
 #===============================================================================
 class RDLCompileError(Exception):

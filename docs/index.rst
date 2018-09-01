@@ -27,6 +27,12 @@ Install from `PyPi`_ using pip
 
 .. _PyPi: https://pypi.org/project/systemrdl-compiler
 
+Embedded Perl Preprocessor
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+If source files contain embedded Perl preprocessor tags, an installation of Perl
+that is visible through the ``PATH`` environment variable is required.
+
+Windows users will have to `download and install Perl separately. <https://www.perl.org/get.html>`_
 
 Links
 -----
