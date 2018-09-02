@@ -6,7 +6,7 @@ from . import messages
 from .parser.SystemRDLLexer import SystemRDLLexer
 from .parser.SystemRDLParser import SystemRDLParser
 from .core.ComponentVisitor import RootVisitor
-from .core.properties import PropertyRuleBook
+from .core.properties import PropertyRuleBook, UserProperty
 from .core.namespace import NamespaceRegistry
 from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
 from .core.elaborate import StructuralPlacementListener
@@ -47,6 +47,52 @@ class RDLCompiler:
         self.visitor = RootVisitor(self)
         self.root = self.visitor.component
     
+    def define_udp(self, name, valid_type, valid_components=None, default=None):
+        """
+        Pre-define a user-defined property.
+        
+        This is the equivalent to the following RDL:
+        
+        .. code-block:: none
+            
+            property <name> {
+                type = <valid_type>;
+                component = <valid_components>;
+                default = <default>
+            };
+        
+        Parameters:
+        -----------
+        name: str
+            Property name
+        valid_components: list
+            List of :class:`~systemrdl.component.Component` types the UDP can be bound to.
+            If None, then UDP can be bound to all components.
+        valid_type: type
+            Assignment type that this UDP will enforce
+        default:
+            Default if a value is not specified when the UDP is bound to a component.
+            Value must be compatible with ``valid_type``
+            
+        """
+        if valid_components is None:
+            valid_components = [
+                comp.Field,
+                comp.Reg,
+                comp.Regfile,
+                comp.Addrmap,
+                comp.Mem,
+                comp.Signal,
+                #TODO constraint,
+            ]
+        
+        if name in self.env.property_rules.rdl_properties:
+            raise ValueError("name '%s' conflicts with existing built-in RDL property")
+        
+        udp = UserProperty(self.env, name, valid_components, [valid_type], default)
+        
+        self.env.property_rules.user_properties[udp.name] = udp
+        
     
     def compile_file(self, path, incl_search_paths=None):
         """
