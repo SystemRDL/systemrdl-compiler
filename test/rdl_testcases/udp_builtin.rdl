@@ -1,0 +1,9 @@
+addrmap top {
+    reg{
+        field {
+            int_udp;
+        } field1;
+        int_udp = 42;
+    } reg1;
+    int_udp = 43;
+};

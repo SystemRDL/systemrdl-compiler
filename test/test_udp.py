@@ -1,5 +1,6 @@
-
+import os
 from .unittest_utils import RDLSourceTestCase
+from systemrdl import RDLCompiler
 
 class TestUDP(RDLSourceTestCase):
     
@@ -41,3 +42,19 @@ class TestUDP(RDLSourceTestCase):
         f = root.find_by_path("top.regA.f")
         self.assertEqual(f.get_property("my_enc_prop").value, 0)
         self.assertEqual(f.get_property("my_enc_prop").name, "alpha")
+    
+    def test_builtin_udp(self):
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        rdlc = RDLCompiler()
+        rdlc.define_udp("int_udp", int, default=123)
+        rdlc.compile_file(os.path.join(this_dir, "rdl_testcases/udp_builtin.rdl"))
+        root = rdlc.elaborate("top")
+        
+        top    = root.find_by_path("top")
+        reg1   = root.find_by_path("top.reg1")
+        field1 = root.find_by_path("top.reg1.field1")
+        
+        self.assertIs(top.get_property("int_udp"), 43)
+        self.assertIs(reg1.get_property("int_udp"), 42)
+        self.assertIs(field1.get_property("int_udp"), 123)
+        

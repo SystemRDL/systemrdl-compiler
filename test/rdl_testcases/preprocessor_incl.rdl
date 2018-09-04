@@ -1,0 +1,4 @@
+
+<% $n_regs=3; %>
+
+field myField {};

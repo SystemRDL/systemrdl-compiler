@@ -42,7 +42,12 @@ class SegmentMap:
                         segment.incl_ref
                     )
         
-        raise RuntimeError
+        # Reached end. Assume end of last segment
+        return (
+            self.segments[-1].src_end,
+            self.segments[-1].src,
+            self.segments[-1].incl_ref
+        )
 
 
 class Segment:

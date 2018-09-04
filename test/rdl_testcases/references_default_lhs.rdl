@@ -15,6 +15,7 @@ reg my_reg {
     
     default ref_prop = x;
     default resetsignal = sig;
+    default next = x->anded;
     
     field my_field {};
     
@@ -29,6 +30,7 @@ addrmap top {
     my_reg reg2[2];
     
     default resetsignal = reg2[1].sig;
+    default next = reg2[0].y->ored;
     
     field field_z {};
     

@@ -16,6 +16,8 @@ reg my_reg {
     
     x->resetsignal = sig;
     y->resetsignal = glbl_sig;
+    
+    y->next = x->anded;
 };
 
 addrmap top {
@@ -29,4 +31,6 @@ addrmap top {
     reg2.y->ref_prop = reg1.x;
     
     reg1.x->resetsignal = glbl_sig;
+    
+    reg1.x->next = reg2[0].y->ored;
 };

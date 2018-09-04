@@ -119,12 +119,16 @@ class TestReferences(RDLSourceTestCase):
             self.assertIs(top_reg1_x.get_property("ref_prop").inst, top_reg1_y.inst)
             self.assertEqual(top_reg1_x.get_property("resetsignal"), glbl_sig)
             self.assertIs(top_reg1_x.get_property("resetsignal").inst, glbl_sig.inst)
+            self.assertEqual(top_reg1_x.get_property("next").name, "ored")
+            self.assertEqual(top_reg1_x.get_property("next").node, top_reg20_y)
         
         with self.subTest("top.reg1.y"):
             self.assertEqual(top_reg1_y.get_property("ref_prop"), top_reg1_x)
             self.assertIs(top_reg1_y.get_property("ref_prop").inst, top_reg1_x.inst)
             self.assertEqual(top_reg1_y.get_property("resetsignal"), glbl_sig)
             self.assertIs(top_reg1_y.get_property("resetsignal").inst, glbl_sig.inst)
+            self.assertEqual(top_reg1_y.get_property("next").name, "anded")
+            self.assertEqual(top_reg1_y.get_property("next").node, top_reg1_x)
         
         
         with self.subTest("top.reg2[0]"):
@@ -145,6 +149,8 @@ class TestReferences(RDLSourceTestCase):
             self.assertIs(top_reg20_y.get_property("ref_prop").inst, top_reg1_x.inst)
             self.assertEqual(top_reg20_y.get_property("resetsignal"), glbl_sig)
             self.assertIs(top_reg20_y.get_property("resetsignal").inst, glbl_sig.inst)
+            self.assertEqual(top_reg20_y.get_property("next").name, "anded")
+            self.assertEqual(top_reg20_y.get_property("next").node, top_reg20_x)
         
         
         with self.subTest("top.reg2[1]"):
@@ -165,6 +171,8 @@ class TestReferences(RDLSourceTestCase):
             self.assertIs(top_reg21_y.get_property("ref_prop").inst, top_reg1_x.inst)
             self.assertEqual(top_reg21_y.get_property("resetsignal"), glbl_sig)
             self.assertIs(top_reg21_y.get_property("resetsignal").inst, glbl_sig.inst)
+            self.assertEqual(top_reg21_y.get_property("next").name, "anded")
+            self.assertEqual(top_reg21_y.get_property("next").node, top_reg21_x)
     
     
     def test_default_lhs_refs(self):
@@ -213,6 +221,8 @@ class TestReferences(RDLSourceTestCase):
             self.assertIs(top_reg1_y.get_property("ref_prop").inst, top_reg1_x.inst)
             self.assertEqual(top_reg1_y.get_property("resetsignal"), top_reg1_sig)
             self.assertIs(top_reg1_y.get_property("resetsignal").inst, top_reg1_sig.inst)
+            self.assertEqual(top_reg1_y.get_property("next").name, "anded")
+            self.assertEqual(top_reg1_y.get_property("next").node, top_reg1_x)
         
         
         with self.subTest("top.reg2[0]"):
@@ -231,6 +241,8 @@ class TestReferences(RDLSourceTestCase):
             self.assertIs(top_reg20_y.get_property("ref_prop").inst, top_reg20_x.inst)
             self.assertEqual(top_reg20_y.get_property("resetsignal"), top_reg20_sig)
             self.assertIs(top_reg20_y.get_property("resetsignal").inst, top_reg20_sig.inst)
+            self.assertEqual(top_reg20_y.get_property("next").name, "anded")
+            self.assertEqual(top_reg20_y.get_property("next").node, top_reg20_x)
         
         
         with self.subTest("top.reg2[1]"):
@@ -249,6 +261,8 @@ class TestReferences(RDLSourceTestCase):
             self.assertIs(top_reg21_y.get_property("ref_prop").inst, top_reg21_x.inst)
             self.assertEqual(top_reg21_y.get_property("resetsignal"), top_reg21_sig)
             self.assertIs(top_reg21_y.get_property("resetsignal").inst, top_reg21_sig.inst)
+            self.assertEqual(top_reg21_y.get_property("next").name, "anded")
+            self.assertEqual(top_reg21_y.get_property("next").node, top_reg21_x)
         
         
         with self.subTest("top.reg3"):
@@ -260,3 +274,5 @@ class TestReferences(RDLSourceTestCase):
             self.assertIs(top_reg3_z.get_property("ref_prop").inst, top_reg1.inst)
             self.assertEqual(top_reg3_z.get_property("resetsignal"), top_reg21_sig)
             self.assertIs(top_reg3_z.get_property("resetsignal").inst, top_reg21_sig.inst)
+            self.assertEqual(top_reg3_z.get_property("next").name, "ored")
+            self.assertEqual(top_reg3_z.get_property("next").node, top_reg20_y)

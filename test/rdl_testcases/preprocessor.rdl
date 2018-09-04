@@ -1,0 +1,19 @@
+
+`include "preprocessor_incl.rdl"
+
+reg myReg {
+    <% for( $i = 0; $i < $n_regs*2; $i += 2 ) { %>
+    myField data<%=$i%> [<%=$i+1%>:<%=$i%>];
+    <% } %>
+};
+// Results in: 
+// reg myReg {
+//     myField data0 [1:0];
+//     myField data2 [3:2];
+//     myField data4 [5:4];
+// };
+
+
+addrmap top {
+    myReg reg1;
+};

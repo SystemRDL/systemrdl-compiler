@@ -388,7 +388,7 @@ class ExprVisitor(BaseVisitor):
             )
         
         prop_name = get_ID_text(prop_token)
-        prop_ref_type = self.compiler.property_rules.lookup_prop_ref_type(prop_name)
+        prop_ref_type = self.compiler.env.property_rules.lookup_prop_ref_type(prop_name)
         
         if prop_ref_type is None:
             self.msg.fatal(
