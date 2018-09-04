@@ -311,7 +311,7 @@ class FilePreprocessor:
             )
         
         # miniscript returns the emit list in JSON format. Convert it
-        emit_list = json.loads(result.stdout, encoding="utf-8")
+        emit_list = json.loads(result.stdout.decode('utf-8'))
         
         return emit_list
 
