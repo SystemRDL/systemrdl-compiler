@@ -43,9 +43,10 @@ class MessageHandler:
 #===============================================================================
 class SourceRef:
     """
-    Reference to a segment of compiled source.
+    Reference to a segment of source.
     
-    This is used to provide useful context when reporting error messages.
+    This is used to provide useful context to the original RDL source when
+    reporting compiler messages.
     """
     def __init__(self, start, end, filename=None, seg_map=None):
         
@@ -73,9 +74,16 @@ class SourceRef:
         #: Column of last character in selection
         self.end_col = None
         
+        #: Raw line of text that corresponds to start_line
         self.start_line_text = None
     
     def derive_coordinates(self):
+        """
+        Depending on the compilation source, some members of the SourceRef
+        object may be incomplete.
+        Calling this function performs the necessary derivations to complete the
+        object.
+        """
         if self.seg_map is not None:
             # Translate coordinates
             self.start, self.filename, include_ref = self.seg_map.derive_source_offset(self.start)
@@ -200,7 +208,7 @@ class MessagePrinter:
         text: str
             Body of message
         src_ref: :class:`SourceRef`
-            Antlr message src_ref wrapper
+            Reference to source context object
         
         Returns
         -------
@@ -237,14 +245,14 @@ class MessagePrinter:
                 
                 lines.append(
                     src_ref.start_line_text[:src_ref.start_col] 
-                    + Fore.RED + Style.BRIGHT
+                    + color + Style.BRIGHT
                     + src_ref.start_line_text[src_ref.start_col:]
                     + Style.RESET_ALL 
                 )
                 
                 lines.append(
                     " "*src_ref.start_col 
-                    + Fore.RED + Style.BRIGHT
+                    + color + Style.BRIGHT
                     + "^"*width
                     + Style.RESET_ALL
                 )
@@ -255,7 +263,7 @@ class MessagePrinter:
                 
                 lines.append(
                     src_ref.start_line_text[:src_ref.start_col] 
-                    + Fore.RED + Style.BRIGHT
+                    + color + Style.BRIGHT
                     + src_ref.start_line_text[src_ref.start_col : src_ref.end_col+1]
                     + Style.RESET_ALL 
                     + src_ref.start_line_text[src_ref.end_col+1:]
@@ -263,7 +271,7 @@ class MessagePrinter:
                 
                 lines.append(
                     " "*src_ref.start_col 
-                    + Fore.RED + Style.BRIGHT
+                    + color + Style.BRIGHT
                     + "^"*width
                     + Style.RESET_ALL
                 )
@@ -308,3 +316,18 @@ class RDLAntlrErrorListener(ErrorListener) :
             msg,
             src_ref
         )
+
+#===============================================================================
+# Warning Flags
+#===============================================================================
+#: Warn if a field that implements storage is missing it's reset value
+W_MISSING_RESET = 2**0
+
+#: Warn if a field's bit offset is not explicitly specified
+W_IMPLICIT_FIELD_POS = 2**1
+
+#: Warn if a component's address offset is not explicitly assigned
+W_IMPLICIT_ADDR = 2**2
+
+#: Enable all warnings
+W_ALL = W_MISSING_RESET | W_IMPLICIT_FIELD_POS | W_IMPLICIT_ADDR

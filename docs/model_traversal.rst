@@ -6,23 +6,23 @@ Using the Walker/Listener
 -------------------------
 
 The easiest way to traverse a compiled register model is using a register-tree
-listener interface, triggered by a :class:`~systemrdl.walker.RDLWalker`.
+listener interface, triggered by a :class:`~systemrdl.RDLWalker`.
 
 The listener interface is a collection of callback methods contained in a class
-extended from :class:`~systemrdl.walker.RDLListener`. As the walker visits each
+extended from :class:`~systemrdl.RDLListener`. As the walker visits each
 node, the type-specific callback method is triggered.
 
-The built-in :class:`~systemrdl.walker.RDLWalker` performs a depth-first walk
+The built-in :class:`~systemrdl.RDLWalker` performs a depth-first walk
 through the register model as shown in the diagram below:
 
 .. image:: img/walker-listener.svg
    :align: center
 
 .. note:: Since the :class:`~systemrdl.node.RootNode` does not actually represent
-        a register model component, the :class:`~systemrdl.walker.RDLWalker` 
+        a register model component, the :class:`~systemrdl.RDLWalker` 
         intentionally skips it during traversal.
 
-To create a listener, extend :class:`~systemrdl.walker.RDLListener` and implement
+To create a listener, extend :class:`~systemrdl.RDLListener` and implement
 your custom callback methods. In the example below, ``MyListener`` prints a message
 each time the walker enters and exits type-specific nodes:
 
@@ -50,7 +50,7 @@ each time the walker enters and exits type-specific nodes:
             print("Exiting field", node.get_path())
 
 
-Next, the walker can be started using an instance of :class:`~systemrdl.walker.RDLWalker`. In this
+Next, the walker can be started using an instance of :class:`~systemrdl.RDLWalker`. In this
 example, the input ``root_node`` is assumed to represent the top-level addrmap
 component called "top".
 

@@ -329,6 +329,27 @@ class PropertyReference:
     The PropertyReference object represents the expression's reference target.
     Details of the reference can be determined using its ``node`` and ``name``
     variables.
+    
+    For example, the following property assignment:
+    
+    .. code-block:: none
+        
+        reg {
+            ...
+            fieldX->next = fieldY->intr;
+        } my_reg;
+        
+    ... can be queried as follows:
+    
+    .. code-block:: python
+        
+        fieldX = my_reg.get_child_by_name("fieldX")
+        fieldY = my_reg.get_child_by_name("fieldY")
+        
+        next_prop = fieldX.get_property("next")
+        print(next_prop.node == fieldY) # prints: True
+        print(next_prop.name) # prints: "intr"
+    
     """
     allowed_inst_type = None
     

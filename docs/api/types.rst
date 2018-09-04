@@ -51,6 +51,9 @@ Once compiled, SystemRDL types are mapped to Python types as follows:
     
     *   - Component ``ref``
         - :class:`~systemrdl.node.Node` if queried using :meth:`Node.get_property() <systemrdl.node.Node.get_property>`
+    
+    *   - RHS property reference
+        - :class:`~systemrdl.rdltypes.PropertyReference`
 
 Reserved Enumeration Types
 --------------------------

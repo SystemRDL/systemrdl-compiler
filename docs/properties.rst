@@ -54,5 +54,5 @@ Now, the derived property is available to be queried:
     
     aligned = my_node.is_4k_aligned
 
-.. note:: If you wrote your own derived property and think it should be added,
+.. note:: If you've implemented your own derived property and think it should be added,
     let me know!

@@ -26,24 +26,17 @@ class RDLCompiler:
         ----------
         message_printer: :class:`~systemrdl.messages.MessagePrinter`
             Override the default message printer
+        warning_flags: int
+            Flags to enable warnings. See :ref:`messages_warnings` for more details.
         """
+        self.env = Environment(kwargs)
         
-        # Collect arguments
-        message_printer = kwargs.pop('message_printer', messages.MessagePrinter())
+        # Check for stray kwargs
         if kwargs:
             raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
         
-        self.env = Environment()
-        
-        # Set up message handling
-        self.msg = messages.MessageHandler(message_printer)
-        
-        self.env.msg = self.msg
-        
+        self.msg = self.env.msg
         self.namespace = NamespaceRegistry(self.env)
-        self.property_rules = PropertyRuleBook(self.env)
-        self.env.property_rules = self.property_rules
-        
         self.visitor = RootVisitor(self)
         self.root = self.visitor.component
     
@@ -61,8 +54,8 @@ class RDLCompiler:
                 default = <default>
             };
         
-        Parameters:
-        -----------
+        Parameters
+        ----------
         name: str
             Property name
         valid_components: list
@@ -99,7 +92,7 @@ class RDLCompiler:
         Parse & compile a single file and append it to RDLCompiler's root
         namespace.
         
-        If any exceptions (:class:`~systemrdl.messages.RDLCompileError` or other)
+        If any exceptions (:class:`~systemrdl.RDLCompileError` or other)
         occur during compilation, then the RDLCompiler object should be discarded.
         
         Parameters
@@ -118,7 +111,7 @@ class RDLCompiler:
             
         Raises
         ------
-        :class:`~systemrdl.messages.RDLCompileError`
+        :class:`~systemrdl.RDLCompileError`
             If any fatal compile error is encountered.
         """
         
@@ -169,7 +162,7 @@ class RDLCompiler:
         If a design contains multiple root-level addrmaps, ``elaborate()`` can be
         called multiple times in order to elaborate each individually.
         
-        If any exceptions (:class:`~systemrdl.messages.RDLCompileError` or other)
+        If any exceptions (:class:`~systemrdl.RDLCompileError` or other)
         occur during elaboration, then the RDLCompiler object should be discarded.
         
         Parameters
@@ -189,7 +182,7 @@ class RDLCompiler:
         
         Raises
         ------
-        :class:`~systemrdl.messages.RDLCompileError`
+        :class:`~systemrdl.RDLCompileError`
             If any fatal elaboration error is encountered
         
         Returns
@@ -274,6 +267,16 @@ class Environment:
     Container object for misc resources that are preserved outside the lifetime
     of source compilation
     """
-    def __init__(self):
-        self.msg = None
-        self.property_rules = None
+    def __init__(self, args_dict):
+        
+        # Collect args
+        message_printer = args_dict.pop('message_printer', messages.MessagePrinter())
+        warning_flags = args_dict.pop('warning_flags', 0)
+        
+        # Warnings
+        self.warn_missing_reset = bool(warning_flags & messages.W_MISSING_RESET)
+        self.warn_implicit_field_pos = bool(warning_flags & messages.W_IMPLICIT_FIELD_POS)
+        self.warn_implicit_addr = bool(warning_flags & messages.W_IMPLICIT_ADDR)
+        
+        self.msg = messages.MessageHandler(message_printer)
+        self.property_rules = PropertyRuleBook(self)

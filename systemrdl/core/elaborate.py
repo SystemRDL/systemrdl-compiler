@@ -328,6 +328,12 @@ class StructuralPlacementListener(walker.RDLListener):
             if (inst.lsb is None) or (inst.msb is None):
                 # Offset is not known
                 
+                if node.env.warn_implicit_field_pos:
+                    node.env.msg.warning(
+                        "Bit offset for field '%s' is not explicit" % inst.inst_name,
+                        inst.inst_src_ref
+                    )
+                
                 if is_msb0_mode:
                     # In msb0 mode. Pack from top first
                     # lsb == high
@@ -403,6 +409,12 @@ class StructuralPlacementListener(walker.RDLListener):
                 # Address is already known. Do not need to infer
                 prev_node = child_node
                 continue
+            
+            if node.env.warn_implicit_addr:
+                node.env.msg.warning(
+                    "Address offset of component '%s' is not explicitly set" % child_node.inst.inst_name,
+                    child_node.inst.inst_src_ref
+                )
             
             # Get alignment specified by '%=' allocator, if any
             alloc_alignment = child_node.inst.addr_align

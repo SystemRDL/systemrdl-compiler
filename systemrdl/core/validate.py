@@ -7,7 +7,6 @@ from ..node import RegNode
 # Validation Listeners
 #===============================================================================
 class ValidateListener(walker.RDLListener):
-    # TODO: Finish Validate design
     def __init__(self, env):
         self.env = env
         self.msg = env.msg
@@ -192,6 +191,14 @@ class ValidateListener(walker.RDLListener):
                 node.inst.inst_src_ref
             )
         
+        # Optional warning if a field that implements storage has no reset defined
+        if node.env.warn_missing_reset:
+            if node.implements_storage and (node.get_property("reset") is None):
+                node.env.msg.warning(
+                    "Field '%s' implements storage but is missing a reset value. Initial state is undefined"
+                    % node.inst.inst_name,
+                    node.inst.inst_src_ref
+                )
     
     def exit_Field(self, node):
         self.field_check_buffer.append(node)

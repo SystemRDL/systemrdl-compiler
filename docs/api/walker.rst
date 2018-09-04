@@ -4,11 +4,11 @@ Walker/Listener
 
 Walker
 ------
-.. autoclass:: systemrdl.walker.RDLWalker
+.. autoclass:: systemrdl.RDLWalker
     :members:
 
 Listener
 --------
-.. autoclass:: systemrdl.walker.RDLListener
+.. autoclass:: systemrdl.RDLListener
     :members:
     :undoc-members:

@@ -37,7 +37,7 @@ Since no top-level component name was specified in the ``elaborate`` call, the
 last ``addrmap`` component definition is automatically chosen.
 
 If the RDL file contains any syntax or semantic errors, the compile and elaborate
-steps will raise an :class:`~systemrdl.messages.RDLCompileError` exception. It is recommended to wrap
+steps will raise an :class:`~systemrdl.RDLCompileError` exception. It is recommended to wrap
 this in a try/except block.
 
 .. literalinclude:: ../examples/print_hierarchy.py
