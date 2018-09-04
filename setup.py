@@ -24,7 +24,8 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/SystemRDL/systemrdl-compiler",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=["test"]),
+    include_package_data=True,
     install_requires=[
         "antlr4-python3-runtime",
         "colorama",

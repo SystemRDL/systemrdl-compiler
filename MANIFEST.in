@@ -1,1 +1,2 @@
 include systemrdl/preprocessor/ppp_runner.pl
+recursive-exclude test *
