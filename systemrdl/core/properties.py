@@ -199,7 +199,7 @@ class Prop_name(PropertyRule):
         If name is undefined, it is presumed to be the instance name.
         (5.2.1.1)
         """
-        return node.inst.name
+        return node.inst.inst_name
     
 
 class Prop_desc(PropertyRule):
