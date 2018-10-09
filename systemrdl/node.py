@@ -485,7 +485,17 @@ class VectorNode(Node):
 
 #===============================================================================
 class RootNode(Node):
-    pass
+    @property
+    def top(self):
+        """
+        Returns the top-level addrmap node
+        """
+        for child in self.children():
+            if not isinstance(child, AddrmapNode):
+                continue
+            return(child)
+        else:
+            raise RuntimeError
     
 #===============================================================================
 class SignalNode(VectorNode):
