@@ -248,7 +248,7 @@ class Node:
         return current_node
     
     
-    def get_property(self, prop_name):
+    def get_property(self, prop_name, **kwargs):
         """
         Gets the SystemRDL component property
         
@@ -263,12 +263,26 @@ class Node:
         ----------
         prop_name: str
             SystemRDL property name
+        default:
+            Override built-in default value of property.
+            If the property was not explicitly set, return this value rather than
+            the property's intrinsic default value.
         
         Raises
         ------
         LookupError
             If prop_name is invalid
         """
+        
+        ovr_default = False
+        default = None
+        if 'default' in kwargs:
+            ovr_default = True
+            default = kwargs.pop('default')
+        
+        # Check for stray kwargs
+        if kwargs:
+            raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
         
         # If its already in the component, then safe to bypass checks
         if prop_name in self.inst.properties:
@@ -281,6 +295,10 @@ class Node:
                 prop_value._resolve_node(self)
             
             return prop_value
+        
+        if ovr_default:
+            # Default value is being overridden by user. Return their value
+            return default
         
         # Otherwise, return its default value based on the property's rules
         rule = self.env.property_rules.lookup_property(prop_name)
