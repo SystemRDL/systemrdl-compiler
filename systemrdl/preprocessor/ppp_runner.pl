@@ -34,7 +34,7 @@ while(<>) {
 
 # Run miniscript in restricted context
 my $compartment = new Safe;
-$compartment->permit(':load');
+$compartment->permit(':load', ':base_math', ':browse');
 $compartment->share_from('main', [
     '%ENV',
     'rdlppp_utils::emit_ref',
