@@ -508,7 +508,7 @@ class RootNode(Node):
         """
         Returns the top-level addrmap node
         """
-        for child in self.children():
+        for child in self.children(skip_not_present=False):
             if not isinstance(child, AddrmapNode):
                 continue
             return(child)
