@@ -176,6 +176,36 @@ N/A
 
 
 
+RDLFormatCode paragraph tag listed as a single tag?
+---------------------------------------------------
+In annex F.2, the `[p]` paragraph tag is listed as a "single-tag" construct.
+Since all the other tags seem to closely mirror HTML tags, this seems out-of-place.
+The description from the phpBB site makes more sense since it shows the paragraph tag
+as a pair: `[p] paragraph text [/p]`.
+
+Also, the example in F.4 shows the paragraph tag used as expected - as a pair.
+
+### Resolution:
+Implement paragraph tag as an open/close pair.
+
+
+
+Existence of the RDLFormatCode `[desc]` tag seems misguided
+-----------------------------------------------------------
+I fail to understand why the `[desc]` tag exists and how it could possibly be
+useful.
+
+If the `[desc]` tag is used within the `desc` property, then a recursive
+self-reference is created.
+
+If the `[desc]` tag is used in the `name` property, then it would technically work,
+but then the designer is horrifically abusing the semantics of the `name`
+property by polluting it with a long-form description.
+
+### Resolution:
+Not implementing the `[desc]` tag.
+
+
 Open Questions
 ==============
 

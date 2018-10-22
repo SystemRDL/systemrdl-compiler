@@ -29,6 +29,7 @@ setuptools.setup(
     install_requires=[
         "antlr4-python3-runtime",
         "colorama",
+        "markdown",
     ],
     classifiers=(
         "Development Status :: 5 - Production/Stable",

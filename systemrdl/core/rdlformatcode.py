@@ -1,0 +1,204 @@
+import re
+import textwrap
+
+import markdown
+
+def rdlfc_to_html(text, node):
+    """
+    Convert an RDLFormatCode string to HTML
+    """
+    # --------------------------------------------------------------------------
+    # Remove any common indentation
+    # --------------------------------------------------------------------------
+    linelist = text.splitlines()
+    text = (
+        linelist[0].lstrip()
+        + "\n"
+        + textwrap.dedent("\n".join(linelist[1:]))
+    )
+
+    # --------------------------------------------------------------------------
+    # Parse and replace RDLFormatCode Tags
+    # --------------------------------------------------------------------------
+    token_spec = [
+        ('b', r'\[b\]'),
+        ('xb', r'\[/b\]'),
+        ('i', r'\[i\]'),
+        ('xi', r'\[/i\]'),
+        ('u', r'\[u\]'),
+        ('xu', r'\[/u\]'),
+        ('color', r'\[color=[^\]]+\]'),
+        ('xcolor', r'\[/color\]'),
+        ('size', r'\[size=[^\]]+\]'),
+        ('xsize', r'\[/size\]'),
+        ('plainurl', r'\[url\].*?\[/url\]'),
+        ('url', r'\[url=[^\]]+\]'),
+        ('xurl', r'\[/url\]'),
+        ('email', r'\[email\].*?\[/email\]'),
+        ('img', r'\[img\].*?\[/img\]'),
+        ('code', r'\[code\].*?\[/code\]'),
+        ('list', r'\[list(?:=[^\]]+)?\]'),
+        ('bullet', r'\[\*\]'),
+        ('xlist', r'\[/list\]'),
+        ('quote', r'\[quote\]'),
+        ('xquote', r'\[/quote\]'),
+        ('br', r'\[br\]'),
+        ('lb', r'\[lb\]'),
+        ('rb', r'\[rb\]'),
+        ('p', r'\[p\]'),
+        ('xp', r'\[/p\]'),
+        ('sp', r'\[sp\]'),
+        ('index', r'\[index\]'),
+        ('index_parent', r'\[index_parent\]'),
+        ('name', r'\[name\]'),
+        ('instname', r'\[instname\]'),
+    ]
+    tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_spec)
+    pos = 0
+    text_segs = []
+    is_first_bullet = []
+    list_end_tag = []
+    for m in re.finditer(tok_regex, text, re.DOTALL):
+        start = m.start()
+        end = m.end()
+        
+        # Emit prior text
+        if start != pos:
+            text_segs.append(text[pos:start])
+        pos = end
+        
+        if m.lastgroup == 'b':
+            text_segs.append("<b>")
+        elif m.lastgroup == 'xb':
+            text_segs.append("</b>")
+        elif m.lastgroup == 'i':
+            text_segs.append("<i>")
+        elif m.lastgroup == 'xi':
+            text_segs.append("</i>")
+        elif m.lastgroup == 'u':
+            text_segs.append("<u>")
+        elif m.lastgroup == 'xu':
+            text_segs.append("</u>")
+        elif m.lastgroup == 'color':
+            m2 = re.match(r'\[color=([^\]]+)\]', m.group(0))
+            text_segs.append('<span style="color:%s">' % m2.group(1))
+        elif m.lastgroup == 'xcolor':
+            text_segs.append('</span>')
+        elif m.lastgroup == 'size':
+            m2 = re.match(r'\[size=([^\]]+)\]', m.group(0))
+            text_segs.append('<span style="font-size:%s">' % m2.group(1))
+        elif m.lastgroup == 'xsize':
+            text_segs.append('</span>')
+        elif m.lastgroup == 'plainurl':
+            m2 = re.match(r'\[url\](.*?)\[/url\]', m.group(0), re.DOTALL)
+            text_segs.append('<a href="%s">%s</a>' % (m2.group(1).strip(), m2.group(1).strip()))
+        elif m.lastgroup == 'url':
+            m2 = re.match(r'\[url=([^\]]+)\]', m.group(0))
+            text_segs.append('<a href="%s">' % m2.group(1).strip())
+        elif m.lastgroup == 'xurl':
+            text_segs.append('</a>')
+        elif m.lastgroup == 'email':
+            m2 = re.match(r'\[email\](.*?)\[/email\]', m.group(0), re.DOTALL)
+            text_segs.append('<a href="mailto:%s">%s</a>' % (m2.group(1).strip(), m2.group(1).strip()))
+        elif m.lastgroup == 'img':
+            m2 = re.match(r'\[img\](.*?)\[/img\]', m.group(0), re.DOTALL)
+            text_segs.append('<img src="%s">' % m2.group(1))
+        elif m.lastgroup == 'code':
+            m2 = re.match(r'\[code\](.*?)\s*\[/code\]', m.group(0), re.DOTALL)
+            text_segs.append('\n\n<pre>%s\n</pre>\n' % m2.group(1))
+            
+        elif m.lastgroup == 'list':
+            # List start tag
+            m2 = re.match(r'\[list(?:=([^\]]+))?\]', m.group(0))
+            ltype = m2.group(1)
+            if ltype is None:
+                text_segs.append('<ul>')
+                is_first_bullet.append(True)
+                list_end_tag.append('</ul>')
+            elif ltype.strip() in ("1", "A", "a", "I", "i"):
+                text_segs.append('<ol type="%s">' % ltype.strip())
+                is_first_bullet.append(True)
+                list_end_tag.append('</ol>')
+            else:
+                # Bad type. re-emit erronous list tag
+                text_segs.append("\\[list=%s\\]" % ltype)
+                    
+        elif m.lastgroup == 'bullet':
+            if len(is_first_bullet) == 0:
+                # Not inside a list tag. Re-emit erronous tag
+                text_segs.append("\\[\\*\\]")
+            else:
+                if not is_first_bullet[-1]:
+                    text_segs.append("</li>")
+                is_first_bullet[-1] = False
+                text_segs.append("<li>")
+            
+        elif m.lastgroup == 'xlist':
+            if len(list_end_tag) == 0:
+                # Not inside a list tag. Re-emit erronous tag
+                text_segs.append("\\[/list\\]")
+            else:
+                if not is_first_bullet[-1]:
+                    text_segs.append("</li>")
+                text_segs.append(list_end_tag[-1])
+                is_first_bullet.pop()
+                list_end_tag.pop()
+                
+        elif m.lastgroup == 'quote':
+            text_segs.append('"')
+        elif m.lastgroup == 'xquote':
+            text_segs.append('"')
+        elif m.lastgroup == 'br':
+            text_segs.append("<br>")
+        elif m.lastgroup == 'lb':
+            text_segs.append("\\[")
+        elif m.lastgroup == 'rb':
+            text_segs.append("\\]")
+        elif m.lastgroup == 'p':
+            text_segs.append("\n\n<p>")
+        elif m.lastgroup == 'xp':
+            text_segs.append("</p>")
+        elif m.lastgroup == 'sp':
+            text_segs.append("&nbsp")
+        elif m.lastgroup == 'index':
+            if node.inst.is_array:
+                subscripts = []
+                if node.current_idx is None:
+                    # Index is not known. Use range
+                    for dim in node.inst.array_dimensions:
+                        subscripts.append("[0:%d]" % dim)
+                else:
+                    # Index is known
+                    for idx in node.current_idx:
+                        subscripts.append("[%d]" % idx)
+                range_str = "".join(subscripts)
+                text_segs.append("<span class='rdlfc-index'>%s</span>" % range_str)
+        elif m.lastgroup == 'index_parent':
+            if (node.parent is not None) and node.parent.inst.is_array:
+                subscripts = []
+                if node.parent.current_idx is None:
+                    # Index is not known. Use range
+                    for dim in node.inst.parent.array_dimensions:
+                        subscripts.append("[0:%d]" % dim)
+                else:
+                    # Index is known
+                    for idx in node.parent.current_idx:
+                        subscripts.append("[%d]" % idx)
+                range_str = "".join(subscripts)
+                text_segs.append("<span class='rdlfc-index_parent'>%s</span>" % range_str)
+        elif m.lastgroup == 'name':
+            text_segs.append(node.get_property("name"))
+        elif m.lastgroup == 'instname':
+            text_segs.append(node.inst.inst_name)
+
+    # Emit trailing text
+    text_segs.append(text[pos:])
+
+    text_out = "".join(text_segs)
+
+    #---------------------------------------------------------------------------
+    # Pass through markdown processor
+    #---------------------------------------------------------------------------
+    text_out = markdown.markdown(text_out)
+    
+    return text_out

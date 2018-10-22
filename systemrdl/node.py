@@ -5,6 +5,7 @@ import functools
 
 from . import component as comp
 from . import rdltypes
+from .core import rdlformatcode
 
 class Node:
     """
@@ -375,6 +376,21 @@ class Node:
         else:
             return self.get_path_segment(array_suffix, empty_array_suffix)
     
+    def get_html_desc(self):
+        """
+        Translates the node's 'desc' property into HTML.
+        
+        Any RDLFormatCode tags used in the description are converted to HTML.
+        The text is also fed through a Markdown processor.
+        
+        The additional Markdown processing allows designers the choice to use a
+        more modern lightweight markup language as an alternative to SystemRDL's
+        "RDLFormatCode".
+        """
+        desc_str = self.get_property("desc")
+        if desc_str is None:
+            return None
+        return rdlformatcode.rdlfc_to_html(desc_str, self)
     
     def __eq__(self, other):
         # Nodes are equal if they represent the same hierarchical position
@@ -390,9 +406,10 @@ class AddressableNode(Node):
     def __init__(self, inst, env, parent):
         super().__init__(inst, env, parent)
         
-        # Keeps track of the current array indices this node is referencing
-        # The last item in this list iterates the most frequently
-        # If None, then the current index is unknown
+        #: List of current array indexes this node is referencing where the last
+        #: item in this list iterates the most frequently
+        #: 
+        #: If None, then the current index is unknown
         self.current_idx = None
     
     
@@ -511,9 +528,8 @@ class RootNode(Node):
         for child in self.children(skip_not_present=False):
             if not isinstance(child, AddrmapNode):
                 continue
-            return(child)
-        else:
-            raise RuntimeError
+            return child
+        raise RuntimeError
     
 #===============================================================================
 class SignalNode(VectorNode):
