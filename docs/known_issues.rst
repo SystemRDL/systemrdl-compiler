@@ -40,18 +40,6 @@ preprocessor.
 
 
 
-RDLFormatCode
--------------
-
-The SystemRDL spec describes a lightweight markup language called "RDLFormatCode"
-that can be used in ``name`` and ``desc`` properties of components.
-Currently, these properties are returned as un-altered strings of text.
-
-In the future, I hope to provide some kind of formatting filter that will interpret
-these tags to assist in generating pretty-printed description blocks.
-
-
-
 No support for non-homogeneous arrays
 -------------------------------------
 
