@@ -386,6 +386,13 @@ class Node:
         The additional Markdown processing allows designers the choice to use a
         more modern lightweight markup language as an alternative to SystemRDL's
         "RDLFormatCode".
+        
+        Returns
+        -------
+        str or None
+            HTML formatted string.
+            If node does not have a description, returns ``None``
+        
         """
         desc_str = self.get_property("desc")
         if desc_str is None:

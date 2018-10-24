@@ -105,7 +105,7 @@ def rdlfc_to_html(text, node):
             text_segs.append('<img src="%s">' % m2.group(1))
         elif m.lastgroup == 'code':
             m2 = re.match(r'\[code\](.*?)\s*\[/code\]', m.group(0), re.DOTALL)
-            text_segs.append('\n\n<pre>%s\n</pre>\n' % m2.group(1))
+            text_segs.append('<code>%s</code>' % m2.group(1))
             
         elif m.lastgroup == 'list':
             # List start tag
@@ -178,7 +178,7 @@ def rdlfc_to_html(text, node):
                 subscripts = []
                 if node.parent.current_idx is None:
                     # Index is not known. Use range
-                    for dim in node.inst.parent.array_dimensions:
+                    for dim in node.parent.inst.array_dimensions:
                         subscripts.append("[0:%d]" % dim)
                 else:
                     # Index is known
