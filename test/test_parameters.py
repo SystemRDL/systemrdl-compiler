@@ -94,7 +94,13 @@ class TestParameters(RDLSourceTestCase):
         )
         f1 = root.find_by_path("nested.rf_inst.r_inst1.f")
         f2 = root.find_by_path("nested.rf_inst.r_inst2.f")
+        f3 = root.find_by_path("nested.r1_inst.f")
         
-        self.assertEqual(f1.inst.width, 4)
-        self.assertEqual(f2.inst.width, 4)
+        with self.subTest("f1"):
+            self.assertEqual(f1.inst.width, 4)
         
+        with self.subTest("f2"):
+            self.assertEqual(f2.inst.width, 4)
+        
+        with self.subTest("f3"):
+            self.assertEqual(f3.inst.width, 5)

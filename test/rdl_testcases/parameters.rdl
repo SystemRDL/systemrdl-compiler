@@ -71,5 +71,5 @@ addrmap nested {
     };
 
     rf1 #(.WIDTH(4)) rf_inst;
-
+    r1 #(.WIDTH(5)) r1_inst;
 };

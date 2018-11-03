@@ -210,11 +210,13 @@ class ComponentVisitor(BaseVisitor):
         if comp_def.type_name is not None:
             # Instantiating a named definition.
             # Make a copy of the component def to preserve original definition
-            # in case it is being parameterized
+            # in case it is being parameterized or gets altered
+            # with a dynamic property assign
             comp_inst_template = deepcopy(comp_def)
             comp_inst_template.original_def = comp_def
         else:
-            # Anonymous declaration. Impossible to parameterize so no need to copy
+            # Anonymous declaration.
+            # No need to copy since declaration is single-use
             comp_inst_template = comp_def
             comp_inst_template.original_def = comp_def
         
@@ -224,7 +226,10 @@ class ComponentVisitor(BaseVisitor):
         else:
             param_assigns = {}
         
-        # Assign parameter overrides, if any
+        # Assign any parameter overrides to the instance template
+        # Keep track of any override expressions as they are external references
+        # to outside the instance's tree, and shall not be deepcopied.
+        external_refs = []
         for param_name, (assign_expr, src_ref) in param_assigns.items():
             # Lookup corresponding parameter in component
             for comp_param in comp_inst_template.parameters:
@@ -242,11 +247,15 @@ class ComponentVisitor(BaseVisitor):
             assign_expr = expressions.AssignmentCast(self.compiler.env, src_ref, assign_expr, param.param_type)
             assign_expr.predict_type()
             param.expr = assign_expr
+            external_refs.append(assign_expr)
         
         # Do instantiations
         for inst in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
             # Make a copy of the template so that the instance is unique
-            comp_inst = deepcopy(comp_inst_template)
+            # Use a pre-loaded memo dictionary for this deepcopy to force
+            # any external reference objects to be copied by reference only
+            copy_by_ref_memo = {id(obj):obj for obj in external_refs}
+            comp_inst = deepcopy(comp_inst_template, copy_by_ref_memo)
             
             # Pass some temporary info to visitComponent_inst
             self._tmp = comp_inst, inst_type, alias_primary_inst
