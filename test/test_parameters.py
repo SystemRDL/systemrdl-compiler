@@ -86,3 +86,15 @@ class TestParameters(RDLSourceTestCase):
             self.assertEqual(reg3.get_property("shared"), True)
             data = reg3.get_child_by_name("data")
             self.assertEqual(data.get_property("hdl_path_slice"), ["foo"])
+    
+    def test_nested(self):
+        root = self.compile(
+            ["rdl_testcases/parameters.rdl"],
+            "nested"
+        )
+        f1 = root.find_by_path("nested.rf_inst.r_inst1.f")
+        f2 = root.find_by_path("nested.rf_inst.r_inst2.f")
+        
+        self.assertEqual(f1.inst.width, 4)
+        self.assertEqual(f2.inst.width, 4)
+        
