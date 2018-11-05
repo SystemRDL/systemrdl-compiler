@@ -476,6 +476,9 @@ class LateElabListener(walker.RDLListener):
     """
     def __init__(self, msg_handler):
         self.msg = msg_handler
+        self.coerce_external_to = None
+        self.coerce_end_regfile = None
+    
     
     def enter_Field(self, node):
         
@@ -522,3 +525,34 @@ class LateElabListener(walker.RDLListener):
                 node.inst.properties['sw'] = rdltypes.AccessType.r
             elif this_f_sw == rdltypes.AccessType.w1:
                 node.inst.properties['sw'] = rdltypes.AccessType.na
+    
+        # Inherits internal/external of parent reg
+        node.inst.external = node.parent.inst.external
+    
+    
+    def enter_Regfile(self, node):
+        if self.coerce_external_to is not None:
+            # Is nested inside another regfile that is coercing to a particular inst type
+            node.inst.external = self.coerce_external_to
+        elif node.inst.external is not None:
+            # First regfile to specify inst type. Coerce all children to the same type
+            # as per 12.2-f
+            self.coerce_external_to = node.inst.external
+            self.coerce_end_regfile = node
+        else:
+            # Regfile did not specify internal/external
+            # Set to default of internal
+            node.inst.external = False
+        
+    
+    def enter_Reg(self, node):
+        if self.coerce_external_to is not None:
+            # Is nested inside regfile that is coercing to a particular inst type
+            node.inst.external = self.coerce_external_to
+    
+    
+    def exit_Regfile(self, node):
+        if node is self.coerce_end_regfile:
+            # Exiting inst type coercion
+            self.coerce_external_to = None
+            self.coerce_end_regfile = None

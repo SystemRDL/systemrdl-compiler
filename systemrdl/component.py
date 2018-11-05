@@ -51,7 +51,7 @@ class Component:
         #: Reference to original component definition this instance is derived from
         self.original_def = None
         
-        #: If internal vs external. None if undefined (will inherit default)
+        #: True if instance type is external. False if internal
         self.external = None
         
         # SourceRef for the component instantiation

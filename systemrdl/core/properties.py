@@ -590,6 +590,15 @@ class Prop_onread(PropertyRule):
         else:
             return self.default
     
+    def validate(self, node, value):
+        # 9.6.1-j A field with an onread value of ruser shall be external
+        if (node.inst.external is False) and (value == rdltypes.OnReadType.ruser):
+            self.env.msg.error(
+                "The 'onread' property is set to 'ruser', but instance '%s' is not external"
+                % (node.inst.inst_name),
+                node.inst.inst_src_ref
+            )
+    
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_woset(PropertyRule):
     """
@@ -622,6 +631,15 @@ class Prop_onwrite(PropertyRule):
     default = None
     dyn_assign_allowed = True
     mutex_group = "B"
+    
+    def validate(self, node, value):
+        # 9.6.1-m A field with an onwrite value of wuser shall be external
+        if (node.inst.external is False) and (value == rdltypes.OnWriteType.wuser):
+            self.env.msg.error(
+                "The 'onwrite' property is set to 'wuser', but instance '%s' is not external"
+                % (node.inst.inst_name),
+                node.inst.inst_src_ref
+            )
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_swwe(PropertyRule):

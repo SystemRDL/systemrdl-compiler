@@ -249,6 +249,43 @@ class ComponentVisitor(BaseVisitor):
             param.expr = assign_expr
             external_refs.append(assign_expr)
         
+        
+        # Resolve internal/external instance type
+        if isinstance(comp_inst_template, (comp.Field, comp.Signal)) and inst_type is not None:
+            self.msg.error(
+                "internal/external instance type is not valid for signal or field components",
+                SourceRef.from_antlr(inst_type)
+            )
+        elif isinstance(comp_inst_template, comp.Mem):
+            comp_inst_template.external = True
+            if (inst_type is None) or (inst_type.type != SystemRDLParser.EXTERNAL_kw):
+                self.msg.error(
+                    "mem components shall be instantiated as 'external'",
+                    SourceRef.from_antlr(ctx)
+                )
+        elif isinstance(comp_inst_template, comp.Addrmap):
+            comp_inst_template.external = True
+            if (inst_type is not None) and (inst_type.type == SystemRDLParser.INTERNAL_kw):
+                self.msg.error(
+                    "addrmap components are implicitly external. Cannot declare as internal",
+                    SourceRef.from_antlr(inst_type)
+                )
+        elif isinstance(comp_inst_template, comp.Reg):
+            comp_inst_template.external = False
+            if (inst_type is not None) and (inst_type.type == SystemRDLParser.EXTERNAL_kw):
+                comp_inst_template.external = True
+                
+        elif isinstance(comp_inst_template, comp.Regfile):
+            if inst_type is not None:
+                if inst_type.type == SystemRDLParser.EXTERNAL_kw:
+                    comp_inst_template.external = True
+                elif inst_type.type == SystemRDLParser.INTERNAL_kw:
+                    comp_inst_template.external = False
+            else:
+                # Leave as None. Elaborate step will resolve later.
+                comp_inst_template.external = None
+        
+        
         # Do instantiations
         for inst in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
             # Make a copy of the template so that the instance is unique
@@ -258,7 +295,7 @@ class ComponentVisitor(BaseVisitor):
             comp_inst = deepcopy(comp_inst_template, copy_by_ref_memo)
             
             # Pass some temporary info to visitComponent_inst
-            self._tmp = comp_inst, inst_type, alias_primary_inst
+            self._tmp = comp_inst, alias_primary_inst
             self.visit(inst)
         
         return None
@@ -279,7 +316,7 @@ class ComponentVisitor(BaseVisitor):
         
     def visitComponent_inst(self, ctx:SystemRDLParser.Component_instContext):
         # Unpack instance def info from parent
-        comp_inst, inst_type, alias_primary_inst = self._tmp
+        comp_inst, alias_primary_inst = self._tmp
         
         inst_name = get_ID_text(ctx.ID())
         comp_inst.inst_name = inst_name
@@ -403,11 +440,6 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.array_stride = inst_addr_stride
         else:
             raise RuntimeError
-        
-        if inst_type == SystemRDLParser.EXTERNAL_kw:
-            comp_inst.external = True
-        elif inst_type == SystemRDLParser.INTERNAL_kw:
-            comp_inst.external = False
         
         if alias_primary_inst is not None:
             if isinstance(comp_inst, comp.Reg):

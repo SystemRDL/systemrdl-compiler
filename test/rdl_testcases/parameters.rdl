@@ -19,8 +19,8 @@ addrmap myAmap {
     myReg #(.SIZE(16)) reg16;
     myReg #(.SIZE(8), .SHARED(false)) reg8;
     
-    fixed_mem mem32;
-    fixed_mem #(.word_size(64)) mem64;
+    external fixed_mem mem32;
+    external fixed_mem #(.word_size(64)) mem64;
 };
 
 //------------------------------------------------------------------------------

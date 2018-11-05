@@ -223,6 +223,7 @@ class RDLCompiler:
         top_inst.is_instance = True
         top_inst.original_def = top_def
         top_inst.addr_offset = 0
+        top_inst.external = True # addrmap is always implied as external
         if inst_name is not None:
             top_inst.inst_name = inst_name
         else:
