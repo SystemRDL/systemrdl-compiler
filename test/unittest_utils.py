@@ -24,12 +24,12 @@ class RDLSourceTestCase(unittest.TestCase):
     Base class for SystemRDL unittest TestCase
     Implements mechanisms and tests common to interpreting an RDL testcase file
     """
-    def compile(self, files, top_name):
+    def compile(self, files, top_name, inst_name=None, parameters=None):
         this_dir = os.path.dirname(os.path.realpath(__file__))
         rdlc = RDLCompiler(message_printer=TestPrinter())
         for file in files:
             rdlc.compile_file(os.path.join(this_dir, file))
-        return rdlc.elaborate(top_name)
+        return rdlc.elaborate(top_name, inst_name, parameters)
     
     
     def eval_RDL_expr(self, expr_text):

@@ -73,3 +73,28 @@ addrmap nested {
     rf1 #(.WIDTH(4)) rf_inst;
     r1 #(.WIDTH(5)) r1_inst;
 };
+
+//------------------------------------------------------------------------------
+
+addrmap elab_params #(
+    string STR="default",
+    longint unsigned INT=1,
+    longint unsigned INTARR[]= '{2,3},
+    onwritetype ONWR=woset,
+    boolean BOOL=true
+) {
+    reg reg_t #(
+        longint unsigned WIDTH = 4
+    ) {
+        field {} f[WIDTH];
+    };
+    
+    
+    reg_t #(.WIDTH(INT)) r1;
+    reg_t #(.WIDTH(INTARR[0])) r2;
+    reg_t #(.WIDTH(INTARR[1])) r3;
+    
+    r1.f->onwrite = ONWR;
+    r2.f->donttest = BOOL;
+    r3.f->name = STR;
+};

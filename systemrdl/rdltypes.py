@@ -396,3 +396,35 @@ class ArrayPlaceholder():
             return self.element_type == other.element_type
         else:
             return False
+
+#===============================================================================
+def get_rdltype(value):
+    """
+    Given a value, return the type identifier object used within the RDL compiler
+    If not a supported type, return None
+    """
+    
+    if isinstance(value, (int, bool, str)):
+        # Pass canonical types as-is
+        return type(value)
+    elif is_user_enum(type(value)):
+        return type(value)
+    elif is_user_struct(type(value)):
+        return type(value)
+    elif isinstance(value, enum.Enum):
+        return type(value)
+    elif isinstance(value, list):
+        # Create ArrayPlaceholder representation
+        # Determine element type and make sure it is uniform
+        array_el_type = None
+        for el in value:
+            el_type = get_rdltype(el)
+            if el_type is None:
+                return None
+            
+            if (array_el_type is not None) and (el_type != array_el_type):
+                return None
+            array_el_type = el_type
+        return ArrayPlaceholder(array_el_type)
+    else:
+        return None 

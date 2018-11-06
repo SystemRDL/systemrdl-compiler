@@ -12,13 +12,13 @@ project.
 Semantic rule 10.6.1.c is violated in 5.1.2.2.2-Example 2
 ---------------------------------------------------------
 Rule 10.6.1.c states that `accesswidth` cannot be greater than `regwidth`.
-    
+
 However, in the example:
 
 * reg 'a' has an implied regwidth of 32
 * reg 'a' gets assigned an accesswidth of 64 via default.
     Results in accesswidth > regwidth!
-    
+
 ### Resolution:
 The use-case shown in the example seems reasonable.
 Rule 10.6.1.c seems unnecessary. Waiving checks for it.
@@ -74,10 +74,10 @@ Grammar is implemented to allow this.
 Automatic address allocation rules have many ambiguities
 --------------------------------------------------------
 TODO: fill in details
-    
+
 ### Resolution:
 TODO: fill in details
-    
+
 
 
 Invalid SystemRDL 2.0 in Table E1
@@ -85,14 +85,14 @@ Invalid SystemRDL 2.0 in Table E1
 In Annex E, Table E1, many of the cells in the "SystemRDL 2.0" column show
 what appears to be incorrect usage of the "onread" and "onwrite" side-effect
 properties. 
-    
+
 The table shows assignments of invalid rhs keywords such as:
 
 * onread = r
 * onwrite = w
 
 ... where 'r' and 'w' do not seem to be allowed in this context.
-    
+
 Section 9.6 shows that these properties only accept the "onreadtype" and
 "onwritetype" enumeration values.
 These enumerations are defined in Table 15 and 16, as well as the grammar:
@@ -130,7 +130,7 @@ reg regfoo {
 Nowhere in the SystemRDL spec does it describe the ability to do this. The
 author seems to imply that the struct members are akin to register fields.
 Furthermore, 6.3.2.1.2-a pretty clearly describes the use-cases for structs.
-    
+
 ### Resolution:
 Based on the usage in the rest of the constraints example, it seems like
 the author intended to imply that a register "regfoo" was declared to 
@@ -154,10 +154,10 @@ Some very minor typos found while compiling several code snippet examples.
 
 * 6.3.2.4, Examples 1 and 2
     * Numerous uses of "bool" instead of "boolean" keyword as described by grammar.
-    
+
 * 15.2.2, Example 1
     * Missing semicolon in some_num_p after "regfile"
-    
+
 * 15.2.2, Example 2
     * Enumeration literals are missing their "myEncoding::" prefix
 
@@ -170,7 +170,7 @@ Likely typo in semantic rule 11.2-f
 
 Mentions "register files", even though they are not allowed in "mem" components
 as per 11.1-b-1-ii.
-    
+
 ### Resolution:
 N/A
 
@@ -216,7 +216,7 @@ Grammar seems to describe that a property's type attribute does not allow
 "signal" types.
 Furthermore, text in 15.1, Table 31 implies that the "ref" type generalization
 also does not include "signal".
-    
+
 The spec is pretty clear about this, and it appears to be intentional.
 I'm just a little surprised since it seems like an odd exclusion to make.
 UDPs are basically user-extensions that can be used to describe things
@@ -224,7 +224,7 @@ outside of the RDL spec.
 Why restrict a user's ability to use these?
 Plus, there are several built-in properties that expect signal reference
 types, so the precedent is simply not there... (resetsignal, some counter properties)
-    
+
 ### Resolution:
 None for now.
 Implemented according to spec until I hear otherwise.
@@ -235,9 +235,9 @@ Compilation units and their scope not described in SystemRDL spec
 -----------------------------------------------------------------
 The SystemRDL 2.0 spec does not address the concept of "compilation units"
 and how multiple RDL files share namespaces.
-    
+
 If multiple RDL files are compiled together, how are their namespaces shared?
-    
+
 ### Resolution:
 I have provided my own interpretation of how compilation units in
 SystemRDL should work.

@@ -66,6 +66,8 @@ class Expr:
         raise NotImplementedError
     
 #-------------------------------------------------------------------------------
+# Literals
+
 class IntLiteral(Expr):
     def __init__(self, env, src_ref, val, width=64):
         super().__init__(env, src_ref)
@@ -81,7 +83,7 @@ class IntLiteral(Expr):
     def get_value(self, eval_width=None):
         return self.val
 
-#-------------------------------------------------------------------------------
+
 class BuiltinEnumLiteral(Expr):
     """
     Expr wrapper for builtin RDL enumeration types:
@@ -97,7 +99,7 @@ class BuiltinEnumLiteral(Expr):
     def get_value(self, eval_width=None):
         return self.val
 
-#-------------------------------------------------------------------------------
+
 class EnumLiteral(Expr):
     def __init__(self, env, src_ref, val):
         super().__init__(env, src_ref)
@@ -112,7 +114,7 @@ class EnumLiteral(Expr):
     def get_value(self, eval_width=None):
         return self.val
 
-#-------------------------------------------------------------------------------
+
 class StructLiteral(Expr):
     def __init__(self, env, src_ref, struct_type, values):
         super().__init__(env, src_ref)
@@ -139,7 +141,7 @@ class StructLiteral(Expr):
         
         return self.struct_type(resolved_values)
 
-#-------------------------------------------------------------------------------
+
 class StringLiteral(Expr):
     def __init__(self, env, src_ref, val):
         super().__init__(env, src_ref)
@@ -151,7 +153,7 @@ class StringLiteral(Expr):
     def get_value(self, eval_width=None):
         return self.val
 
-#-------------------------------------------------------------------------------
+
 class ArrayLiteral(Expr):
     def __init__(self, env, src_ref, elements):
         super().__init__(env, src_ref)
@@ -182,8 +184,36 @@ class ArrayLiteral(Expr):
         for element in self.elements:
             result.append(element.get_value())
         return result
+
+
+class ExternalLiteral(Expr):
+    """
+    Expr wrapper for literal value that was not compiled from a source file.
+    The value provided is not an expression, but the actual value.
+    """
+    def __init__(self, env, value):
+        super().__init__(env, None)
+        self.value = value
     
+    def predict_type(self):
+        return rdltypes.get_rdltype(self.value)
+    
+    def get_min_eval_width(self):
+        if isinstance(self.value, int):
+            return 64
+        elif isinstance(self.value, bool):
+            return 1
+        elif rdltypes.is_user_enum(self.value):
+            return 64
+        else:
+            raise RuntimeError
+    
+    def get_value(self, eval_width=None):
+        return self.value
+
 #-------------------------------------------------------------------------------
+# Sequence Operators
+
 class Concatenate(Expr):
     def __init__(self, env, src_ref, elements):
         super().__init__(env, src_ref)
@@ -243,7 +273,7 @@ class Concatenate(Expr):
         else:
             raise RuntimeError
 
-#-------------------------------------------------------------------------------
+
 class Replicate(Expr):
     def __init__(self, env, src_ref, reps, concat):
         super().__init__(env, src_ref)

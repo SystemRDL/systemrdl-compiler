@@ -11,6 +11,7 @@ from .core.namespace import NamespaceRegistry
 from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
 from .core.elaborate import StructuralPlacementListener
 from .core.validate import ValidateListener
+from .core import expressions as expr
 from . import component as comp
 from . import walker
 from .node import RootNode
@@ -177,8 +178,8 @@ class RDLCompiler:
             Overrides the top-component's instantiated name.
             By default, instantiated name is the same as ``top_def_name``
         
-        parameters: TBD
-            This feature is not implemented yet.
+        parameters: dict
+            Dictionary of parameter overrides for the top component instance.
         
         Raises
         ------
@@ -230,9 +231,27 @@ class RDLCompiler:
             top_inst.inst_name = top_def_name
         
         # Override parameters as needed
-        if len(parameters):
-            # TODO: Add mechanism to set parameters of top-level component
-            raise NotImplementedError
+        for param_name, value in parameters.items():
+            # Find the parameter to override
+            parameter = None
+            for p in top_inst.parameters:
+                if p.name == param_name:
+                    parameter = p
+                    break
+            else:
+                raise ValueError("Parameter '%s' is not available for override" % param_name)
+            
+            
+            value_expr = expr.ExternalLiteral(self.env, value)
+            value_type = value_expr.predict_type()
+            if value_type is None:
+                raise TypeError("Override value for parameter '%s' is an unrecognized type" % param_name)
+            
+            if value_type != parameter.param_type:
+                raise TypeError("Incorrect type for parameter '%s'" % param_name)
+            
+            parameter.expr = value_expr
+            
         
         # instantiate top_inst into the root component instance
         root_inst.children.append(top_inst)
