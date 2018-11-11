@@ -111,6 +111,39 @@ class Node:
                 yield Node._factory(child_inst, self.env, self)
     
     
+    def descendants(self, unroll=False, skip_not_present=True, in_post_order=False):
+        """
+        Returns an iterator that provides nodes for all descendants of this
+        component.
+        
+        Parameters
+        ----------
+        unroll : bool
+            If True, any children that are arrays are unrolled.
+        
+        skip_not_present : bool
+            If True, skips children whose 'ispresent' property is set to False
+        
+        in_post_order : bool
+            If True, descendants are walked using post-order traversal
+            (children first) rather than the default pre-order traversal
+            (parents first).
+        
+        Yields
+        ------
+        :class:`~Node`
+            All descendant nodes of this component
+        """
+        for child in self.children(unroll, skip_not_present):
+            if in_post_order:
+                yield from child.descendants(unroll, skip_not_present, in_post_order)
+            
+            yield child
+            
+            if not in_post_order:
+                yield from child.descendants(unroll, skip_not_present, in_post_order)
+    
+    
     def signals(self, skip_not_present=True):
         """
         Returns an iterator that provides nodes for all immediate signals of
@@ -167,7 +200,7 @@ class Node:
         Yields
         ------
         :class:`~RegNode`
-            All fields in this component
+            All registers in this component
         """
         for child in self.children(unroll, skip_not_present):
             if isinstance(child, RegNode):
