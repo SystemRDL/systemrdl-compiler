@@ -87,15 +87,21 @@ class ComponentVisitor(BaseVisitor):
             raise RuntimeError
         
         if ctx.component_insts() is not None:
-            # Component is instantiated one or more times
-            if ctx.component_inst_type() is not None:
-                inst_type = self.visit(ctx.component_inst_type())
+            if isinstance(self, RootVisitor) and isinstance(comp_def, comp.Addrmap):
+                self.msg.warning(
+                    "Non-standard instantiation of an addrmap in root namespace will be ignored",
+                    SourceRef.from_antlr(ctx.component_insts().component_inst(0).ID())
+                )
             else:
-                inst_type = None
-            
-            # Pass some temporary info to visitComponent_insts
-            self._tmp = (comp_def, inst_type, None)
-            self.visit(ctx.component_insts())
+                # Component is instantiated one or more times
+                if ctx.component_inst_type() is not None:
+                    inst_type = self.visit(ctx.component_inst_type())
+                else:
+                    inst_type = None
+                
+                # Pass some temporary info to visitComponent_insts
+                self._tmp = (comp_def, inst_type, None)
+                self.visit(ctx.component_insts())
             
         return None
     
@@ -872,6 +878,15 @@ class RootVisitor(ComponentVisitor):
             self.component.comp_defs[def_name] = comp_def
         
         return comp_def
+    
+    def visitComponent_anon_def(self, ctx:SystemRDLParser.Component_anon_defContext):
+        type_token = self.visit(ctx.component_type())
+        if type_token.type == SystemRDLParser.ADDRMAP_kw:
+            self.msg.fatal(
+                "Definitions of addrmap components in the root namespace must declare a type name.",
+                SourceRef.from_antlr(type_token)
+            )
+        return super().visitComponent_anon_def(ctx)
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
