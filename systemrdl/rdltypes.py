@@ -3,6 +3,7 @@ import inspect
 from collections import OrderedDict
 
 from . import node as m_node
+from .core import rdlformatcode
 
 class AutoEnum(enum.Enum):
     def __new__(cls):
@@ -142,6 +143,28 @@ class UserEnum(enum.Enum):
         Enum entry's ``name`` property
         """
         return self._rdl_name_
+    
+    def get_html_desc(self):
+        """
+        Translates the enum's 'desc' property into HTML.
+        
+        Any RDLFormatCode tags used in the description are converted to HTML.
+        The text is also fed through a Markdown processor.
+        
+        The additional Markdown processing allows designers the choice to use a
+        more modern lightweight markup language as an alternative to SystemRDL's
+        "RDLFormatCode".
+        
+        Returns
+        -------
+        str or None
+            HTML formatted string.
+            If node does not have a description, returns ``None``
+        """
+        desc_str = self._rdl_desc_
+        if desc_str is None:
+            return None
+        return rdlformatcode.rdlfc_to_html(desc_str)
     
     def __int__(self):
         return self.value

@@ -3,7 +3,7 @@ import textwrap
 
 import markdown
 
-def rdlfc_to_html(text, node):
+def rdlfc_to_html(text, node=None):
     """
     Convert an RDLFormatCode string to HTML
     """
@@ -121,7 +121,7 @@ def rdlfc_to_html(text, node):
                 list_end_tag.append('</ol>')
             else:
                 # Bad type. re-emit erronous list tag
-                text_segs.append("\\[list=%s\\]" % ltype)
+                text_segs.append(m.group(0))
                     
         elif m.lastgroup == 'bullet':
             if len(is_first_bullet) == 0:
@@ -136,7 +136,7 @@ def rdlfc_to_html(text, node):
         elif m.lastgroup == 'xlist':
             if len(list_end_tag) == 0:
                 # Not inside a list tag. Re-emit erronous tag
-                text_segs.append("\\[/list\\]")
+                text_segs.append(m.group(0))
             else:
                 if not is_first_bullet[-1]:
                     text_segs.append("</li>")
@@ -161,7 +161,7 @@ def rdlfc_to_html(text, node):
         elif m.lastgroup == 'sp':
             text_segs.append("&nbsp")
         elif m.lastgroup == 'index':
-            if node.inst.is_array:
+            if (node is not None) and node.inst.is_array:
                 subscripts = []
                 if node.current_idx is None:
                     # Index is not known. Use range
@@ -173,8 +173,10 @@ def rdlfc_to_html(text, node):
                         subscripts.append("[%d]" % idx)
                 range_str = "".join(subscripts)
                 text_segs.append("<span class='rdlfc-index'>%s</span>" % range_str)
+            else:
+                text_segs.append(m.group(0))
         elif m.lastgroup == 'index_parent':
-            if (node.parent is not None) and node.parent.inst.is_array:
+            if (node is not None) and (node.parent is not None) and node.parent.inst.is_array:
                 subscripts = []
                 if node.parent.current_idx is None:
                     # Index is not known. Use range
@@ -186,10 +188,18 @@ def rdlfc_to_html(text, node):
                         subscripts.append("[%d]" % idx)
                 range_str = "".join(subscripts)
                 text_segs.append("<span class='rdlfc-index_parent'>%s</span>" % range_str)
+            else:
+                text_segs.append(m.group(0))
         elif m.lastgroup == 'name':
-            text_segs.append(node.get_property("name"))
+            if node is not None:
+                text_segs.append(node.get_property("name"))
+            else:
+                text_segs.append(m.group(0))
         elif m.lastgroup == 'instname':
-            text_segs.append(node.inst.inst_name)
+            if node is not None:
+                text_segs.append(node.inst.inst_name)
+            else:
+                text_segs.append(m.group(0))
 
     # Emit trailing text
     text_segs.append(text[pos:])
