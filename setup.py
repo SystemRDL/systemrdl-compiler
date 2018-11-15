@@ -30,6 +30,7 @@ setuptools.setup(
         "antlr4-python3-runtime",
         "colorama",
         "markdown",
+        "typing ; python_version<'3.5'",
     ],
     classifiers=(
         "Development Status :: 5 - Production/Stable",
