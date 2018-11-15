@@ -9,8 +9,6 @@ from antlr4.tree.Tree import TerminalNodeImpl
 import colorama
 from colorama import Fore, Style
 
-from .preprocessor.preprocessor import PreprocessedInputStream
-
 # Colorama needs to be initialized to properly work in Windows
 # This is a no-op in other OSes
 colorama.init()
@@ -136,6 +134,7 @@ class SourceRef:
     
     @classmethod
     def from_antlr(cls, antlr_ref):
+        from .preprocessor.preprocessor import PreprocessedInputStream
         
         # Normalize
         if isinstance(antlr_ref, CommonToken):
@@ -172,6 +171,8 @@ class SourceRef:
     
     @classmethod
     def from_antlr_recognizer(cls, recognizer):
+        from .preprocessor.preprocessor import PreprocessedInputStream
+        
         inputStream = recognizer.inputStream
         if isinstance(inputStream, PreprocessedInputStream):
             seg_map = inputStream.seg_map

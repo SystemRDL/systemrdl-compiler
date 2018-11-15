@@ -9,6 +9,7 @@ from antlr4 import InputStream
 
 from . import segment_map
 from .. import messages
+from ..core.backports import subprocess_run
 
 class FilePreprocessor:
     
@@ -296,7 +297,7 @@ class FilePreprocessor:
         miniscript = '\n'.join(lines)
         
         # Run miniscript
-        result = subprocess.run(
+        result = subprocess_run(
             ["perl", os.path.join(os.path.dirname(__file__), "ppp_runner.pl")],
             input=miniscript.encode("utf-8"),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,

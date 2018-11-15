@@ -205,7 +205,7 @@ class RDLCompiler:
                 self.msg.fatal("Elaboration target '%s' is not an 'addrmap' component" % top_def_name)
         else:
             # Not specified. Find the last addrmap defined
-            for comp_def in reversed(self.root.comp_defs.values()):
+            for comp_def in reversed(list(self.root.comp_defs.values())):
                 if isinstance(comp_def, comp.Addrmap):
                     top_def = comp_def
                     top_def_name = comp_def.type_name

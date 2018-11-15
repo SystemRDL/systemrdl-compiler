@@ -2,7 +2,6 @@ import enum
 import inspect
 from collections import OrderedDict
 
-from . import node as m_node
 from .core import rdlformatcode
 
 class AutoEnum(enum.Enum):
@@ -313,8 +312,9 @@ class ComponentRef:
         self.ref_elements = ref_elements
     
     def build_node_ref(self, assignee_node, env):
-        current_node = assignee_node
+        from .node import AddressableNode
         
+        current_node = assignee_node
         # Traverse up from assignee until ref_root is reached
         while True:
             if current_node is None:
@@ -339,7 +339,7 @@ class ComponentRef:
                     )
             
             # Assign indexes if appropriate
-            if (isinstance(current_node, m_node.AddressableNode)) and current_node.inst.is_array:
+            if (isinstance(current_node, AddressableNode)) and current_node.inst.is_array:
                 current_node.current_idx = idx_list
             
         return current_node
