@@ -13,6 +13,11 @@ class Component:
         #------------------------------
         # Component definition
         #------------------------------
+
+        #: Reference to parent definition that contains this component
+        #: type definition.
+        self.parent_scope = None
+
         #: Named definition identifier.
         #: If declaration was anonymous, inherits the first instance's name.
         #: The type name of parameterized components is normalized based on the
@@ -61,7 +66,7 @@ class Component:
         """
         Deepcopy all members except for ones that should be copied by reference
         """
-        copy_by_ref = ["original_def", "def_src_ref", "inst_src_ref"]
+        copy_by_ref = ["original_def", "def_src_ref", "inst_src_ref", "parent_scope"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -90,6 +95,33 @@ class Component:
             if child.inst_name == inst_name:
                 return child
         return None
+    
+
+    def get_scope_path(self, scope_separator="::"):
+        """
+        Generate a string that represents this component's declaration namespace
+        scope.
+
+        Parameters
+        ----------
+        scope_separator: str
+            Override the separator between namespace scopes
+        """
+        if self.parent_scope is None:
+            return ""
+        elif isinstance(self.parent_scope, Root):
+            return ""
+        else:
+            parent_path = self.parent_scope.get_scope_path(scope_separator)
+            if parent_path:
+                return(
+                    parent_path
+                    + scope_separator
+                    + self.parent_scope.type_name
+                )
+            else:
+                return self.parent_scope.type_name
+
 
 class AddressableComponent(Component):
     """

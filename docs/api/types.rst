@@ -55,7 +55,8 @@ Once compiled, SystemRDL types are mapped to Python types as follows:
     *   - RHS property reference
         - :class:`~systemrdl.rdltypes.PropertyReference`
 
-Reserved Enumeration Types
+
+Built-in Enumeration Types
 --------------------------
 
 .. autoclass:: systemrdl.rdltypes.AccessType
@@ -76,6 +77,7 @@ Reserved Enumeration Types
 .. autoclass:: systemrdl.rdltypes.InterruptType
     :members:
 
+
 Enumerations
 ------------
 .. autoclass:: systemrdl.rdltypes.UserEnum
@@ -83,8 +85,12 @@ Enumerations
     
     .. autoattribute:: rdl_desc
     .. autoattribute:: rdl_name
+    .. automethod:: get_html_desc
+    .. automethod:: get_parent_scope
+    .. automethod:: get_scope_path
 
 .. autofunction:: systemrdl.rdltypes.is_user_enum
+
 
 Structures
 ----------
@@ -92,6 +98,7 @@ Structures
     :members:
 
 .. autofunction:: systemrdl.rdltypes.is_user_struct
+
 
 Property Reference
 ------------------

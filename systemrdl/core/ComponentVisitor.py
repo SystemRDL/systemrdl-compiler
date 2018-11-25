@@ -86,6 +86,8 @@ class ComponentVisitor(BaseVisitor):
         else:
             raise RuntimeError
         
+        comp_def.parent_scope = self.component
+
         if ctx.component_insts() is not None:
             if isinstance(self, RootVisitor) and isinstance(comp_def, comp.Addrmap):
                 self.msg.warning(
@@ -843,6 +845,7 @@ class ComponentVisitor(BaseVisitor):
     def visitEnum_def(self, ctx:SystemRDLParser.Enum_defContext):
         visitor = EnumVisitor(self.compiler)
         enum_type, name, src_ref = visitor.visit(ctx)
+        enum_type._set_parent_scope(self.component)
         self.compiler.namespace.register_type(name, enum_type, src_ref)
     
     #---------------------------------------------------------------------------
@@ -851,6 +854,7 @@ class ComponentVisitor(BaseVisitor):
     def visitStruct_def(self, ctx:SystemRDLParser.Struct_defContext):
         visitor = StructVisitor(self.compiler)
         struct_type, name, src_ref = visitor.visit(ctx)
+        struct_type._set_parent_scope(self.component)
         self.compiler.namespace.register_type(name, struct_type, src_ref)
     
     #---------------------------------------------------------------------------
@@ -890,7 +894,7 @@ class RootVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
         
         if not isinstance(comp_def, comp.Signal):
             self.msg.fatal(
@@ -935,7 +939,7 @@ class RegComponentVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
         
         # 10.2-b-1-ii: Component instantiations are limited to field, constraint, and signal instances
         if not isinstance(comp_def, (comp.Signal, comp.Field)):
@@ -965,7 +969,7 @@ class RegfileComponentVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
         
         # 12.1-b-1-ii: Component instantiations are limited to reg, regfile, constraint, and signal instances
         if not isinstance(comp_def, (comp.Signal, comp.Reg, comp.Regfile)):
@@ -994,7 +998,7 @@ class AddrmapComponentVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
         
         # 13.3-a: The components instantiated within an address map shall be 
         #   registers, register files, memories, address maps, or signals.
@@ -1014,7 +1018,7 @@ class MemComponentVisitor(ComponentVisitor):
     
     def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp
+        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
         
         # 11.1-b-a-ii: Component instantiations are limited to reg and constraint instances.
         if not isinstance(comp_def, comp.Reg):

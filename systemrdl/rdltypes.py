@@ -3,6 +3,7 @@ import inspect
 from collections import OrderedDict
 
 from .core import rdlformatcode
+from . import component as comp
 
 class AutoEnum(enum.Enum):
     def __new__(cls):
@@ -165,6 +166,44 @@ class UserEnum(enum.Enum):
             return None
         return rdlformatcode.rdlfc_to_html(desc_str)
     
+    @classmethod
+    def _set_parent_scope(cls, scope):
+        cls._parent_scope = scope
+    
+    @classmethod
+    def get_parent_scope(cls):
+        """
+        Returns reference to parent component that contains this type definition.
+        """
+        return getattr(cls, "_parent_scope", None)
+    
+    @classmethod
+    def get_scope_path(cls, scope_separator="::"):
+        """
+        Generate a string that represents this enum's declaration namespace
+        scope.
+
+        Parameters
+        ----------
+        scope_separator: str
+            Override the separator between namespace scopes
+        """
+        if cls.get_parent_scope() is None:
+            return ""
+        elif isinstance(cls.get_parent_scope(), comp.Root):
+            return ""
+        else:
+            parent_path = cls.get_parent_scope().get_scope_path(scope_separator)
+            if parent_path:
+                return(
+                    parent_path
+                    + scope_separator
+                    + cls.get_parent_scope().type_name
+                )
+            else:
+                return cls.get_parent_scope().type_name
+
+
     def __int__(self):
         return self.value
     
@@ -222,6 +261,21 @@ class UserStruct:
     
     _members = OrderedDict()
     _is_abstract = True
+        
+    def __init__(self, values):
+        """
+        Create an instance of the struct
+        
+        values is a dictionary of {member_name : value}
+        """
+        if self._is_abstract:
+            raise TypeError("Cannot create instance of an abstract struct type")
+        
+        # Make sure values dict matches the members allowed
+        if set(values.keys()) != set(self._members.keys()):
+            raise ValueError("Cannot map 'values' to this struct")
+        
+        self._values = values
     
     @classmethod
     def define_new(cls, name, members, is_abstract=False):
@@ -251,21 +305,6 @@ class UserStruct:
         }
         newcls = type(name, (cls,), dct)
         return newcls
-        
-    def __init__(self, values):
-        """
-        Create an instance of the struct
-        
-        values is a dictionary of {member_name : value}
-        """
-        if self._is_abstract:
-            raise TypeError("Cannot create instance of an abstract struct type")
-        
-        # Make sure values dict matches the members allowed
-        if set(values.keys()) != set(self._members.keys()):
-            raise ValueError("Cannot map 'values' to this struct")
-        
-        self._values = values
     
     def __getattr__(self, name):
         if name == "__setstate__":
@@ -274,6 +313,43 @@ class UserStruct:
             return self._values[name]
         else:
             raise AttributeError("'%s' object has no attribute '%s'" % (type(self).__name__, name))
+    
+    @classmethod
+    def _set_parent_scope(cls, scope):
+        cls._parent_scope = scope
+    
+    @classmethod
+    def get_parent_scope(cls):
+        """
+        Returns reference to parent component that contains this type definition.
+        """
+        return getattr(cls, "_parent_scope", None)
+
+    @classmethod
+    def get_scope_path(cls, scope_separator="::"):
+        """
+        Generate a string that represents this enum's declaration namespace
+        scope.
+
+        Parameters
+        ----------
+        scope_separator: str
+            Override the separator between namespace scopes
+        """
+        if cls.get_parent_scope() is None:
+            return ""
+        elif isinstance(cls.get_parent_scope(), comp.Root):
+            return ""
+        else:
+            parent_path = cls.get_parent_scope().get_scope_path(scope_separator)
+            if parent_path:
+                return(
+                    parent_path
+                    + scope_separator
+                    + cls.get_parent_scope().type_name
+                )
+            else:
+                return cls.get_parent_scope().type_name
     
     def __repr__(self):
         return "<struct '%s' %s at 0x%x>" % (
