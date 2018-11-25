@@ -1,0 +1,43 @@
+
+enum root_enum {
+    zero;
+    one;
+};
+
+reg root_reg_t {
+    field {
+        enum f1_enum {
+            a;
+            b;
+        };
+        encode = f1_enum;
+    } f1;
+
+    field f2_t {
+        encode = root_enum;
+    };
+
+    f2_t f2;
+};
+
+addrmap scope_test {
+    
+    root_reg_t r1;
+
+    reg r2_t {
+        field {
+            enum f1_enum {
+                a;
+                b;
+            };
+            encode = f1_enum;
+        } f1;
+
+        field f2_t {
+            encode = root_enum;
+        };
+
+        f2_t f2;
+    };
+    r2_t r2;
+};
