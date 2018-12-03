@@ -317,18 +317,3 @@ class RDLAntlrErrorListener(ErrorListener) :
             msg,
             src_ref
         )
-
-#===============================================================================
-# Warning Flags
-#===============================================================================
-#: Warn if a field that implements storage is missing it's reset value
-W_MISSING_RESET = 2**0
-
-#: Warn if a field's bit offset is not explicitly specified
-W_IMPLICIT_FIELD_POS = 2**1
-
-#: Warn if a component's address offset is not explicitly assigned
-W_IMPLICIT_ADDR = 2**2
-
-#: Enable all warnings
-W_ALL = W_MISSING_RESET | W_IMPLICIT_FIELD_POS | W_IMPLICIT_ADDR

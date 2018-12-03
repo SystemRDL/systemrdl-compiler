@@ -3,6 +3,7 @@ from copy import deepcopy
 from antlr4 import CommonTokenStream
 
 from . import messages
+from . import warnings
 from .parser.SystemRDLLexer import SystemRDLLexer
 from .parser.SystemRDLParser import SystemRDLParser
 from .core.ComponentVisitor import RootVisitor
@@ -294,9 +295,9 @@ class Environment:
         warning_flags = args_dict.pop('warning_flags', 0)
         
         # Warnings
-        self.warn_missing_reset = bool(warning_flags & messages.W_MISSING_RESET)
-        self.warn_implicit_field_pos = bool(warning_flags & messages.W_IMPLICIT_FIELD_POS)
-        self.warn_implicit_addr = bool(warning_flags & messages.W_IMPLICIT_ADDR)
+        self.warn_missing_reset = bool(warning_flags & warnings.MISSING_RESET)
+        self.warn_implicit_field_pos = bool(warning_flags & warnings.IMPLICIT_FIELD_POS)
+        self.warn_implicit_addr = bool(warning_flags & warnings.IMPLICIT_ADDR)
         
         self.msg = messages.MessageHandler(message_printer)
         self.property_rules = PropertyRuleBook(self)
