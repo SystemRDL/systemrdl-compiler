@@ -400,7 +400,7 @@ class TestAddressAllocators(RDLSourceTestCase):
             self.assertEqual(reg.inst.array_dimensions, [10])
             self.assertEqual(reg.inst.array_stride, 0x10)
             self.assertEqual(reg.size, 4)
-            self.assertEqual(reg.total_size, 10*16-12)
+            self.assertEqual(reg.total_size, 10*16)
             
             for i in range(10):
                 reg = top.find_by_path("example_5_1_2_5_ex2.example.b[%d]" % i)
@@ -432,7 +432,7 @@ class TestAddressAllocators(RDLSourceTestCase):
             self.assertEqual(reg.inst.array_dimensions, [10])
             self.assertEqual(reg.inst.array_stride, 0x10)
             self.assertEqual(reg.size, 4)
-            self.assertEqual(reg.total_size, 10*16-12)
+            self.assertEqual(reg.total_size, 10*16)
             
             for i in range(10):
                 reg = top.find_by_path("example_5_1_2_5_ex3.example.b[%d]" % i)

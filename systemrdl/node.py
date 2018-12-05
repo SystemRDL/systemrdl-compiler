@@ -545,7 +545,13 @@ class AddressableNode(Node):
         If an array, returns size of the entire array
         """
         if self.inst.is_array:
-            return self.inst.array_stride * (self.inst.n_elements-1) + self.size
+            # Total size of arrays is technically supposed to be:
+            #   self.inst.array_stride * (self.inst.n_elements-1) + self.size
+            # However this opens up a whole slew of ugly corner cases that the
+            # spec designers may not have anticipated.
+            # Using a simplified calculation for now until someone actually cares
+            return self.inst.array_stride * self.inst.n_elements
+
         else:
             return self.size
     
