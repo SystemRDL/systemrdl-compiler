@@ -1,4 +1,5 @@
 
+from .helpers import is_pow2, roundup_pow2
 from .. import walker
 from .. import rdltypes
 from ..node import RegNode
@@ -67,6 +68,25 @@ class ValidateListener(walker.RDLListener):
                 # Keep it in the list since it could collide again
                 new_addr_check_buffer.append(prev_addressable)
         self.addr_check_buffer_stack[-2] = new_addr_check_buffer
+
+        if node.inst.is_array and self.env.chk_stride_not_pow2:
+            if not is_pow2(node.inst.array_stride):
+                self.msg.message(
+                    self.env.chk_stride_not_pow2,
+                    "Address stride of instance array '%s' is not a power of 2"
+                    % node.inst.inst_name,
+                    node.inst.inst_src_ref
+                )
+        
+        if self.env.chk_strict_self_align:
+            req_align = roundup_pow2(node.size)
+            if (node.inst.addr_offset % req_align) != 0:
+                self.msg.message(
+                    self.env.chk_strict_self_align,
+                    "Address offset +0x%x of instance '%s' is not a power of 2 multiple of its size 0x%x"
+                    % (node.inst.addr_offset, node.inst.inst_name, node.size),
+                    node.inst.inst_src_ref
+                )
     
     
     def enter_Reg(self, node):
@@ -192,9 +212,10 @@ class ValidateListener(walker.RDLListener):
             )
         
         # Optional warning if a field that implements storage has no reset defined
-        if node.env.warn_missing_reset:
+        if node.env.chk_missing_reset:
             if node.implements_storage and (node.get_property("reset") is None):
-                node.env.msg.warning(
+                node.env.msg.message(
+                    node.env.chk_missing_reset,
                     "Field '%s' implements storage but is missing a reset value. Initial state is undefined"
                     % node.inst.inst_name,
                     node.inst.inst_src_ref

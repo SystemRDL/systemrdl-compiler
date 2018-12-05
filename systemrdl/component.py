@@ -1,3 +1,5 @@
+import operator
+import functools
 from copy import deepcopy
 from collections import OrderedDict
 
@@ -153,6 +155,19 @@ class AddressableComponent(Component):
         #: Address offset between array elements.
         #: If left as None, compiler will resolve with inferred value.
         self.array_stride = None
+    
+    
+    @property
+    def n_elements(self):
+        """
+        Total number of array elements.
+        If array is multidimensional, array is flattened.
+        Returns 1 if not an array.
+        """
+        if self.is_array:
+            return functools.reduce(operator.mul, self.array_dimensions)
+        else:
+            return 1
         
 class VectorComponent(Component):
     """

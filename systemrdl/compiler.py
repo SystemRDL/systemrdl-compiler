@@ -30,6 +30,8 @@ class RDLCompiler:
             Override the default message printer
         warning_flags: int
             Flags to enable warnings. See :ref:`messages_warnings` for more details.
+        error_flags: int
+            Same as ``warning_flags`` but promote them to errors instead.
         """
         self.env = Environment(kwargs)
         
@@ -292,12 +294,23 @@ class Environment:
         
         # Collect args
         message_printer = args_dict.pop('message_printer', messages.MessagePrinter())
-        warning_flags = args_dict.pop('warning_flags', 0)
+        w_flags = args_dict.pop('warning_flags', 0)
+        e_flags = args_dict.pop('error_flags', 0)
         
-        # Warnings
-        self.warn_missing_reset = bool(warning_flags & warnings.MISSING_RESET)
-        self.warn_implicit_field_pos = bool(warning_flags & warnings.IMPLICIT_FIELD_POS)
-        self.warn_implicit_addr = bool(warning_flags & warnings.IMPLICIT_ADDR)
-        
+        self.chk_missing_reset = self.chk_flag_severity(warnings.MISSING_RESET, w_flags, e_flags)
+        self.chk_implicit_field_pos = self.chk_flag_severity(warnings.IMPLICIT_FIELD_POS, w_flags, e_flags)
+        self.chk_implicit_addr = self.chk_flag_severity(warnings.IMPLICIT_ADDR, w_flags, e_flags)
+        self.chk_stride_not_pow2 = self.chk_flag_severity(warnings.STRIDE_NOT_POW2, w_flags, e_flags)
+        self.chk_strict_self_align = self.chk_flag_severity(warnings.STRICT_SELF_ALIGN, w_flags, e_flags)
+
         self.msg = messages.MessageHandler(message_printer)
         self.property_rules = PropertyRuleBook(self)
+
+    @staticmethod
+    def chk_flag_severity(flag, w_flags, e_flags):
+        if bool(e_flags & flag):
+            return messages.Severity.ERROR
+        elif bool(w_flags & flag):
+            return messages.Severity.WARNING
+        else:
+            return messages.Severity.NONE

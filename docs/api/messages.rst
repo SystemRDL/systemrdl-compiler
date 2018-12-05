@@ -24,6 +24,12 @@ Individual warning messages can be enabled by passing one or more of the followi
 .. autodata:: systemrdl.warnings.IMPLICIT_ADDR
     :annotation:
 
+.. autodata:: systemrdl.warnings.STRIDE_NOT_POW2
+    :annotation:
+
+.. autodata:: systemrdl.warnings.STRICT_SELF_ALIGN
+    :annotation:
+
 
 Exceptions
 ----------

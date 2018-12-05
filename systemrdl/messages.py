@@ -1,5 +1,6 @@
 
 import sys
+import enum
 
 from antlr4.error.ErrorListener import ErrorListener
 from antlr4.Token import CommonToken
@@ -20,22 +21,37 @@ class RDLCompileError(Exception):
     """
     
 #===============================================================================
+class Severity(enum.IntEnum):
+    NONE = 0
+    WARNING = 1
+    ERROR = 2
+    FATAL = 3
+
+#===============================================================================
 class MessageHandler:
     def __init__(self, printer):
         self.printer = printer
         self.warning_count = 0
         self.error_count = 0
     
+    def message(self, severity, text, src_ref=None):
+        if severity == Severity.WARNING:
+            self.warning(text, src_ref)
+        if severity == Severity.ERROR:
+            self.error(text, src_ref)
+        if severity == Severity.FATAL:
+            self.fatal(text, src_ref)
+
     def warning(self, text, src_ref=None):
-        self.printer.print_message("warning", text, src_ref)
+        self.printer.print_message(Severity.WARNING, text, src_ref)
         self.warning_count += 1
     
     def error(self, text, src_ref=None):
-        self.printer.print_message("error", text, src_ref)
+        self.printer.print_message(Severity.ERROR, text, src_ref)
         self.error_count += 1
     
     def fatal(self, text, src_ref=None):
-        self.printer.print_message("error", text, src_ref)
+        self.printer.print_message(Severity.FATAL, text, src_ref)
         raise RDLCompileError(text)
         
 #===============================================================================
@@ -204,8 +220,8 @@ class MessagePrinter:
         
         Parameters
         ----------
-        severity: str
-            Message severity. "error" or "warning"
+        severity: :class:`Severity`
+            Message severity.
         text: str
             Body of message
         src_ref: :class:`SourceRef`
@@ -218,14 +234,14 @@ class MessagePrinter:
         """
         lines = []
         
-        if severity == "error":
+        if severity >= Severity.ERROR:
             color = Fore.RED
         else:
             color = Fore.YELLOW
             
         if src_ref is None:
             lines.append(
-                color + Style.BRIGHT + severity + ": " + Style.RESET_ALL + text
+                color + Style.BRIGHT + severity.name().lower() + ": " + Style.RESET_ALL + text
             )
         else:
             src_ref.derive_coordinates()
@@ -233,7 +249,7 @@ class MessagePrinter:
             lines.append(
                 Fore.WHITE + Style.BRIGHT
                 + "%s:%d:%d: " % (src_ref.filename, src_ref.start_line, src_ref.start_col)
-                + color + severity + ": "
+                + color + severity.name().lower() + ": "
                 + Style.RESET_ALL
                 + text
             )

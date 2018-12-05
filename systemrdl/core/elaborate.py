@@ -328,8 +328,9 @@ class StructuralPlacementListener(walker.RDLListener):
             if (inst.lsb is None) or (inst.msb is None):
                 # Offset is not known
                 
-                if node.env.warn_implicit_field_pos:
-                    node.env.msg.warning(
+                if node.env.chk_implicit_field_pos:
+                    node.env.msg.message(
+                        node.env.chk_implicit_field_pos,
                         "Bit offset for field '%s' is not explicit" % inst.inst_name,
                         inst.inst_src_ref
                     )
@@ -410,8 +411,9 @@ class StructuralPlacementListener(walker.RDLListener):
                 prev_node = child_node
                 continue
             
-            if node.env.warn_implicit_addr:
-                node.env.msg.warning(
+            if node.env.chk_implicit_addr:
+                node.env.msg.message(
+                    node.env.chk_implicit_addr,
                     "Address offset of component '%s' is not explicitly set" % child_node.inst.inst_name,
                     child_node.inst.inst_src_ref
                 )

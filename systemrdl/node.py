@@ -1,7 +1,5 @@
 import re
 import itertools
-import operator
-import functools
 
 from . import component as comp
 from . import rdltypes
@@ -547,8 +545,7 @@ class AddressableNode(Node):
         If an array, returns size of the entire array
         """
         if self.inst.is_array:
-            num_elements = functools.reduce(operator.mul, self.inst.array_dimensions)
-            return self.inst.array_stride * (num_elements-1) + self.size
+            return self.inst.array_stride * (self.inst.n_elements-1) + self.size
         else:
             return self.size
     
