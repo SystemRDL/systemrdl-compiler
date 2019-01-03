@@ -241,7 +241,7 @@ class MessagePrinter:
             
         if src_ref is None:
             lines.append(
-                color + Style.BRIGHT + severity.name().lower() + ": " + Style.RESET_ALL + text
+                color + Style.BRIGHT + severity.name.lower() + ": " + Style.RESET_ALL + text
             )
         else:
             src_ref.derive_coordinates()
@@ -249,7 +249,7 @@ class MessagePrinter:
             lines.append(
                 Fore.WHITE + Style.BRIGHT
                 + "%s:%d:%d: " % (src_ref.filename, src_ref.start_line, src_ref.start_col)
-                + color + severity.name().lower() + ": "
+                + color + severity.name.lower() + ": "
                 + Style.RESET_ALL
                 + text
             )
