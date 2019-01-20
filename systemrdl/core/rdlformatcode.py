@@ -11,11 +11,14 @@ def rdlfc_to_html(text, node=None):
     # Remove any common indentation
     # --------------------------------------------------------------------------
     linelist = text.splitlines()
-    text = (
-        linelist[0].lstrip()
-        + "\n"
-        + textwrap.dedent("\n".join(linelist[1:]))
-    )
+    if linelist:
+        text = (
+            linelist[0].lstrip()
+            + "\n"
+            + textwrap.dedent("\n".join(linelist[1:]))
+        )
+    else:
+        text = text.strip()
 
     # --------------------------------------------------------------------------
     # Parse and replace RDLFormatCode Tags

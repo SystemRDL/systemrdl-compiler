@@ -24,4 +24,9 @@ addrmap rdlformatcode {
     reg_t r15[3];
     r15->desc = "[index]";
     r15.f->desc = "[index_parent]";
+
+    reg_t r16, r17;
+    r16->desc = "";
+    r17->desc = "
+    ";
 };
