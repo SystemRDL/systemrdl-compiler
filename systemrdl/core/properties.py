@@ -493,7 +493,7 @@ class Prop_resetsignal(PropertyRule):
 class Prop_rclr(PropertyRule):
     """
     Clear on read (field = 0).
-    (9.6)
+    (9.6)6
     """
     bindable_to = (comp.Field,)
     valid_types = (bool,)
@@ -592,17 +592,6 @@ class Prop_onread(PropertyRule):
             )
     
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class Prop_woset(PropertyRule):
-    """
-    Write one to set (field = field | write_data).
-    (9.6)
-    """
-    bindable_to = (comp.Field,)
-    valid_types = (bool,)
-    default = False
-    dyn_assign_allowed = True
-    mutex_group = "B"
-
 class Prop_woclr(PropertyRule):
     """
     Write one to clear (field = field & ~write_data).
@@ -614,8 +603,58 @@ class Prop_woclr(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "B"
 
+    def assign_value(self, comp_def, value, src_ref):
+        """
+        Overrides other related properties
+        """
+        super().assign_value(comp_def, value, src_ref)
+        if "woset" in comp_def.properties:
+            del comp_def.properties["woset"]
+        if "onwrite" in comp_def.properties:
+            del comp_def.properties["onwrite"]
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, check if onwrite sets the equivalent
+        """
+        if node.inst.properties.get("onwrite", None) == rdltypes.OnWriteType.woclr:
+            return True
+        else:
+            return self.default
+
+class Prop_woset(PropertyRule):
+    """
+    Write one to set (field = field | write_data).
+    (9.6)
+    """
+    bindable_to = (comp.Field,)
+    valid_types = (bool,)
+    default = False
+    dyn_assign_allowed = True
+    mutex_group = "B"
+    
+    def assign_value(self, comp_def, value, src_ref):
+        """
+        Overrides other related properties
+        """
+        super().assign_value(comp_def, value, src_ref)
+        if "woclr" in comp_def.properties:
+            del comp_def.properties["woclr"]
+        if "onwrite" in comp_def.properties:
+            del comp_def.properties["onwrite"]
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, check if onread sets the equivalent
+        """
+        if node.inst.properties.get("onwrite", None) == rdltypes.OnWriteType.woset:
+            return True
+        else:
+            return self.default
+
 class Prop_onwrite(PropertyRule):
     """
+    Write side-effect
     (9.6)
     """
     bindable_to = (comp.Field,)
@@ -623,6 +662,27 @@ class Prop_onwrite(PropertyRule):
     default = None
     dyn_assign_allowed = True
     mutex_group = "B"
+    
+    def assign_value(self, comp_def, value, src_ref):
+        """
+        Overrides other related properties
+        """
+        super().assign_value(comp_def, value, src_ref)
+        if "woclr" in comp_def.properties:
+            del comp_def.properties["woclr"]
+        if "woset" in comp_def.properties:
+            del comp_def.properties["woset"]
+    
+    def get_default(self, node):
+        """
+        If not explicitly set, check if woset or woclr imply the value
+        """
+        if node.inst.properties.get("woset", False):
+            return rdltypes.OnWriteType.woset
+        elif node.inst.properties.get("woclr", False):
+            return rdltypes.OnWriteType.woclr
+        else:
+            return self.default
     
     def validate(self, node, value):
         # 9.6.1-m A field with an onwrite value of wuser shall be external
