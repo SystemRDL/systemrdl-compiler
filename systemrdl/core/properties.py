@@ -101,26 +101,18 @@ class PropertyRule:
         
         # unpack true type of value
         # Contents of value can be:
-        #   - implied "true" assignment (bool literal, True)
-        #   - precedencetype literal (instance of PrecedenceType)
-        #   - user-defined enum type (subclass of UserEnum)
         #   - An expression (instance of an Expr subclass)
-        if type(value) == bool:
-            assign_type = bool
-        elif type(value) == int:
-            assign_type = int
-        elif isinstance(value, rdltypes.PrecedenceType):
-            assign_type = rdltypes.PrecedenceType
-        elif isinstance(value, rdltypes.InterruptType):
-            assign_type = rdltypes.InterruptType
-        elif isinstance(value, expressions.Expr):
+        #   - Direct assignment of a type-compatible value
+        if isinstance(value, expressions.Expr):
+            # Predict expected type after value would get evaluated
             assign_type = value.predict_type()
         elif rdltypes.is_user_enum(value):
+            # Value is a user enum type derived from UserEnum.
+            # Mark it as such
             assign_type = rdltypes.UserEnum
-        elif rdltypes.is_user_struct(type(value)):
-            assign_type = type(value)
         else:
-            raise RuntimeError
+            # Value is already evaluated
+            assign_type = type(value)
         
         # Check if value's type is compatible
         for valid_type in self.valid_types:
