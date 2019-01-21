@@ -1,0 +1,9 @@
+
+addrmap my_design {
+    reg my_reg_t {
+        field {} f1;
+    };
+
+    my_reg_t r1 @ 0x100;
+    my_reg_t r2 @ 0x100;
+};

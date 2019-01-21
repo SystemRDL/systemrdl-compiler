@@ -1,0 +1,9 @@
+
+addrmap my_design {
+    reg {
+        field {} f1;
+    } r1;
+
+    // Intentionally bad path
+    r1.badpath->desc = "hello";
+};

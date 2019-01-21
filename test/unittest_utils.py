@@ -14,8 +14,12 @@ from systemrdl.core.ExprVisitor import ExprVisitor
 from systemrdl.messages import MessagePrinter, RDLCompileError
 #===============================================================================
 class TestPrinter(MessagePrinter):
-    def print_message(self, severity, text, context):
-        logging.error(text)
+    #def print_message(self, severity, text, context):
+    #    logging.error(text)
+    
+    def emit_message(self, lines):
+        text = "\n".join(lines)
+        logging.info(text)
 
 
 #===============================================================================
@@ -24,9 +28,17 @@ class RDLSourceTestCase(unittest.TestCase):
     Base class for SystemRDL unittest TestCase
     Implements mechanisms and tests common to interpreting an RDL testcase file
     """
+    def setUp(self):
+        self.compiler_warning_flags = 0
+        self.compiler_error_flags = 0
+
     def compile(self, files, top_name, inst_name=None, parameters=None):
         this_dir = os.path.dirname(os.path.realpath(__file__))
-        rdlc = RDLCompiler(message_printer=TestPrinter())
+        rdlc = RDLCompiler(
+            message_printer=TestPrinter(),
+            warning_flags=self.compiler_warning_flags,
+            error_flags=self.compiler_error_flags
+        )
         for file in files:
             rdlc.compile_file(os.path.join(this_dir, file))
         return rdlc.elaborate(top_name, inst_name, parameters)

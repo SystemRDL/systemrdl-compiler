@@ -62,7 +62,7 @@ class SourceRef:
     This is used to provide useful context to the original RDL source when
     reporting compiler messages.
     """
-    def __init__(self, start, end, filename=None, seg_map=None):
+    def __init__(self, start=None, end=None, filename=None, seg_map=None):
 
         #: SegmentMap object that provides character coordinate mapping table
         self.seg_map = seg_map
@@ -112,40 +112,42 @@ class SourceRef:
         # Skip deriving end coordinate if selection spans multiple files
         if self.filename != end_filename:
             get_end = False
+        elif self.end is None:
+            get_end = False
         else:
             get_end = True
 
+        if (self.filename is not None) and (self.start is not None):
+            with open(self.filename, 'r', newline='', encoding='utf_8') as fp:
 
-        with open(self.filename, 'r', newline='', encoding='utf_8') as fp:
+                while True:
+                    line_text = fp.readline()
 
-            while True:
-                line_text = fp.readline()
+                    file_pos += len(line_text)
 
-                file_pos += len(line_text)
-
-                if line_text == "":
-                    break
-
-                if (self.start_line is None) and (self.start < file_pos):
-                    self.start_line = lineno
-                    self.start_col = self.start - line_start
-                    self.start_line_text = line_text.rstrip("\n").rstrip("\r")
-                    if not get_end:
+                    if line_text == "":
                         break
 
-                if get_end and (self.end_line is None) and (self.end < file_pos):
-                    self.end_line = lineno
-                    self.end_col = self.end - line_start
-                    break
+                    if (self.start_line is None) and (self.start < file_pos):
+                        self.start_line = lineno
+                        self.start_col = self.start - line_start
+                        self.start_line_text = line_text.rstrip("\n").rstrip("\r")
+                        if not get_end:
+                            break
 
-                lineno += 1
-                line_start = file_pos
+                    if get_end and (self.end_line is None) and (self.end < file_pos):
+                        self.end_line = lineno
+                        self.end_col = self.end - line_start
+                        break
 
-        # If no end coordinate was derived, just do a single char selection
-        if not get_end:
-            self.end_line = self.start_line
-            self.end_col = self.start_col
-            self.end = self.start
+                    lineno += 1
+                    line_start = file_pos
+
+            # If no end coordinate was derived, just do a single char selection
+            if not get_end:
+                self.end_line = self.start_line
+                self.end_col = self.start_col
+                self.end = self.start
 
 
     @classmethod
@@ -240,12 +242,16 @@ class MessagePrinter:
             color = Fore.YELLOW
 
         if src_ref is None:
+            # No message context available
             lines.append(
                 color + Style.BRIGHT + severity.name.lower() + ": " + Style.RESET_ALL + text
             )
-        else:
-            src_ref.derive_coordinates()
+            return lines
 
+        src_ref.derive_coordinates()
+
+        if (src_ref.start_line is not None) and (src_ref.start_col is not None):
+            # Start line and column is known
             lines.append(
                 Fore.WHITE + Style.BRIGHT
                 + "%s:%d:%d: " % (src_ref.filename, src_ref.start_line, src_ref.start_col)
@@ -253,8 +259,27 @@ class MessagePrinter:
                 + Style.RESET_ALL
                 + text
             )
+        elif src_ref.start_line is not None:
+            # Only line number is known
+            lines.append(
+                Fore.WHITE + Style.BRIGHT
+                + "%s:%d: " % (src_ref.filename, src_ref.start_line)
+                + color + severity.name.lower() + ": "
+                + Style.RESET_ALL
+                + text
+            )
+        else:
+            # Only filename is known
+            lines.append(
+                Fore.WHITE + Style.BRIGHT
+                + "%s: " % src_ref.filename
+                + color + severity.name.lower() + ": "
+                + Style.RESET_ALL
+                + text
+            )
 
-            # If src_ref highlights anything interesting, print it
+        # If src_ref highlights a span within a single line of text, print it
+        if (src_ref.start_line is not None) and (src_ref.end_line is not None):
             if src_ref.start_line != src_ref.end_line:
                 # multi-line reference
                 # Select remainder of the line
