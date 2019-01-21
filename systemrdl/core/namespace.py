@@ -1,15 +1,15 @@
 from .. import component as comp
 
 class NamespaceRegistry():
-    
+
     def __init__(self, env):
         self.env = env
         self.msg = env.msg
-        
+
         self.type_ns_stack = [{}]
         self.element_ns_stack = [{}]
         self.default_property_ns_stack = [{}]
-    
+
     def register_type(self, name:str, ref, src_ref):
         if name in self.type_ns_stack[-1]:
             self.msg.fatal(
@@ -17,7 +17,7 @@ class NamespaceRegistry():
                 src_ref
             )
         self.type_ns_stack[-1][name] = ref
-        
+
     def register_element(self, name:str, ref, parent_comp_def, src_ref):
         if name in self.element_ns_stack[-1]:
             self.msg.fatal(
@@ -25,7 +25,7 @@ class NamespaceRegistry():
                 src_ref
             )
         self.element_ns_stack[-1][name] = (ref, parent_comp_def)
-    
+
     def register_default_property(self, name:str, ref, src_ref, overwrite_ok=False):
         if not overwrite_ok:
             if name in self.default_property_ns_stack[-1]:
@@ -33,15 +33,15 @@ class NamespaceRegistry():
                     "Default property '%s' was already assigned in this scope" % name,
                     src_ref
                 )
-        
+
         self.default_property_ns_stack[-1][name] = (src_ref, ref)
-    
+
     def lookup_type(self, name:str):
         for scope in reversed(self.type_ns_stack):
             if name in scope:
                 return scope[name]
         return None
-    
+
     def lookup_element(self, name:str):
         for idx, scope in enumerate(reversed(self.element_ns_stack)):
             if name in scope:
@@ -55,7 +55,7 @@ class NamespaceRegistry():
                 else:
                     return (None, None)
         return (None, None)
-    
+
     def get_default_properties(self, comp_type):
         """
         Returns a flattened dictionary of all default property assignments
@@ -67,7 +67,7 @@ class NamespaceRegistry():
         props = {}
         for scope in self.default_property_ns_stack[:-1]:
             props.update(scope)
-            
+
         # filter out properties that are not relevant
         prop_names = list(props.keys())
         for prop_name in prop_names:
@@ -79,14 +79,14 @@ class NamespaceRegistry():
                 )
             if comp_type not in rule.bindable_to:
                 del props[prop_name]
-            
+
         return props
-    
+
     def enter_scope(self):
         self.type_ns_stack.append({})
         self.element_ns_stack.append({})
         self.default_property_ns_stack.append({})
-        
+
     def exit_scope(self):
         self.type_ns_stack.pop()
         self.element_ns_stack.pop()

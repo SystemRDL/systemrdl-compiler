@@ -12,7 +12,7 @@ from .parameter import Parameter
 from .helpers import get_ID_text
 
 class ExprVisitor(BaseVisitor):
-        
+
     #---------------------------------------------------------------------------
     # Numerical Expressions
     #---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ class ExprVisitor(BaseVisitor):
         SystemRDLParser.BAND    : e.BoolAnd,
         SystemRDLParser.BOR     : e.BoolOr
     }
-    
+
     _UnaryExpr_map = {
         SystemRDLParser.PLUS    : e.UnaryPlus,
         SystemRDLParser.MINUS   : e.UnaryMinus,
@@ -51,7 +51,7 @@ class ExprVisitor(BaseVisitor):
         SystemRDLParser.XOR     : e.XorReduce,
         SystemRDLParser.XNOR    : e.XnorReduce
     }
-    
+
     # Visit a parse tree produced by SystemRDLParser#BinaryExpr.
     def visitBinaryExpr(self, ctx:SystemRDLParser.BinaryExprContext):
         l = self.visit(ctx.expr(0))
@@ -73,12 +73,12 @@ class ExprVisitor(BaseVisitor):
         j = self.visit(ctx.expr(1))
         k = self.visit(ctx.expr(2))
         return e.TernaryExpr(self.compiler.env, SourceRef.from_antlr(ctx.op), i, j, k)
-    
-    
+
+
     # Visit a parse tree produced by SystemRDLParser#paren_expr.
     def visitParen_expr(self, ctx:SystemRDLParser.Paren_exprContext):
         return self.visit(ctx.expr())
-    
+
     #---------------------------------------------------------------------------
     # Numeric Literals
     #---------------------------------------------------------------------------
@@ -87,15 +87,15 @@ class ExprVisitor(BaseVisitor):
         s = ctx.INT().getText()
         s = s.replace("_","")
         return e.IntLiteral(self.compiler.env, SourceRef.from_antlr(ctx.INT()), int(s))
-    
-    
+
+
     # Visit a parse tree produced by SystemRDLParser#NumberHex.
     def visitNumberHex(self, ctx:SystemRDLParser.NumberHexContext):
         s = ctx.HEX_INT().getText()
         s = s.replace("_","")
         return e.IntLiteral(self.compiler.env, SourceRef.from_antlr(ctx.HEX_INT()), int(s,16))
-    
-    
+
+
     # Visit a parse tree produced by SystemRDLParser#NumberVerilog.
     def visitNumberVerilog(self, ctx:SystemRDLParser.NumberVerilogContext):
         s = ctx.VLOG_INT().getText()
@@ -109,31 +109,31 @@ class ExprVisitor(BaseVisitor):
             base = 10
         else:
             base = 16
-        
+
         val = int(m.group(3), base)
-        
+
         if width < 1:
             self.msg.fatal(
                 "Integer literal width must be greater than zero",
                 SourceRef.from_antlr(ctx.VLOG_INT())
             )
-            
+
         if val >= (1 << width):
             self.msg.fatal(
                 "Value of integer literal exceeds the specified width",
                 SourceRef.from_antlr(ctx.VLOG_INT())
             )
-        
+
         return e.IntLiteral(self.compiler.env, SourceRef.from_antlr(ctx.VLOG_INT()), val, width)
-        
-    
+
+
     # Visit a parse tree produced by SystemRDLParser#boolean_literal.
     def visitBoolean_literal(self, ctx:SystemRDLParser.Boolean_literalContext):
         if ctx.val.type == SystemRDLParser.TRUE_kw:
             return e.IntLiteral(self.compiler.env, SourceRef.from_antlr(ctx.val), 1, 1)
         else:
             return e.IntLiteral(self.compiler.env, SourceRef.from_antlr(ctx.val), 0, 1)
-        
+
     #---------------------------------------------------------------------------
     # Built-in RDL Enumeration literals
     #---------------------------------------------------------------------------
@@ -143,7 +143,7 @@ class ExprVisitor(BaseVisitor):
             value = rdltypes.AccessType.rw
         else:
             value = rdltypes.AccessType[ctx.kw.text]
-        
+
         return e.BuiltinEnumLiteral(self.compiler.env, SourceRef.from_antlr(ctx.kw), value)
 
     def visitOnreadtype_literal(self, ctx:SystemRDLParser.Onreadtype_literalContext):
@@ -160,20 +160,20 @@ class ExprVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     def visitString_literal(self, ctx:SystemRDLParser.String_literalContext):
         string = ctx.STRING().getText()
-        
+
         # Remove leading and trailing quotes (guaranteed to exist)
         string = string [1:-1]
-        
+
         # Remove backslashes from any escaped characters
         string = re.sub(r'\\(.)', r'\1', string)
-        
+
         return e.StringLiteral(self.compiler.env, SourceRef.from_antlr(ctx.STRING()), string)
-    
-    
+
+
     def visitEnum_literal(self, ctx:SystemRDLParser.Enum_literalContext):
         enum_type_name = get_ID_text(ctx.ID(0))
         enum_entry_name = get_ID_text(ctx.ID(1))
-        
+
         # Lookup the enum type
         enum_type = self.compiler.namespace.lookup_type(enum_type_name)
         if enum_type is None:
@@ -181,13 +181,13 @@ class ExprVisitor(BaseVisitor):
                 "Enumeration type '%s' not found" % enum_type_name,
                 SourceRef.from_antlr(ctx.ID(0))
             )
-        
+
         if not rdltypes.is_user_enum(enum_type):
             self.msg.fatal(
                 "Identifier '%s' is not an enum" % enum_type_name,
                 SourceRef.from_antlr(ctx.ID(0))
             )
-        
+
         # Get it's value
         if enum_entry_name not in enum_type.__members__:
             self.msg.fatal(
@@ -195,16 +195,16 @@ class ExprVisitor(BaseVisitor):
                 % (enum_entry_name, enum_type_name),
                 SourceRef.from_antlr(ctx.ID(1))
             )
-        
+
         return e.EnumLiteral(self.compiler.env, SourceRef.from_antlr(ctx), enum_type[enum_entry_name])
-    
-    
+
+
     def visitArray_literal(self, ctx:SystemRDLParser.Array_literalContext):
         elements = []
         for expr_ctx in ctx.getTypedRuleContexts(SystemRDLParser.ExprContext):
             elm_expr = self.visit(expr_ctx)
             elements.append(elm_expr)
-        
+
         expr = e.ArrayLiteral(self.compiler.env, SourceRef.from_antlr(ctx), elements)
         expr.predict_type()
         return expr
@@ -212,7 +212,7 @@ class ExprVisitor(BaseVisitor):
 
     def visitStruct_literal(self, ctx:SystemRDLParser.Struct_literalContext):
         struct_type_name = get_ID_text(ctx.ID())
-        
+
         # Lookup the struct type
         struct_type = self.compiler.namespace.lookup_type(struct_type_name)
         if struct_type is None:
@@ -220,47 +220,47 @@ class ExprVisitor(BaseVisitor):
                 "Struct type '%s' not found" % struct_type_name,
                 SourceRef.from_antlr(ctx.ID())
             )
-        
+
         if not rdltypes.is_user_struct(struct_type):
             self.msg.fatal(
                 "Identifier '%s' is not a struct" % struct_type_name,
                 SourceRef.from_antlr(ctx.ID())
             )
-        
+
         if struct_type._is_abstract:
             self.msg.fatal(
                 "Creating a literal from abstract struct '%s' is not allowed" % struct_type_name,
                 SourceRef.from_antlr(ctx.ID())
             )
-        
+
         # collect member values
         values = OrderedDict()
         for kv_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Struct_kvContext):
             member_name, member_expr, member_name_src_ref = self.visit(kv_ctx)
-            
+
             if member_name in values:
                 self.msg.error(
                     "Struct member '%s' already used in this literal" % member_name,
                     member_name_src_ref
                 )
                 continue
-            
+
             if member_name not in struct_type._members:
                 self.msg.fatal(
                     "'%s' is not a member of struct '%s'"
                     % (member_name, struct_type_name),
                     member_name_src_ref
                 )
-            
+
             # TODO: Need to detect if type is bit, and not perform a width cast (only do an assign cast)
             # Current implementation will truncate integers larger than 64-bits
             if struct_type._members[member_name] == int:
                 member_expr = e.WidthCast(self.compiler.env, member_name_src_ref, member_expr, w_int=64)
             elif struct_type._members[member_name] == bool:
                 member_expr = e.BoolCast(self.compiler.env, member_name_src_ref, member_expr)
-            
+
             values[member_name] = (member_expr, member_name_src_ref)
-        
+
         expr = e.StructLiteral(
             self.compiler.env,
             SourceRef.from_antlr(ctx.ID()),
@@ -269,8 +269,8 @@ class ExprVisitor(BaseVisitor):
         )
         expr.predict_type()
         return expr
-        
-        
+
+
     def visitStruct_kv(self, ctx:SystemRDLParser.Struct_kvContext):
         member_name = get_ID_text(ctx.ID())
         member_name_src_ref = SourceRef.from_antlr(ctx.ID())
@@ -285,19 +285,19 @@ class ExprVisitor(BaseVisitor):
         for expr_ctx in ctx.getTypedRuleContexts(SystemRDLParser.ExprContext):
             elm_expr = self.visit(expr_ctx)
             elements.append(elm_expr)
-        
+
         expr = e.Concatenate(self.compiler.env, SourceRef.from_antlr(ctx), elements)
         expr.predict_type()
         return expr
-    
-    
+
+
     def visitReplicate(self, ctx:SystemRDLParser.ReplicateContext):
         reps_expr = self.visit(ctx.expr())
         concat_expr = self.visit(ctx.concatenate())
         expr = e.Replicate(self.compiler.env, SourceRef.from_antlr(ctx), reps_expr, concat_expr)
         expr.predict_type()
         return expr
-    
+
     #---------------------------------------------------------------------------
     # Cast
     #---------------------------------------------------------------------------
@@ -319,18 +319,18 @@ class ExprVisitor(BaseVisitor):
     def visitCastWidth(self, ctx:SystemRDLParser.CastWidthContext):
         w = self.visit(ctx.cast_width_expr())
         return e.WidthCast(self.compiler.env, SourceRef.from_antlr(ctx.op), self.visit(ctx.expr()), w_expr=w)
-    
+
     #---------------------------------------------------------------------------
     # References
     #---------------------------------------------------------------------------
     def visitInstance_ref(self, ctx:SystemRDLParser.Instance_refContext):
-        
+
         # Get each ref element in a hierarchical chain. Each element is a tuple:
         #   (name, [index_expr, ...], SourceRef)
         ref_elements = []
         for ref_elem in ctx.getTypedRuleContexts(SystemRDLParser.Instance_ref_elementContext):
             ref_elements.append(self.visit(ref_elem))
-        
+
         # Resolve reference of first element, since it is in the local scope
         first_name, first_array_suffixes, first_name_src_ref = ref_elements[0]
         first_elem, first_elem_parent_def = self.compiler.namespace.lookup_element(first_name)
@@ -339,11 +339,11 @@ class ExprVisitor(BaseVisitor):
                 "Reference to '%s' not found" % first_name,
                 first_name_src_ref
             )
-        
+
         if isinstance(first_elem, Parameter):
             # Reference is to a local parameter
             ref_expr = e.ParameterRef(self.compiler.env, first_name_src_ref, first_elem)
-            
+
             # Wrap ref_expr with array/struct dereferencers as appropriate
             for array_suffix in first_array_suffixes:
                 ref_expr = e.ArrayIndex(self.compiler.env, first_name_src_ref, ref_expr, array_suffix)
@@ -351,64 +351,64 @@ class ExprVisitor(BaseVisitor):
                 ref_expr = e.MemberRef(self.compiler.env, name_src_ref, ref_expr, name)
                 for array_suffix in array_suffixes:
                     ref_expr = e.ArrayIndex(self.compiler.env, name_src_ref, ref_expr, array_suffix)
-            
+
         elif isinstance(first_elem, comp.Component):
             ref_expr = e.InstRef(
-                self.compiler.env, 
+                self.compiler.env,
                 ref_root=first_elem_parent_def,
                 ref_elements=ref_elements
             )
         else:
             raise RuntimeError
-        
+
         return ref_expr
 
     def visitInstance_ref_element(self, ctx:SystemRDLParser.Instance_ref_elementContext):
         name_token = ctx.ID()
         name = get_ID_text(name_token)
-        
+
         array_suffixes = []
         for as_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Array_suffixContext):
             array_suffixes.append(self.visit(as_ctx))
-        
+
         return name, array_suffixes, SourceRef.from_antlr(name_token)
 
     def visitProp_ref(self, ctx:SystemRDLParser.Prop_refContext):
         ref_expr = self.visit(ctx.instance_ref())
-        
+
         if ctx.prop_keyword() is not None:
             prop_token = self.visit(ctx.prop_keyword())
         else:
             prop_token = ctx.ID()
-        
+
         if not isinstance(ref_expr, e.InstRef):
             self.msg.fatal(
                 "Illegal property reference from non-component.",
                 SourceRef.from_antlr(ctx.instance_ref())
             )
-        
+
         prop_name = get_ID_text(prop_token)
         prop_ref_type = self.compiler.env.property_rules.lookup_prop_ref_type(prop_name)
-        
+
         if prop_ref_type is None:
             self.msg.fatal(
                 "'%s' is not a known property" % prop_name,
                 SourceRef.from_antlr(prop_token)
             )
-        
+
         propref_expr = e.PropRef(
             self.compiler.env,
             SourceRef.from_antlr(prop_token),
             ref_expr,
             prop_ref_type
         )
-        
+
         #self.msg.fatal(
         #    "Property references in expressions are not supported.",
         #    SourceRef.from_antlr(prop_token)
         #)
         return propref_expr
-    
+
     def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
         expr = self.visit(ctx.expr())
         expr = e.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr()), expr, int)

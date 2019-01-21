@@ -11,39 +11,39 @@ class ValidateListener(walker.RDLListener):
     def __init__(self, env):
         self.env = env
         self.msg = env.msg
-        
+
         # Used in field overlap checks
         # This is a rolling buffer of previous fields that still have a chance
         # to possibly collide with a future field
         self.field_check_buffer = []
-        
+
         # Used in addrmap, regfile, and reg overlap checks
         # Same concept as the field check buffer, but is also a stack
         self.addr_check_buffer_stack = [[]]
-    
-    
+
+
     def enter_Component(self, node):
         # Validate all properties that were applied to the component
         for prop_name in node.inst.properties.keys():
             prop_value = node.get_property(prop_name)
-            
+
             if isinstance(prop_value, rdltypes.PropertyReference):
                 prop_value._validate()
-            
+
             prop_rule = self.env.property_rules.lookup_property(prop_name)
             prop_rule.validate(node, prop_value)
-    
-    
+
+
     def enter_AddressableComponent(self, node):
         addr_check_buffer = self.addr_check_buffer_stack[-1]
         self.addr_check_buffer_stack.append([])
-        
+
         # Check for collision with previous addressable sibling
         new_addr_check_buffer = []
         for prev_addressable in addr_check_buffer:
             if (prev_addressable.inst.addr_offset + prev_addressable.total_size) > node.inst.addr_offset:
                 # Overlaps!
-                
+
                 # Only allowable overlaps are as follows:
                 #   10.1-h: Registers shall not overlap, unless one contains only
                 #   read-only fields and the other contains only write-only or
@@ -54,7 +54,7 @@ class ValidateListener(walker.RDLListener):
                         or ((not prev_addressable.has_sw_readable) and (not node.has_sw_writable))
                     ):
                         overlap_allowed = True
-                
+
                 if not overlap_allowed:
                     self.msg.error(
                         "Instance '%s' at offset +0x%X:0x%X overlaps with '%s' at offset +0x%X:0x%X"
@@ -64,7 +64,7 @@ class ValidateListener(walker.RDLListener):
                         ),
                         node.inst.inst_src_ref
                     )
-                
+
                 # Keep it in the list since it could collide again
                 new_addr_check_buffer.append(prev_addressable)
         self.addr_check_buffer_stack[-2] = new_addr_check_buffer
@@ -77,7 +77,7 @@ class ValidateListener(walker.RDLListener):
                     % node.inst.inst_name,
                     node.inst.inst_src_ref
                 )
-        
+
         if self.env.chk_strict_self_align:
             req_align = roundup_pow2(node.size)
             if (node.inst.addr_offset % req_align) != 0:
@@ -87,12 +87,12 @@ class ValidateListener(walker.RDLListener):
                     % (node.inst.addr_offset, node.inst.inst_name, node.size),
                     node.inst.inst_src_ref
                 )
-    
-    
+
+
     def enter_Reg(self, node):
         self.field_check_buffer = []
-    
-    
+
+
     def exit_Reg(self, node):
         # 10.1-c: At least one field shall be instantiated within a register
         #
@@ -103,14 +103,14 @@ class ValidateListener(walker.RDLListener):
                 "Register '%s' does not contain any fields" % node.inst.inst_name,
                 node.inst.inst_src_ref
             )
-    
-    
+
+
     def enter_Field(self, node):
         this_f_hw = node.get_property('hw')
         this_f_sw = node.get_property('sw')
         parent_accesswidth = node.parent.get_property("accesswidth")
         parent_regwidth = node.parent.get_property("regwidth")
-        
+
         # hw property values of w1 or rw1 don't make sense
         if this_f_hw in (rdltypes.AccessType.w1, rdltypes.AccessType.rw1):
             self.msg.error(
@@ -118,7 +118,7 @@ class ValidateListener(walker.RDLListener):
                 % (node.inst.inst_name, this_f_hw.name),
                 node.inst.inst_src_ref
             )
-        
+
         # 9.4.1-Table 12: Check for bad sw/hw combinations
         if (this_f_sw == rdltypes.AccessType.w) and (this_f_hw == rdltypes.AccessType.w):
             self.msg.error(
@@ -150,7 +150,7 @@ class ValidateListener(walker.RDLListener):
                 % (node.inst.inst_name),
                 node.inst.inst_src_ref
             )
-        
+
         # 10.1-d: Two field instances shall not occupy overlapping bit positions
         # within a register unless one field is read-only and the other field
         # is write-only.
@@ -164,7 +164,7 @@ class ValidateListener(walker.RDLListener):
                 # Found overlap!
                 # Check if the overlap is allowed
                 prev_f_sw = prev_field.get_property('sw')
-                
+
                 if((prev_f_sw == rdltypes.AccessType.r)
                     and (this_f_sw in (rdltypes.AccessType.w, rdltypes.AccessType.w1))
                 ):
@@ -183,8 +183,8 @@ class ValidateListener(walker.RDLListener):
                 # Keep it in the list since it could collide again
                 new_field_check_buffer.append(prev_field)
         self.field_check_buffer = new_field_check_buffer
-            
-        
+
+
         # 10.1-e: Field instances shall not occupy a bit position exceeding the
         # MSB of the register
         if node.inst.high >= parent_regwidth:
@@ -193,7 +193,7 @@ class ValidateListener(walker.RDLListener):
                 % (node.inst.high, node.inst.inst_name),
                 node.inst.inst_src_ref
             )
-        
+
         # 10.6.1-f: Any field that is software-writable or clear on read shall
         # not span multiple software accessible sub-words (e.g., a 64-bit
         # register with a 32-bit access width may not have a writable field with
@@ -210,7 +210,7 @@ class ValidateListener(walker.RDLListener):
                 % node.inst.inst_name,
                 node.inst.inst_src_ref
             )
-        
+
         # Optional warning if a field that implements storage has no reset defined
         if node.env.chk_missing_reset:
             if node.implements_storage and (node.get_property("reset") is None):
@@ -220,11 +220,11 @@ class ValidateListener(walker.RDLListener):
                     % node.inst.inst_name,
                     node.inst.inst_src_ref
                 )
-    
+
     def exit_Field(self, node):
         self.field_check_buffer.append(node)
-    
-    
+
+
     def exit_Regfile(self, node):
         # 12.2-c: At least one reg or regfile shall be instantiated within a regfile.
         if not self.addr_check_buffer_stack[-1]:
@@ -233,8 +233,8 @@ class ValidateListener(walker.RDLListener):
                 % node.inst.inst_name,
                 node.inst.inst_src_ref
             )
-    
-    
+
+
     def exit_Addrmap(self, node):
         # 13.3-b: At least one register, register file, memory, or address map
         # shall be instantiated within an address map
@@ -245,7 +245,7 @@ class ValidateListener(walker.RDLListener):
                 node.inst.inst_src_ref
             )
 
-    
+
     def exit_AddressableComponent(self, node):
         self.addr_check_buffer_stack.pop()
         self.addr_check_buffer_stack[-1].append(node)

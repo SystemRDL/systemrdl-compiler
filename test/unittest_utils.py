@@ -30,29 +30,29 @@ class RDLSourceTestCase(unittest.TestCase):
         for file in files:
             rdlc.compile_file(os.path.join(this_dir, file))
         return rdlc.elaborate(top_name, inst_name, parameters)
-    
-    
+
+
     def eval_RDL_expr(self, expr_text):
         input_stream = InputStream(expr_text)
         lexer = SystemRDLLexer(input_stream)
         token_stream = CommonTokenStream(lexer)
         parser = SystemRDLParser(token_stream)
         tree = parser.expr()
-        
+
         rdlc = RDLCompiler(message_printer=TestPrinter())
-        
+
         visitor = ExprVisitor(rdlc)
         result = visitor.visit(tree)
-        
+
         pred_type = result.predict_type()
         return pred_type, result.get_value()
-    
-    
+
+
     def assertRDLExprError(self, expr_text, msg_regex):
         with self.assertLogs() as cm:
             with self.assertRaises(RDLCompileError):
                 self.eval_RDL_expr(expr_text)
-        
+
         for record in cm.records:
             if re.search(msg_regex, record.getMessage()):
                 break
@@ -65,15 +65,15 @@ class RDLSourceTestCase(unittest.TestCase):
             msg.append("Got the following messages:")
             for record in cm.records:
                 msg.append("\t%s" % record.getMessage())
-            
+
             self.fail("\n".join(msg))
-    
-    
+
+
     def assertRDLCompileError(self, files, top_name, msg_regex):
         with self.assertLogs() as cm:
             with self.assertRaises(RDLCompileError):
                 self.compile(files, top_name)
-        
+
         for record in cm.records:
             if re.search(msg_regex, record.getMessage()):
                 break
@@ -86,5 +86,5 @@ class RDLSourceTestCase(unittest.TestCase):
             msg.append("Got the following messages:")
             for record in cm.records:
                 msg.append("\t%s" % record.getMessage())
-            
+
             self.fail("\n".join(msg))

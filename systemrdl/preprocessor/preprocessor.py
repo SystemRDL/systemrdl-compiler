@@ -12,26 +12,26 @@ from .. import messages
 from ..core.backports import subprocess_run
 
 class FilePreprocessor:
-    
+
     def __init__(self, env, path, search_paths, incl_ref=None):
         self.env = env
         self.path = path
         self.search_paths = search_paths
         self.incl_ref = incl_ref
-        
+
         with open(path, 'r', newline='', encoding='utf_8') as f:
             self.text = f.read()
-    
+
     #---------------------------------------------------------------------------
     def preprocess(self):
         """
         Run preprocessor on a top-level file.
-        
+
         Performs the following preprocess steps:
-        
+
         - Expand `include directives
         - Perl Preprocessor
-        
+
         Returns
         -------
         tuple
@@ -39,21 +39,21 @@ class FilePreprocessor:
         """
         tokens = self.tokenize()
         pl_segments, has_perl_tags = self.get_perl_segments(tokens)
-        
+
         # Generate flattened output
         str_parts = []
         smap = segment_map.SegmentMap()
         offset = 0
-        
+
         if has_perl_tags:
             # Needs to be processed through perl interpreter
             emit_list = self.run_perl_miniscript(pl_segments)
-            
+
             for entry in emit_list:
                 if entry['type'] == "ref":
                     pl_seg = pl_segments[entry['ref']]
                     emit_text = pl_seg.get_text()
-                    
+
                     map_seg = segment_map.UnalteredSegment(
                         offset, offset + len(emit_text) - 1,
                         pl_seg.start, pl_seg.end, self.path,
@@ -62,11 +62,11 @@ class FilePreprocessor:
                     offset += len(emit_text)
                     smap.segments.append(map_seg)
                     str_parts.append(emit_text)
-                
+
                 elif entry['type'] == "text":
                     pl_seg = pl_segments[entry['ref']]
                     emit_text = entry['text']
-                    
+
                     map_seg = segment_map.MacroSegment(
                         offset, offset + len(emit_text) - 1,
                         pl_seg.start, pl_seg.end, self.path,
@@ -87,24 +87,24 @@ class FilePreprocessor:
                 offset += len(emit_text)
                 smap.segments.append(map_seg)
                 str_parts.append(emit_text)
-        
+
         return ("".join(str_parts), smap)
-        
+
     #---------------------------------------------------------------------------
     def tokenize(self):
         """
         Tokenize the input text
-        
+
         Scans for instances of perl tags and include directives.
         Tokenization skips line and block comments.
-        
+
         Returns
         -------
         list
             List of tuples: (typ, start, end)
-            
+
             Where:
-            
+
             - typ is "perl" or "incl"
             - start/end mark the first/last char offset of the token
         """
@@ -120,12 +120,12 @@ class FilePreprocessor:
             if m.lastgroup in ("incl", "perl"):
                 tokens.append((m.lastgroup, m.start(0), m.end(0)-1))
         return tokens
-    
+
     #---------------------------------------------------------------------------
     def parse_include(self, start):
         """
         Extract include from text based on start position of token
-        
+
         Returns
         -------
         (end, incl_path)
@@ -140,14 +140,14 @@ class FilePreprocessor:
                 break
             i -= 1
         line_start = i
-        
+
         # check that there is no unexpected text before the include
         if not (self.text[line_start:start] == "" or self.text[line_start:start].isspace()):
             self.env.msg.fatal(
                 "Unexpected text before include",
                 messages.SourceRef(line_start, start-1, filename=self.path)
             )
-        
+
         # Capture include contents
         inc_regex = re.compile(r'`include\s+("([^\r\n]+)"|<([^\r\n]+)>)')
         m_inc = inc_regex.match(self.text, start)
@@ -169,7 +169,7 @@ class FilePreprocessor:
                 "Unexpected text after include",
                 messages.SourceRef(end+1, m.end(0)-1, filename=self.path)
             )
-        
+
         # Resolve include path.
         if os.path.isabs(incl_path_raw):
             incl_path = incl_path_raw
@@ -188,7 +188,7 @@ class FilePreprocessor:
                 "Could not find '%s' in include search paths" % incl_path_raw,
                 messages.SourceRef(path_start, end, filename=self.path)
             )
-        
+
         # Check if path has already been referenced before
         incl_ref = self.incl_ref
         while incl_ref:
@@ -198,9 +198,9 @@ class FilePreprocessor:
                     messages.SourceRef(path_start, end, filename=self.path)
                 )
             incl_ref = incl_ref.parent
-        
+
         return(end, incl_path)
-    
+
     #---------------------------------------------------------------------------
     def get_perl_segments(self, tokens):
         """
@@ -214,27 +214,27 @@ class FilePreprocessor:
         pl_segments = []
         has_perl_tags = False
         pos = 0
-        
+
         for typ, start, end in tokens:
-            
+
             # Capture any leading text
             if start != pos:
                 pl_seg = PPPUnalteredSegment(self, pos, start-1)
                 pl_segments.append(pl_seg)
-            
+
             if typ == "incl":
                 # Got an `include ...
-                
+
                 # Extract the path and actual end position
                 end, incl_path = self.parse_include(start)
-                
+
                 incl_ref = segment_map.IncludeRef(start, end, self.path, self.incl_ref)
                 incl_file_pp = FilePreprocessor(self.env, incl_path, self.search_paths, incl_ref)
                 incl_tokens = incl_file_pp.tokenize()
                 incl_pl_segments, incl_has_pl_tags = incl_file_pp.get_perl_segments(incl_tokens)
                 pl_segments.extend(incl_pl_segments)
                 has_perl_tags = has_perl_tags or incl_has_pl_tags
-                
+
             else:
                 # Got a Perl tag <% ... %>
                 if self.text[start+2] == "=":
@@ -243,15 +243,15 @@ class FilePreprocessor:
                     pl_seg = PPPPerlSegment(self, start, end)
                 pl_segments.append(pl_seg)
                 has_perl_tags = True
-            
+
             pos = end+1
-        
+
         # Capture any trailing text
         text_len = len(self.text)
         if text_len > pos:
             pl_seg = PPPUnalteredSegment(self, pos, text_len-1)
             pl_segments.append(pl_seg)
-        
+
         return (pl_segments, has_perl_tags)
 
     #---------------------------------------------------------------------------
@@ -259,16 +259,16 @@ class FilePreprocessor:
         """
         Generates and runs a perl miniscript that derives the text that will be
         emitted from the preprocessor
-        
+
         returns the resulting emit list
         """
-        
+
         # Check if perl is installed
         if shutil.which("perl") is None:
             self.env.msg.fatal(
                 "Input contains Perl preprocessor tags, but an installation of Perl could not be found"
             )
-        
+
         # Generate minimal perl script that captures activities described in the source file
         lines = []
         for i,pp_seg in enumerate(segments):
@@ -276,26 +276,26 @@ class FilePreprocessor:
                 # Text outside preprocessor tags that should remain unaltered
                 # Insert command to emit reference to this text segment
                 lines.append("rdlppp_utils::emit_ref(%d);" % i)
-                
+
             elif isinstance(pp_seg, PPPPerlSegment):
                 # Perl code snippet. Insert directly
                 lines.append(pp_seg.get_text())
-                
+
             elif isinstance(pp_seg, PPPMacroSegment):
                 # Preprocessor macro print tag
                 # Insert command to store resulting text
                 var = pp_seg.get_text()
-                
+
                 # Check for any illegal characters
                 if re.match(r'[\s;]', var):
                     self.env.msg.fatal(
                         "Invalid text found in Perl macro expansion",
                         messages.SourceRef(pp_seg.start, pp_seg.end, filename=self.path)
                     )
-                
+
                 lines.append("rdlppp_utils::emit_text(%d, %s);" % (i, var))
         miniscript = '\n'.join(lines)
-        
+
         # Run miniscript
         result = subprocess_run(
             ["perl", os.path.join(os.path.dirname(__file__), "ppp_runner.pl")],
@@ -310,10 +310,10 @@ class FilePreprocessor:
                 # TODO: Fix useless context somehow
                 messages.SourceRef(0, 0, filename=self.path)
             )
-        
+
         # miniscript returns the emit list in JSON format. Convert it
         emit_list = json.loads(result.stdout.decode('utf-8'))
-        
+
         return emit_list
 
 #---------------------------------------------------------------------------
@@ -323,7 +323,7 @@ class PPPSegment:
         self.file_pp = file_pp
         self.start = start
         self.end = end
-    
+
     def get_text(self):
         return self.file_pp.text[self.start:self.end+1]
 

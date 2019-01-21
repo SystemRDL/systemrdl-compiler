@@ -22,7 +22,7 @@ def get_ID_text(token):
         text = token.text
     else:
         text = token.getText()
-    
+
     text = text.lstrip('\\')
     return text
 

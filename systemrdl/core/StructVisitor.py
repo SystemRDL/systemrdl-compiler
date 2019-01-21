@@ -10,13 +10,13 @@ from ..messages import SourceRef
 from .. import rdltypes
 
 class StructVisitor(BaseVisitor):
-    
+
     def visitStruct_def(self, ctx:SystemRDLParser.Struct_defContext):
         self.compiler.namespace.enter_scope()
-        
+
         is_abstract = (ctx.ABSTRACT_kw() is not None)
         struct_name = get_ID_text(ctx.name)
-        
+
         if ctx.base is not None:
             # Get the base struct type
             base_name = get_ID_text(ctx.base)
@@ -33,20 +33,20 @@ class StructVisitor(BaseVisitor):
                 )
         else:
             base_type = rdltypes.UserStruct
-        
-        
+
+
         # Collect struct member elements
         members = OrderedDict()
         for struct_elem_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Struct_elemContext):
             member_type, member_name, member_src_ref = self.visit(struct_elem_ctx)
-            
+
             if member_name in members:
                 self.msg.error(
                     "Struct member '%s' has already been defined" % member_name,
                     member_src_ref
                 )
                 continue
-            
+
             if member_name in base_type._members:
                 self.msg.error(
                     "Struct member '%s' has already been defined in base struct '%s'"
@@ -54,27 +54,27 @@ class StructVisitor(BaseVisitor):
                     member_src_ref
                 )
                 continue
-            
+
             members[member_name] = member_type
-        
-        
+
+
         # Create Struct type
         struct_type = base_type.define_new(struct_name, members, is_abstract)
-        
+
         self.compiler.namespace.exit_scope()
         return struct_type, struct_name, SourceRef.from_antlr(ctx.name)
 
 
     def visitStruct_elem(self, ctx:SystemRDLParser.Struct_elemContext):
-        
+
         member_name = get_ID_text(ctx.ID())
         member_src_ref = SourceRef.from_antlr(ctx.ID())
-        
+
         member_type = self.visit(ctx.struct_type())
-        
+
         if ctx.array_type_suffix() is not None:
             member_type = rdltypes.ArrayPlaceholder(member_type)
-        
+
         return member_type, member_name, member_src_ref
 
 
@@ -95,5 +95,5 @@ class StructVisitor(BaseVisitor):
             member_type = self._CompType_Map[type_token.type]
         else:
             raise RuntimeError
-        
+
         return member_type

@@ -1,21 +1,21 @@
 from .unittest_utils import RDLSourceTestCase
 
 class TestRDLFormatCode(RDLSourceTestCase):
-    
+
     def test_tags(self):
         root = self.compile(
             ["rdl_testcases/rdlformatcode.rdl"],
             "rdlformatcode"
         )
-        
+
         html = []
         for i in range(0,18):
             reg = root.find_by_path("rdlformatcode.r%d" % i)
             html.append(reg.get_html_desc())
-        
+
         def p(s):
             return "<p>%s</p>" % s
-        
+
         self.assertEqual(html[0], "<p>asdf</p>")
         self.assertEqual(html[1], p("<b>asdf</b>"))
         self.assertEqual(html[2], p("<i>asdf</i>"))
@@ -31,12 +31,12 @@ class TestRDLFormatCode(RDLSourceTestCase):
         self.assertEqual(html[12], p('<br>[]&amp;nbsp'))
         self.assertEqual(html[13], p("r13"))
         self.assertEqual(html[14], p("r14"))
-        
+
         r15 = root.find_by_path("rdlformatcode.r15[1]")
         self.assertEqual(r15.get_html_desc(), p("<span class='rdlfc-index'>[1]</span>"))
-        
+
         f = root.find_by_path("rdlformatcode.r15[2].f")
         self.assertEqual(f.get_html_desc(), p("<span class='rdlfc-index_parent'>[2]</span>"))
-        
+
         self.assertEqual(html[16], "")
         self.assertEqual(html[17], "")

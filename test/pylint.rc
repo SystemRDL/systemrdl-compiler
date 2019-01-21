@@ -121,30 +121,30 @@ disable=
         # Disable for now during development
         fixme,
         
-        # User ignored
-        cyclic-import,
-        useless-return,
-        inconsistent-return-statements,
+        # User ignored limits
         too-many-locals,
         too-many-branches,
         too-many-return-statements,
-        no-else-return,
-        no-self-use,
         too-few-public-methods,
         too-many-public-methods,
         too-many-statements,
         too-many-instance-attributes,
         line-too-long,
-        trailing-whitespace,
+        
+        useless-return,
+        no-else-return,
+        inconsistent-return-statements,
+        cyclic-import,
+        no-self-use,
+        unused-variable,
+
+        bad-continuation,
         bad-whitespace,
         invalid-name,
         missing-docstring,
-        len-as-condition,
-        bad-continuation,
+        
         unidiomatic-typecheck,
-        consider-using-enumerate,
         abstract-method,
-        unused-variable,
         protected-access
 
 # Enable the message, report, category or checker with the given id(s). You can

@@ -72,11 +72,11 @@ sub escape_string {
 my @json_array_entries;
 foreach my $entry (@emit_list) {
     my $entry_json;
-    
+
     $entry_json .= '{';
     $entry_json .= '"type":"'.$entry->{type}.'",';
     $entry_json .= '"ref":'.$entry->{ref};
-    
+
     if($entry->{type} eq "text") {
         $entry_json .= ',"text":"' . escape_string($entry->{text}) . '"';
     }

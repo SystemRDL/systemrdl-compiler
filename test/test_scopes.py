@@ -2,13 +2,13 @@
 from .unittest_utils import RDLSourceTestCase
 
 class TestScopes(RDLSourceTestCase):
-    
+
     def test_scopes(self):
         root = self.compile(
             ["rdl_testcases/scopes.rdl"],
             "scope_test"
         )
-        
+
         self.assertEqual(
             root.find_by_path("scope_test").inst.get_scope_path(),
             ""

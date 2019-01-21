@@ -64,12 +64,12 @@ def rdlfc_to_html(text, node=None):
     for m in re.finditer(tok_regex, text, re.DOTALL):
         start = m.start()
         end = m.end()
-        
+
         # Emit prior text
         if start != pos:
             text_segs.append(text[pos:start])
         pos = end
-        
+
         if m.lastgroup == 'b':
             text_segs.append("<b>")
         elif m.lastgroup == 'xb':
@@ -109,7 +109,7 @@ def rdlfc_to_html(text, node=None):
         elif m.lastgroup == 'code':
             m2 = re.match(r'\[code\](.*?)\s*\[/code\]', m.group(0), re.DOTALL)
             text_segs.append('<code>%s</code>' % m2.group(1))
-            
+
         elif m.lastgroup == 'list':
             # List start tag
             m2 = re.match(r'\[list(?:=([^\]]+))?\]', m.group(0))
@@ -125,9 +125,9 @@ def rdlfc_to_html(text, node=None):
             else:
                 # Bad type. re-emit erronous list tag
                 text_segs.append(m.group(0))
-                    
+
         elif m.lastgroup == 'bullet':
-            if len(is_first_bullet) == 0:
+            if len(is_first_bullet) == 0: #pylint: disable=len-as-condition
                 # Not inside a list tag. Re-emit erronous tag
                 text_segs.append("\\[\\*\\]")
             else:
@@ -135,9 +135,9 @@ def rdlfc_to_html(text, node=None):
                     text_segs.append("</li>")
                 is_first_bullet[-1] = False
                 text_segs.append("<li>")
-            
+
         elif m.lastgroup == 'xlist':
-            if len(list_end_tag) == 0:
+            if len(list_end_tag) == 0: #pylint: disable=len-as-condition
                 # Not inside a list tag. Re-emit erronous tag
                 text_segs.append(m.group(0))
             else:
@@ -146,7 +146,7 @@ def rdlfc_to_html(text, node=None):
                 text_segs.append(list_end_tag[-1])
                 is_first_bullet.pop()
                 list_end_tag.pop()
-                
+
         elif m.lastgroup == 'quote':
             text_segs.append('"')
         elif m.lastgroup == 'xquote':
@@ -213,5 +213,5 @@ def rdlfc_to_html(text, node=None):
     # Pass through markdown processor
     #---------------------------------------------------------------------------
     text_out = markdown.markdown(text_out)
-    
+
     return text_out

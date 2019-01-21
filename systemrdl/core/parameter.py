@@ -7,33 +7,33 @@ class Parameter:
     def __init__(self, param_type, name, default_expr=None):
         self.name = name
         self.param_type = param_type
-        
+
         self.expr = default_expr
-        
+
         # Stores the evaluated result of self.expr so that subsequent queries do
         # not need to repeatedly re-evaluate it
         self._value = None
-    
+
     def get_value(self):
         """
         Evaluate self.expr to get the parameter's value
         """
         if (self._value is None) and (self.expr is not None):
             self._value = self.expr.get_value()
-        
+
         return self._value
-            
-        
+
+
     def get_normalized_parameter(self):
         """
         Converts the parameter to the normalized type name segment as defined in
         SystemRDL 2.0 Section 5.1.1.4-c
-        
+
         Returns the whole parameter string:
             <parameter name> + "_" + <normalized value>
         """
         return self.name + "_" + normalize(self.get_value())
-        
+
 #===============================================================================
 # Parameter value normalizing functions (5.1.1.4-c)
 #===============================================================================
@@ -102,14 +102,14 @@ def normalize_array(value):
             character sequence, and
         3. using the first eight characters of the md5 checksum of this
             character sequence
-            
+
         ... which can be semi-formalized as:
             subsequence( md5( join( normalized_values, '_' ), 0, 8 )
     """
     norm_elements = []
     for element in value:
         norm_elements.append(normalize(element))
-    
+
     norm_str = "_".join(norm_elements)
     md5 = hashlib.md5(norm_str.encode('utf-8')).hexdigest()
     return md5[:8]
@@ -125,7 +125,7 @@ def normalize_struct(value):
         3. joining the member character sequences with single underscores,
         4. using the first eight characters of the md5 checksum of this
             character sequence
-        
+
         ... which can be semi-formalized as:
             member_normalization = concat( member_name, '_', normalized_member_value )
             subsequence( md5( join( apply( struct_members, member_normalization ) ), 0, 8)
@@ -133,7 +133,7 @@ def normalize_struct(value):
     norm_elements = []
     for member_name, member_value in value._values.items():
         norm_elements.append("%s_%s" % (member_name, normalize(member_value)))
-    
+
     norm_str = "_".join(norm_elements)
     md5 = hashlib.md5(norm_str.encode('utf-8')).hexdigest()
     return md5[:8]
