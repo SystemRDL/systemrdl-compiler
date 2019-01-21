@@ -25,8 +25,10 @@ addrmap rdlformatcode {
     r15->desc = "[index]";
     r15.f->desc = "[index_parent]";
 
-    reg_t r16, r17;
+    reg_t r16, r17, r18, r19;
     r16->desc = "";
     r17->desc = "
     ";
+    r18->desc = "[list][*]a[*]b[*]c[/list]";
+    r19->desc = "[list=a][*]a[*]b[*]c[/list]";
 };

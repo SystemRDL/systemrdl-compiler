@@ -3,6 +3,36 @@ from .unittest_utils import RDLSourceTestCase
 
 class TestReferences(RDLSourceTestCase):
 
+    def test_bad_traversal(self):
+        root = self.compile(
+            ["rdl_testcases/references_direct_lhs.rdl"],
+            "top"
+        )
+
+        with self.assertRaises(ValueError):
+            root.find_by_path("top.[[]")
+        with self.assertRaises(IndexError):
+            root.find_by_path("top.reg1[1]")
+        with self.assertRaises(IndexError):
+            root.find_by_path("top.reg2[100]")
+        with self.assertRaises(IndexError):
+            root.find_by_path("top.reg2[1][1][1]")
+        
+        self.assertEqual(root.find_by_path("top.doesntexist"), None)
+        
+    def test_traversal(self):
+        root = self.compile(
+            ["rdl_testcases/references_direct_lhs.rdl"],
+            "top"
+        )
+
+        top = root.top
+        self.assertEqual(len(list(root.signals())), 1)
+        self.assertEqual(len(list(top.registers())), 2)
+        self.assertEqual(len(list(top.registers(unroll=True))), 3)
+        self.assertEqual(len(list(root.descendants())), 10)
+        self.assertEqual(len(list(root.descendants(unroll=True))), 14)
+    
     def test_direct_lhs_refs(self):
         root = self.compile(
             ["rdl_testcases/references_direct_lhs.rdl"],
@@ -23,6 +53,15 @@ class TestReferences(RDLSourceTestCase):
         top_reg21_sig = root.find_by_path("top.reg2[1].sig")
         top_reg21_x   = root.find_by_path("top.reg2[1].x")
         top_reg21_y   = root.find_by_path("top.reg2[1].y")
+
+        with self.subTest("bad lookup"):
+            with self.assertRaises(LookupError):
+                top.get_property("thisisnotaprop")
+            with self.assertRaises(LookupError):
+                top.get_property("sw")
+            
+            self.assertEqual(top.get_property("name"), "top")
+            self.assertEqual(top.get_property("name", default="NA"), "NA")
 
         with self.subTest("glbl_sig"):
             self.assertIs(glbl_sig.get_property("ref_prop"), None)

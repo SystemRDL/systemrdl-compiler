@@ -8,8 +8,10 @@ class TestRDLFormatCode(RDLSourceTestCase):
             "rdlformatcode"
         )
 
+        self.assertIs(root.top.get_html_desc(), None)
+
         html = []
-        for i in range(0,18):
+        for i in range(0,20):
             reg = root.find_by_path("rdlformatcode.r%d" % i)
             html.append(reg.get_html_desc())
 
@@ -40,3 +42,5 @@ class TestRDLFormatCode(RDLSourceTestCase):
 
         self.assertEqual(html[16], "")
         self.assertEqual(html[17], "")
+        self.assertEqual(html[18], "<ul><li>a</li><li>b</li><li>c</li></ul>")
+        self.assertEqual(html[19], "<ol type=\"a\"><li>a</li><li>b</li><li>c</li></ol>")
