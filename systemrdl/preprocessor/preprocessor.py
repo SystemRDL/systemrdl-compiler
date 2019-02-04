@@ -56,7 +56,7 @@ class FilePreprocessor:
 
                     map_seg = segment_map.UnalteredSegment(
                         offset, offset + len(emit_text) - 1,
-                        pl_seg.start, pl_seg.end, self.path,
+                        pl_seg.start, pl_seg.end, pl_seg.file_pp.path,
                         pl_seg.file_pp.incl_ref
                     )
                     offset += len(emit_text)
@@ -69,7 +69,7 @@ class FilePreprocessor:
 
                     map_seg = segment_map.MacroSegment(
                         offset, offset + len(emit_text) - 1,
-                        pl_seg.start, pl_seg.end, self.path,
+                        pl_seg.start, pl_seg.end, pl_seg.file_pp.path,
                         pl_seg.file_pp.incl_ref
                     )
                     offset += len(emit_text)
@@ -81,12 +81,14 @@ class FilePreprocessor:
                 emit_text = pl_seg.get_text()
                 map_seg = segment_map.UnalteredSegment(
                     offset, offset + len(emit_text) - 1,
-                    pl_seg.start, pl_seg.end, self.path,
+                    pl_seg.start, pl_seg.end, pl_seg.file_pp.path,
                     pl_seg.file_pp.incl_ref
                 )
                 offset += len(emit_text)
                 smap.segments.append(map_seg)
                 str_parts.append(emit_text)
+
+        #segment_map.print_segment_debug("".join(str_parts), smap)
 
         return ("".join(str_parts), smap)
 
@@ -228,10 +230,14 @@ class FilePreprocessor:
                 # Extract the path and actual end position
                 end, incl_path = self.parse_include(start)
 
+                # create a reference that captures the location where the include occurred
                 incl_ref = segment_map.IncludeRef(start, end, self.path, self.incl_ref)
+
+                # Recurse and extract perl segments from included file
                 incl_file_pp = FilePreprocessor(self.env, incl_path, self.search_paths, incl_ref)
                 incl_tokens = incl_file_pp.tokenize()
                 incl_pl_segments, incl_has_pl_tags = incl_file_pp.get_perl_segments(incl_tokens)
+
                 pl_segments.extend(incl_pl_segments)
                 has_perl_tags = has_perl_tags or incl_has_pl_tags
 
@@ -308,7 +314,7 @@ class FilePreprocessor:
                 "Encountered a Perl syntax error while executing embedded Perl preprocessor commands:\n"
                 + result.stderr.decode("utf-8"),
                 # TODO: Fix useless context somehow
-                messages.SourceRef(0, 0, filename=self.path)
+                messages.SourceRef(filename=self.path)
             )
 
         # miniscript returns the emit list in JSON format. Convert it

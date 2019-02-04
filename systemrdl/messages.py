@@ -91,6 +91,8 @@ class SourceRef:
         #: Raw line of text that corresponds to start_line
         self.start_line_text = None
 
+        self._coordinates_resolved = False
+
     def derive_coordinates(self):
         """
         Depending on the compilation source, some members of the SourceRef
@@ -98,6 +100,11 @@ class SourceRef:
         Calling this function performs the necessary derivations to complete the
         object.
         """
+
+        if self._coordinates_resolved:
+            # Coordinates were already resolved. Skip
+            return
+
         if self.seg_map is not None:
             # Translate coordinates
             self.start, self.filename, include_ref = self.seg_map.derive_source_offset(self.start)
@@ -148,6 +155,8 @@ class SourceRef:
                 self.end_line = self.start_line
                 self.end_col = self.start_col
                 self.end = self.start
+
+        self._coordinates_resolved = True
 
 
     @classmethod

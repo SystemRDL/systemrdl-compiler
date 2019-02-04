@@ -16,4 +16,5 @@ reg myReg {
 
 addrmap top {
     myReg reg1;
+    reg2_t reg2;
 };

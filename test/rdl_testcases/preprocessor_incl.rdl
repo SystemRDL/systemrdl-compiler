@@ -2,3 +2,6 @@
 <% $n_regs=3; %>
 
 field myField {};
+
+
+`include "preprocessor_incl2.rdl"

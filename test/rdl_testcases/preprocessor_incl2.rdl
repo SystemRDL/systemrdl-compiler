@@ -1,0 +1,4 @@
+
+reg reg2_t {
+    myField x;
+};
