@@ -43,7 +43,7 @@ class MyModelPrintingListener(RDLListener):
     
     def enter_Field(self, node):
         # Print some stuff about the field
-        bit_range_str = "[%d:%d]" % (node.inst.high, node.inst.low)
+        bit_range_str = "[%d:%d]" % (node.high, node.low)
         sw_access_str = "sw=%s" % node.get_property("sw").name
         print("\t"*self.indent, bit_range_str, node.get_path_segment(), sw_access_str)
     

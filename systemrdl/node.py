@@ -372,7 +372,8 @@ class Node:
 
     def get_path_segment(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
         """
-        Gets the hierarchical path segment for just this node.
+        Gets the hierarchical path segment for just this node. This includes the
+        instance name and any array suffixes.
 
         Parameters
         ----------
@@ -430,6 +431,13 @@ class Node:
             return None
         return rdlformatcode.rdlfc_to_html(desc_str, self)
 
+    @property
+    def inst_name(self):
+        """
+        Name of instantiated element
+        """
+        return self.inst.inst_name
+
     def __eq__(self, other):
         # Nodes are equal if they represent the same hierarchical position
         # in the register model
@@ -467,11 +475,22 @@ class AddressableNode(Node):
         else:
             return path_segment
 
+    @property
+    def raw_address_offset(self):
+        """
+        Raw byte address offset of the first array element node relative to
+        it's parent.
+
+        If this node is not an array, then this is equivalent to
+        :attr:`address_offset`
+
+        """
+        return self.inst.addr_offset
 
     @property
     def address_offset(self):
         """
-        Get the byte address offset of this node relative to its parent
+        Byte address offset of this node relative to it's parent
 
         If this node is an array, it's index must be known
 
@@ -555,11 +574,73 @@ class AddressableNode(Node):
         else:
             return self.size
 
+    @property
+    def is_array(self):
+        """
+        Indicates that this node represents an array of instances
+        """
+        return self.inst.is_array
+
+    @property
+    def array_dimensions(self):
+        """
+        List of sizes for each array dimension.
+        Last item in the list iterates the most frequently.
+
+        If node is not an array (``is_array == False``), then this is ``None``
+        """
+        return self.inst.array_dimensions
+
+    @property
+    def array_stride(self):
+        """
+        Address offset between array elements.
+
+        If node is not an array (``is_array == False``), then this is ``None``
+        """
+        return self.inst.array_stride
+
 #===============================================================================
 class VectorNode(Node):
     """
     Base-class for any kind of node that is vector-like.
     """
+
+    @property
+    def width(self):
+        """
+        Width of vector in bits
+        """
+        return self.inst.width
+
+    @property
+    def msb(self):
+        """
+        Bit position of most significant bit
+        """
+        return self.inst.msb
+
+    @property
+    def lsb(self):
+        """
+        Bit position of least significant bit
+        """
+        return self.inst.lsb
+
+    @property
+    def high(self):
+        """
+        High index of bit range
+        """
+        return self.inst.high
+
+    @property
+    def low(self):
+        """
+        Low index of bit range
+        """
+        return self.inst.low
+
 
 #===============================================================================
 class RootNode(Node):

@@ -21,33 +21,33 @@ class TestParameters(RDLSourceTestCase):
             self.assertEqual(reg32.get_property("regwidth"), 32)
             self.assertEqual(reg32.get_property("shared"), True)
             data = reg32.get_child_by_name("data")
-            self.assertEqual(data.inst.width, 31)
-            self.assertEqual(data.inst.high, 30)
-            self.assertEqual(data.inst.low, 0)
+            self.assertEqual(data.width, 31)
+            self.assertEqual(data.high, 30)
+            self.assertEqual(data.low, 0)
 
         with self.subTest("reg32a"):
             self.assertEqual(reg32a.get_property("regwidth"), 32)
             self.assertEqual(reg32a.get_property("shared"), True)
             data = reg32a.get_child_by_name("data")
-            self.assertEqual(data.inst.width, 31)
-            self.assertEqual(data.inst.high, 30)
-            self.assertEqual(data.inst.low, 0)
+            self.assertEqual(data.width, 31)
+            self.assertEqual(data.high, 30)
+            self.assertEqual(data.low, 0)
 
         with self.subTest("reg16"):
             self.assertEqual(reg16.get_property("regwidth"), 16)
             self.assertEqual(reg16.get_property("shared"), True)
             data = reg16.get_child_by_name("data")
-            self.assertEqual(data.inst.width, 15)
-            self.assertEqual(data.inst.high, 14)
-            self.assertEqual(data.inst.low, 0)
+            self.assertEqual(data.width, 15)
+            self.assertEqual(data.high, 14)
+            self.assertEqual(data.low, 0)
 
         with self.subTest("reg8"):
             self.assertEqual(reg8.get_property("regwidth"), 8)
             self.assertEqual(reg8.get_property("shared"), False)
             data = reg8.get_child_by_name("data")
-            self.assertEqual(data.inst.width, 7)
-            self.assertEqual(data.inst.high, 6)
-            self.assertEqual(data.inst.low, 0)
+            self.assertEqual(data.width, 7)
+            self.assertEqual(data.high, 6)
+            self.assertEqual(data.low, 0)
 
         with self.subTest("mem32"):
             self.assertEqual(mem32.get_property("mementries"), 4096)
@@ -100,13 +100,13 @@ class TestParameters(RDLSourceTestCase):
         f3 = root.find_by_path("nested.r1_inst.f")
 
         with self.subTest("f1"):
-            self.assertEqual(f1.inst.width, 4)
+            self.assertEqual(f1.width, 4)
 
         with self.subTest("f2"):
-            self.assertEqual(f2.inst.width, 4)
+            self.assertEqual(f2.width, 4)
 
         with self.subTest("f3"):
-            self.assertEqual(f3.inst.width, 5)
+            self.assertEqual(f3.width, 5)
 
 
     def test_elab_defaults(self):
@@ -120,9 +120,9 @@ class TestParameters(RDLSourceTestCase):
         f2 = root.find_by_path("elab_params.r2.f")
         f3 = root.find_by_path("elab_params.r3.f")
 
-        self.assertEqual(f1.inst.width, 1)
-        self.assertEqual(f2.inst.width, 2)
-        self.assertEqual(f3.inst.width, 3)
+        self.assertEqual(f1.width, 1)
+        self.assertEqual(f2.width, 2)
+        self.assertEqual(f3.width, 3)
         self.assertEqual(f1.get_property("onwrite"), rdlt.OnWriteType.woset)
         self.assertEqual(f2.get_property("donttest"), True)
         self.assertEqual(f3.get_property("name"), "default")
@@ -145,9 +145,9 @@ class TestParameters(RDLSourceTestCase):
         f2 = root.find_by_path("elab_params.r2.f")
         f3 = root.find_by_path("elab_params.r3.f")
 
-        self.assertEqual(f1.inst.width, 5)
-        self.assertEqual(f2.inst.width, 6)
-        self.assertEqual(f3.inst.width, 7)
+        self.assertEqual(f1.width, 5)
+        self.assertEqual(f2.width, 6)
+        self.assertEqual(f3.width, 7)
         self.assertEqual(f1.get_property("onwrite"), rdlt.OnWriteType.woclr)
         self.assertEqual(f2.get_property("donttest"), False)
         self.assertEqual(f3.get_property("name"), "python!")

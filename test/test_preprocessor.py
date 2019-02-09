@@ -17,16 +17,16 @@ class TestPreprocessor(RDLSourceTestCase):
         self.assertEqual(len(list(reg1.fields())), 3)
 
         with self.subTest("reg1_data0"):
-            self.assertEqual(reg1_data0.inst.msb, 1)
-            self.assertEqual(reg1_data0.inst.lsb, 0)
+            self.assertEqual(reg1_data0.msb, 1)
+            self.assertEqual(reg1_data0.lsb, 0)
 
         with self.subTest("reg1_data2"):
-            self.assertEqual(reg1_data2.inst.msb, 3)
-            self.assertEqual(reg1_data2.inst.lsb, 2)
+            self.assertEqual(reg1_data2.msb, 3)
+            self.assertEqual(reg1_data2.lsb, 2)
 
         with self.subTest("reg1_data4"):
-            self.assertEqual(reg1_data4.inst.msb, 5)
-            self.assertEqual(reg1_data4.inst.lsb, 4)
+            self.assertEqual(reg1_data4.msb, 5)
+            self.assertEqual(reg1_data4.lsb, 4)
     
     def test_src_ref_translation(self):
         root = self.compile(
