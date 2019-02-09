@@ -16,17 +16,26 @@ class Component:
         # Component definition
         #------------------------------
 
-        #: Reference to parent definition that contains this component
-        #: type definition.
+        #: Reference to parent :class:`~systemrdl.component.Component`
+        #: definition that lexically encloses this component type definition.
+        #:
+        #: May remain ``None`` if scope is not known or not applicable.
+        #:
+        #: .. note::
+        #:      This represents the parent *lexical* scope! This does *not*
+        #:      refer to the hierarchical parent of this component.
         self.parent_scope = None
 
         #: Named definition identifier.
         #: If declaration was anonymous, inherits the first instance's name.
         #: The type name of parameterized components is normalized based on the
         #: instance's parameter values.
+        #:
+        #: Importers may leave this as ``None``
         self.type_name = None
 
-        #: Child elements instantiated inside this component
+        #: List of :class:`~systemrdl.component.Component` instances that are
+        #: direct descendants of this component.
         #:
         #: Child components are sorted as follows:
         #:
@@ -55,13 +64,14 @@ class Component:
         #: Name of instantiated element
         self.inst_name = None
 
-        #: Reference to original component definition this instance is derived from
+        #: Reference to original :class:`~systemrdl.component.Component`
+        #: definition this instance is derived from.
         self.original_def = None
 
-        #: True if instance type is external. False if internal
+        #: True if instance type is external. False if internal.
         self.external = None
 
-        # SourceRef for the component instantiation
+        # SourceRef for the component instantiation.
         self.inst_src_ref = None
 
     def __deepcopy__(self, memo):
@@ -139,7 +149,7 @@ class AddressableComponent(Component):
         #: If left as None, compiler will resolve with inferred value.
         self.addr_offset = None
 
-        #: Address alignment if explicitly defined by user.
+        #: Address alignment if explicitly assigned by user.
         self.addr_align = None
 
         #------------------------------
@@ -149,7 +159,7 @@ class AddressableComponent(Component):
         self.is_array = False
 
         #: List of sizes for each array dimension.
-        #: Last item in list iterates the most frequently.
+        #: Last item in the list iterates the most frequently.
         self.array_dimensions = None
 
         #: Address offset between array elements.
@@ -199,7 +209,8 @@ class Root(Component):
     """
     def __init__(self):
         super().__init__()
-        # Component definitions in the global root scope
+        #: List of :class:`~systemrdl.component.Component` definitions in the
+        #: global root scope.
         self.comp_defs = OrderedDict()
 
 class Signal(VectorComponent):
@@ -214,10 +225,11 @@ class Reg(AddressableComponent):
         #------------------------------
         # Alias Register
         #------------------------------
-        #: If true, then alias_primary_inst is valid
+        #: If true, then ``alias_primary_inst`` is valid
         self.is_alias = False
 
-        #: Reference to primary register instance
+        #: Reference to primary register :class:`~systemrdl.component.Component`
+        #: instance
         self.alias_primary_inst = None
 
 class Regfile(AddressableComponent):

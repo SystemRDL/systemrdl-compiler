@@ -33,7 +33,7 @@ class RDLCompiler:
         error_flags: int
             Same as ``warning_flags`` but promote them to errors instead.
         """
-        self.env = Environment(kwargs)
+        self.env = RDLEnvironment(kwargs)
 
         # Check for stray kwargs
         if kwargs:
@@ -285,7 +285,7 @@ class RDLCompiler:
         return root_node
 
 
-class Environment:
+class RDLEnvironment:
     """
     Container object for misc resources that are preserved outside the lifetime
     of source compilation
