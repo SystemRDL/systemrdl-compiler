@@ -24,6 +24,7 @@ VectorNode
     :members:
     :undoc-members:
 
+--------------------------------------------------------------------------------
 
 Component Nodes
 ---------------
@@ -63,6 +64,8 @@ MemNode
 .. autoclass:: systemrdl.node.MemNode
     :members:
     :undoc-members:
+
+--------------------------------------------------------------------------------
 
 Other
 -----

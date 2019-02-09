@@ -6,11 +6,16 @@ Messages
 
 Warnings
 --------
-The SystemRDL compiler provides several optional warnings. These diagnostic
-messages report constructs that are not inherently erroneous, but may be considered
-risky. All warning messages are disabled by default.
+The SystemRDL compiler provides several optional warnings. These lint-like
+checks report constructs that are not inherently wrong, but may be considered
+risky.
 
-Individual warning messages can be enabled by passing one or more of the following flags into the ``warning_flags`` option of the :class:`~systemrdl.RDLCompiler` constructor. Multiple flags can be combined using bitwise OR (the ``|`` operator).
+All warning messages are disabled by default.
+
+Individual warning messages can be enabled by passing one or more of the
+following flags into the ``warning_flags`` option of the
+:class:`~systemrdl.RDLCompiler` constructor. Multiple flags can be combined
+using bitwise OR (the ``|`` operator).
 
 .. autodata:: systemrdl.warnings.ALL
     :annotation:

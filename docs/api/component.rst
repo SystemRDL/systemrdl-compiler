@@ -20,6 +20,7 @@ VectorComponent
 .. autoclass:: systemrdl.component.VectorComponent
     :members:
 
+--------------------------------------------------------------------------------
 
 Component Types
 ---------------

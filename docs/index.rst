@@ -22,15 +22,15 @@ Installing
 Install from `PyPi`_ using pip
 
 .. code-block:: bash
-   
+
    python3 -m pip install systemrdl-compiler
 
 .. _PyPi: https://pypi.org/project/systemrdl-compiler
 
 Embedded Perl Preprocessor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-If source files contain embedded Perl preprocessor tags, an installation of Perl
-that is visible through the ``PATH`` environment variable is required.
+If source files contain embedded Perl preprocessor tags, an installation of
+Perl that is visible through the ``PATH`` environment variable is required.
 
 Windows users will have to `download and install Perl separately. <https://www.perl.org/get.html>`_
 
@@ -47,22 +47,22 @@ Links
 .. toctree::
    :hidden:
    :caption: Introduction
-   
+
    self
-   
+
 .. toctree::
    :hidden:
    :caption: Getting Started
-   
+
    model_structure
    model_traversal
    properties
    examples
-   
+
 .. toctree::
    :hidden:
    :caption: Class Reference
-   
+
    api/compiler
    api/node
    api/walker
@@ -73,6 +73,6 @@ Links
 .. toctree::
    :hidden:
    :caption: Other
-   
+
    known_issues
    genindex

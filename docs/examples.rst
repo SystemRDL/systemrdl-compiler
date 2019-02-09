@@ -20,8 +20,8 @@ The full example code can be found in the ``systemrdl-compiler`` repository at:
 Walkthrough
 ^^^^^^^^^^^
 
-First, a few classes are imported, and a list of requested input files collected
-from the command line arguments.
+First, a few classes are imported, and a list of requested input files
+collected from the command line arguments.
 
 .. literalinclude:: ../examples/print_hierarchy.py
     :lines: 11-15
@@ -36,17 +36,17 @@ All the input files are compiled into the root scope, and then elaborated.
 Since no top-level component name was specified in the ``elaborate`` call, the
 last ``addrmap`` component definition is automatically chosen.
 
-If the RDL file contains any syntax or semantic errors, the compile and elaborate
-steps will raise an :class:`~systemrdl.RDLCompileError` exception. It is recommended to wrap
-this in a try/except block.
+If the RDL file contains any syntax or semantic errors, the compile and
+elaborate steps will raise an :class:`~systemrdl.RDLCompileError` exception. It
+is recommended to wrap this in a try/except block.
 
 .. literalinclude:: ../examples/print_hierarchy.py
     :lines: 22-31
 
-For this example, we want to print out some information about the register model.
-This listener class defines callbacks that will output an indented tree view of the
-register model. For ``field`` components, some additional information is printed
-about the bit range, and software access policy.
+For this example, we want to print out some information about the register
+model. This listener class defines callbacks that will output an indented tree
+view of the register model. For ``field`` components, some additional
+information is printed about the bit range, and software access policy.
 
 .. literalinclude:: ../examples/print_hierarchy.py
     :lines: 34-52

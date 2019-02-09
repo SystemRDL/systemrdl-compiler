@@ -18,41 +18,41 @@ through the register model as shown in the diagram below:
 .. image:: img/walker-listener.svg
    :align: center
 
-.. note:: Since the :class:`~systemrdl.node.RootNode` does not actually represent
-        a register model component, the :class:`~systemrdl.RDLWalker` 
+.. note:: Since the :class:`~systemrdl.node.RootNode` does not actually
+        represent a register model component, the :class:`~systemrdl.RDLWalker`
         intentionally skips it during traversal.
 
 To create a listener, extend :class:`~systemrdl.RDLListener` and implement
-your custom callback methods. In the example below, ``MyListener`` prints a message
-each time the walker enters and exits type-specific nodes:
+your custom callback methods. In the example below, ``MyListener`` prints a
+message each time the walker enters and exits type-specific nodes:
 
 .. code-block:: python
-    
+
     from systemrdl import RDLListener, RDLWalker
-    
+
     class MyListener(RDLListener):
         def enter_Addrmap(self, node):
             print("Entering addrmap", node.get_path())
-        
+
         def exit_Addrmap(self, node):
             print("Exiting addrmap", node.get_path())
-        
+
         def enter_Reg(self, node):
             print("Entering register", node.get_path())
-            
+
         def exit_Reg(self, node):
             print("Exiting register", node.get_path())
-        
+
         def enter_Field(self, node):
             print("Entering field", node.get_path())
-        
+
         def exit_Field(self, node):
             print("Exiting field", node.get_path())
 
 
-Next, the walker can be started using an instance of :class:`~systemrdl.RDLWalker`. In this
-example, the input ``root_node`` is assumed to represent the top-level addrmap
-component called "top".
+Next, the walker can be started using an instance of
+:class:`~systemrdl.RDLWalker`. In this example, the input ``root_node`` is
+assumed to represent the top-level addrmap component called "top".
 
 .. code-block:: python
 
@@ -73,7 +73,8 @@ Results in the following output:
     Exiting addrmap top
 
 
-To unroll all arrays during traversal, create a walker with loop unrolling enabled:
+To unroll all arrays during traversal, create a walker with loop unrolling
+enabled:
 
 .. code-block:: python
 
@@ -94,23 +95,23 @@ To unroll all arrays during traversal, create a walker with loop unrolling enabl
     Entering field top.A[1].f2
     Exiting field top.A[1].f2
     Exiting register top.A[1]
-    
+
     ... etc ...
-    
+
     Exiting register top.A[3]
     Exiting addrmap top
 
 Using Iterators
 ---------------
 
-Sometimes it is necessary to have more fine-grain control of how the register model
-is explored. The :meth:`Node.children() <systemrdl.node.Node.children>` method
-provides an iterator that can be used to manually traverse the tree.
+Sometimes it is necessary to have more fine-grain control of how the register
+model is explored. The :meth:`Node.children() <systemrdl.node.Node.children>`
+method provides an iterator that can be used to manually traverse the tree.
 
 .. code-block:: python
-    
+
     top_node = root_node.get_child_by_name("top")
-    
+
     for child in top_node.children(unroll=True):
         print(child.get_path())
 
@@ -128,6 +129,6 @@ Other Methods
 -------------
 
 Node objects provide several other mechanisms to traverse the register model,
-such as  :meth:`Node.get_child_by_name() <systemrdl.node.Node.get_child_by_name>`
+such as :meth:`Node.get_child_by_name() <systemrdl.node.Node.get_child_by_name>`
 or :meth:`Node.find_by_path() <systemrdl.node.Node.find_by_path>`.
 See the class reference for more details.

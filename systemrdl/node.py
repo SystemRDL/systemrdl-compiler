@@ -16,10 +16,8 @@ class Node:
     """
 
     def __init__(self, inst, env, parent):
-        """
-        Generic Node constructor.
-        Do not call directly. Use factory() static method instead
-        """
+        # Generic Node constructor.
+        # Do not call directly. Use factory() static method instead
         self.env = env
 
         #: Reference to :class:`~systemrdl.component.Component` that instantiates this node
