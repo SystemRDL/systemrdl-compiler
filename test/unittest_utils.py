@@ -14,9 +14,6 @@ from systemrdl.core.ExprVisitor import ExprVisitor
 from systemrdl.messages import MessagePrinter, RDLCompileError
 #===============================================================================
 class TestPrinter(MessagePrinter):
-    #def print_message(self, severity, text, context):
-    #    logging.error(text)
-    
     def emit_message(self, lines):
         text = "\n".join(lines)
         logging.info(text)
