@@ -1,14 +1,14 @@
 
-#: Warn if a field that implements storage is missing it's reset value.
+#: Check if a field that implements storage is missing it's reset value.
 MISSING_RESET = 1<<0
 
-#: Warn if a field's bit offset is not explicitly specified.
+#: Check if a field's bit offset is not explicitly specified.
 IMPLICIT_FIELD_POS = 1<<1
 
-#: Warn if a component's address offset is not explicitly assigned.
+#: Check if a component's address offset is not explicitly assigned.
 IMPLICIT_ADDR = 1<<2
 
-#: Warn if an instance array's address stride is not a power of two.
+#: Check if an instance array's address stride is not a power of two.
 STRIDE_NOT_POW2 = 1<<3
 
 #: Enforce that all addressable components are aligned based on their size.
@@ -21,6 +21,10 @@ STRIDE_NOT_POW2 = 1<<3
 #: This rule is a superset of ``STRIDE_NOT_POW2``.
 STRICT_SELF_ALIGN = 1<<4
 
+#: Check if an array of registers uses a stride that is not equal to the
+#: register's width.
+SPARSE_REG_STRIDE = 1<<5
+
 #-------------------------------------------------------------------------------
 #: Enable all warnings.
 ALL = (
@@ -29,4 +33,5 @@ ALL = (
     | IMPLICIT_ADDR
     | STRIDE_NOT_POW2
     | STRICT_SELF_ALIGN
+    | SPARSE_REG_STRIDE
 )

@@ -92,6 +92,15 @@ class ValidateListener(walker.RDLListener):
     def enter_Reg(self, node):
         self.field_check_buffer = []
 
+        if node.inst.is_array and self.env.chk_sparse_reg_stride:
+            if node.inst.array_stride > (node.get_property("regwidth") // 8):
+                self.msg.message(
+                    self.env.chk_sparse_reg_stride,
+                    "Address stride (+= %d) of register array '%s' is not equal to it's width (regwidth/8 = %d)"
+                    % (node.inst.array_stride, node.inst.inst_name, (node.get_property("regwidth") // 8)),
+                    node.inst.inst_src_ref
+                )
+
 
     def exit_Reg(self, node):
         # 10.1-c: At least one field shall be instantiated within a register
