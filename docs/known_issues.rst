@@ -60,7 +60,7 @@ that represents the entire array).
 
 For example:
 
-.. code-block:: none
+.. code-block:: systemrdl
 
     my_reg my_inst[16];
 

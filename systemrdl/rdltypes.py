@@ -91,7 +91,7 @@ class InterruptType(AutoEnum):
     """
     A field's interrupt type is set when using an RDL interrupt property modifier:
 
-    .. code-block:: none
+    .. code-block:: systemrdl
 
         field f {
             negedge intr;
@@ -234,7 +234,7 @@ class UserStruct:
 
     For example, the following RDL struct literal:
 
-    .. code-block:: none
+    .. code-block:: systemrdl
 
         struct my_struct {
             longint foo;
@@ -431,7 +431,7 @@ class PropertyReference:
 
     For example, the following property assignment:
 
-    .. code-block:: none
+    .. code-block:: systemrdl
 
         reg {
             ...

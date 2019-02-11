@@ -8,7 +8,7 @@ After compilation, the resulting register model is modeled as an object tree.
 
 Consider the following snippet of SystemRDL:
 
-.. code-block:: none
+.. code-block:: systemrdl
 
     reg my_reg_t {
         field {} f1;
