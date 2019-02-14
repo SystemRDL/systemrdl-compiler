@@ -406,7 +406,7 @@ class Node:
         else:
             return self.get_path_segment(array_suffix, empty_array_suffix)
 
-    def get_html_desc(self):
+    def get_html_desc(self, markdown_extensions=None):
         """
         Translates the node's 'desc' property into HTML.
 
@@ -416,6 +416,13 @@ class Node:
         The additional Markdown processing allows designers the choice to use a
         more modern lightweight markup language as an alternative to SystemRDL's
         "RDLFormatCode".
+
+        Parameters
+        ----------
+        markdown_extensions: list
+            Optional list of extensions to pass to the Markdown processor.
+            See the `Markdown module <https://python-markdown.github.io/extensions>`_
+            for more details.
 
         Returns
         -------
@@ -427,7 +434,7 @@ class Node:
         desc_str = self.get_property("desc")
         if desc_str is None:
             return None
-        return rdlformatcode.rdlfc_to_html(desc_str, self)
+        return rdlformatcode.rdlfc_to_html(desc_str, self, md_extensions=markdown_extensions)
 
     @property
     def inst_name(self):
@@ -710,8 +717,9 @@ class FieldNode(VectorNode):
         """
         True if combination of field access properties imply that the field
         implements a storage element.
-        (Section 9.4.1, Table 12)
         """
+        # 9.4.1, Table 12
+
         sw = self.get_property('sw')
         hw = self.get_property('hw')
 

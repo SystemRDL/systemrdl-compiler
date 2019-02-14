@@ -3,10 +3,13 @@ import textwrap
 
 import markdown
 
-def rdlfc_to_html(text, node=None):
+def rdlfc_to_html(text, node=None, md_extensions=None):
     """
     Convert an RDLFormatCode string to HTML
     """
+    if md_extensions is None:
+        md_extensions = []
+
     # --------------------------------------------------------------------------
     # Remove any common indentation
     # --------------------------------------------------------------------------
@@ -212,6 +215,6 @@ def rdlfc_to_html(text, node=None):
     #---------------------------------------------------------------------------
     # Pass through markdown processor
     #---------------------------------------------------------------------------
-    text_out = markdown.markdown(text_out)
+    text_out = markdown.markdown(text_out, extensions=md_extensions)
 
     return text_out
