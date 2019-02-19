@@ -23,36 +23,48 @@ class RDLCompileError(Exception):
 #===============================================================================
 class Severity(enum.IntEnum):
     NONE = 0
-    WARNING = 1
-    ERROR = 2
-    FATAL = 3
+    DEBUG = 1
+    INFO = 2
+    WARNING = 3
+    ERROR = 4
+    FATAL = 5
 
 #===============================================================================
 class MessageHandler:
-    def __init__(self, printer):
+    def __init__(self, printer, min_verbosity=Severity.WARNING):
         self.printer = printer
-        self.warning_count = 0
-        self.error_count = 0
+        self.min_verbosity = min_verbosity
+        self.had_error = False
 
     def message(self, severity, text, src_ref=None):
-        if severity == Severity.WARNING:
-            self.warning(text, src_ref)
-        if severity == Severity.ERROR:
-            self.error(text, src_ref)
-        if severity == Severity.FATAL:
-            self.fatal(text, src_ref)
+        if severity == Severity.NONE:
+            return
+
+        if severity >= Severity.ERROR:
+            self.had_error = True
+
+        if severity < self.min_verbosity:
+            return
+
+        self.printer.print_message(severity, text, src_ref)
+
+        if severity >= Severity.FATAL:
+            raise RDLCompileError(text)
+
+    def debug(self, text):
+        self.message(Severity.DEBUG, text)
+
+    def info(self, text):
+        self.message(Severity.INFO, text)
 
     def warning(self, text, src_ref=None):
-        self.printer.print_message(Severity.WARNING, text, src_ref)
-        self.warning_count += 1
+        self.message(Severity.WARNING, text, src_ref)
 
     def error(self, text, src_ref=None):
-        self.printer.print_message(Severity.ERROR, text, src_ref)
-        self.error_count += 1
+        self.message(Severity.ERROR, text, src_ref)
 
     def fatal(self, text, src_ref=None):
-        self.printer.print_message(Severity.FATAL, text, src_ref)
-        raise RDLCompileError(text)
+        self.message(Severity.FATAL, text, src_ref)
 
 #===============================================================================
 class SourceRef:
@@ -247,8 +259,10 @@ class MessagePrinter:
 
         if severity >= Severity.ERROR:
             color = Fore.RED
-        else:
+        elif severity >= Severity.WARNING:
             color = Fore.YELLOW
+        else:
+            color = Fore.GREEN
 
         if src_ref is None:
             # No message context available

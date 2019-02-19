@@ -138,7 +138,7 @@ class RDLCompiler:
 
         # Run Antlr parser on input
         parsed_tree = parser.root()
-        if self.msg.error_count:
+        if self.msg.had_error:
             self.msg.fatal("Parse aborted due to previous errors")
 
         # Traverse parse tree with RootVisitor
@@ -148,7 +148,7 @@ class RDLCompiler:
         # They should not be shared between files since that would be confusing.
         self.namespace.default_property_ns_stack = [{}]
 
-        if self.msg.error_count:
+        if self.msg.had_error:
             self.msg.fatal("Compile aborted due to previous errors")
 
     def elaborate(self, top_def_name=None, inst_name=None, parameters=None):
@@ -279,7 +279,7 @@ class RDLCompiler:
         # Only need to validate nodes that are present
         walker.RDLWalker(skip_not_present=True).walk(root_node, ValidateListener(self.env))
 
-        if self.msg.error_count:
+        if self.msg.had_error:
             self.msg.fatal("Elaborate aborted due to previous errors")
 
         return root_node
