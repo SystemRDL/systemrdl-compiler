@@ -718,19 +718,33 @@ class FieldNode(VectorNode):
         True if combination of field access properties imply that the field
         implements a storage element.
         """
-        # 9.4.1, Table 12
 
+        # 9.4.1, Table 12
         sw = self.get_property('sw')
         hw = self.get_property('hw')
+        if sw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1):
+            # Software can read and write, implying a storage element
+            return True
+        if hw == rdltypes.AccessType.rw:
+            # Hardware can read and write, implying a storage element
+            return True
+        if (sw in (rdltypes.AccessType.w, rdltypes.AccessType.w1)) and (hw == rdltypes.AccessType.r):
+            # Write-only register visible to hardware is stored
+            return True
 
-        return (sw == rdltypes.AccessType.rw
-            or sw == rdltypes.AccessType.rw1
-            or ((sw == rdltypes.AccessType.r) and (hw == rdltypes.AccessType.rw))
-            or ((sw == rdltypes.AccessType.w) and (hw == rdltypes.AccessType.rw))
-            or ((sw == rdltypes.AccessType.w1) and (hw == rdltypes.AccessType.rw))
-            or ((sw == rdltypes.AccessType.w) and (hw == rdltypes.AccessType.r))
-            or ((sw == rdltypes.AccessType.w1) and (hw == rdltypes.AccessType.r))
-        )
+
+        onread = self.get_property('onread')
+        if onread is not None:
+            # 9.6.1-c: Onread side-effects imply storage regardless of whether
+            # or not the field is writable by sw
+            return True
+
+
+        if self.get_property('hwset') or self.get_property('hwclr'):
+            # Not in spec, but these imply that a storage element exists
+            return True
+
+        return False
 
 #===============================================================================
 class RegNode(AddressableNode):
