@@ -217,6 +217,63 @@ class Prop_dontcompare(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "O"
 
+    def validate(self, node, value):
+        donttest = node.get_property("donttest")
+
+        if isinstance(node, m_node.FieldNode):
+            # 5.2.2.1-a: If value is a bit mask, the mask shall have the same width
+            # as the field
+            if isinstance(value, int):
+                if value >= (1 << node.inst.width):
+                    self.env.msg.error(
+                        "Bit mask (%d) of property 'dontcompare' exceeds width (%d) of field '%s'"
+                        % (value, node.inst.width, node.inst.inst_name),
+                        node.inst.inst_src_ref
+                    )
+
+            # Normalize values to masks
+            if isinstance(value, bool):
+                if value:
+                    value = (1 << node.inst.width) - 1
+                else:
+                    value = 0
+            if isinstance(donttest, bool):
+                if donttest:
+                    donttest = (1 << node.inst.width) - 1
+                else:
+                    donttest = 0
+
+            # 5.2.2.1-c.2: dontcompare/donttest cannot have one true and the
+            # other non-zero
+            # 5.2.2.1-c.3: the bitwise AND of dontcompare/donttest  masks
+            # shall be zero (0) for a particular component
+            # (i.e., donttest & dontcompare = 0)
+            if value & donttest:
+                self.env.msg.error(
+                    "A field's bit cannot have both 'dontcompare' and 'donttest' properties enabled",
+                    node.inst.inst_src_ref
+                )
+
+        else:
+            # 5.2.2.1-b: can also be applied to reg, regfile, and addrmap
+            # components, but only as a boolean
+            if not isinstance(value, bool):
+                self.env.msg.error(
+                    "Property 'dontcompare' expects a boolean for non-field types. Got an integer in '%s'"
+                    % (node.inst.inst_name),
+                    node.inst.inst_src_ref
+                )
+
+            # 5.2.2.1-c.1: dontcompare/donttest cannot both be set to true
+            if donttest and value:
+                self.env.msg.error(
+                    "Properties dontcompare/donttest cannot both be set to true."
+                    % (node.inst.inst_name),
+                    node.inst.inst_src_ref
+                )
+
+
+
 class Prop_donttest(PropertyRule):
     """
     Indicates the component is not included in structural testing.
@@ -227,6 +284,27 @@ class Prop_donttest(PropertyRule):
     default = False
     dyn_assign_allowed = True
     mutex_group = "O"
+
+    def validate(self, node, value):
+        if isinstance(node, m_node.FieldNode):
+            # 5.2.2.1-a: If value is a bit mask, the mask shall have the same width
+            # as the field
+            if isinstance(value, int):
+                if value >= (1 << node.inst.width):
+                    self.env.msg.error(
+                        "Bit mask (%d) of property 'donttest' exceeds width (%d) of field '%s'"
+                        % (value, node.inst.width, node.inst.inst_name),
+                        node.inst.inst_src_ref
+                    )
+        else:
+            # 5.2.2.1-b: can also be applied to reg, regfile, and addrmap
+            # components, but only as a boolean
+            if not isinstance(value, bool):
+                self.env.msg.error(
+                    "Property 'donttest' expects a boolean for non-field types. Got an integer in '%s'"
+                    % (node.inst.inst_name),
+                    node.inst.inst_src_ref
+                )
 
 class Prop_ispresent(PropertyRule):
     """
@@ -449,7 +527,7 @@ class Prop_reset(PropertyRule):
     def validate(self, node, value):
         if type(value) == int:
             # 9.5.1-c: The reset value cannot be larger than can fit in the field
-            if value >= (2**node.inst.width):
+            if value >= (1 << node.inst.width):
                 self.env.msg.error(
                     "The reset value (%d) of field '%s' cannot fit within it's width (%d)"
                     % (value, node.inst.inst_name, node.inst.width),
@@ -583,6 +661,14 @@ class Prop_onread(PropertyRule):
             return self.default
 
     def validate(self, node, value):
+        # 9.6.1-i A field with an onread property shall have software read access
+        if (value is not None) and not node.is_sw_readable:
+            self.env.msg.error(
+                "Field '%s' has an 'onread' property but does not have software read access"
+                % (node.inst.inst_name),
+                node.inst.inst_src_ref
+            )
+
         # 9.6.1-j A field with an onread value of ruser shall be external
         if (node.inst.external is False) and (value == rdltypes.OnReadType.ruser):
             self.env.msg.error(
@@ -685,6 +771,14 @@ class Prop_onwrite(PropertyRule):
             return self.default
 
     def validate(self, node, value):
+        # 9.6.1-l A field with an onwrite property shall have software write access.
+        if (value is not None) and not node.is_sw_writable:
+            self.env.msg.error(
+                "Field '%s' has an 'onwrite' property but does not have software write access"
+                % (node.inst.inst_name),
+                node.inst.inst_src_ref
+            )
+
         # 9.6.1-m A field with an onwrite value of wuser shall be external
         if (node.inst.external is False) and (value == rdltypes.OnWriteType.wuser):
             self.env.msg.error(
@@ -757,6 +851,24 @@ class Prop_singlepulse(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = None
 
+    def validate(self, node, value):
+        # 9.6.1-g: singlepulse fields shall be instantiated with a width of 1
+        # and the reset value shall be specified as 0
+        if value:
+            if node.inst.width != 1:
+                self.env.msg.error(
+                    "Field '%s' marked as 'singlepulse' shall have width of 1"
+                    % (node.inst.inst_name),
+                    node.inst.inst_src_ref
+                )
+
+            if node.get_property('resetvalue') != 0:
+                self.env.msg.error(
+                    "Field '%s' marked as 'singlepulse' shall have a reset value of 0"
+                    % (node.inst.inst_name),
+                    node.inst.inst_src_ref
+                )
+
 #-------------------------------------------------------------------------------
 # Hardware access properties
 #-------------------------------------------------------------------------------
@@ -768,12 +880,42 @@ class Prop_we(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "C"
 
+    def validate(self, node, value):
+        if value and (node.get_property('hw') not in (rdltypes.AccessType.rw, rdltypes.AccessType.w)):
+            self.env.msg.error(
+                "Property 'we' is 'true' on field '%s', but the field is not writable by hardware"
+                % (node.inst.inst_name),
+                node.inst.inst_src_ref
+            )
+
+        if value and not node.implements_storage:
+            self.env.msg.error(
+                "Use of 'we' property on field '%s' that does not implement storage does not make sense"
+                % (node.inst.inst_name),
+                node.inst.inst_src_ref
+            )
+
 class Prop_wel(PropertyRule):
     bindable_to = (comp.Field,)
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
+
+    def validate(self, node, value):
+        if value and (node.get_property('hw') not in (rdltypes.AccessType.rw, rdltypes.AccessType.w)):
+            self.env.msg.error(
+                "Property 'we' is 'true' on field '%s', but the field is not writable by hardware"
+                % (node.inst.inst_name),
+                node.inst.inst_src_ref
+            )
+
+        if value and not node.implements_storage:
+            self.env.msg.error(
+                "Use of 'wel' property on field '%s' that does not implement storage does not make sense"
+                % (node.inst.inst_name),
+                node.inst.inst_src_ref
+            )
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_anded(PropertyRule):
@@ -1076,6 +1218,16 @@ class Prop_encode(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = None
 
+    def validate(self, node, value):
+        # 9.10.1-b: The enumeration’s values shall fit inside the field width.
+        enum_max = max(map(int, value))
+        if enum_max >= (1 << node.inst.width):
+            self.env.msg.error(
+                "Field '%s' is not wide enough to encode as enum '%s'"
+                % (node.inst.inst_name, value.__name__),
+                node.inst.inst_src_ref
+            )
+
 class Prop_precedence(PropertyRule):
     bindable_to = (comp.Field,)
     valid_types = (rdltypes.PrecedenceType,)
@@ -1289,7 +1441,7 @@ class UserProperty(PropertyRule):
             # Spec does not specify, but assuming this check gets ignored for
             # non-vector nodes
             if isinstance(node, m_node.VectorNode):
-                if value >= (2**node.inst.width):
+                if value >= (1 << node.inst.width):
                     self.env.msg.error(
                         "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
                         % (value, self.name, node.inst.width, node.inst.inst_name),
