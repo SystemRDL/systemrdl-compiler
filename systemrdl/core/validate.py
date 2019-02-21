@@ -2,7 +2,7 @@
 from .helpers import is_pow2, roundup_pow2
 from .. import walker
 from .. import rdltypes
-from ..node import RegNode
+from ..node import RegNode, Node
 
 #===============================================================================
 # Validation Listeners
@@ -253,6 +253,21 @@ class ValidateListener(walker.RDLListener):
                 % node.inst.inst_name,
                 node.inst.inst_src_ref
             )
+
+
+    def exit_Mem(self, node):
+        # 11.2-i: The address space occupied by virtual registers shall be less
+        # than or equal to the address space provided by the memory.
+        if node.inst.children:
+            last_child = Node._factory(node.inst.children[-1], node.env, node)
+            if isinstance(last_child, RegNode):
+                end_addr = last_child.raw_address_offset + last_child.total_size
+                if end_addr > node.size:
+                    self.msg.error(
+                        "Address space occupied by registers (0x%X) exceeds size of mem '%s' (0x%X)"
+                        % (end_addr, node.inst.inst_name, node.size),
+                        node.inst.inst_src_ref
+                    )
 
 
     def exit_AddressableComponent(self, node):
