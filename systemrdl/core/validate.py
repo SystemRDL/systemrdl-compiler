@@ -1,5 +1,5 @@
 
-from .helpers import is_pow2, roundup_pow2
+from .helpers import is_pow2, roundup_pow2, roundup_to
 from .. import walker
 from .. import rdltypes
 from ..node import RegNode, Node
@@ -98,6 +98,20 @@ class ValidateListener(walker.RDLListener):
                     self.env.chk_sparse_reg_stride,
                     "Address stride (+= %d) of register array '%s' is not equal to it's width (regwidth/8 = %d)"
                     % (node.inst.array_stride, node.inst.inst_name, (node.get_property("regwidth") // 8)),
+                    node.inst.inst_src_ref
+                )
+
+        # 11.2-e: Virtual register width is limited to the minimum power of two
+        # bytes, which can contain the memory width ...
+        if node.is_virtual:
+            memwidth = node.parent.get_property('memwidth')
+            memwidth_bytes = roundup_to(memwidth, 8) // 8
+            max_regwidth = roundup_pow2(memwidth_bytes) * 8
+            if node.get_property('regwidth') > max_regwidth:
+                self.msg.error(
+                    "regwidth (%d) of virtual register '%s' is too wide for this memory."
+                    % (node.get_property('regwidth'), node.inst.inst_name)
+                    + " Virtual register width is limited to the minimum power of two bytes which can contain the memory width.",
                     node.inst.inst_src_ref
                 )
 
@@ -229,6 +243,17 @@ class ValidateListener(walker.RDLListener):
                     % node.inst.inst_name,
                     node.inst.inst_src_ref
                 )
+
+        # 11.2-e: ... and all the virtual fields shall fit within the memory width.
+        if node.is_virtual:
+            memwidth = node.parent.parent.get_property('memwidth')
+            if node.inst.high >= memwidth:
+                self.msg.error(
+                    "Virtual field '%s' does not fit within the parent memory's width"
+                    % node.inst.inst_name,
+                    node.inst.inst_src_ref
+                )
+
 
     def exit_Field(self, node):
         self.field_check_buffer.append(node)

@@ -204,6 +204,7 @@ class StructuralPlacementListener(walker.RDLListener):
         self.msb0_mode_stack = []
         self.addressing_mode_stack = []
         self.alignment_stack = []
+        self.max_vreg_width = 0
 
 
     def enter_Addrmap(self, node):
@@ -220,6 +221,19 @@ class StructuralPlacementListener(walker.RDLListener):
             # not set. Propagate from parent
             alignment = self.alignment_stack[-1]
         self.alignment_stack.append(alignment)
+
+
+    def enter_Mem(self, node):
+        self.max_vreg_width = 0
+
+
+    def exit_Mem(self, node):
+        # 11.3.1-d: memwidth defaults to regwidth
+        # ... I assume that means if there are vregs inside a mem, then
+        # memwidth inherits the max virtual reg regwidth?
+        if 'memwidth' not in node.inst.properties:
+            node.inst.properties['memwidth'] = self.max_vreg_width
+
 
     def exit_Field(self, node):
 
@@ -281,6 +295,8 @@ class StructuralPlacementListener(walker.RDLListener):
     def exit_Reg(self, node):
 
         regwidth = node.get_property('regwidth')
+
+        self.max_vreg_width = max(regwidth, self.max_vreg_width)
 
         # Resolve field positions.
         # First determine if there is an implied lsb/msb mode
