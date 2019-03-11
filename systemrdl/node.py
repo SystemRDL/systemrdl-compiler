@@ -406,7 +406,7 @@ class Node:
         else:
             return self.get_path_segment(array_suffix, empty_array_suffix)
 
-    def get_html_desc(self, markdown_extensions=None):
+    def get_html_desc(self, markdown_inst=None):
         """
         Translates the node's 'desc' property into HTML.
 
@@ -419,9 +419,9 @@ class Node:
 
         Parameters
         ----------
-        markdown_extensions: list
-            Optional list of extensions to pass to the Markdown processor.
-            See the `Markdown module <https://python-markdown.github.io/extensions>`_
+        markdown_inst: ``markdown.Markdown``
+            Override the class instance of the Markdown processor.
+            See the `Markdown module <https://python-markdown.github.io/reference/#Markdown>`_
             for more details.
 
         Returns
@@ -434,7 +434,7 @@ class Node:
         desc_str = self.get_property("desc")
         if desc_str is None:
             return None
-        return rdlformatcode.rdlfc_to_html(desc_str, self, md_extensions=markdown_extensions)
+        return rdlformatcode.rdlfc_to_html(desc_str, self, md=markdown_inst)
 
     @property
     def inst_name(self):

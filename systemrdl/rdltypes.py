@@ -144,7 +144,7 @@ class UserEnum(enum.Enum):
         """
         return self._rdl_name_
 
-    def get_html_desc(self, markdown_extensions=None):
+    def get_html_desc(self, markdown_inst=None):
         """
         Translates the enum's 'desc' property into HTML.
 
@@ -157,9 +157,9 @@ class UserEnum(enum.Enum):
 
         Parameters
         ----------
-        markdown_extensions: list
-            Optional list of extensions to pass to the Markdown processor.
-            See the `Markdown module <https://python-markdown.github.io/extensions>`_
+        markdown_inst: ``markdown.Markdown``
+            Override the class instance of the Markdown processor.
+            See the `Markdown module <https://python-markdown.github.io/reference/#Markdown>`_
             for more details.
 
         Returns
@@ -171,7 +171,7 @@ class UserEnum(enum.Enum):
         desc_str = self._rdl_desc_
         if desc_str is None:
             return None
-        return rdlformatcode.rdlfc_to_html(desc_str, md_extensions=markdown_extensions)
+        return rdlformatcode.rdlfc_to_html(desc_str, md=markdown_inst)
 
     @classmethod
     def _set_parent_scope(cls, scope):
