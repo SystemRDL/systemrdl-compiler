@@ -480,6 +480,31 @@ class AddressableNode(Node):
         else:
             return path_segment
 
+
+    def clear_lineage_index(self):
+        """
+        Resets this node's, as well as all parent node array indexes to
+        the 'unknown index' state.
+        """
+        if self.inst.is_array:
+            self.current_idx = None
+
+        if isinstance(self.parent, AddressableNode):
+            self.parent.clear_lineage_index()
+
+
+    def zero_lineage_index(self):
+        """
+        Resets this node's, as well as all parent node array indexes to
+        zero.
+        """
+        if self.inst.is_array:
+            self.current_idx = [0] * len(self.array_dimensions)
+
+        if isinstance(self.parent, AddressableNode):
+            self.parent.zero_lineage_index()
+
+
     @property
     def raw_address_offset(self):
         """
@@ -529,6 +554,22 @@ class AddressableNode(Node):
             offset = self.inst.addr_offset
 
         return offset
+
+
+    @property
+    def raw_absolute_address(self):
+        """
+        Get the absolute byte address of this node excluding array stride of
+        all parent.
+
+        If this node, and all parents are not an array, then this is equivalent
+        to :attr:`absolute_address`
+
+        """
+        if self.parent and not isinstance(self.parent, RootNode):
+            return self.parent.raw_absolute_address + self.raw_address_offset
+        else:
+            return self.raw_address_offset
 
 
     @property
