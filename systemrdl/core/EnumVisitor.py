@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
@@ -17,7 +19,7 @@ class EnumVisitor(BaseVisitor):
 
         # Collect entries
         entry_values = []
-        entries = {}
+        entries = OrderedDict()
         for enum_entry_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Enum_entryContext):
             name_token, value_expr_ctx, rdl_name, rdl_desc = self.visit(enum_entry_ctx)
 
