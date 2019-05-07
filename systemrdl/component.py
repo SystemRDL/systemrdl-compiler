@@ -222,6 +222,9 @@ class Field(VectorComponent):
 class Reg(AddressableComponent):
     def __init__(self):
         super().__init__()
+
+        #: If true, fields are to be arranged in msb0 order
+        self.is_msb0_order = False
         #------------------------------
         # Alias Register
         #------------------------------

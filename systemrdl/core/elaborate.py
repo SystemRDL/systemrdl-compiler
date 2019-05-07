@@ -328,11 +328,11 @@ class StructuralPlacementListener(walker.RDLListener):
 
         # Any implied lsb/msb modes override the property set by a parent
         if implied_msb_inst is not None:
-            is_msb0_mode = True
+            node.inst.is_msb0_order = True
         elif implied_lsb_inst is not None:
-            is_msb0_mode = False
+            node.inst.is_msb0_order = False
         else:
-            is_msb0_mode = self.msb0_mode_stack[-1]
+            node.inst.is_msb0_order = self.msb0_mode_stack[-1]
 
         # Assign field positions
         # Children are iterated in order of declaration
@@ -351,7 +351,7 @@ class StructuralPlacementListener(walker.RDLListener):
                         inst.inst_src_ref
                     )
 
-                if is_msb0_mode:
+                if node.inst.is_msb0_order:
                     # In msb0 mode. Pack from top first
                     # lsb == high
                     # msb == low
