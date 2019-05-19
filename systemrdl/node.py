@@ -1,5 +1,6 @@
 import re
 import itertools
+from copy import deepcopy
 
 from . import component as comp
 from . import rdltypes
@@ -32,6 +33,23 @@ class Node:
             self.get_path(),
             id(self)
         )
+
+
+    def __deepcopy__(self, memo):
+        """
+        Deepcopy all members except for ones that should be copied by reference
+        """
+        copy_by_ref = ["inst", "env"]
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if k in copy_by_ref:
+                setattr(result, k, v)
+            else:
+                setattr(result, k, deepcopy(v, memo))
+        return result
+
 
     @staticmethod
     def _factory(inst, env, parent=None):
