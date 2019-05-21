@@ -23,8 +23,8 @@ See the [SystemRDL Compiler Documentation](http://systemrdl-compiler.readthedocs
 This is just the beginning! If you want to contribute, check out these other
 projects.
 
-###[RALBot-html](https://github.com/SystemRDL/RALBot-html)
+### [RALBot-html](https://github.com/SystemRDL/RALBot-html)
 Generate dynamic register spec documentation.
 
-###[RALBot-ipxact](https://github.com/SystemRDL/RALBot-ipxact)
+### [RALBot-ipxact](https://github.com/SystemRDL/RALBot-ipxact)
 Convert the SystemRDL register model to/from IP-XACT.
