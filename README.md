@@ -18,3 +18,13 @@ it should be far easier to write custom register space view generators.
 
 ## Documentation
 See the [SystemRDL Compiler Documentation](http://systemrdl-compiler.readthedocs.io) for more details
+
+## Related Projects
+This is just the beginning! If you want to contribute, check out these other
+projects.
+
+###[RALBot-html](https://github.com/SystemRDL/RALBot-html)
+Generate dynamic register spec documentation.
+
+###[RALBot-ipxact](https://github.com/SystemRDL/RALBot-ipxact)
+Convert the SystemRDL register model to/from IP-XACT.
