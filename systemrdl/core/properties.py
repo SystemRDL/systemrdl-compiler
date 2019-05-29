@@ -862,7 +862,7 @@ class Prop_singlepulse(PropertyRule):
                     node.inst.inst_src_ref
                 )
 
-            if node.get_property('resetvalue') != 0:
+            if node.get_property('reset') != 0:
                 self.env.msg.error(
                     "Field '%s' marked as 'singlepulse' shall have a reset value of 0"
                     % (node.inst.inst_name),
