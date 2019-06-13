@@ -10,5 +10,9 @@
    .wy-table-responsive {
       overflow: visible !important;
    }
+
+   th p {
+      margin-bottom: 0px;
+   }
 }
 

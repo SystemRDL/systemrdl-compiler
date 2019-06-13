@@ -1,1 +1,2 @@
 pygments-systemrdl
+git+git://github.com/crate/sphinx_csv_filter.git

@@ -74,5 +74,6 @@ Links
    :hidden:
    :caption: Other
 
+   property_reference
    known_issues
    genindex
