@@ -1,2 +1,3 @@
+sphinx == 2.0.1
 pygments-systemrdl
 git+git://github.com/crate/sphinx_csv_filter.git
