@@ -148,9 +148,26 @@ reg regfoo {
 
 
 
-Misc typos in examples
-----------------------
+Likely typo in semantic rule 11.2-f
+-----------------------------------
+> Virtual registers, **register files**, and fields shall have the same software
+> access (sw property value) as the parent memory.
+
+Mentions "register files", even though they are not allowed in "mem" components
+as per 11.1-b-1-ii.
+
+
+
+Misc compilation issues in examples
+-----------------------------------
 Some very minor typos found while compiling several code snippet examples.
+These issues do not have any siginficant effect on the interpretation of the
+language.
+
+* 5.1.2.5, Examples 1,2, and 3
+    * All three examples fail to create an instance of `regfile example` inside
+      the `top` addrmap component. This results in an empty component definition
+      which violates the rule described in 13.3-b.
 
 * 6.3.2.4, Examples 1 and 2
     * Numerous uses of "bool" instead of "boolean" keyword as described by grammar.
@@ -160,16 +177,6 @@ Some very minor typos found while compiling several code snippet examples.
 
 * 15.2.2, Example 2
     * Enumeration literals are missing their "myEncoding::" prefix
-
-
-
-Likely typo in semantic rule 11.2-f
------------------------------------
-> Virtual registers, **register files**, and fields shall have the same software
-> access (sw property value) as the parent memory.
-
-Mentions "register files", even though they are not allowed in "mem" components
-as per 11.1-b-1-ii.
 
 ### Resolution:
 N/A
