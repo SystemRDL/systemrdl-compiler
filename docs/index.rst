@@ -72,6 +72,13 @@ Links
 
 .. toctree::
    :hidden:
+   :caption: Developer Notes
+
+   rdl_spec_errata
+   multi_file_compilation
+
+.. toctree::
+   :hidden:
    :caption: Other
 
    property_reference
