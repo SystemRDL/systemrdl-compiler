@@ -255,6 +255,10 @@ class Prop_dontcompare(PropertyRule):
                 )
 
         else:
+            # A boolean may end up cast as an int. Normalize 0 or 1 to boolean
+            if isinstance(value, int) and value in (0,1):
+                value = bool(value)
+
             # 5.2.2.1-b: can also be applied to reg, regfile, and addrmap
             # components, but only as a boolean
             if not isinstance(value, bool):
@@ -297,6 +301,10 @@ class Prop_donttest(PropertyRule):
                         node.inst.inst_src_ref
                     )
         else:
+            # A boolean may end up cast as an int. Normalize 0 or 1 to boolean
+            if isinstance(value, int) and value in (0,1):
+                value = bool(value)
+
             # 5.2.2.1-b: can also be applied to reg, regfile, and addrmap
             # components, but only as a boolean
             if not isinstance(value, bool):
