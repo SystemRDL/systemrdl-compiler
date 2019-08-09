@@ -19,7 +19,7 @@ validate.
 
 Adding these semantic checks is an ongoing effort. I am keeping track of which
 checks are implemented here:
-:download:`semantic_checks.ods<implementation_notes/semantic_checks.ods>`
+:download:`semantic_checks.ods<dev_notes/semantic_checks.ods>`
 
 
 

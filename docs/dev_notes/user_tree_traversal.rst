@@ -1,0 +1,75 @@
+
+The 'Node' User-interface
+=========================
+
+When traversing the tree, the user will interact with the object model solely
+through the simplified interface provided by the Node object.
+
+Even though the Component class reference tree is an accurate representation
+of the compiled SystemRDL, it is cumbersome to use since all references are
+in the top-down direction (parent --> child). This makes upward traversal
+impossible for certain queries (absolute address, full path, etc)::
+
+                        /---> comp_X
+                        |
+    top_comp --> comp_A[*] --> comp_B --> comp_C
+
+The Node is an overlay class that is bound to each instance as the design
+is traversed hierarchically. Lineage of the node overlay is maintained in the
+bottom-up direction which completes bi-directional linking.
+The node overlay also provides current array index information so that
+references to specific instances are unambiguous::
+
+                        /---> comp_X
+                        |
+    top_comp --> comp_A[*] --> comp_B --> comp_C
+        |           |             |          |
+    top_node <-- node_A[3] <-- node_B <-- node_C
+                        ^
+                        \---- node_X
+
+
+Direct RDL property access
+--------------------------
+
+Use the following method to lookup the value::
+
+    result = node.get_property('my_prop')
+
+``get_property`` is implemented roughly as follows:
+
+- Is it in the component's property dictionary?
+
+    - if so, return the value
+
+- Otherwise, Is it even a valid property of this component type?
+- Return the default value as specified by the rulebook
+- If the rulebook contains <TBD> as the default, then
+  a more dynamic resolution needs to be made
+
+Derived properties
+------------------
+
+Additional derived properties are defined to make translation of a bunch of RDL
+properties into useful information easier.
+These are implemented as Python attribute getters:
+https://docs.python.org/3.6/library/functions.html#property
+
+For example, a derived property for a field could be::
+
+    node.implements_storage
+
+Where the getter would check the values of hw/sw properties to determine the
+answer.
+
+Derived properties don't always need to operate on RDL properties. Could be any
+part of the internal object model.
+
+Users can also define their own derived properties.
+User provides a getter function of the following prototype::
+
+    def my_derived_property_getter(node)
+
+And registers it via::
+
+    Node.add_derived_property(my_derived_property_getter, "my_derived")

@@ -1,7 +1,7 @@
 
 .. _SystemRDL 2.0: http://accellera.org/downloads/standards/systemrdl
 
-SystemRDL spec Errata
+SystemRDL Spec Errata
 =====================
 
 This document keeps track of all ambiguities, contradictions, and typos found
@@ -213,6 +213,7 @@ Also, the example in F.4 shows the paragraph tag used as expected - as a pair.
 Implement paragraph tag as an open/close pair.
 
 
+.. _dev_notes-errata-rdlfc_desc:
 
 Existence of the RDLFormatCode ``[desc]`` tag seems misguided
 -------------------------------------------------------------
