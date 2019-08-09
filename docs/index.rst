@@ -75,19 +75,7 @@ Links
    :caption: Developer Notes
 
    dev_notes/rdl_spec_errata
-   dev_notes/multi_file_compilation
-   dev_notes/compilation
-   dev_notes/preprocessors
-   dev_notes/perl_preprocessing
-   dev_notes/namespaces
-   dev_notes/properties
-   dev_notes/expressions
-   dev_notes/hierarchical_references
-   dev_notes/instance_arrays
-   dev_notes/inferred_placement
-   dev_notes/rdl_format_code
-   dev_notes/user_tree_traversal
-   dev_notes/antlr
+   dev_notes/logbook
 
 .. toctree::
    :hidden:
