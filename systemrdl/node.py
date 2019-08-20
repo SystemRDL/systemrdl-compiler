@@ -424,11 +424,12 @@ class Node:
         else:
             return self.get_path_segment(array_suffix, empty_array_suffix)
 
+
     def get_html_desc(self, markdown_inst=None):
         """
         Translates the node's 'desc' property into HTML.
 
-        Any RDLFormatCode tags used in the description are converted to HTML.
+        Any RDLFormatCode tags used are converted to HTML.
         The text is also fed through a Markdown processor.
 
         The additional Markdown processing allows designers the choice to use a
@@ -454,12 +455,33 @@ class Node:
             return None
         return rdlformatcode.rdlfc_to_html(desc_str, self, md=markdown_inst)
 
+
+    def get_html_name(self):
+        """
+        Translates the node's 'name' property into HTML.
+
+        Any RDLFormatCode tags used are converted to HTML.
+
+        Returns
+        -------
+        str or None
+            HTML formatted string.
+            If node does not have an explicitly set name, returns ``None``
+
+        """
+        name_str = self.get_property("name", default=None)
+        if name_str is None:
+            return None
+        return rdlformatcode.rdlfc_to_html(name_str, self, is_desc=False)
+
+
     @property
     def inst_name(self):
         """
         Name of instantiated element
         """
         return self.inst.inst_name
+
 
     def __eq__(self, other):
         # Nodes are equal if they represent the same hierarchical position
@@ -534,6 +556,7 @@ class AddressableNode(Node):
 
         """
         return self.inst.addr_offset
+
 
     @property
     def address_offset(self):
@@ -638,12 +661,14 @@ class AddressableNode(Node):
         else:
             return self.size
 
+
     @property
     def is_array(self):
         """
         Indicates that this node represents an array of instances
         """
         return self.inst.is_array
+
 
     @property
     def array_dimensions(self):
@@ -654,6 +679,7 @@ class AddressableNode(Node):
         If node is not an array (``is_array == False``), then this is ``None``
         """
         return self.inst.array_dimensions
+
 
     @property
     def array_stride(self):

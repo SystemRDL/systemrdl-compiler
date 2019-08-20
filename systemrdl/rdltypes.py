@@ -148,7 +148,7 @@ class UserEnum(enum.Enum):
         """
         Translates the enum's 'desc' property into HTML.
 
-        Any RDLFormatCode tags used in the description are converted to HTML.
+        Any RDLFormatCode tags used are converted to HTML.
         The text is also fed through a Markdown processor.
 
         The additional Markdown processing allows designers the choice to use a
@@ -166,12 +166,29 @@ class UserEnum(enum.Enum):
         -------
         str or None
             HTML formatted string.
-            If node does not have a description, returns ``None``
+            If enum entry does not have a description, returns ``None``
         """
         desc_str = self._rdl_desc_
         if desc_str is None:
             return None
         return rdlformatcode.rdlfc_to_html(desc_str, md=markdown_inst)
+
+    def get_html_name(self):
+        """
+        Translates the enum's 'name' property into HTML.
+
+        Any RDLFormatCode tags used are converted to HTML.
+
+        Returns
+        -------
+        str or None
+            HTML formatted string.
+            If enum entry does not have an explicitly set name, returns ``None``
+        """
+        name_str = self._rdl_name_
+        if name_str is None:
+            return None
+        return rdlformatcode.rdlfc_to_html(name_str, is_desc=False)
 
     @classmethod
     def _set_parent_scope(cls, scope):

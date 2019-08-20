@@ -31,4 +31,22 @@ addrmap rdlformatcode {
     ";
     r18->desc = "[list][*]a[*]b[*]c[/list]";
     r19->desc = "[list=a][*]a[*]b[*]c[/list]";
+
+
+
+    r1->name = "[b]asdf[/b]";
+    r2->name = "[i]asdf[/i]";
+    r3->name = "[u]asdf[/u]";
+    r4->name = "[color=red]asdf[/color]";
+    r5->name = "[size=12]asdf[/size]";
+    r6->name = "[url]github.com[/url]";
+    r7->name = "[url=github.com]asdf[/url]";
+    r8->name = "[email]asdf@example.com[/email]";
+    r10->name = "[code]asdf[/code]";
+    r11->name = "[quote]asdf[/quote]";
+    r12->name = "[lb][rb][sp]";
+    r14->name = "[instname]";
+    r16->name = "";
+    r17->name = "
+    ";
 };

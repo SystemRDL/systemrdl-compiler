@@ -3,25 +3,22 @@ import textwrap
 
 import markdown
 
-def rdlfc_to_html(text, node=None, md=None):
+def rdlfc_to_html(text, node=None, md=None, is_desc=True):
     """
     Convert an RDLFormatCode string to HTML
     """
-    if md is None:
-        md = markdown.Markdown()
 
     # --------------------------------------------------------------------------
     # Remove any common indentation
     # --------------------------------------------------------------------------
+    text = text.strip()
     linelist = text.splitlines()
-    if linelist:
+    if len(linelist) >= 2:
         text = (
-            linelist[0].lstrip()
+            linelist[0]
             + "\n"
             + textwrap.dedent("\n".join(linelist[1:]))
         )
-    else:
-        text = text.strip()
 
     # --------------------------------------------------------------------------
     # Parse and replace RDLFormatCode Tags
@@ -59,7 +56,14 @@ def rdlfc_to_html(text, node=None, md=None):
         ('name', r'\[name\]'),
         ('instname', r'\[instname\]'),
     ]
-    tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_spec)
+
+    if is_desc:
+        tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_spec)
+    else:
+        # filter out tags that are not to be interpreted in 'name' properties
+        skipset = {'img', 'list', 'bullet', 'xlist', 'br', 'p', 'xp', 'index', 'index_parent', 'name'}
+        tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_spec if pair[0] not in skipset)
+
     pos = 0
     text_segs = []
     is_first_bullet = []
@@ -157,15 +161,21 @@ def rdlfc_to_html(text, node=None, md=None):
         elif m.lastgroup == 'br':
             text_segs.append("<br>")
         elif m.lastgroup == 'lb':
-            text_segs.append("\\[")
+            if is_desc:
+                text_segs.append("\\[")
+            else:
+                text_segs.append("[")
         elif m.lastgroup == 'rb':
-            text_segs.append("\\]")
+            if is_desc:
+                text_segs.append("\\]")
+            else:
+                text_segs.append("]")
         elif m.lastgroup == 'p':
             text_segs.append("\n\n<p>")
         elif m.lastgroup == 'xp':
             text_segs.append("</p>")
         elif m.lastgroup == 'sp':
-            text_segs.append("&nbsp")
+            text_segs.append("&nbsp;")
         elif m.lastgroup == 'index':
             if (node is not None) and node.inst.is_array:
                 subscripts = []
@@ -215,6 +225,9 @@ def rdlfc_to_html(text, node=None, md=None):
     #---------------------------------------------------------------------------
     # Pass through markdown processor
     #---------------------------------------------------------------------------
-    text_out = md.reset().convert(text_out)
+    if is_desc:
+        if md is None:
+            md = markdown.Markdown()
+        text_out = md.reset().convert(text_out)
 
     return text_out

@@ -24,16 +24,16 @@ Verilog & Perl preprocessing.
 * Identifiers are always resolved immediately
 
     * If an id token is not within any available namespace, then throw an
-        error immediately
+      error immediately
 
 * Instance tree is created
 * All expressions are left unresolved
 
     * Class representation of the expression is kept so that any parameters
-        in it can be fully resolved later.
+      in it can be fully resolved later.
 
 * Dynamic property assignments replace property expressions as they are
-    seen.
+  seen.
 
 4. Elaborate
 ^^^^^^^^^^^^
