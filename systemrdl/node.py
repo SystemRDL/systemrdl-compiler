@@ -37,7 +37,9 @@ class Node:
 
     def __deepcopy__(self, memo):
         """
-        Deepcopy all members except for ones that should be copied by reference
+        Deepcopy the node overlay.
+        Members that are not part of the overlay (component tree) are not
+        deepcopied.
         """
         copy_by_ref = ["inst", "env"]
         cls = self.__class__
@@ -484,8 +486,10 @@ class Node:
 
 
     def __eq__(self, other):
-        # Nodes are equal if they represent the same hierarchical position
-        # in the register model
+        """
+        Node equality checks determine whether the other node represents the
+        same position in the register model's hierarchy.
+        """
         return self.get_path() == other.get_path()
 
 #===============================================================================

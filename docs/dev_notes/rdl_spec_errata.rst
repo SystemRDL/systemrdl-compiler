@@ -232,6 +232,17 @@ of the ``name`` property by polluting it with a long-form description.
 Not implementing the ``[desc]`` tag.
 
 
+Use of RDLFormatCode tags in ``name`` property seems inappropriate
+------------------------------------------------------------------
+Use of block formatting tags in a component's ``name`` property
+seems out of scope from what the property's intent is.
+
+**Resolution:**
+
+Only implementing tags that control inline text style. Not implementing
+structural formatting tags such as ``[p]`` and ``[list]``.
+
+
 
 Open Questions
 --------------
@@ -273,3 +284,15 @@ Some concepts are borrowed from SystemVerilog, but are simplified significantly
 in order to have the least "surprising" effects.
 
 See :ref:`multifile_compilation` notes for more details.
+
+
+
+Interaction of Verilog-style ``include`` with Perl tags needs clarification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Interaction between ``include`` directives and Perl-style preprocessor context
+needs clarification. Using a strict interpretation of the spec would result in
+surprising behavior that does not seem intentional.
+
+See :ref:`dev_notes-include_preprocessor` implementation notes for more
+details.

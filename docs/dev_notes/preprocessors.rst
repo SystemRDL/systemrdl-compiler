@@ -1,6 +1,7 @@
+.. _dev_notes-include_preprocessor:
 
-Preprocessors
-=============
+Preprocessor Includes
+=====================
 
 RDL spec says that Perl preprocessor is executed first, followed by the Verilog
 preprocessor.
@@ -75,7 +76,7 @@ Implementation
 --------------
 
 A unified Perl scope is implemented by promoting Verilog include directives to
-be expanded _before_ Perl preprocessing. This is technically not how the RDL
+be expanded *before* Perl preprocessing. This is technically not how the RDL
 spec describes it, but doing so would allow Perl scope to be shared as intended
 by the SystemRDL committee.
 

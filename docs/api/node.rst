@@ -12,6 +12,10 @@ Node
     :members:
     :undoc-members:
 
+    .. automethod:: systemrdl.node.Node.__eq__
+
+    .. automethod:: systemrdl.node.Node.__deepcopy__
+
 AddressableNode
 ^^^^^^^^^^^^^^^
 .. autoclass:: systemrdl.node.AddressableNode
