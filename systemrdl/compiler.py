@@ -7,7 +7,7 @@ from . import warnings
 from .parser.SystemRDLLexer import SystemRDLLexer
 from .parser.SystemRDLParser import SystemRDLParser
 from .core.ComponentVisitor import RootVisitor
-from .core.properties import PropertyRuleBook, UserProperty
+from .core.properties import PropertyRuleBook, BuiltinUserProperty
 from .core.namespace import NamespaceRegistry
 from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
 from .core.elaborate import StructuralPlacementListener
@@ -86,7 +86,7 @@ class RDLCompiler:
         if name in self.env.property_rules.rdl_properties:
             raise ValueError("name '%s' conflicts with existing built-in RDL property")
 
-        udp = UserProperty(self.env, name, valid_components, [valid_type], default)
+        udp = BuiltinUserProperty(self.env, name, valid_components, [valid_type], default)
 
         self.env.property_rules.user_properties[udp.name] = udp
 

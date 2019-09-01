@@ -1456,6 +1456,14 @@ class UserProperty(PropertyRule):
                         node.inst.inst_src_ref
                     )
 
+
+class BuiltinUserProperty(UserProperty):
+    """
+    Specialization of UserProperty for UDPs that are pre-defined by the
+    application.
+    """
+    pass
+
 #===============================================================================
 # Property References
 #===============================================================================
