@@ -115,7 +115,7 @@ class RDLCompiler:
 
         Raises
         ------
-        :class:`~systemrdl.RDLCompileError`
+        RDLCompileError
             If any fatal compile error is encountered.
         """
 
@@ -186,7 +186,7 @@ class RDLCompiler:
 
         Raises
         ------
-        :class:`~systemrdl.RDLCompileError`
+        RDLCompileError
             If any fatal elaboration error is encountered
 
         Returns
