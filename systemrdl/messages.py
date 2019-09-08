@@ -358,6 +358,13 @@ class MessagePrinter:
         for line in lines:
             print(line, file=sys.stderr)
 
+
+
+class MessageExceptionRaiser(MessagePrinter):
+    def print_message(self, severity, text, src_ref):
+        if severity >= Severity.ERROR:
+            raise ValueError(text)
+
 #===============================================================================
 # Antlr error listener
 #===============================================================================

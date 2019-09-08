@@ -1,12 +1,13 @@
 from copy import deepcopy
 
-from antlr4 import CommonTokenStream
+from antlr4 import InputStream, CommonTokenStream
 
 from . import messages
 from . import warnings
 from .parser.SystemRDLLexer import SystemRDLLexer
 from .parser.SystemRDLParser import SystemRDLParser
 from .core.ComponentVisitor import RootVisitor
+from .core.ExprVisitor import ExprVisitor
 from .core.properties import PropertyRuleBook, BuiltinUserProperty
 from .core.namespace import NamespaceRegistry
 from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
@@ -244,16 +245,13 @@ class RDLCompiler:
             else:
                 raise ValueError("Parameter '%s' is not available for override" % param_name)
 
-
-            value_expr = expr.ExternalLiteral(self.env, value)
-            value_type = value_expr.predict_type()
-            if value_type is None:
-                raise TypeError("Override value for parameter '%s' is an unrecognized type" % param_name)
-
-            if value_type != parameter.param_type:
+            literal_expr = expr.ExternalLiteral(self.env, value)
+            assign_expr = expr.AssignmentCast(self.env, None, literal_expr, parameter.param_type)
+            assign_type = assign_expr.predict_type()
+            if assign_type is None:
                 raise TypeError("Incorrect type for parameter '%s'" % param_name)
 
-            parameter.expr = value_expr
+            parameter.expr = assign_expr
 
 
         # instantiate top_inst into the root component instance
@@ -283,6 +281,54 @@ class RDLCompiler:
             self.msg.fatal("Elaborate aborted due to previous errors")
 
         return root_node
+
+
+    def eval(self, expression:str):
+        """
+        Evaluate an RDL expression string and return its compiled value.
+        This function is provided as a helper to simplify overriding top-level
+        parameters during elaboration.
+
+        Parameters
+        ----------
+        expression: str
+            This string is parsed and evaluated as a SystemRDL expression.
+            Any references used in the expression are resolved using the
+            current contents of the root namespace.
+
+        Raises
+        ------
+        ValueError
+            If any parse or evaluation error occurs.
+        """
+        # Create local message handler that suppresses the usual ouput
+        # to stderr.
+        # Instead raises ValueError on any error
+        msg_printer = messages.MessageExceptionRaiser()
+        msg_handler = messages.MessageHandler(msg_printer)
+
+        input_stream = InputStream(expression)
+
+        lexer = SystemRDLLexer(input_stream)
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(messages.RDLAntlrErrorListener(msg_handler))
+
+        token_stream = CommonTokenStream(lexer)
+
+        parser = SystemRDLParser(token_stream)
+        parser.removeErrorListeners()
+        parser.addErrorListener(messages.RDLAntlrErrorListener(msg_handler))
+
+        parsed_tree = parser.expr()
+
+        visitor = ExprVisitor(self)
+
+        # override visitor to use local message handler
+        visitor.msg = msg_handler
+
+        result = visitor.visit(parsed_tree)
+        result.predict_type()
+        return result.get_value()
 
 
 class RDLEnvironment:

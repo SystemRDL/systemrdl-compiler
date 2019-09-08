@@ -1,6 +1,7 @@
 
 from .unittest_utils import RDLSourceTestCase
 import systemrdl.rdltypes as rdlt
+from systemrdl import RDLCompiler
 
 class TestParameters(RDLSourceTestCase):
 
@@ -138,6 +139,31 @@ class TestParameters(RDLSourceTestCase):
                 "INTARR": [6,7],
                 "ONWR": rdlt.OnWriteType.woclr,
                 "BOOL": False
+            }
+        )
+
+        f1 = root.find_by_path("elab_params.r1.f")
+        f2 = root.find_by_path("elab_params.r2.f")
+        f3 = root.find_by_path("elab_params.r3.f")
+
+        self.assertEqual(f1.width, 5)
+        self.assertEqual(f2.width, 6)
+        self.assertEqual(f3.width, 7)
+        self.assertEqual(f1.get_property("onwrite"), rdlt.OnWriteType.woclr)
+        self.assertEqual(f2.get_property("donttest"), False)
+        self.assertEqual(f3.get_property("name"), "python!")
+
+    def test_elab_override_via_eval(self):
+        rdlc = RDLCompiler()
+        root = self.compile(
+            ["rdl_testcases/parameters.rdl"],
+            "elab_params",
+            parameters={
+                "STR": rdlc.eval('"python!"'),
+                "INT":  rdlc.eval('5'),
+                "INTARR":  rdlc.eval("'{6,7}"),
+                "ONWR":  rdlc.eval('woclr'),
+                "BOOL":  rdlc.eval('100/2 - 50')
             }
         )
 
