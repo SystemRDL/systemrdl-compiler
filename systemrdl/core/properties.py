@@ -147,6 +147,41 @@ class PropertyRule:
         Performs checks against the property's value
         """
 
+    #---------------------------------------------------------------------------
+    def _validate_ref_width(self, node, value):
+        """
+        Helper function to check that if value is a vector-like reference,
+        that it's width matches the node.
+        """
+        if isinstance(value, m_node.VectorNode):
+            if node.inst.width != value.inst.width:
+                self.env.msg.error(
+                    "%s '%s' references %s '%s''s value but they are not the same width (%d != %d)"
+                    % (
+                        type(node.inst.__name__), node.inst_name,
+                        type(value.inst.__name__).lower(), value.inst_name,
+                        node.width, value.width
+                    ),
+                    node.inst.inst_src_ref
+                )
+
+    #---------------------------------------------------------------------------
+    def _validate_ref_width_is_1(self, node, value):
+        """
+        Helper function to check that if value is a vector-like reference,
+        that it's width is exactly 1.
+        """
+        if isinstance(value, m_node.VectorNode):
+            if value.inst.width != 1:
+                self.env.msg.error(
+                    "%s '%s' references %s '%s' but it's width is not 1"
+                    % (
+                        type(node.inst.__name__), node.inst_name,
+                        type(value.inst.__name__).lower(), value.inst_name
+                    ),
+                    node.inst.inst_src_ref
+                )
+
 #===============================================================================
 class PropertyRuleBoolPair(PropertyRule):
     # Property name of the equivalent opposite
@@ -502,7 +537,7 @@ class Prop_next(PropertyRule):
     (9.5)
     """
     bindable_to = (comp.Field,)
-    valid_types = (comp.Field, rdltypes.PropertyReference,)
+    valid_types = (comp.Field, comp.Signal, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -521,13 +556,16 @@ class Prop_next(PropertyRule):
                 node.inst.inst_src_ref
             )
 
+        # Check width
+        self._validate_ref_width(node, value)
+
 class Prop_reset(PropertyRule):
     """
     The reset value for the field when resetsignal is asserted.
     (9.5)
     """
     bindable_to = (comp.Field,)
-    valid_types = (int, comp.Field,)
+    valid_types = (int, comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -542,15 +580,6 @@ class Prop_reset(PropertyRule):
                     node.inst.inst_src_ref
                 )
         elif isinstance(value, m_node.FieldNode):
-            # 9.5.1-d: When reset is a reference, it shall reference another
-            # field of the same size.
-            if node.inst.width != value.inst.width:
-                self.env.msg.error(
-                    "Field '%s' references field '%s' as its reset value but they are not the same size (%d != %d)"
-                    % (node.inst.inst_name, value.inst.inst_name, node.inst.width, value.inst.width),
-                    node.inst.inst_src_ref
-                )
-
             # 9.5.1-e: reset cannot be self-referencing
             if node.get_path() == value.get_path():
                 self.env.msg.error(
@@ -560,6 +589,11 @@ class Prop_reset(PropertyRule):
                 )
         else:
             raise RuntimeError
+
+        # Check width
+        # 9.5.1-d: When reset is a reference, it shall reference another
+        # field of the same size.
+        self._validate_ref_width(node, value)
 
 class Prop_resetsignal(PropertyRule):
     """
@@ -808,6 +842,9 @@ class Prop_swwe(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "R"
 
+    def validate(self, node, value):
+        self._validate_ref_width_is_1(node, value)
+
 class Prop_swwel(PropertyRule):
     """
     Override software-writeability of this field.
@@ -819,6 +856,9 @@ class Prop_swwel(PropertyRule):
     default = False
     dyn_assign_allowed = True
     mutex_group = "R"
+
+    def validate(self, node, value):
+        self._validate_ref_width_is_1(node, value)
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_swmod(PropertyRule):
@@ -979,17 +1019,23 @@ class Prop_hwset(PropertyRule):
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwenable(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (comp.Field,)
+    valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
 
+    def validate(self, node, value):
+        self._validate_ref_width(node, value)
+
 class Prop_hwmask(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (comp.Field,)
+    valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
+
+    def validate(self, node, value):
+        self._validate_ref_width(node, value)
 
 
 #-------------------------------------------------------------------------------
@@ -1163,31 +1209,43 @@ class Prop_intr_type(PropertyRule):
 
 class Prop_enable(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (comp.Field,)
+    valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
+
+    def validate(self, node, value):
+        self._validate_ref_width(node, value)
 
 class Prop_mask(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (comp.Field,)
+    valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
 
+    def validate(self, node, value):
+        self._validate_ref_width(node, value)
+
 class Prop_haltenable(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (comp.Field,)
+    valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"
 
+    def validate(self, node, value):
+        self._validate_ref_width(node, value)
+
 class Prop_haltmask(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (comp.Field,)
+    valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"
+
+    def validate(self, node, value):
+        self._validate_ref_width(node, value)
 
 class Prop_sticky(PropertyRule):
     bindable_to = (comp.Field,)
