@@ -27,7 +27,51 @@ class TestNodeUtils(RDLSourceTestCase):
             self.assertEqual(node.get_path(), "hier.y[0].a[0][0]")
             node.clear_lineage_index()
             self.assertEqual(node.get_path(), "hier.y[].a[][]")
-    
+
+    def test_rel_path(self):
+        top = self.compile(
+            ["rdl_testcases/address_packing.rdl"],
+            "hier"
+        )
+        with self.subTest("descendant"):
+            a = top.find_by_path("hier")
+            b = top.find_by_path("hier.x.a")
+            self.assertEqual(b.get_rel_path(a), "x.a[][]")
+
+        with self.subTest("parent"):
+            a = top.find_by_path("hier.x.a")
+            b = top.find_by_path("hier")
+            self.assertEqual(b.get_rel_path(a), "^^")
+
+        with self.subTest("updown1"):
+            a = top.find_by_path("hier.x.a")
+            b = top.find_by_path("hier.x.b")
+            self.assertEqual(b.get_rel_path(a), "^b[]")
+
+        with self.subTest("updown2"):
+            a = top.find_by_path("hier.x.a")
+            b = top.find_by_path("hier.y[2].b[1]")
+            self.assertEqual(b.get_rel_path(a), "^^y[2].b[1]")
+
+        with self.subTest("self"):
+            a = top.find_by_path("hier.y[0].a[1][1]")
+            self.assertEqual(a.get_rel_path(a), "")
+
+        with self.subTest("self-index1"):
+            a = top.find_by_path("hier.y[0].a[1][1]")
+            b = top.find_by_path("hier.y[1].a[1][1]")
+            self.assertEqual(b.get_rel_path(a), "^^y[1].a[1][1]")
+
+        with self.subTest("self-index2"):
+            a = top.find_by_path("hier.y[0].a[1][1]")
+            b = top.find_by_path("hier.y.a")
+            self.assertEqual(b.get_rel_path(a), "^^y[].a[][]")
+
+        with self.subTest("self-index3"):
+            a = top.find_by_path("hier.y.a")
+            b = top.find_by_path("hier.y.a[1][1]")
+            self.assertEqual(b.get_rel_path(a), "^a[1][1]")
+
     def test_address_tools(self):
         top = self.compile(
             ["rdl_testcases/address_packing.rdl"],
@@ -58,4 +102,4 @@ class TestNodeUtils(RDLSourceTestCase):
         )
 
         node = top.find_by_path("hier.x.b.a")
-        self.assertRegex(str(node), "<FieldNode hier\.x\.b\[\]\.a at 0x\w+>")
+        self.assertRegex(str(node), r"<FieldNode hier\.x\.b\[\]\.a at 0x\w+>")
