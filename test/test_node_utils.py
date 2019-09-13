@@ -103,3 +103,98 @@ class TestNodeUtils(RDLSourceTestCase):
 
         node = top.find_by_path("hier.x.b.a")
         self.assertRegex(str(node), r"<FieldNode hier\.x\.b\[\]\.a at 0x\w+>")
+
+    def test_iterators(self):
+        top = self.compile(
+            ["rdl_testcases/address_packing.rdl"],
+            "hier"
+        )
+
+        with self.subTest("descendants"):
+            d_paths = [n.get_path() for n in top.descendants()]
+            self.assertEqual(
+                d_paths,
+                [
+                    'hier',
+                    'hier.x',
+                    'hier.x.a[][]',
+                    'hier.x.a[][].a',
+                    'hier.x.b[]',
+                    'hier.x.b[].a',
+                    'hier.x.c[][]',
+                    'hier.x.c[][].a',
+                    'hier.y[]',
+                    'hier.y[].a[][]',
+                    'hier.y[].a[][].a',
+                    'hier.y[].b[]',
+                    'hier.y[].b[].a',
+                    'hier.y[].c[][]',
+                    'hier.y[].c[][].a',
+                ]
+            )
+
+        with self.subTest("descendants-post-order"):
+            d_paths = [n.get_path() for n in top.descendants(in_post_order=True)]
+            self.assertEqual(
+                d_paths,
+                [
+                    'hier.x.a[][].a',
+                    'hier.x.a[][]',
+                    'hier.x.b[].a',
+                    'hier.x.b[]',
+                    'hier.x.c[][].a',
+                    'hier.x.c[][]',
+                    'hier.x',
+                    'hier.y[].a[][].a',
+                    'hier.y[].a[][]',
+                    'hier.y[].b[].a',
+                    'hier.y[].b[]',
+                    'hier.y[].c[][].a',
+                    'hier.y[].c[][]',
+                    'hier.y[]',
+                    'hier',
+                ]
+            )
+
+    def test_list_properties(self):
+        top = self.compile(["rdl_testcases/udp_15.2.2_ex1.rdl"], None)
+
+        with self.subTest("udps"):
+            n = top.find_by_path("foo.bar.field2")
+
+            self.assertEqual(
+                sorted(n.list_properties()),
+                [
+                    'some_bool_p',
+                    'some_num_p'
+                ]
+            )
+        
+        with self.subTest("all"):
+            n = top.find_by_path("foo")
+
+            self.assertEqual(
+                sorted(n.list_properties(list_all=True)),
+                [
+                    'a_map_p',
+                    'addressing',
+                    'alignment',
+                    'bigendian',
+                    'bridge',
+                    'desc',
+                    'dontcompare',
+                    'donttest',
+                    'errextbus',
+                    'hdl_path',
+                    'hdl_path_gate',
+                    'ispresent',
+                    'littleendian',
+                    'lsb0',
+                    'msb0',
+                    'name',
+                    'rsvdset',
+                    'rsvdsetX',
+                    'sharedextbus',
+                    'some_ref_p',
+                ]
+            )
