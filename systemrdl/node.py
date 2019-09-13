@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from . import component as comp
 from . import rdltypes
-from .core import rdlformatcode
+from .core import rdlformatcode, helpers
 
 class Node:
     """
@@ -341,8 +341,10 @@ class Node:
             if isinstance(prop_value, rdltypes.ComponentRef):
                 # If this is a hierarchical component reference, convert it to a Node reference
                 prop_value = prop_value.build_node_ref(self, self.env)
-            if isinstance(prop_value, rdltypes.PropertyReference):
+            elif isinstance(prop_value, rdltypes.PropertyReference):
                 prop_value._resolve_node(self)
+            elif (prop_name == "desc") and self.env.dedent_desc:
+                prop_value = helpers.dedent_text(prop_value)
 
             return prop_value
 

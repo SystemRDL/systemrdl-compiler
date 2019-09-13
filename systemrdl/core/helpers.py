@@ -1,3 +1,5 @@
+import textwrap
+
 from antlr4.Token import CommonToken
 
 def is_pow2(x):
@@ -29,3 +31,18 @@ def get_ID_text(token):
 def truncate_int(v, width):
     mask = (1 << width) - 1
     return v & mask
+
+def dedent_text(s):
+    """
+    Remove any common indentation, ignoring indentation state of the first
+    line of text.
+    """
+    s = s.strip()
+    linelist = s.splitlines()
+    if len(linelist) >= 2:
+        s = (
+            linelist[0]
+            + "\n"
+            + textwrap.dedent("\n".join(linelist[1:]))
+        )
+    return s

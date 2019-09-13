@@ -1,7 +1,8 @@
 import re
-import textwrap
 
 import markdown
+
+from . import helpers
 
 def rdlfc_to_html(text, node=None, md=None, is_desc=True):
     """
@@ -11,14 +12,7 @@ def rdlfc_to_html(text, node=None, md=None, is_desc=True):
     # --------------------------------------------------------------------------
     # Remove any common indentation
     # --------------------------------------------------------------------------
-    text = text.strip()
-    linelist = text.splitlines()
-    if len(linelist) >= 2:
-        text = (
-            linelist[0]
-            + "\n"
-            + textwrap.dedent("\n".join(linelist[1:]))
-        )
+    text = helpers.dedent_text(text)
 
     # --------------------------------------------------------------------------
     # Parse and replace RDLFormatCode Tags
