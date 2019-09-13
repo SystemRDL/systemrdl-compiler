@@ -69,6 +69,17 @@ class ValidateListener(walker.RDLListener):
                 new_addr_check_buffer.append(prev_addressable)
         self.addr_check_buffer_stack[-2] = new_addr_check_buffer
 
+        # Check if array interferes with itself
+        if node.is_array:
+            if node.array_stride < node.size:
+                self.msg.error(
+                    "Instance array '%s' has address stride 0x%X, but the element size is 0x%X"
+                    % (
+                        node.inst_name, node.array_stride, node.size
+                    ),
+                    node.inst.inst_src_ref
+                )
+
         if node.inst.is_array and self.env.chk_stride_not_pow2:
             if not is_pow2(node.inst.array_stride):
                 self.msg.message(
