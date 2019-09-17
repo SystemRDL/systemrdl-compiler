@@ -548,6 +548,37 @@ class Node:
         """
         return self.inst.inst_name
 
+    @property
+    def type_name(self):
+        """
+        Named definition identifier.
+        If declaration was anonymous, inherits the first instance's name.
+        The type name of parameterized components is normalized based on the
+        instance's parameter values.
+
+        Importers may leave this as ``None``
+        """
+        return self.inst.type_name
+
+    @property
+    def orig_type_name(self):
+        """
+        Named definition identifier prior to type name normalization.
+        If the declaration was anonymous, this reads as None.
+        """
+        if self.inst.original_def is None:
+            # Component originated from an external importer
+            return None
+        else:
+            return self.inst.original_def.type_name
+
+    @property
+    def external(self):
+        """
+        True if instance type is external. False if internal.
+        """
+        return self.inst.external
+
 
     def __eq__(self, other):
         """

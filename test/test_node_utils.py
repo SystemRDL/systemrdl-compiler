@@ -198,3 +198,29 @@ class TestNodeUtils(RDLSourceTestCase):
                     'some_ref_p',
                 ]
             )
+
+    def test_names(self):
+        top = self.compile(
+            ["rdl_testcases/parameters.rdl"],
+            "nested"
+        )
+        r1 = top.find_by_path("nested.r1_inst")
+        r1_2 = top.find_by_path("nested.r1_inst2")
+        f = top.find_by_path("nested.r1_inst.f")
+        f2 = top.find_by_path("nested.r1_inst.f2")
+
+        self.assertEqual(r1.inst_name, "r1_inst")
+        self.assertEqual(r1.type_name, "r1_WIDTH_5")
+        self.assertEqual(r1.orig_type_name, "r1")
+
+        self.assertEqual(r1_2.inst_name, "r1_inst2")
+        self.assertEqual(r1_2.type_name, "r1_WIDTH_5")
+        self.assertEqual(r1_2.orig_type_name, "r1")
+
+        self.assertEqual(f.inst_name, "f")
+        self.assertEqual(f.type_name, "f")
+        self.assertIsNone(f.orig_type_name)
+
+        self.assertEqual(f2.inst_name, "f2")
+        self.assertEqual(f2.type_name, "f")
+        self.assertIsNone(f2.orig_type_name)
