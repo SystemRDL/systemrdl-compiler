@@ -26,10 +26,22 @@ class Component:
         #:      refer to the hierarchical parent of this component.
         self.parent_scope = None
 
+        # Name of this component's declaration scope
+        # This field is only valid in non-instantiated components (referenced
+        # via an instance's original_def)
+        # If declaration was anonymous, inherits the first instance's name,
+        # otherwise it contains the original type name.
+        self._scope_name = None
+
         #: Named definition identifier.
-        #: If declaration was anonymous, inherits the first instance's name.
+        #: If declaration was anonymous, instantiation type names inherit
+        #: the first instance's name.
         #: The type name of parameterized components is normalized based on the
         #: instance's parameter values.
+        #:
+        #: If this is a non-instantiated component (referenced via an
+        #: instance's original_def), then it will contain either the original
+        #: type name, or None if the declaration was anonymous.
         #:
         #: Importers may leave this as ``None``
         self.type_name = None
@@ -120,19 +132,24 @@ class Component:
             Override the separator between namespace scopes
         """
         if self.parent_scope is None:
+            # Importer likely never set the scope
             return ""
         elif isinstance(self.parent_scope, Root):
+            # Declaration was in root scope
             return ""
         else:
+            # Get parent definition's scope path
             parent_path = self.parent_scope.get_scope_path(scope_separator)
+
+            # Extend it with its scope name
             if parent_path:
                 return(
                     parent_path
                     + scope_separator
-                    + self.parent_scope.type_name
+                    + self.parent_scope._scope_name
                 )
             else:
-                return self.parent_scope.type_name
+                return self.parent_scope._scope_name
 
 
 class AddressableComponent(Component):
