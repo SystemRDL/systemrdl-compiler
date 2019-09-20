@@ -18,13 +18,27 @@ class TestErrors(RDLSourceTestCase):
             r"Could not resolve hierarchical reference to 'badpath'"
         )
     
-    def test_validation_error(self):
+    def test_reg_overlap(self):
         self.assertRDLCompileError(
             ["rdl_testcases/err_validate.rdl"],
-            None,
+            "reg_overlap",
             r"Instance 'r2' at offset \+0x100:0x103 overlaps with 'r1' at offset \+0x100:0x103"
         )
-    
+
+    def test_reg_array_overlap(self):
+        self.assertRDLCompileError(
+            ["rdl_testcases/err_validate.rdl"],
+            "reg_array_overlap",
+            r"Instance array 'r_array' has address stride 0x1, but the element size is 0x4"
+        )
+
+    def test_regfile_array_overlap(self):
+        self.assertRDLCompileError(
+            ["rdl_testcases/err_validate.rdl"],
+            "regfile_array_overlap",
+            r"Instance array 'rf_array' has address stride 0x1, but the element size is 0x100"
+        )
+
 
 class TestUserErrors(RDLSourceTestCase):
     def setUp(self):

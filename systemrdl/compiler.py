@@ -33,6 +33,11 @@ class RDLCompiler:
             Flags to enable warnings. See :ref:`messages_warnings` for more details.
         error_flags: int
             Same as ``warning_flags`` but promote them to errors instead.
+        dedent_desc: bool
+            Automatically remove any common indentation from multi-line
+            ``desc`` properties.
+
+            Set to True by default.
         """
         self.env = RDLEnvironment(kwargs)
 
@@ -342,6 +347,7 @@ class RDLEnvironment:
         message_printer = args_dict.pop('message_printer', messages.MessagePrinter())
         w_flags = args_dict.pop('warning_flags', 0)
         e_flags = args_dict.pop('error_flags', 0)
+        self.dedent_desc = args_dict.pop('dedent_desc', True)
 
         self.chk_missing_reset = self.chk_flag_severity(warnings.MISSING_RESET, w_flags, e_flags)
         self.chk_implicit_field_pos = self.chk_flag_severity(warnings.IMPLICIT_FIELD_POS, w_flags, e_flags)

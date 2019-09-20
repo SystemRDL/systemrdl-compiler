@@ -1,9 +1,29 @@
 
-addrmap my_design {
+addrmap reg_overlap {
     reg my_reg_t {
         field {} f1;
     };
 
     my_reg_t r1 @ 0x100;
     my_reg_t r2 @ 0x100;
+};
+
+//------------------------------------------------------------------------------
+addrmap reg_array_overlap {
+    reg reg32 {
+        field {} f[32] = 0;
+    };
+    reg32 r_array[4] @ 0 += 1; // <--- small array stride causes overlap
+};
+
+//------------------------------------------------------------------------------
+addrmap regfile_array_overlap {
+    reg reg32 {
+        field {} f[32] = 0;
+    };
+
+    regfile rf_100 {
+        reg32 x @ 0xFC;
+    };
+    rf_100 rf_array[4] @ 0x1000 += 1; // <--- small array stride causes overlap
 };

@@ -59,7 +59,7 @@ addrmap amap2 {
 addrmap nested {
 
     reg r1 #(longint unsigned WIDTH=1)  {
-        field {} f[WIDTH];
+        field {} f[WIDTH], f2[WIDTH+1];
     };
 
     regfile rf1 #(longint unsigned WIDTH=2) {
@@ -71,7 +71,7 @@ addrmap nested {
     };
 
     rf1 #(.WIDTH(4)) rf_inst;
-    r1 #(.WIDTH(5)) r1_inst;
+    r1 #(.WIDTH(5)) r1_inst, r1_inst2;
 };
 
 //------------------------------------------------------------------------------

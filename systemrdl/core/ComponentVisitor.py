@@ -126,6 +126,9 @@ class ComponentVisitor(BaseVisitor):
         # Since the definition is named, register it with the namespace
         self.compiler.namespace.register_type(def_name, comp_def, SourceRef.from_antlr(ctx.ID()))
 
+        # A named component's scope name is the same as it's type name
+        comp_def._scope_name = def_name
+
         return comp_def
 
 
@@ -215,24 +218,22 @@ class ComponentVisitor(BaseVisitor):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp
 
-        if comp_def.type_name is not None:
-            # Instantiating a named definition.
-            # Make a copy of the component def to preserve original definition
-            # in case it is being parameterized or gets altered
-            # with a dynamic property assign
-            comp_inst_template = deepcopy(comp_def)
-            comp_inst_template.original_def = comp_def
-        else:
-            # Anonymous declaration.
-            # No need to copy since declaration is single-use
-            comp_inst_template = comp_def
-            comp_inst_template.original_def = comp_def
-
         # Get a dictionary of parameter assignments
         if ctx.param_inst() is not None:
             param_assigns = self.visit(ctx.param_inst())
         else:
             param_assigns = {}
+
+        if param_assigns:
+            # Component definition is being parameterized.
+            # Make a copy of the definition prior to applying the parameters
+            # in order to preserve the original definition
+            comp_inst_template = deepcopy(comp_def)
+            comp_inst_template.original_def = comp_def
+        else:
+            # Component is not being parameterized. No need to copy it
+            comp_inst_template = comp_def
+            comp_inst_template.original_def = comp_def
 
         # Assign any parameter overrides to the instance template
         # Keep track of any override expressions as they are external references
@@ -251,7 +252,7 @@ class ComponentVisitor(BaseVisitor):
                     src_ref
                 )
 
-            # Override the value
+            # Override the parameter's value
             assign_expr = expressions.AssignmentCast(self.compiler.env, src_ref, assign_expr, param.param_type)
             assign_expr.predict_type()
             param.expr = assign_expr
@@ -295,12 +296,26 @@ class ComponentVisitor(BaseVisitor):
 
 
         # Do instantiations
+        common_type_name = comp_inst_template.type_name
         for inst in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
             # Make a copy of the template so that the instance is unique
+            # in case any dynamic property assignments are made to it.
+
             # Use a pre-loaded memo dictionary for this deepcopy to force
             # any external reference objects to be copied by reference only
             copy_by_ref_memo = {id(obj):obj for obj in external_refs}
             comp_inst = deepcopy(comp_inst_template, copy_by_ref_memo)
+
+            if common_type_name is None:
+                # 5.1.1-f: The first instance name of an anonymous definition is
+                #   also used as the component type name.
+                common_type_name = get_ID_text(inst.ID())
+            comp_inst.type_name = common_type_name
+
+            # If scope name was unset, then this was an anonymous declaration.
+            # Use the common type name inherited by the first instantiation
+            if comp_inst.original_def._scope_name is None:
+                comp_inst.original_def._scope_name = common_type_name
 
             # Pass some temporary info to visitComponent_inst
             self._tmp = comp_inst, alias_primary_inst
@@ -329,14 +344,6 @@ class ComponentVisitor(BaseVisitor):
         inst_name = get_ID_text(ctx.ID())
         comp_inst.inst_name = inst_name
         comp_inst.inst_src_ref = SourceRef.from_antlr(ctx.ID())
-
-        if comp_inst.type_name is None:
-            if comp_inst.original_def.type_name is None:
-                # 5.1.1-f: The first instance name of an anonymous definition is
-                #   also used as the component type name.
-                comp_inst.original_def.type_name = inst_name
-            comp_inst.type_name = comp_inst.original_def.type_name
-
 
         # Get array or range suffix
         array_suffixes = []

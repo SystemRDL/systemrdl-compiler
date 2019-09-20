@@ -212,20 +212,26 @@ class UserEnum(enum.Enum):
         scope_separator: str
             Override the separator between namespace scopes
         """
-        if cls.get_parent_scope() is None:
+        parent_scope = cls.get_parent_scope()
+        if parent_scope is None:
+            # Importer likely never set the scope
             return ""
-        elif isinstance(cls.get_parent_scope(), comp.Root):
+        elif isinstance(parent_scope, comp.Root):
+            # Declaration was in root scope
             return ""
         else:
-            parent_path = cls.get_parent_scope().get_scope_path(scope_separator)
+            # Get parent definition's scope path
+            parent_path = parent_scope.get_scope_path(scope_separator)
+
+            # Extend it with its scope name
             if parent_path:
                 return(
                     parent_path
                     + scope_separator
-                    + cls.get_parent_scope().type_name
+                    + parent_scope._scope_name
                 )
             else:
-                return cls.get_parent_scope().type_name
+                return parent_scope._scope_name
 
 
     def __int__(self):
@@ -360,20 +366,26 @@ class UserStruct:
         scope_separator: str
             Override the separator between namespace scopes
         """
-        if cls.get_parent_scope() is None:
+        parent_scope = cls.get_parent_scope()
+        if parent_scope is None:
+            # Importer likely never set the scope
             return ""
-        elif isinstance(cls.get_parent_scope(), comp.Root):
+        elif isinstance(parent_scope, comp.Root):
+            # Declaration was in root scope
             return ""
         else:
-            parent_path = cls.get_parent_scope().get_scope_path(scope_separator)
+            # Get parent definition's scope path
+            parent_path = parent_scope.get_scope_path(scope_separator)
+
+            # Extend it with its scope name
             if parent_path:
                 return(
                     parent_path
                     + scope_separator
-                    + cls.get_parent_scope().type_name
+                    + parent_scope._scope_name
                 )
             else:
-                return cls.get_parent_scope().type_name
+                return parent_scope._scope_name
 
     def __repr__(self):
         return "<struct '%s' %s at 0x%x>" % (

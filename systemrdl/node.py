@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from . import component as comp
 from . import rdltypes
-from .core import rdlformatcode
+from .core import rdlformatcode, helpers
 
 class Node:
     """
@@ -341,8 +341,10 @@ class Node:
             if isinstance(prop_value, rdltypes.ComponentRef):
                 # If this is a hierarchical component reference, convert it to a Node reference
                 prop_value = prop_value.build_node_ref(self, self.env)
-            if isinstance(prop_value, rdltypes.PropertyReference):
+            elif isinstance(prop_value, rdltypes.PropertyReference):
                 prop_value._resolve_node(self)
+            elif (prop_name == "desc") and self.env.dedent_desc:
+                prop_value = helpers.dedent_text(prop_value)
 
             return prop_value
 
@@ -404,6 +406,18 @@ class Node:
         return self.inst.inst_name
 
 
+    def get_path_segments(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
+        """
+        Gets a list of path segments that represent the hierarchical path
+        """
+        if self.parent and not isinstance(self.parent, RootNode):
+            segs = self.parent.get_path_segments(array_suffix, empty_array_suffix)
+            segs.append(self.get_path_segment(array_suffix, empty_array_suffix))
+        else:
+            segs = [self.get_path_segment(array_suffix, empty_array_suffix)]
+        return segs
+
+
     def get_path(self, hier_separator=".", array_suffix="[{index:d}]", empty_array_suffix="[]"):
         """
         Generate an absolute path string to this node
@@ -417,14 +431,64 @@ class Node:
         empty_array_suffix: str
             Override how array suffixes are represented when the index is not known
         """
-        if self.parent and not isinstance(self.parent, RootNode):
-            return(
-                self.parent.get_path(hier_separator, array_suffix, empty_array_suffix)
-                + hier_separator
-                + self.get_path_segment(array_suffix, empty_array_suffix)
-            )
-        else:
-            return self.get_path_segment(array_suffix, empty_array_suffix)
+        segs = self.get_path_segments(array_suffix, empty_array_suffix)
+        return hier_separator.join(segs)
+
+
+    def get_rel_path(self, ref, uplevel="^", hier_separator=".", array_suffix="[{index:d}]", empty_array_suffix="[]"):
+        """
+        Generate a relative path string to this node with respect to a reference node.
+
+        A reference to a descendant node::
+
+            foo.bar -> foo.bar.baz.abcd = "baz.abcd"
+
+        Relative path that traverses upwards::
+
+            foo.bar.baz -> foo.abc.def = "^^abc.def"
+
+        Relative path to self results in an empty string::
+
+            foo.bar.baz -> foo.bar.baz = ""
+
+        Paths between array nodes with/without indexes will result in upwards paths::
+
+            foo.array[].baz -> foo.array[0].baz = "^^array[0].baz"
+            foo.array[0].baz -> foo.array[].baz = "^^array[].baz"
+
+        Parameters
+        ----------
+        ref: Node
+            Reference starting point node
+        uplevel: str
+            Override the string that denotes traversing up by one parent
+        hier_separator: str
+            Override the hierarchy separator
+        array_suffix: str
+            Override how array suffixes are represented when the index is known
+        empty_array_suffix: str
+            Override how array suffixes are represented when the index is not known
+        """
+
+        # Collect path segments using default args to ensure paths can be compared
+        ref_segs = ref.get_path_segments()
+        self_segs = self.get_path_segments()
+
+        # collect segments as-specified by the user
+        self_segs_fmt = self.get_path_segments(array_suffix, empty_array_suffix)
+
+        # 1. pop off all common segments from front of both ref_segs and self_segs
+        #   also pop off self_segs_fmt
+        while ref_segs and self_segs and (ref_segs[0] == self_segs[0]):
+            ref_segs.pop(0)
+            self_segs.pop(0)
+            self_segs_fmt.pop(0)
+
+        # 2. length of ref_segs remaining is how many uplevels needed
+        uplevel_prefix = uplevel * len(ref_segs)
+
+        # 3. remaining segments in self_segs_fmt is the rest of the path
+        return uplevel_prefix + hier_separator.join(self_segs_fmt)
 
 
     def get_html_desc(self, markdown_inst=None):
@@ -483,6 +547,37 @@ class Node:
         Name of instantiated element
         """
         return self.inst.inst_name
+
+    @property
+    def type_name(self):
+        """
+        Named definition identifier.
+        If declaration was anonymous, inherits the first instance's name.
+        The type name of parameterized components is normalized based on the
+        instance's parameter values.
+
+        Importers may leave this as ``None``
+        """
+        return self.inst.type_name
+
+    @property
+    def orig_type_name(self):
+        """
+        Named definition identifier prior to type name normalization.
+        If the declaration was anonymous, this reads as None.
+        """
+        if self.inst.original_def is None:
+            # Component originated from an external importer
+            return None
+        else:
+            return self.inst.original_def.type_name
+
+    @property
+    def external(self):
+        """
+        True if instance type is external. False if internal.
+        """
+        return self.inst.external
 
 
     def __eq__(self, other):

@@ -5,7 +5,7 @@ from ..parser.SystemRDLParser import SystemRDLParser
 from .BaseVisitor import BaseVisitor
 from .ExprVisitor import ExprVisitor
 from .helpers import get_ID_text
-from . import expressions
+from . import expressions, helpers
 
 from ..messages import SourceRef
 from .. import rdltypes
@@ -83,7 +83,10 @@ class EnumVisitor(BaseVisitor):
                         SourceRef.from_antlr(prop_token)
                     )
                     continue
-                rdl_desc = prop_value
+                if self.compiler.env.dedent_desc:
+                    rdl_desc = helpers.dedent_text(prop_value)
+                else:
+                    rdl_desc = prop_value
             elif prop_name == "name":
                 if rdl_name is not None:
                     self.msg.error(

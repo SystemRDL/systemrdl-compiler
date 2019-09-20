@@ -30,7 +30,7 @@ class ElabExpressionsListener(walker.RDLListener):
     def enter_Component(self, node):
         if node.inst.original_def is not None:
             # Generate the elaborated type name as per 5.1.1.4
-            new_type_name = node.inst.original_def.type_name
+            new_type_name = node.inst.type_name
 
             for i in range(len(node.inst.parameters)):
                 orig_param_value = node.inst.original_def.parameters[i].get_value()
