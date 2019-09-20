@@ -48,15 +48,10 @@ Specifically the three namespaces described in the SystemRDL 2.0 spec:
 
   User-defined properties declared in the root scope
 
-Reiterating the concepts described in section 5.1.4: types, elements, and
-properties shall be defined prior to being used. This is extended for
-compilation units and means that the order in which files are compiled matters.
-
 **Rationale**
 
 If supporting multiple file compile, then sharing these namespaces is
-essential. Enforcing that file order honor that identifiers are defined prior
-to being used significantly simplifies the compiler design.
+essential.
 
 
 
