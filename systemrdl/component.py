@@ -241,6 +241,8 @@ class Reg(AddressableComponent):
         super().__init__()
 
         #: If true, fields are to be arranged in msb0 order
+        #:
+        #: .. versionadded:: 1.7
         self.is_msb0_order = False
         #------------------------------
         # Alias Register

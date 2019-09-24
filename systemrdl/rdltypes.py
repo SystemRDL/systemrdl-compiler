@@ -167,6 +167,10 @@ class UserEnum(enum.Enum):
         str or None
             HTML formatted string.
             If enum entry does not have a description, returns ``None``
+
+
+        .. versionchanged:: 1.6
+            Added ``markdown_inst`` option.
         """
         desc_str = self._rdl_desc_
         if desc_str is None:
@@ -184,6 +188,9 @@ class UserEnum(enum.Enum):
         str or None
             HTML formatted string.
             If enum entry does not have an explicitly set name, returns ``None``
+
+
+        .. versionadded:: 1.8
         """
         name_str = self._rdl_name_
         if name_str is None:

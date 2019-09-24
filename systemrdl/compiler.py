@@ -38,6 +38,10 @@ class RDLCompiler:
             ``desc`` properties.
 
             Set to True by default.
+
+
+        .. versionchanged:: 1.8
+            Added ``dedent_desc`` option.
         """
         self.env = RDLEnvironment(kwargs)
 
@@ -305,6 +309,9 @@ class RDLCompiler:
         ------
         ValueError
             If any parse or evaluation error occurs.
+
+
+        .. versionadded:: 1.8
         """
         # Create local message handler that suppresses the usual ouput
         # to stderr.

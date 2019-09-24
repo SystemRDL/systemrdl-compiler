@@ -40,6 +40,8 @@ class Node:
         Deepcopy the node overlay.
         Members that are not part of the overlay (component tree) are not
         deepcopied.
+
+        .. versionadded:: 1.8
         """
         copy_by_ref = ["inst", "env"]
         cls = self.__class__
@@ -408,7 +410,9 @@ class Node:
 
     def get_path_segments(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
         """
-        Gets a list of path segments that represent the hierarchical path
+        Gets a list of path segments that represent the hierarchical path.
+
+        .. versionadded:: 1.8
         """
         if self.parent and not isinstance(self.parent, RootNode):
             segs = self.parent.get_path_segments(array_suffix, empty_array_suffix)
@@ -468,6 +472,9 @@ class Node:
             Override how array suffixes are represented when the index is known
         empty_array_suffix: str
             Override how array suffixes are represented when the index is not known
+
+
+        .. versionadded:: 1.8
         """
 
         # Collect path segments using default args to ensure paths can be compared
@@ -515,6 +522,9 @@ class Node:
             HTML formatted string.
             If node does not have a description, returns ``None``
 
+
+        .. versionchanged:: 1.6
+            Added ``markdown_inst`` option.
         """
         desc_str = self.get_property("desc")
         if desc_str is None:
@@ -534,6 +544,8 @@ class Node:
             HTML formatted string.
             If node does not have an explicitly set name, returns ``None``
 
+
+        .. versionadded:: 1.8
         """
         name_str = self.get_property("name", default=None)
         if name_str is None:
@@ -557,6 +569,8 @@ class Node:
         instance's parameter values.
 
         Importers may leave this as ``None``
+
+        .. versionadded:: 1.9
         """
         return self.inst.type_name
 
@@ -565,6 +579,8 @@ class Node:
         """
         Named definition identifier prior to type name normalization.
         If the declaration was anonymous, this reads as None.
+
+        .. versionadded:: 1.9
         """
         if self.inst.original_def is None:
             # Component originated from an external importer
@@ -576,6 +592,8 @@ class Node:
     def external(self):
         """
         True if instance type is external. False if internal.
+
+        .. versionadded:: 1.9
         """
         return self.inst.external
 
@@ -624,6 +642,8 @@ class AddressableNode(Node):
         """
         Resets this node's, as well as all parent node array indexes to
         the 'unknown index' state.
+
+        .. versionadded:: 1.7
         """
         if self.inst.is_array:
             self.current_idx = None
@@ -636,6 +656,8 @@ class AddressableNode(Node):
         """
         Resets this node's, as well as all parent node array indexes to
         zero.
+
+        .. versionadded:: 1.7
         """
         if self.inst.is_array:
             self.current_idx = [0] * len(self.array_dimensions)
@@ -705,6 +727,7 @@ class AddressableNode(Node):
         If this node, and all parents are not an array, then this is equivalent
         to :attr:`absolute_address`
 
+        .. versionadded:: 1.7
         """
         if self.parent and not isinstance(self.parent, RootNode):
             return self.parent.raw_absolute_address + self.raw_address_offset
