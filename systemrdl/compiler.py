@@ -38,10 +38,19 @@ class RDLCompiler:
             ``desc`` properties.
 
             Set to True by default.
+        extended_dpa_type_names: bool
+            Enable extended type name generation that accounts for dynamic
+            property assignments augmenting the type.
+
+            Set to True by default.
+
+            See :ref:`dpa_type_generation` for more details.
 
 
         .. versionchanged:: 1.8
             Added ``dedent_desc`` option.
+        .. versionchanged:: 1.9
+            Added ``extended_dpa_type_names`` option.
         """
         self.env = RDLEnvironment(kwargs)
 
@@ -309,9 +318,6 @@ class RDLCompiler:
         ------
         ValueError
             If any parse or evaluation error occurs.
-
-
-        .. versionadded:: 1.8
         """
         # Create local message handler that suppresses the usual ouput
         # to stderr.

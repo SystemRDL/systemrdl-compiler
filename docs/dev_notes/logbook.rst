@@ -16,6 +16,7 @@ project and may serve as a useful reference to future contributors.
     perl_preprocessing
     namespaces
     properties
+    dpa_type_generation
     expressions
     hierarchical_references
     instance_arrays

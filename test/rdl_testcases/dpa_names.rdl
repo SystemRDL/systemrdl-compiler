@@ -1,0 +1,30 @@
+
+addrmap dpa_overrides {
+    reg my_reg {
+        enum onoff_e {
+            off = 0;
+            on = 1;
+        };
+
+        field my_field {
+            sw = rw;
+            hw = rw;
+            we;
+        };
+
+        my_field f1;
+        my_field f2;
+        my_field f3;
+        f2->rclr;
+        f3->encode = onoff_e;
+        f3->next = f1->anded;
+    };
+
+    my_reg r0;
+
+    my_reg r1;
+    r1.f1->rclr;
+
+    my_reg r2;
+    r2.f1->next = r0.f1;
+};

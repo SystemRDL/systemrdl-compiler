@@ -172,6 +172,14 @@ Mentions "register files", even though they are not allowed in "mem" components
 as per 11.1-b-1-ii.
 
 
+Likely typo in type name generation BNF snippet 5.1.1.4-c
+---------------------------------------------------------
+
+BNF-style description implies parentheses are part of the generated type name
+but the text in the same section only mentions underscore delimiters.
+Assuming the red parentheses are to be ignored.
+
+
 Misc compilation issues in examples
 -----------------------------------
 Some very minor typos found while compiling several code snippet examples.
@@ -296,3 +304,21 @@ surprising behavior that does not seem intentional.
 
 See :ref:`dev_notes-include_preprocessor` implementation notes for more
 details.
+
+
+
+Generated type names should also account for dynamic property assignments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The SystemRDL 2.0 spec goes at great lengths to describe how component type
+names are uniquified when parameters get overridden (5.1.1.4). Unfortunately
+the spec falls short when it comes to accounting for dynamic property
+assignments.
+
+**Resolution:**
+
+Since the semantics for this are not included in the SystemRDL 2.0 spec, I have
+provided my own extended interpretation of how dynamic property assignments
+should affect a component's generated type name.
+
+See :ref:`dpa_type_generation` notes for more details.
