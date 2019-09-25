@@ -616,6 +616,13 @@ class ComponentVisitor(BaseVisitor):
         target_inst = self.component
         for name_token in name_tokens:
             inst_name = get_ID_text(name_token)
+
+            if target_inst is not self.component:
+                # target_inst is an intermediate component in the hier path
+                # mark the child that is being modified
+                target_inst._dyn_assigned_children.append(inst_name)
+
+            # Traverse to next child in token list
             target_inst = target_inst.get_child_by_name(inst_name)
             if target_inst is None:
                 # Not found!
@@ -635,6 +642,9 @@ class ComponentVisitor(BaseVisitor):
         else:
             target_inst_dict[prop_name] = (prop_src_ref, rhs)
         self.dynamic_property_dict[target_inst] = target_inst_dict
+
+        # Mark the property as dynamically assigned
+        target_inst._dyn_assigned_props.append(prop_name)
 
 
     def visitInstance_ref(self, ctx:SystemRDLParser.Instance_refContext):

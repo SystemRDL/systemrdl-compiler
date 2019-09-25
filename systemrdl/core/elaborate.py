@@ -1,6 +1,8 @@
+import hashlib
 
 from .expressions import Expr
 from .helpers import is_pow2, roundup_pow2, roundup_to
+from .value_normalization import normalize
 
 from .. import component as comp
 from .. import walker
@@ -28,17 +30,10 @@ class ElabExpressionsListener(walker.RDLListener):
         self.msg = msg_handler
 
     def enter_Component(self, node):
-        if node.inst.original_def is not None:
-            # Generate the elaborated type name as per 5.1.1.4
-            new_type_name = node.inst.type_name
-
-            for i in range(len(node.inst.parameters)):
-                orig_param_value = node.inst.original_def.parameters[i].get_value()
-                new_param_value = node.inst.parameters[i].get_value()
-                if new_param_value != orig_param_value:
-                    new_type_name = new_type_name + "_" + node.inst.parameters[i].get_normalized_parameter()
-            node.inst.type_name = new_type_name
-
+        # Evaluate component properties
+        for prop_name, prop_value in node.inst.properties.items():
+            if isinstance(prop_value, Expr):
+                node.inst.properties[prop_name] = prop_value.get_value()
 
     def enter_AddressableComponent(self, node):
         # Evaluate instance object expressions
@@ -87,11 +82,8 @@ class ElabExpressionsListener(walker.RDLListener):
         if isinstance(node.inst.lsb, Expr):
             node.inst.lsb = node.inst.lsb.get_value()
 
-    def exit_Component(self, node):
-        # Evaluate component properties
-        for prop_name, prop_value in node.inst.properties.items():
-            if isinstance(prop_value, Expr):
-                node.inst.properties[prop_name] = prop_value.get_value()
+
+
 
 #-------------------------------------------------------------------------------
 class PrePlacementValidateListener(walker.RDLListener):
@@ -492,8 +484,9 @@ class LateElabListener(walker.RDLListener):
     """
     Elaboration listener for misc late-stage things
     """
-    def __init__(self, msg_handler):
+    def __init__(self, msg_handler, env):
         self.msg = msg_handler
+        self.env = env
         self.coerce_external_to = None
         self.coerce_end_regfile = None
 
@@ -574,3 +567,38 @@ class LateElabListener(walker.RDLListener):
             # Exiting inst type coercion
             self.coerce_external_to = None
             self.coerce_end_regfile = None
+
+    def exit_Component(self, node):
+        # Generate elaborated type name
+        extra_type_name_segments = []
+
+        # Augment based on paramter overrides as per 5.1.1.4
+        if node.inst.original_def is not None:
+            for i in range(len(node.inst.parameters)):
+                orig_param_value = node.inst.original_def.parameters[i].get_value()
+                new_param_value = node.inst.parameters[i].get_value()
+                if new_param_value != orig_param_value:
+                    extra_type_name_segments.append(node.inst.parameters[i].get_normalized_parameter())
+
+        # Further augment type name as per extended type generation from DPAs
+        if self.env.use_extended_type_name_gen:
+            # Strip duplicates and sort alphabetically
+            node.inst._dyn_assigned_props = sorted(set(node.inst._dyn_assigned_props))
+            node.inst._dyn_assigned_children = sorted(set(node.inst._dyn_assigned_children))
+
+            # assignments made 'through' the component
+            for child_name in node.inst._dyn_assigned_children:
+                child = node.inst.get_child_by_name(child_name)
+
+                # <child_name>_<hash of child type name>
+                norm_name = hashlib.md5(child.type_name.encode('utf-8')).hexdigest()[:8]
+                extra_type_name_segments.append(child_name + "_" + norm_name)
+
+            # this component's DPAs
+            for prop_name in node.inst._dyn_assigned_props:
+                # <prop_name>_<norm prop value>
+                norm_name = normalize(node.get_property(prop_name), owner_node=node)
+                extra_type_name_segments.append(prop_name + "_" + norm_name)
+
+        if extra_type_name_segments:
+            node.inst.type_name += "_" + "_".join(extra_type_name_segments)

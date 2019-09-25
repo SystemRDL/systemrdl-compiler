@@ -119,7 +119,7 @@ Property reference
     The resulting 8-characters of md5 are: 369e2729
 
 Enum type references
-    Enum type references shall be rendered using their type name.
+    Enum type references shall be rendered using their enumeration type name.
 
 
 Example

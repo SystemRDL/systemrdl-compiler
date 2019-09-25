@@ -38,6 +38,17 @@ class RDLCompiler:
             ``desc`` properties.
 
             Set to True by default.
+        extended_dpa_type_names: bool
+            Enable extended type name generation that accounts for dynamic
+            property assignments augmenting the type.
+
+            Set to True by default.
+
+            See :ref:`dpa_type_generation` for more details.
+
+
+        .. versionchanged:: 1.9
+            Added ``extended_dpa_type_names`` option.
         """
         self.env = RDLEnvironment(kwargs)
 
@@ -275,7 +286,7 @@ class RDLCompiler:
             root_node,
             PrePlacementValidateListener(self.msg),
             StructuralPlacementListener(self.msg),
-            LateElabListener(self.msg)
+            LateElabListener(self.msg, self.env)
         )
 
         # Validate design
@@ -348,6 +359,7 @@ class RDLEnvironment:
         w_flags = args_dict.pop('warning_flags', 0)
         e_flags = args_dict.pop('error_flags', 0)
         self.dedent_desc = args_dict.pop('dedent_desc', True)
+        self.use_extended_type_name_gen = args_dict.pop('extended_dpa_type_names', True)
 
         self.chk_missing_reset = self.chk_flag_severity(warnings.MISSING_RESET, w_flags, e_flags)
         self.chk_implicit_field_pos = self.chk_flag_severity(warnings.IMPLICIT_FIELD_POS, w_flags, e_flags)

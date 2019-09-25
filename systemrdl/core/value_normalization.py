@@ -3,7 +3,7 @@ import enum
 from .. import rdltypes
 from .. import node
 
-def normalize(value):
+def normalize(value, owner_node=None):
     """
     Flatten an RDL value into a unique string that is used for type
     normalization.
@@ -22,9 +22,11 @@ def normalize(value):
     elif isinstance(value, rdltypes.UserStruct):
         return normalize_struct(value)
     elif isinstance(value, node.Node):
-        return normalize_component_ref(value)
+        return normalize_component_ref(value, owner_node)
     elif isinstance(value, rdltypes.PropertyReference):
-        return normalize_property_ref(value)
+        return normalize_property_ref(value, owner_node)
+    elif rdltypes.is_user_enum(value):
+        return normalize_user_enum_type(value)
     else:
         # Should never get here
         raise RuntimeError
@@ -113,17 +115,27 @@ def normalize_struct(value):
     return md5[:8]
 
 
-def normalize_component_ref(value):
+def normalize_component_ref(value, owner_node):
     """
-    TODO: Implement this
-    TBD how this will be normalized
+    Hash of relative path from owner of the property to the target component
     """
-    raise NotImplementedError
+    path = value.get_rel_path(owner_node)
+    md5 = hashlib.md5(path.encode('utf-8')).hexdigest()
+    return md5[:8]
 
 
-def normalize_property_ref(value):
+def normalize_property_ref(value, owner_node):
     """
-    TODO: Implement this
-    TBD how this will be normalized
+    Hash of relative path from owner of the property to the target component's
+    property
     """
-    raise NotImplementedError
+    path = "%s->%s" % (value.node.get_rel_path(owner_node), value.name)
+    md5 = hashlib.md5(path.encode('utf-8')).hexdigest()
+    return md5[:8]
+
+
+def normalize_user_enum_type(value):
+    """
+    Enum type references shall be rendered using their enumeration type name.
+    """
+    return value.__name__

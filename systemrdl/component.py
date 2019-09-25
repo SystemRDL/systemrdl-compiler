@@ -86,6 +86,15 @@ class Component:
         # SourceRef for the component instantiation.
         self.inst_src_ref = None
 
+        #------------------------------
+        # List of property names that were assigned via a dynamic property
+        # assignment.
+        self._dyn_assigned_props = []
+
+        # List of child instances that were assigned "through" this component,
+        # from outside this component's scope.
+        self._dyn_assigned_children = []
+
     def __deepcopy__(self, memo):
         """
         Deepcopy all members except for ones that should be copied by reference
