@@ -396,6 +396,13 @@ class StructuralPlacementListener(walker.RDLListener):
         if node.inst.is_array and (node.inst.array_stride is None):
             node.inst.array_stride = node.size
 
+            if node.env.chk_implicit_addr:
+                node.env.msg.message(
+                    node.env.chk_implicit_addr,
+                    "Array stride of component '%s' is not explicitly set" % node.inst.inst_name,
+                    node.inst.inst_src_ref
+                )
+
 
     def resolve_addresses(self, node):
         """
