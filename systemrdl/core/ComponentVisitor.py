@@ -430,7 +430,7 @@ class ComponentVisitor(BaseVisitor):
         # Specifying stride is only allowed if an array suffix is used
         if (inst_addr_stride is not None) and (not array_suffixes):
             self.msg.fatal(
-                "Unexpected address stride allocator '%=' on non-array instance",
+                "Unexpected address stride allocator '+=' on non-array instance",
                 SourceRef.from_antlr(ctx.inst_addr_stride().start)
             )
 

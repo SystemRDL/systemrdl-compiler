@@ -288,7 +288,7 @@ class RDLCompiler:
             root_node,
             PrePlacementValidateListener(self.msg),
             StructuralPlacementListener(self.msg),
-            LateElabListener(self.msg)
+            LateElabListener(self.msg, self.env)
         )
 
         # Validate design
@@ -318,6 +318,9 @@ class RDLCompiler:
         ------
         ValueError
             If any parse or evaluation error occurs.
+
+
+        .. versionadded:: 1.8
         """
         # Create local message handler that suppresses the usual ouput
         # to stderr.
@@ -361,6 +364,7 @@ class RDLEnvironment:
         w_flags = args_dict.pop('warning_flags', 0)
         e_flags = args_dict.pop('error_flags', 0)
         self.dedent_desc = args_dict.pop('dedent_desc', True)
+        self.use_extended_type_name_gen = args_dict.pop('extended_dpa_type_names', True)
 
         self.chk_missing_reset = self.chk_flag_severity(warnings.MISSING_RESET, w_flags, e_flags)
         self.chk_implicit_field_pos = self.chk_flag_severity(warnings.IMPLICIT_FIELD_POS, w_flags, e_flags)
