@@ -43,7 +43,8 @@ class Component:
         #: instance's original_def), then it will contain either the original
         #: type name, or None if the declaration was anonymous.
         #:
-        #: Importers may leave this as ``None``
+        #: Importers may leave this as ``None`` if an appropriate type name
+        #: cannot be imported.
         self.type_name = None
 
         #: List of :class:`~systemrdl.component.Component` instances that are
@@ -78,6 +79,8 @@ class Component:
 
         #: Reference to original :class:`~systemrdl.component.Component`
         #: definition this instance is derived from.
+        #:
+        #: Importers may leave this as ``None`` if appropriate.
         self.original_def = None
 
         #: True if instance type is external. False if internal.
