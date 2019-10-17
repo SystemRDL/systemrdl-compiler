@@ -60,10 +60,19 @@ class PropertyRuleBook:
 # Base property
 #===============================================================================
 class PropertyRule:
+    # List of components this property can be bound to
     bindable_to = []
+
+    # List of valid assignment types. In order of cast preference
     valid_types = []
+
+    # Default value if not assigned
     default = None
+
+    # Whether dynamic assignments are allowed to be made to this property
     dyn_assign_allowed = True
+
+    # Group string in which this property is mutually exclusive
     mutex_group = None
 
     #---------------------------------------------------------------------------
@@ -117,6 +126,10 @@ class PropertyRule:
         # Check if value's type is compatible
         for valid_type in self.valid_types:
             if expressions.is_castable(assign_type, valid_type):
+                if isinstance(value, expressions.Expr):
+                    # Found a type-compatible match. (first match is best match)
+                    # Wrap the expression with an explicit assignment cast
+                    value = expressions.AssignmentCast(self.env, src_ref, value, valid_type)
                 break
         else:
             self.env.msg.fatal(
@@ -247,7 +260,7 @@ class Prop_dontcompare(PropertyRule):
     (5.2.2)
     """
     bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile, comp.Field,)
-    valid_types = (bool, int,)
+    valid_types = (int, bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "O"
@@ -319,7 +332,7 @@ class Prop_donttest(PropertyRule):
     (5.2.2)
     """
     bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile, comp.Field,)
-    valid_types = (bool, int,)
+    valid_types = (int, bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "O"
@@ -1054,7 +1067,7 @@ class Prop_threshold(PropertyRule):
     alias of incrthreshold.
     """
     bindable_to = (comp.Field,)
-    valid_types = (bool, int, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -1071,7 +1084,7 @@ class Prop_saturate(PropertyRule):
     alias of incrsaturate.
     """
     bindable_to = (comp.Field,)
-    valid_types = (bool, int, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -1085,7 +1098,7 @@ class Prop_saturate(PropertyRule):
 
 class Prop_incrthreshold(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (bool, int, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -1099,7 +1112,7 @@ class Prop_incrthreshold(PropertyRule):
 
 class Prop_incrsaturate(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (bool, int, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -1169,14 +1182,14 @@ class Prop_decrwidth(PropertyRule):
 
 class Prop_decrsaturate(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (bool, int, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_decrthreshold(PropertyRule):
     bindable_to = (comp.Field,)
-    valid_types = (bool, int, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None

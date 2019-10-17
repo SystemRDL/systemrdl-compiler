@@ -326,7 +326,7 @@ class Replicate(Expr):
             val = int(self.concat.get_value())
 
             result = 0
-            for i in range(self.reps_value):
+            for _ in range(self.reps_value):
                 result <<= width
                 result |= val
 
