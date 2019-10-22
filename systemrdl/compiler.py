@@ -301,7 +301,7 @@ class RDLCompiler:
         return root_node
 
 
-    def eval(self, expression:str):
+    def eval(self, expression: str):
         """
         Evaluate an RDL expression string and return its compiled value.
         This function is provided as a helper to simplify overriding top-level

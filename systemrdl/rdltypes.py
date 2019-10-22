@@ -15,77 +15,77 @@ class AutoEnum(enum.Enum):
 #===============================================================================
 class AccessType(AutoEnum):
     #: Not Accessible
-    na  = ()
+    na = ()
 
     #: Readable and writable
-    rw  = ()
+    rw = ()
 
     #: Read-only
-    r   = ()
+    r = ()
 
     #: Write-only
-    w   = ()
+    w = ()
 
     #: Readable and writable. After a reset occurs, can only be written once.
     rw1 = ()
 
     #: Write-only. After a reset occurs, can only be written once.
-    w1  = ()
+    w1 = ()
 
 class OnReadType(AutoEnum):
     #: Cleared on read
-    rclr    = ()
+    rclr = ()
 
     #: Set on read
-    rset    = ()
+    rset = ()
 
     #: User-defined read side-effect
-    ruser   = ()
+    ruser = ()
 
 class OnWriteType(AutoEnum):
     #: Bitwise write one to set
-    woset   = ()
+    woset = ()
 
     #: Bitwise write one to clear
-    woclr   = ()
+    woclr = ()
 
     #: Bitwise write one to toggle
-    wot     = ()
+    wot = ()
 
     #: Bitwise write zero to set
-    wzs     = ()
+    wzs = ()
 
     #: Bitwise write zero to clear
-    wzc     = ()
+    wzc = ()
 
     #: Bitwise write zero to toggle
-    wzt     = ()
+    wzt = ()
 
     #: All bits are cleared on write
-    wclr    = ()
+    wclr = ()
 
     #: All bits are set on write
-    wset    = ()
+    wset = ()
 
     #: Write modification is user-defined
-    wuser   = ()
+    wuser = ()
 
 class AddressingType(AutoEnum):
     #: Components are packed tightly together
-    compact     = ()
+    compact = ()
 
     #: Components are packed so each component’s start address is a multiple of its size
-    regalign    = ()
+    regalign = ()
 
     #: Same as regalign, except arrays are aligned to their entire size
-    fullalign   = ()
+    fullalign = ()
 
 class PrecedenceType(AutoEnum):
     #: Hardware writes take precedence over software
-    hw  = ()
+    hw = ()
 
     #: Software writes take precedence over hardware
-    sw  = ()
+    sw = ()
 
 class InterruptType(AutoEnum):
     """
@@ -107,16 +107,16 @@ class InterruptType(AutoEnum):
 
     """
     #: Interrupt when asserted and maintained
-    level  = ()
+    level = ()
 
     #: Interrupt on low-to-high transition
-    posedge  = ()
+    posedge = ()
 
     #: Interrupt on high-to-low transition
-    negedge  = ()
+    negedge = ()
 
     #: Interrupt on any transition
-    bothedge  = ()
+    bothedge = ()
 
 #===============================================================================
 class UserEnum(enum.Enum):

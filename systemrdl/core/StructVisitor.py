@@ -11,7 +11,7 @@ from .. import rdltypes
 
 class StructVisitor(BaseVisitor):
 
-    def visitStruct_def(self, ctx:SystemRDLParser.Struct_defContext):
+    def visitStruct_def(self, ctx: SystemRDLParser.Struct_defContext):
         self.compiler.namespace.enter_scope()
 
         is_abstract = (ctx.ABSTRACT_kw() is not None)
@@ -65,7 +65,7 @@ class StructVisitor(BaseVisitor):
         return struct_type, struct_name, SourceRef.from_antlr(ctx.name)
 
 
-    def visitStruct_elem(self, ctx:SystemRDLParser.Struct_elemContext):
+    def visitStruct_elem(self, ctx: SystemRDLParser.Struct_elemContext):
 
         member_name = get_ID_text(ctx.ID())
         member_src_ref = SourceRef.from_antlr(ctx.ID())
@@ -86,7 +86,7 @@ class StructVisitor(BaseVisitor):
         SystemRDLParser.SIGNAL_kw   : comp.Signal,
         SystemRDLParser.MEM_kw      : comp.Mem
     }
-    def visitStruct_type(self, ctx:SystemRDLParser.Struct_typeContext):
+    def visitStruct_type(self, ctx: SystemRDLParser.Struct_typeContext):
         if ctx.data_type() is not None:
             data_type_token = self.visit(ctx.data_type())
             member_type = self.datatype_from_token(data_type_token)

@@ -166,7 +166,7 @@ class ArrayLiteral(Expr):
             return rdltypes.ArrayPlaceholder(None)
 
         # Get type of first element
-        element_iter = iter( self.elements)
+        element_iter = iter(self.elements)
         element_type = next(element_iter).predict_type()
 
         # All remaining elements shall match
@@ -549,7 +549,7 @@ class _RelationalExpr(Expr):
         else:
             raise RuntimeError
 
-        return l,r
+        return l, r
 
 class _NumericRelationalExpr(_RelationalExpr):
 
@@ -575,32 +575,32 @@ class _NumericRelationalExpr(_RelationalExpr):
 
 class Eq(_RelationalExpr):
     def get_value(self, eval_width=None):
-        l,r = self.get_ops()
+        l, r = self.get_ops()
         return l == r
 
 class Neq(_RelationalExpr):
     def get_value(self, eval_width=None):
-        l,r = self.get_ops()
+        l, r = self.get_ops()
         return l != r
 
 class Lt(_NumericRelationalExpr):
     def get_value(self, eval_width=None):
-        l,r = self.get_ops()
+        l, r = self.get_ops()
         return l < r
 
 class Gt(_NumericRelationalExpr):
     def get_value(self, eval_width=None):
-        l,r = self.get_ops()
+        l, r = self.get_ops()
         return l > r
 
 class Leq(_NumericRelationalExpr):
     def get_value(self, eval_width=None):
-        l,r = self.get_ops()
+        l, r = self.get_ops()
         return l <= r
 
 class Geq(_NumericRelationalExpr):
     def get_value(self, eval_width=None):
-        l,r = self.get_ops()
+        l, r = self.get_ops()
         return l >= r
 
 #-------------------------------------------------------------------------------
@@ -1108,7 +1108,7 @@ class InstRef(Expr):
         resolved_ref_elements = []
 
         for name, array_suffixes, name_src_ref in self.ref_elements:
-            idx_list = [ suffix.get_value() for suffix in array_suffixes ]
+            idx_list = [suffix.get_value() for suffix in array_suffixes]
             resolved_ref_elements.append((name, idx_list, name_src_ref))
 
         # Create container

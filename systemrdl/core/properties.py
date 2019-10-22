@@ -304,7 +304,7 @@ class Prop_dontcompare(PropertyRule):
 
         else:
             # A boolean may end up cast as an int. Normalize 0 or 1 to boolean
-            if isinstance(value, int) and value in (0,1):
+            if isinstance(value, int) and value in (0, 1):
                 value = bool(value)
 
             # 5.2.2.1-b: can also be applied to reg, regfile, and addrmap
@@ -350,7 +350,7 @@ class Prop_donttest(PropertyRule):
                     )
         else:
             # A boolean may end up cast as an int. Normalize 0 or 1 to boolean
-            if isinstance(value, int) and value in (0,1):
+            if isinstance(value, int) and value in (0, 1):
                 value = bool(value)
 
             # 5.2.2.1-b: can also be applied to reg, regfile, and addrmap
@@ -1477,7 +1477,7 @@ class Prop_bridge(PropertyRule):
 #===============================================================================
 
 class UserProperty(PropertyRule):
-    def __init__(self, env, name, bindable_to, valid_types, default = None, constr_componentwidth=False):
+    def __init__(self, env, name, bindable_to, valid_types, default=None, constr_componentwidth=False):
         super().__init__(env)
 
         self.name = name

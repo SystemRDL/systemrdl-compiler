@@ -308,9 +308,9 @@ class MessagePrinter:
             end_col = src_ref.end_col
 
             # Normalize whitespace in line snippet (convert tabs to spaces)
-            TPS=4
+            TPS = 4
             new_line_text = ""
-            i=0
+            i = 0
             for char in line_text:
                 if char == "\t":
                     new_line_text += " " * TPS
@@ -373,7 +373,7 @@ class MessageExceptionRaiser(MessagePrinter):
 #===============================================================================
 # Antlr error listener
 #===============================================================================
-class RDLAntlrErrorListener(ErrorListener) :
+class RDLAntlrErrorListener(ErrorListener):
 
     def __init__(self, msg_handler):
         self.msg = msg_handler

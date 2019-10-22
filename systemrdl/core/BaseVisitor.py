@@ -68,29 +68,29 @@ class BaseVisitor(SystemRDLVisitor):
         else:
             return self.visitChildren(ctx)
 
-    def visitComponent_inst_type(self, ctx:SystemRDLParser.Component_inst_typeContext):
+    def visitComponent_inst_type(self, ctx: SystemRDLParser.Component_inst_typeContext):
         return self.passthru_kw_token(ctx)
 
-    def visitComponent_type(self, ctx:SystemRDLParser.Component_typeContext):
+    def visitComponent_type(self, ctx: SystemRDLParser.Component_typeContext):
         return self.passthru_kw_token(ctx)
 
-    def visitComponent_type_primary(self, ctx:SystemRDLParser.Component_type_primaryContext):
+    def visitComponent_type_primary(self, ctx: SystemRDLParser.Component_type_primaryContext):
         return self.passthru_kw_token(ctx)
 
-    def visitData_type(self, ctx:SystemRDLParser.Data_typeContext):
+    def visitData_type(self, ctx: SystemRDLParser.Data_typeContext):
         return self.passthru_kw_token(ctx)
 
-    def visitBasic_data_type(self, ctx:SystemRDLParser.Basic_data_typeContext):
+    def visitBasic_data_type(self, ctx: SystemRDLParser.Basic_data_typeContext):
         return self.passthru_kw_token(ctx)
 
-    def visitProp_keyword(self, ctx:SystemRDLParser.Prop_keywordContext):
+    def visitProp_keyword(self, ctx: SystemRDLParser.Prop_keywordContext):
         return self.passthru_kw_token(ctx)
 
-    def visitProp_mod(self, ctx:SystemRDLParser.Prop_modContext):
+    def visitProp_mod(self, ctx: SystemRDLParser.Prop_modContext):
         return self.passthru_kw_token(ctx)
 
-    def visitUdp_data_type(self, ctx:SystemRDLParser.Udp_data_typeContext):
+    def visitUdp_data_type(self, ctx: SystemRDLParser.Udp_data_typeContext):
         return self.passthru_kw_token(ctx)
 
-    def visitUdp_comp_type(self, ctx:SystemRDLParser.Udp_comp_typeContext):
+    def visitUdp_comp_type(self, ctx: SystemRDLParser.Udp_comp_typeContext):
         return self.passthru_kw_token(ctx)

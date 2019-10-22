@@ -18,7 +18,7 @@ class UDPVisitor(BaseVisitor):
         # Attributes
         self.attr = {}
 
-    def visitUdp_def(self, ctx:SystemRDLParser.Udp_defContext):
+    def visitUdp_def(self, ctx: SystemRDLParser.Udp_defContext):
         udp_name = get_ID_text(ctx.ID())
 
         # Collect all attributes
@@ -79,7 +79,7 @@ class UDPVisitor(BaseVisitor):
         self.compiler.env.property_rules.register_udp(udp, SourceRef.from_antlr(ctx.ID()))
 
 
-    def visitUdp_type(self, ctx:SystemRDLParser.Udp_typeContext):
+    def visitUdp_type(self, ctx: SystemRDLParser.Udp_typeContext):
         # Determine which type this property can hold
         if 'valid_types' in self.attr:
             self.msg.fatal(
@@ -118,7 +118,7 @@ class UDPVisitor(BaseVisitor):
         SystemRDLParser.SIGNAL_kw   : comp.Signal,
         #SystemRDLParser.CONSTRAINT_kw   : TODO,
     }
-    def visitUdp_usage(self, ctx:SystemRDLParser.Udp_usageContext):
+    def visitUdp_usage(self, ctx: SystemRDLParser.Udp_usageContext):
         # Determine which components the UDP can be bound to
         if 'bindable_to' in self.attr:
             self.msg.fatal(
@@ -140,7 +140,7 @@ class UDPVisitor(BaseVisitor):
         self.attr['bindable_to'] = comp_types
 
 
-    def visitUdp_default(self, ctx:SystemRDLParser.Udp_defaultContext):
+    def visitUdp_default(self, ctx: SystemRDLParser.Udp_defaultContext):
         if 'default' in self.attr:
             self.msg.fatal(
                 "More than one 'default' attribute specified for user-defined property",
@@ -151,7 +151,7 @@ class UDPVisitor(BaseVisitor):
         self.attr['default'] = ctx.expr()
 
 
-    def visitUdp_constraint(self, ctx:SystemRDLParser.Udp_constraintContext):
+    def visitUdp_constraint(self, ctx: SystemRDLParser.Udp_constraintContext):
         # There is only one type of constraint even allowed by the grammar
         # no need to explore further
         if 'constr_componentwidth' in self.attr:

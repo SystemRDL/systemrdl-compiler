@@ -12,7 +12,7 @@ from .. import rdltypes
 
 class EnumVisitor(BaseVisitor):
 
-    def visitEnum_def(self, ctx:SystemRDLParser.Enum_defContext):
+    def visitEnum_def(self, ctx: SystemRDLParser.Enum_defContext):
         self.compiler.namespace.enter_scope()
 
         enum_name = get_ID_text(ctx.ID())
@@ -65,7 +65,7 @@ class EnumVisitor(BaseVisitor):
         self.compiler.namespace.exit_scope()
         return enum_type, get_ID_text(ctx.ID()), SourceRef.from_antlr(ctx.ID())
 
-    def visitEnum_entry(self, ctx:SystemRDLParser.Enum_entryContext):
+    def visitEnum_entry(self, ctx: SystemRDLParser.Enum_entryContext):
         name_token = ctx.ID()
         value_expr_ctx = ctx.expr()
 
@@ -103,7 +103,7 @@ class EnumVisitor(BaseVisitor):
 
         return name_token, value_expr_ctx, rdl_name, rdl_desc
 
-    def visitEnum_prop_assign(self, ctx:SystemRDLParser.Enum_prop_assignContext):
+    def visitEnum_prop_assign(self, ctx: SystemRDLParser.Enum_prop_assignContext):
         prop_token = ctx.ID()
 
         visitor = ExprVisitor(self.compiler)

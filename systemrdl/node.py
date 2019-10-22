@@ -276,8 +276,8 @@ class Node:
             m = re.fullmatch(r'^(\w+)((?:\[(?:\d+|0[xX][\da-fA-F]+)\])*)$', pathpart)
             if not m:
                 raise ValueError("Invalid path")
-            inst_name, array_suffix = m.group(1,2)
-            idx_list = [ int(s,0) for s in re.findall(r'\[(\d+|0[xX][\da-fA-F]+)\]', array_suffix) ]
+            inst_name, array_suffix = m.group(1, 2)
+            idx_list = [int(s, 0) for s in re.findall(r'\[(\d+|0[xX][\da-fA-F]+)\]', array_suffix)]
 
             current_node = current_node.get_child_by_name(inst_name)
             if current_node is None:
@@ -290,7 +290,7 @@ class Node:
                         raise IndexError("Wrong number of array dimensions")
 
                     current_node.current_idx = [] # pylint: disable=attribute-defined-outside-init
-                    for i,idx in enumerate(idx_list):
+                    for i, idx in enumerate(idx_list):
                         if idx >= current_node.inst.array_dimensions[i]:
                             raise IndexError("Array index out of range")
                         current_node.current_idx.append(idx)
@@ -381,10 +381,10 @@ class Node:
 
         if list_all:
             props = []
-            for k,v in self.env.property_rules.rdl_properties.items():
+            for k, v in self.env.property_rules.rdl_properties.items():
                 if type(self.inst) in v.bindable_to:
                     props.append(k)
-            for k,v in self.env.property_rules.user_properties.items():
+            for k, v in self.env.property_rules.user_properties.items():
                 if type(self.inst) in v.bindable_to:
                     props.append(k)
             return props
@@ -1019,7 +1019,7 @@ def get_group_node_size(node):
     Shared getter for AddrmapNode and RegfileNode's "size" property
     """
     # After structural placement, children are sorted
-    if( not node.inst.children
+    if(not node.inst.children
         or (not isinstance(node.inst.children[-1], comp.AddressableComponent))
     ):
         # No addressable child exists.

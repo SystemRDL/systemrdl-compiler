@@ -277,7 +277,7 @@ class FilePreprocessor:
 
         # Generate minimal perl script that captures activities described in the source file
         lines = []
-        for i,pp_seg in enumerate(segments):
+        for i, pp_seg in enumerate(segments):
             if isinstance(pp_seg, PPPUnalteredSegment):
                 # Text outside preprocessor tags that should remain unaltered
                 # Insert command to emit reference to this text segment

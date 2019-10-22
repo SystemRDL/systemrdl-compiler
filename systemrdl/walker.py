@@ -96,7 +96,7 @@ class RDLWalker:
         self.skip_not_present = skip_not_present
 
 
-    def walk(self, node, *listeners:RDLListener):
+    def walk(self, node, *listeners: RDLListener):
         """
         Initiates the walker to traverse the current ``node`` and its children.
         Calls the corresponding callback for each of the ``listeners`` provided in
@@ -124,7 +124,7 @@ class RDLWalker:
             self.do_exit(node, listener)
 
 
-    def do_enter(self, node, listener:RDLListener):
+    def do_enter(self, node, listener: RDLListener):
 
         # Skip RootNode since it isn't really a component
         if not isinstance(node, RootNode):
@@ -149,7 +149,7 @@ class RDLWalker:
             listener.enter_Signal(node)
 
 
-    def do_exit(self, node, listener:RDLListener):
+    def do_exit(self, node, listener: RDLListener):
         if isinstance(node, FieldNode):
             listener.exit_Field(node)
         elif isinstance(node, RegNode):

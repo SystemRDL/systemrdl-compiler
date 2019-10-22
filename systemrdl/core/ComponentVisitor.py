@@ -54,7 +54,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Component Definitions
     #---------------------------------------------------------------------------
-    def visitComponent_body(self, ctx:SystemRDLParser.Component_bodyContext):
+    def visitComponent_body(self, ctx: SystemRDLParser.Component_bodyContext):
         self.compiler.namespace.enter_scope()
 
         self.component.def_src_ref = SourceRef.from_antlr(ctx)
@@ -73,7 +73,7 @@ class ComponentVisitor(BaseVisitor):
         self.compiler.namespace.exit_scope()
         return self.component
 
-    def visitComponent_def(self, ctx:SystemRDLParser.Component_defContext):
+    def visitComponent_def(self, ctx: SystemRDLParser.Component_defContext):
         """
         Create, and possibly instantiate a component
         """
@@ -107,7 +107,7 @@ class ComponentVisitor(BaseVisitor):
 
         return None
 
-    def visitComponent_named_def(self, ctx:SystemRDLParser.Component_named_defContext):
+    def visitComponent_named_def(self, ctx: SystemRDLParser.Component_named_defContext):
         type_token = self.visit(ctx.component_type())
 
         self.check_comp_def_allowed(type_token)
@@ -132,7 +132,7 @@ class ComponentVisitor(BaseVisitor):
         return comp_def
 
 
-    def visitComponent_anon_def(self, ctx:SystemRDLParser.Component_anon_defContext):
+    def visitComponent_anon_def(self, ctx: SystemRDLParser.Component_anon_defContext):
         type_token = self.visit(ctx.component_type())
 
         self.check_comp_def_allowed(type_token)
@@ -167,7 +167,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Component Instantiation
     #---------------------------------------------------------------------------
-    def visitExplicit_component_inst(self, ctx:SystemRDLParser.Explicit_component_instContext):
+    def visitExplicit_component_inst(self, ctx: SystemRDLParser.Explicit_component_instContext):
         if ctx.component_inst_type() is not None:
             inst_type = self.visit(ctx.component_inst_type())
         else:
@@ -194,7 +194,7 @@ class ComponentVisitor(BaseVisitor):
 
         return None
 
-    def visitComponent_inst_alias(self, ctx:SystemRDLParser.Component_inst_aliasContext):
+    def visitComponent_inst_alias(self, ctx: SystemRDLParser.Component_inst_aliasContext):
         name = get_ID_text(ctx.ID())
         inst, _ = self.compiler.namespace.lookup_element(name)
         if inst is None:
@@ -214,7 +214,7 @@ class ComponentVisitor(BaseVisitor):
             )
         return inst
 
-    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp
 
@@ -337,7 +337,7 @@ class ComponentVisitor(BaseVisitor):
         expr.predict_type()
         return expr
 
-    def visitComponent_inst(self, ctx:SystemRDLParser.Component_instContext):
+    def visitComponent_inst(self, ctx: SystemRDLParser.Component_instContext):
         # Unpack instance def info from parent
         comp_inst, alias_primary_inst = self._tmp
 
@@ -475,7 +475,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Parameters
     #---------------------------------------------------------------------------
-    def visitParam_def(self, ctx:SystemRDLParser.Param_defContext):
+    def visitParam_def(self, ctx: SystemRDLParser.Param_defContext):
         """
         Parameter Definition block
         """
@@ -489,7 +489,7 @@ class ComponentVisitor(BaseVisitor):
         self.compiler.namespace.exit_scope()
         return param_defs
 
-    def visitParam_def_elem(self, ctx:SystemRDLParser.Param_def_elemContext):
+    def visitParam_def_elem(self, ctx: SystemRDLParser.Param_def_elemContext):
         """
         Individual parameter definition elements
         """
@@ -524,7 +524,7 @@ class ComponentVisitor(BaseVisitor):
 
         return param
 
-    def visitParam_inst(self, ctx:SystemRDLParser.Param_instContext):
+    def visitParam_inst(self, ctx: SystemRDLParser.Param_instContext):
         param_assigns = {}
         for assignment in ctx.getTypedRuleContexts(SystemRDLParser.Param_assignmentContext):
             param_name, assign_expr = self.visit(assignment)
@@ -540,7 +540,7 @@ class ComponentVisitor(BaseVisitor):
             param_assigns[param_name] = (assign_expr, src_ref)
         return param_assigns
 
-    def visitParam_assignment(self, ctx:SystemRDLParser.Param_assignmentContext):
+    def visitParam_assignment(self, ctx: SystemRDLParser.Param_assignmentContext):
         param_name = get_ID_text(ctx.ID())
 
         visitor = ExprVisitor(self.compiler)
@@ -551,7 +551,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Property Assignments
     #---------------------------------------------------------------------------
-    def visitLocal_property_assignment(self, ctx:SystemRDLParser.Local_property_assignmentContext):
+    def visitLocal_property_assignment(self, ctx: SystemRDLParser.Local_property_assignmentContext):
 
         default = (ctx.DEFAULT_kw() is not None)
 
@@ -600,7 +600,7 @@ class ComponentVisitor(BaseVisitor):
             else:
                 self.property_dict[prop_name] = (prop_src_ref, rhs)
 
-    def visitDynamic_property_assignment(self, ctx:SystemRDLParser.Dynamic_property_assignmentContext):
+    def visitDynamic_property_assignment(self, ctx: SystemRDLParser.Dynamic_property_assignmentContext):
 
         # List of component instance names in the hierarchical path
         name_tokens = self.visit(ctx.instance_ref())
@@ -647,13 +647,13 @@ class ComponentVisitor(BaseVisitor):
         target_inst._dyn_assigned_props.append(prop_name)
 
 
-    def visitInstance_ref(self, ctx:SystemRDLParser.Instance_refContext):
+    def visitInstance_ref(self, ctx: SystemRDLParser.Instance_refContext):
         name_tokens = []
         for ref_elem in ctx.getTypedRuleContexts(SystemRDLParser.Instance_ref_elementContext):
             name_tokens.append(self.visit(ref_elem))
         return name_tokens
 
-    def visitInstance_ref_element(self, ctx:SystemRDLParser.Instance_ref_elementContext):
+    def visitInstance_ref_element(self, ctx: SystemRDLParser.Instance_ref_elementContext):
         name_token = ctx.ID()
 
         # Intentionally not supporting array references in dynamic assignments
@@ -666,7 +666,7 @@ class ComponentVisitor(BaseVisitor):
 
         return name_token
 
-    def visitNormal_prop_assign(self, ctx:SystemRDLParser.Normal_prop_assignContext):
+    def visitNormal_prop_assign(self, ctx: SystemRDLParser.Normal_prop_assignContext):
 
         # Get property string
         if ctx.prop_keyword() is not None:
@@ -685,7 +685,7 @@ class ComponentVisitor(BaseVisitor):
 
         return SourceRef.from_antlr(prop_token), prop_name, rhs
 
-    def visitEncode_prop_assign(self, ctx:SystemRDLParser.Encode_prop_assignContext):
+    def visitEncode_prop_assign(self, ctx: SystemRDLParser.Encode_prop_assignContext):
         # Get property string
         prop_token = ctx.ENCODE_kw()
         prop_name = get_ID_text(prop_token)
@@ -708,7 +708,7 @@ class ComponentVisitor(BaseVisitor):
         return SourceRef.from_antlr(prop_token), prop_name, rhs
 
 
-    def visitProp_mod_assign(self, ctx:SystemRDLParser.Prop_mod_assignContext):
+    def visitProp_mod_assign(self, ctx: SystemRDLParser.Prop_mod_assignContext):
         prop_mod_token = self.visit(ctx.prop_mod())
         prop_mod = prop_mod_token.text
 
@@ -722,7 +722,7 @@ class ComponentVisitor(BaseVisitor):
 
         return SourceRef.from_antlr(prop_mod_token), prop_mod
 
-    def visitProp_assignment_rhs(self, ctx:SystemRDLParser.Prop_assignment_rhsContext):
+    def visitProp_assignment_rhs(self, ctx: SystemRDLParser.Prop_assignment_rhsContext):
 
         if ctx.expr() is not None:
             visitor = ExprVisitor(self.compiler)
@@ -732,7 +732,7 @@ class ComponentVisitor(BaseVisitor):
 
         return rhs
 
-    def visitPrecedencetype_literal(self, ctx:SystemRDLParser.Precedencetype_literalContext):
+    def visitPrecedencetype_literal(self, ctx: SystemRDLParser.Precedencetype_literalContext):
         return rdltypes.PrecedenceType[ctx.kw.text]
 
     def apply_local_properties(self):
@@ -817,7 +817,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Array and Range suffixes
     #---------------------------------------------------------------------------
-    def visitRange_suffix(self, ctx:SystemRDLParser.Range_suffixContext):
+    def visitRange_suffix(self, ctx: SystemRDLParser.Range_suffixContext):
         visitor = ExprVisitor(self.compiler)
         expr1 = visitor.visit(ctx.expr(0))
         expr1 = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr(0)), expr1, int)
@@ -829,7 +829,7 @@ class ComponentVisitor(BaseVisitor):
 
         return expr1, expr2
 
-    def visitArray_suffix(self, ctx:SystemRDLParser.Array_suffixContext):
+    def visitArray_suffix(self, ctx: SystemRDLParser.Array_suffixContext):
         visitor = ExprVisitor(self.compiler)
         expr = visitor.visit(ctx.expr())
         expr = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr()), expr, int)
@@ -859,7 +859,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # User-defined enum
     #---------------------------------------------------------------------------
-    def visitEnum_def(self, ctx:SystemRDLParser.Enum_defContext):
+    def visitEnum_def(self, ctx: SystemRDLParser.Enum_defContext):
         visitor = EnumVisitor(self.compiler)
         enum_type, name, src_ref = visitor.visit(ctx)
         enum_type._set_parent_scope(self.component)
@@ -868,7 +868,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # User-defined struct
     #---------------------------------------------------------------------------
-    def visitStruct_def(self, ctx:SystemRDLParser.Struct_defContext):
+    def visitStruct_def(self, ctx: SystemRDLParser.Struct_defContext):
         visitor = StructVisitor(self.compiler)
         struct_type, name, src_ref = visitor.visit(ctx)
         struct_type._set_parent_scope(self.component)
@@ -877,7 +877,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Constraint Definition
     #---------------------------------------------------------------------------
-    def visitConstraint_def(self, ctx:SystemRDLParser.Constraint_defContext):
+    def visitConstraint_def(self, ctx: SystemRDLParser.Constraint_defContext):
         # TODO: Implement constraints
         pass
 
@@ -887,7 +887,7 @@ class ComponentVisitor(BaseVisitor):
 class RootVisitor(ComponentVisitor):
     comp_type = comp.Root
 
-    def visitRoot(self, ctx:SystemRDLParser.RootContext):
+    def visitRoot(self, ctx: SystemRDLParser.RootContext):
         self.visitChildren(ctx)
         self.apply_dynamic_properties()
 
@@ -900,7 +900,7 @@ class RootVisitor(ComponentVisitor):
 
         return comp_def
 
-    def visitComponent_anon_def(self, ctx:SystemRDLParser.Component_anon_defContext):
+    def visitComponent_anon_def(self, ctx: SystemRDLParser.Component_anon_defContext):
         type_token = self.visit(ctx.component_type())
         if type_token.type == SystemRDLParser.ADDRMAP_kw:
             self.msg.fatal(
@@ -909,7 +909,7 @@ class RootVisitor(ComponentVisitor):
             )
         return super().visitComponent_anon_def(ctx)
 
-    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
 
@@ -925,7 +925,7 @@ class RootVisitor(ComponentVisitor):
     #---------------------------------------------------------------------------
     # User-defined Properties
     #---------------------------------------------------------------------------
-    def visitUdp_def(self, ctx:SystemRDLParser.Udp_defContext):
+    def visitUdp_def(self, ctx: SystemRDLParser.Udp_defContext):
         visitor = UDPVisitor(self.compiler)
         visitor.visit(ctx)
 
@@ -935,7 +935,7 @@ class RootVisitor(ComponentVisitor):
 class FieldComponentVisitor(ComponentVisitor):
     comp_type = comp.Field
 
-    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
         # 9.2-a: No other types of structural components shall be defined within a field component.
         self.msg.fatal(
             "Instantiation of components not allowed inside a field definition",
@@ -954,7 +954,7 @@ class FieldComponentVisitor(ComponentVisitor):
 class RegComponentVisitor(ComponentVisitor):
     comp_type = comp.Reg
 
-    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
 
@@ -984,7 +984,7 @@ class RegComponentVisitor(ComponentVisitor):
 class RegfileComponentVisitor(ComponentVisitor):
     comp_type = comp.Regfile
 
-    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
 
@@ -1013,7 +1013,7 @@ class RegfileComponentVisitor(ComponentVisitor):
 class AddrmapComponentVisitor(ComponentVisitor):
     comp_type = comp.Addrmap
 
-    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
 
@@ -1033,7 +1033,7 @@ class AddrmapComponentVisitor(ComponentVisitor):
 class MemComponentVisitor(ComponentVisitor):
     comp_type = comp.Mem
 
-    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
         # Unpack instance def info from parent
         comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
 
@@ -1062,7 +1062,7 @@ class MemComponentVisitor(ComponentVisitor):
 class SignalComponentVisitor(ComponentVisitor):
     comp_type = comp.Signal
 
-    def visitComponent_insts(self, ctx:SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
         self.msg.fatal(
             "Instantiation of components not allowed inside a signal definition",
             SourceRef.from_antlr(ctx.component_inst(0).ID())

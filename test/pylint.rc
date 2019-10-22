@@ -51,14 +51,10 @@ confidence=
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
 disable=
-        print-statement,
         parameter-unpacking,
         unpacking-in-except,
-        old-raise-syntax,
         backtick,
         long-suffix,
-        old-ne-operator,
-        old-octal-literal,
         import-star-module-level,
         raw-checker-failed,
         bad-inline-option,
@@ -86,7 +82,6 @@ disable=
         getslice-method,
         setslice-method,
         no-absolute-import,
-        old-division,
         dict-iter-method,
         dict-view-method,
         next-method-called,
@@ -115,8 +110,6 @@ disable=
         invalid-str-codec,
         sys-max-int,
         bad-python3-import,
-        deprecated-string-function,
-        deprecated-str-translate-call,
         
         # Disable for now during development
         fixme,
@@ -139,7 +132,6 @@ disable=
         unused-variable,
 
         bad-continuation,
-        bad-whitespace,
         invalid-name,
         missing-docstring,
         

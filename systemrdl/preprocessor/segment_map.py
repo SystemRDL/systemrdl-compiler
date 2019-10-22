@@ -55,7 +55,7 @@ class Segment:
     Base class for various segment map segments.
     Not to be used directly
     """
-    def __init__(self, start, end, src_start, src_end, src, incl_ref = None):
+    def __init__(self, start, end, src_start, src_end, src, incl_ref=None):
 
         # start/end offset of resulting text
         self.start = start

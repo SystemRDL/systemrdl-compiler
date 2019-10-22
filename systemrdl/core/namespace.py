@@ -10,7 +10,7 @@ class NamespaceRegistry():
         self.element_ns_stack = [{}]
         self.default_property_ns_stack = [{}]
 
-    def register_type(self, name:str, ref, src_ref):
+    def register_type(self, name: str, ref, src_ref):
         if name in self.type_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of type '%s'" % name,
@@ -18,7 +18,7 @@ class NamespaceRegistry():
             )
         self.type_ns_stack[-1][name] = ref
 
-    def register_element(self, name:str, ref, parent_comp_def, src_ref):
+    def register_element(self, name: str, ref, parent_comp_def, src_ref):
         if name in self.element_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of instance '%s'" % name,
@@ -26,7 +26,7 @@ class NamespaceRegistry():
             )
         self.element_ns_stack[-1][name] = (ref, parent_comp_def)
 
-    def register_default_property(self, name:str, ref, src_ref, overwrite_ok=False):
+    def register_default_property(self, name: str, ref, src_ref, overwrite_ok=False):
         if not overwrite_ok:
             if name in self.default_property_ns_stack[-1]:
                 self.msg.fatal(
@@ -36,13 +36,13 @@ class NamespaceRegistry():
 
         self.default_property_ns_stack[-1][name] = (src_ref, ref)
 
-    def lookup_type(self, name:str):
+    def lookup_type(self, name: str):
         for scope in reversed(self.type_ns_stack):
             if name in scope:
                 return scope[name]
         return None
 
-    def lookup_element(self, name:str):
+    def lookup_element(self, name: str):
         for idx, scope in enumerate(reversed(self.element_ns_stack)):
             if name in scope:
                 el, parent_def = scope[name]
