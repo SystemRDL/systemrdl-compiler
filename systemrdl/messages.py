@@ -303,43 +303,48 @@ class MessagePrinter:
 
         # If src_ref highlights a span within a single line of text, print it
         if (src_ref.start_line is not None) and (src_ref.end_line is not None):
+            line_text = src_ref.start_line_text.rstrip()
+            start_col = src_ref.start_col
+            end_col = src_ref.end_col
+
+            # Normalize whitespace in line snippet (convert tabs to spaces)
+            TPS=4
+            new_line_text = ""
+            i=0
+            for char in line_text:
+                if char == "\t":
+                    new_line_text += " " * TPS
+                    if i < start_col:
+                        start_col += TPS-1
+                    if i < end_col:
+                        end_col += TPS-1
+                    i += TPS-1
+                else:
+                    new_line_text += char
+                i += 1
+            line_text = new_line_text
+
             if src_ref.start_line != src_ref.end_line:
                 # multi-line reference
                 # Select remainder of the line
-                width = len(src_ref.start_line_text) - src_ref.start_col
+                end_col = len(line_text)-1
 
-                lines.append(
-                    src_ref.start_line_text[:src_ref.start_col]
-                    + color + Style.BRIGHT
-                    + src_ref.start_line_text[src_ref.start_col:]
-                    + Style.RESET_ALL
-                )
+            width = end_col - start_col + 1
 
-                lines.append(
-                    " "*src_ref.start_col
-                    + color + Style.BRIGHT
-                    + "^"*width
-                    + Style.RESET_ALL
-                )
+            lines.append(
+                line_text[:start_col]
+                + color + Style.BRIGHT
+                + line_text[start_col : end_col+1]
+                + Style.RESET_ALL
+                + line_text[end_col+1:]
+            )
 
-            else:
-                # Single line
-                width = src_ref.end_col - src_ref.start_col + 1
-
-                lines.append(
-                    src_ref.start_line_text[:src_ref.start_col]
-                    + color + Style.BRIGHT
-                    + src_ref.start_line_text[src_ref.start_col : src_ref.end_col+1]
-                    + Style.RESET_ALL
-                    + src_ref.start_line_text[src_ref.end_col+1:]
-                )
-
-                lines.append(
-                    " "*src_ref.start_col
-                    + color + Style.BRIGHT
-                    + "^"*width
-                    + Style.RESET_ALL
-                )
+            lines.append(
+                " "*start_col
+                + color + Style.BRIGHT
+                + "^"*width
+                + Style.RESET_ALL
+            )
 
         return lines
 
