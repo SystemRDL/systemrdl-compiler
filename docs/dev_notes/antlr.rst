@@ -10,12 +10,12 @@ From: https://github.com/antlr/antlr4/blob/master/doc/getting-started.md
 Download antlr4::
 
     cd /usr/local/lib
-    curl -O http://www.antlr.org/download/antlr-4.7.1-complete.jar
+    curl -O http://www.antlr.org/download/antlr-4.7.2-complete.jar
 
 Add some convenience aliases to ``.bash_aliases``::
 
-    export CLASSPATH=".:/usr/local/lib/antlr-4.7.1-complete.jar:$CLASSPATH"
-    alias antlr4='java -Xmx500M -cp "/usr/local/lib/antlr-4.7.1-complete.jar:$CLASSPATH" org.antlr.v4.Tool'
+    export CLASSPATH=".:/usr/local/lib/antlr-4.7.2-complete.jar:$CLASSPATH"
+    alias antlr4='java -Xmx500M -cp "/usr/local/lib/antlr-4.7.2-complete.jar:$CLASSPATH" org.antlr.v4.Tool'
     alias grun='java org.antlr.v4.gui.TestRig'
 
 Extra alias used in py3antlr4book examples::

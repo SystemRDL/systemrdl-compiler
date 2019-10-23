@@ -1,9 +1,10 @@
-# Generated from SystemRDL.g4 by ANTLR 4.7.1
+# Generated from SystemRDL.g4 by ANTLR 4.7.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
 from typing.io import TextIO
 import sys
+
 
 def serializedATN():
     with StringIO() as buf:
@@ -696,9 +697,10 @@ class SystemRDLParser ( Parser ):
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.7.1")
+        self.checkVersion("4.7.2")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
+
 
 
 
@@ -758,6 +760,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Root_elemContext(ParserRuleContext):
 
@@ -873,6 +876,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Component_defContext(ParserRuleContext):
 
@@ -996,6 +1000,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Explicit_component_instContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1064,6 +1069,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Component_inst_aliasContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1105,6 +1111,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Component_named_defContext(ParserRuleContext):
 
@@ -1168,6 +1175,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Component_anon_defContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1211,6 +1219,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Component_bodyContext(ParserRuleContext):
 
@@ -1267,6 +1276,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Component_body_elemContext(ParserRuleContext):
 
@@ -1373,6 +1383,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Component_instsContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1438,6 +1449,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Component_instContext(ParserRuleContext):
 
@@ -1558,6 +1570,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Field_inst_resetContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1601,6 +1614,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Inst_addr_fixedContext(ParserRuleContext):
 
@@ -1646,6 +1660,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Inst_addr_strideContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1690,6 +1705,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Inst_addr_alignContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1733,6 +1749,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Component_inst_typeContext(ParserRuleContext):
 
@@ -1781,6 +1798,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Component_typeContext(ParserRuleContext):
 
@@ -1836,6 +1854,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Component_type_primaryContext(ParserRuleContext):
 
@@ -1893,6 +1912,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Param_defContext(ParserRuleContext):
 
@@ -1953,6 +1973,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Param_def_elemContext(ParserRuleContext):
 
@@ -2027,6 +2048,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Param_instContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2087,6 +2109,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Param_assignmentContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2135,6 +2158,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class ExprContext(ParserRuleContext):
 
@@ -2549,6 +2573,7 @@ class SystemRDLParser ( Parser ):
             self.unrollRecursionContexts(_parentctx)
         return localctx
 
+
     class Expr_primaryContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2674,6 +2699,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class ConcatenateContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2732,6 +2758,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class ReplicateContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2780,6 +2807,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Paren_exprContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2821,6 +2849,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class CastContext(ParserRuleContext):
 
@@ -2939,6 +2968,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Cast_width_exprContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2994,6 +3024,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Range_suffixContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -3043,6 +3074,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Array_suffixContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -3085,6 +3117,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Array_type_suffixContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -3121,6 +3154,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Data_typeContext(ParserRuleContext):
 
@@ -3192,6 +3226,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Basic_data_typeContext(ParserRuleContext):
 
@@ -3279,6 +3314,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class LiteralContext(ParserRuleContext):
 
@@ -3398,6 +3434,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class NumberContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -3500,6 +3537,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class String_literalContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -3536,6 +3574,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Boolean_literalContext(ParserRuleContext):
 
@@ -3584,6 +3623,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Array_literalContext(ParserRuleContext):
 
@@ -3662,6 +3702,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Struct_literalContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -3727,6 +3768,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Struct_kvContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -3772,6 +3814,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Enum_literalContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -3815,6 +3858,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Accesstype_literalContext(ParserRuleContext):
 
@@ -3879,6 +3923,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Onreadtype_literalContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -3929,6 +3974,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Onwritetype_literalContext(ParserRuleContext):
 
@@ -3999,6 +4045,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Addressingtype_literalContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -4050,6 +4097,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Precedencetype_literalContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -4097,6 +4145,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Instance_refContext(ParserRuleContext):
 
@@ -4152,6 +4201,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Instance_ref_elementContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -4206,6 +4256,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Prop_refContext(ParserRuleContext):
 
@@ -4267,6 +4318,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Local_property_assignmentContext(ParserRuleContext):
 
@@ -4361,6 +4413,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Dynamic_property_assignmentContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -4427,6 +4480,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Normal_prop_assignContext(ParserRuleContext):
 
@@ -4499,6 +4553,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Encode_prop_assignContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -4546,6 +4601,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Prop_mod_assignContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -4588,6 +4644,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Prop_assignment_rhsContext(ParserRuleContext):
 
@@ -4643,6 +4700,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Prop_keywordContext(ParserRuleContext):
 
@@ -4704,6 +4762,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Prop_modContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -4760,6 +4819,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Udp_defContext(ParserRuleContext):
 
@@ -4828,6 +4888,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Udp_attrContext(ParserRuleContext):
 
@@ -4902,6 +4963,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Udp_typeContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -4962,6 +5024,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Udp_data_typeContext(ParserRuleContext):
 
@@ -5037,6 +5100,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Udp_usageContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -5107,6 +5171,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Udp_comp_typeContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -5172,6 +5237,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Udp_defaultContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -5220,6 +5286,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Udp_constraintContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -5266,6 +5333,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Enum_defContext(ParserRuleContext):
 
@@ -5334,6 +5402,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Enum_entryContext(ParserRuleContext):
 
@@ -5419,6 +5488,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Enum_prop_assignContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -5466,6 +5536,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Struct_defContext(ParserRuleContext):
 
@@ -5559,6 +5630,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Struct_elemContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -5615,6 +5687,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Struct_typeContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -5669,6 +5742,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Constraint_defContext(ParserRuleContext):
 
@@ -5740,6 +5814,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Constraint_named_defContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -5788,6 +5863,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Constraint_anon_defContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -5830,6 +5906,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Constraint_bodyContext(ParserRuleContext):
 
@@ -5886,6 +5963,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Constraint_body_elemContext(ParserRuleContext):
 
@@ -5962,6 +6040,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Constraint_instsContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -6014,6 +6093,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Constr_relationalContext(ParserRuleContext):
 
@@ -6086,6 +6166,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Constr_prop_assignContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -6133,6 +6214,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Constr_inside_valuesContext(ParserRuleContext):
 
@@ -6203,6 +6285,7 @@ class SystemRDLParser ( Parser ):
             self.exitRule()
         return localctx
 
+
     class Constr_inside_enumContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -6250,6 +6333,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Constr_lhsContext(ParserRuleContext):
 
@@ -6304,6 +6388,7 @@ class SystemRDLParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
+
 
     class Constr_inside_valueContext(ParserRuleContext):
 
