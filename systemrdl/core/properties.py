@@ -1077,7 +1077,7 @@ class Prop_threshold(PropertyRule):
         Set both alias and actual value
         """
         super().assign_value(comp_def, value, src_ref)
-        comp_def.properties['incrthreshold'] = value
+        comp_def.properties['incrthreshold'] = comp_def.properties['threshold']
 
 class Prop_saturate(PropertyRule):
     """
@@ -1094,7 +1094,7 @@ class Prop_saturate(PropertyRule):
         Set both alias and actual value
         """
         super().assign_value(comp_def, value, src_ref)
-        comp_def.properties['incrsaturate'] = value
+        comp_def.properties['incrsaturate'] = comp_def.properties['saturate']
 
 class Prop_incrthreshold(PropertyRule):
     bindable_to = (comp.Field,)
@@ -1108,7 +1108,7 @@ class Prop_incrthreshold(PropertyRule):
         Set both alias and actual value
         """
         super().assign_value(comp_def, value, src_ref)
-        comp_def.properties['incrthreshold'] = value
+        comp_def.properties['threshold'] = comp_def.properties['incrthreshold']
 
 class Prop_incrsaturate(PropertyRule):
     bindable_to = (comp.Field,)
@@ -1122,7 +1122,7 @@ class Prop_incrsaturate(PropertyRule):
         Set both alias and actual value
         """
         super().assign_value(comp_def, value, src_ref)
-        comp_def.properties['incrsaturate'] = value
+        comp_def.properties['saturate'] = comp_def.properties['incrsaturate']
 
 class Prop_overflow(PropertyRule):
     bindable_to = (comp.Field,)
