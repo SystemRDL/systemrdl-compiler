@@ -1,0 +1,108 @@
+
+// 9.8.1 Example 1
+reg example_9_8_1_e1 {
+    field counter_f { counter; };
+
+    counter_f count1[4]; // Define a 4 bit counter from 3 down to 0
+    count1->incrvalue=4'h3; // Increment the counter by 3 when incrementing
+                            // count1 implies an UP counter
+
+    counter_f count2[3]; // Define a 3 bit counter from 6 down to 4
+    count2->decrwidth=2; // provide 2 bit interface for a user to decide the decr
+                        // value. This implies a down counter.
+
+    counter_f count3[5]=0; // Defines a 5 bit counter from 11 down to 7
+    count3->incrvalue=2; // Define a an Up/Down Counter
+    count3->decrvalue=4;
+
+    field {} count4_incr[8] = 8'h0f; // define a field to control the incr
+                                    // value of another field.
+
+    counter_f count4[8]=0;
+    count4->incrvalue = count4_incr; // Counter is incremented by the value of
+                                    // another field in the same register.
+};
+
+// 9.8.1 Example 2
+regfile example_9_8_1_e2 {
+    field some_counter {
+        counter;
+        we;
+    }; // End of Reg: some_counter
+
+    reg some_counter_reg {
+        regwidth=16;
+        some_counter count[16]=0; // Create 16 bit counter POR to 0
+    }; // End of Reg:
+    
+    // Example 32 bit up counter
+    some_counter_reg count1_low;
+    some_counter_reg count1_high;
+
+    count1_high.count->incr = count1_low.count->overflow;
+    // Daisy chain the counters together to create a 32 bit counter from the 2
+    // 16 bit counters
+};
+
+
+// 9.8.2 Example 1
+reg example_9_8_2_e1 {
+    field counter_f { counter; };
+    counter_f count1[4]; // Define a 4 bit counter from 3 down to 0
+    count1->incrsaturate=4'he; // keeps the counter from counting past 4’he
+
+    counter_f count2[3]; // Define a 3 bit counter from 6 down to 4
+    count2->decrthreshold=3'h2; // provide threshold indication when
+    // count reaches 2 or lower
+
+    counter_f count3[5]=0; // Defines a 5 bit counter from 11 down to 7
+    count3->incrsaturate;// Implies 5’h1F by default
+    count3->decrsaturate; // Implies 5’h00 by default
+    count3->decrthreshold=5'h3;
+
+    field {} count4_sat[4] = 4'ha; // define a field to control the saturate value
+    // of another field
+    field {} count4_thresh[4] =4'h2;
+
+    counter_f count4[4]=0; // This counters saturate and threshold are both dynamic
+    count4->incrthreshold = count4_thresh;
+    count4->incrsaturate = count4_sat;
+};
+
+
+// 9.8.2 Example 2
+reg example_9_8_2_e2 {
+    field counter_f { counter; };
+    field {} count4_sat[4] = 4'h2; // define a field to control the saturate value
+                                   // of another field
+    field {} count4_thresh[4] =4'ha;
+    field {} is_at_threshold=0;
+    field {} is_saturated=0;
+
+    counter_f count4[4]=0; // This counters saturate and threshold are both dynamic
+    count4->incrthreshold = count4_thresh;
+    count4->incrsaturate = count4_sat;
+
+    // Single-bit result of threshold comparison assigned to is_at_threshold field
+    is_at_threshold->next = count4->incrthreshold;
+    is_saturated->next = count4->incrsaturate;
+};
+
+// 9.8.2 Example 3
+reg example_9_8_2_e3 {
+    field counter_f { counter; };
+    field {} has_overflowed;
+
+    counter_f count1[5]=0; // Defines a 5 bit counter from 6 down to 1
+    count1->incrthreshold=5'hF;
+
+    has_overflowed->next = count1->overflow;
+};
+
+addrmap wrapper {
+    example_9_8_1_e1 a;
+    example_9_8_1_e2 b;
+    example_9_8_2_e1 c;
+    example_9_8_2_e2 d;
+    example_9_8_2_e3 e;
+};

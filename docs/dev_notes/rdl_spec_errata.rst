@@ -196,6 +196,10 @@ which violates the rule described in 13.3-b.
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 Numerous uses of "bool" instead of "boolean" keyword as described by grammar.
 
+9.8.1, Example 1
+^^^^^^^^^^^^^^^^
+Illegal integer literal "4'3"
+
 15.2.2, Example 1
 ^^^^^^^^^^^^^^^^^
 Missing semicolon in some_num_p after "regfile"
@@ -203,7 +207,6 @@ Missing semicolon in some_num_p after "regfile"
 15.2.2, Example 2
 ^^^^^^^^^^^^^^^^^
 Enumeration literals are missing their "myEncoding::" prefix
-
 
 
 

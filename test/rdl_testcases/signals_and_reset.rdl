@@ -1,0 +1,83 @@
+//------------------------------------------------------------------------------
+// 17.1-Example 1
+//------------------------------------------------------------------------------
+addrmap top{
+    signal { activelow; async; } reset_l; // Define a single bit signal
+    reg {
+        field {} field1=0; // This field is reset by the default IMPLIED reset
+                // signal which is named RESET and is activehigh and sync
+
+        field {
+            resetsignal = reset_l;
+        } field2=0; // This field is now reset by reset_l and the generated
+                    // flops will be active low and asynchronously reset.
+    } some_reg_inst;
+};
+
+//------------------------------------------------------------------------------
+// 17.1-Example 2
+//------------------------------------------------------------------------------
+addrmap top2 {
+
+    signal {
+        name="PCI Soft Reset";
+        desc="This signal is used to issue a soft reset to the PCI(E) device";
+        activelow;   // Define this signal is active low
+        async;       // define this reset type is asynchronous
+        field_reset; // define this signal to reset the fields by default
+
+        // This signal will be hooked to registers PCI defines as NOT Sticky.
+        // This means they will be reset by this signal.
+    } pci_soft_reset;
+
+    signal {
+        name="PCI Hard Reset";
+        desc="This signal the primary hard reset signal for the PCI(E) device";
+        async;       // define this reset type is asynchronous
+        activelow;   // Define this signal as active low
+        cpuif_reset; // This signal will be or'd with the PCI Soft Reset Signal
+                    // to form the master hard reset which will reset all flops.
+                    // The soft reset signal above will not reset flops that PCI
+                    // defines as STICKY.
+    } pci_hard_reset;
+
+    reg {   // PCIE_REG_BIST
+        name = "BIST";
+        desc = "This optional register is used for control and status of BIST.
+                Devices that do not support BIST always returns a value of 0
+                (i.e., treat it as a reserved register). A device whose
+                BIST is invoked shall not prevent normal operation of the PCI bus.
+                Figure 6-4 shows the register layout and Table 6-3 describes the
+                bits in the register.";
+        regwidth = 8;
+
+        field {
+            name = "cplCode";
+            desc = "A value of 0 means the device has passed its test. Non-zero values
+                    mean the device failed. Device-specific failure codes can be encoded
+                    in the non-zero value.";
+            hw = rw; sw = r;
+            fieldwidth = 4;
+        } cplCode [3:0];// since this signal has no resetsignal property it defaults
+                        // to using the signal with field reset which is
+                        // the pci_soft_reset signal
+
+        field {
+            name = "start";
+            desc = "Write a 1 to invoke BIST. Device resets the bit when BIST is
+                complete. Software should fail the device if BIST is not complete
+                after 2 seconds.";
+            hw = rw; sw = rw;
+            fieldwidth = 1;
+        } start [6:6]; // resetsignal is also pci_soft_reset
+
+        field {
+            name = "capable";
+            desc = "Return 1 if device supports BIST. Return 0 if the device is not BIST
+                    capable.";
+            hw = rw; sw = rw;
+            fieldwidth = 1;
+            resetsignal = pci_hard_reset;
+        } capable [7:7]=0; // resetsignal is explicitly specified as pci_hard_reset
+    } PCIE_REG_BIST;
+};

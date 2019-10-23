@@ -4,7 +4,7 @@ import systemrdl.rdltypes as rdlt
 
 class TestIntr(RDLSourceTestCase):
 
-    def test_intr(self):
+    def test_intr_prop_mod(self):
         top = self.compile(
             ["rdl_testcases/intr_prop_mod.rdl"],
             "intr_prop_mod_test"
@@ -38,3 +38,11 @@ class TestIntr(RDLSourceTestCase):
             self.assertEqual(irqA.get_property("intr"), True)
             self.assertEqual(irqA.get_property("intr type"), rdlt.InterruptType.posedge)
             self.assertEqual(irqA.get_property("stickybit"), False)
+
+    def test_intr_example(self):
+        top = self.compile(
+            ["rdl_testcases/intr_prop.rdl"],
+            "int_map_m"
+        )
+
+        # TODO: Is there something to validate in this example?
