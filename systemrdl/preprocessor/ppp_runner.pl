@@ -26,15 +26,20 @@ sub emit_text {
 #===============================================================================
 package main;
 
+# Get safe opcodes from commandline arg
+my @safe_opcodes = split /,/, $ARGV[0];
+
 # Collect preprocess miniscript from stdin
 my $miniscript;
-while(<>) {
+while(<STDIN>) {
     $miniscript .= $_;
 }
 
 # Run miniscript in restricted context
 my $compartment = new Safe;
-$compartment->permit(':load', ':base_math', ':browse');
+foreach my $opcode (@safe_opcodes) {
+    $compartment->permit($opcode);
+}
 $compartment->share_from('main', [
     '%ENV',
     'rdlppp_utils::emit_ref',

@@ -303,8 +303,9 @@ class FilePreprocessor:
         miniscript = '\n'.join(lines)
 
         # Run miniscript
+        runner_path = os.path.join(os.path.dirname(__file__), "ppp_runner.pl")
         result = subprocess_run(
-            ["perl", os.path.join(os.path.dirname(__file__), "ppp_runner.pl")],
+            ["perl", runner_path, ",".join(self.env.perl_safe_opcodes)],
             input=miniscript.encode("utf-8"),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             timeout=5

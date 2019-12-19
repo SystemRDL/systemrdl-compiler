@@ -45,12 +45,31 @@ class RDLCompiler:
             Set to True by default.
 
             See :ref:`dpa_type_generation` for more details.
+        perl_safe_opcodes: list
+            Perl preprocessor commands are executed within a
+            `Perl Safe <https://perldoc.perl.org/Safe.html>`_ compartment to
+            prevent malicious code execution.
+
+            The default set of `Perl opcodes <https://perldoc.perl.org/Opcode.html#Predefined-Opcode-Tags>`_
+            allowed should be sufficient for most applications, however this
+            option is exposed in the rare case it is necessary to override the
+            opcode list in order to make an exception.
+
+            Default value::
+
+                [
+                    ':base_core', ':base_mem', ':base_loop', ':base_orig', ':base_math',
+                    ':base_thread', ':filesys_read', ':sys_db', ':load',
+                    'sort', 'tied', 'pack', 'unpack', 'reset'
+                ]
 
 
         .. versionchanged:: 1.8
             Added ``dedent_desc`` option.
         .. versionchanged:: 1.9
             Added ``extended_dpa_type_names`` option.
+        .. versionchanged:: 1.10
+            Added ``perl_safe_opcodes`` option.
         """
         self.env = RDLEnvironment(kwargs)
 
@@ -365,6 +384,11 @@ class RDLEnvironment:
         e_flags = args_dict.pop('error_flags', 0)
         self.dedent_desc = args_dict.pop('dedent_desc', True)
         self.use_extended_type_name_gen = args_dict.pop('extended_dpa_type_names', True)
+        self.perl_safe_opcodes = args_dict.pop('perl_safe_opcodes', [
+            ':base_core', ':base_mem', ':base_loop', ':base_orig', ':base_math',
+            ':base_thread', ':filesys_read', ':sys_db', ':load',
+            'sort', 'tied', 'pack', 'unpack', 'reset'
+        ])
 
         self.chk_missing_reset = self.chk_flag_severity(warnings.MISSING_RESET, w_flags, e_flags)
         self.chk_implicit_field_pos = self.chk_flag_severity(warnings.IMPLICIT_FIELD_POS, w_flags, e_flags)
