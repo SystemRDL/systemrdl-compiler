@@ -6,7 +6,7 @@ python:
   - "3.8"
 
 install:
-  - pip install pytest pytest-cov python-coveralls
+  - pip install pytest pytest-cov python-coveralls coverage
 
 script:
   - python setup.py install
