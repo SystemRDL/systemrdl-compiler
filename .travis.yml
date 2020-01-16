@@ -6,18 +6,18 @@ python:
   - 3.8
 
 install:
-  - python -m pip install pytest pytest-cov python-coveralls coverage==4.5.4 pylint
+  - python -m pip install pytest pytest-cov python-coveralls coverage==4.5.4
 
 script:
   - python setup.py install
   - pytest --cov=systemrdl
-  - pylint --rcfile test/pylint.rc systemrdl
 
 after_success:
   - coveralls
 
 stages:
   - test
+  - name: lint
   # Only execute deployment stage on master branch, tagged commits,
   # and from your repository (e.g. not PRs).
   - name: deploy
@@ -25,6 +25,11 @@ stages:
 
 jobs:
   include:
+    # Run lint
+    - stage: lint
+      name: Run Pylint
+      install: python -m pip install pylint
+      script: pylint --rcfile test/pylint.rc systemrdl
 
     # Deploy source distribution
     - stage: deploy
