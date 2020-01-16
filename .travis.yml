@@ -1,16 +1,39 @@
 language: python
 python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
+  - 3.5
+  - 3.6
+  - 3.7
+  - 3.8
 
 install:
-  - pip install pytest pytest-cov python-coveralls coverage==4.5.4
+  - python -m pip install pytest pytest-cov python-coveralls coverage==4.5.4 pylint
 
 script:
   - python setup.py install
   - pytest --cov=systemrdl
+  - pylint --rcfile test/pylint.rc systemrdl
 
 after_success:
   - coveralls
+
+stages:
+  - test
+  # Only execute deployment stage on master branch, tagged commits,
+  # and from your repository (e.g. not PRs).
+  - name: deploy
+    if: repo = SystemRDL/systemrdl-compiler AND tag =~ ^v\d+\.\d+\.\d+$
+
+jobs:
+  include:
+
+    # Deploy source distribution
+    - stage: deploy
+      name: Deploy source distribution
+      install: python -m pip install twine
+      script: python setup.py sdist --formats=gztar
+      after_success: python -m twine upload --skip-existing dist/*.tar.gz
+
+env:
+  global:
+    - TWINE_USERNAME=amykyta3
+      # Note: TWINE_PASSWORD is set in Travis settings

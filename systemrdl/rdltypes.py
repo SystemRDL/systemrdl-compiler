@@ -431,7 +431,7 @@ class ComponentRef:
         self.ref_elements = ref_elements
 
     def build_node_ref(self, assignee_node, env):
-        from .node import AddressableNode
+        from .node import AddressableNode # pylint: disable=import-outside-toplevel
 
         current_node = assignee_node
         # Traverse up from assignee until ref_root is reached

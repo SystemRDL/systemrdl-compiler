@@ -1533,7 +1533,6 @@ class BuiltinUserProperty(UserProperty):
     Specialization of UserProperty for UDPs that are pre-defined by the
     application.
     """
-    pass
 
 #===============================================================================
 # Property References

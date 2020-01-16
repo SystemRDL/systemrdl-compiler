@@ -173,7 +173,7 @@ class SourceRef:
 
     @classmethod
     def from_antlr(cls, antlr_ref):
-        from .preprocessor.preprocessor import PreprocessedInputStream
+        from .preprocessor.preprocessor import PreprocessedInputStream # pylint: disable=import-outside-toplevel
 
         # Normalize
         if isinstance(antlr_ref, CommonToken):
@@ -210,7 +210,7 @@ class SourceRef:
 
     @classmethod
     def from_antlr_recognizer(cls, recognizer):
-        from .preprocessor.preprocessor import PreprocessedInputStream
+        from .preprocessor.preprocessor import PreprocessedInputStream # pylint: disable=import-outside-toplevel
 
         inputStream = recognizer.inputStream
         if isinstance(inputStream, PreprocessedInputStream):
