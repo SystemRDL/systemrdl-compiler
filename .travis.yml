@@ -28,7 +28,9 @@ jobs:
     # Run lint
     - stage: lint
       name: Run Pylint
-      install: python -m pip install pylint
+      install:
+        - python -m pip install pylint
+        - python setup.py install
       script: pylint --rcfile test/pylint.rc systemrdl
 
     # Deploy source distribution
