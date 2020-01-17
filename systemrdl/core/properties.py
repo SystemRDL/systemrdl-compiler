@@ -930,6 +930,21 @@ class Prop_singlepulse(PropertyRule):
                     node.inst.inst_src_ref
                 )
 
+            # singlepulse does not make sense alongside any onwrite properties
+            # that conflict with singlepulse semantics
+            onwrite = node.get_property('onwrite')
+            if onwrite is not None:
+                illegal_onwrite = (
+                    rdltypes.OnWriteType.woclr,
+                    rdltypes.OnWriteType.wclr,
+                )
+                if onwrite in illegal_onwrite:
+                    self.env.msg.error(
+                        "Field '%s' marked as 'singlepulse' has conflicting 'onwrite' value of '%s'"
+                        % (node.inst.inst_name, onwrite.name),
+                        node.inst.inst_src_ref
+                    )
+
 #-------------------------------------------------------------------------------
 # Hardware access properties
 #-------------------------------------------------------------------------------
