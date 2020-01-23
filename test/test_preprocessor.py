@@ -1,5 +1,5 @@
 import os
-from .unittest_utils import RDLSourceTestCase
+from unittest_utils import RDLSourceTestCase
 
 class TestPreprocessor(RDLSourceTestCase):
 

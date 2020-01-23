@@ -24,13 +24,13 @@ First, a few classes are imported, and a list of requested input files
 collected from the command line arguments.
 
 .. literalinclude:: ../examples/print_hierarchy.py
-    :lines: 11-15
+    :lines: 6-10
 
 Next, an instance of the compiler object is created. This represents a single
 compilation scope.
 
 .. literalinclude:: ../examples/print_hierarchy.py
-    :lines: 18-19
+    :lines: 13-14
 
 All the input files are compiled into the root scope, and then elaborated.
 Since no top-level component name was specified in the ``elaborate`` call, the
@@ -41,7 +41,7 @@ elaborate steps will raise an :class:`~systemrdl.RDLCompileError` exception. It
 is recommended to wrap this in a try/except block.
 
 .. literalinclude:: ../examples/print_hierarchy.py
-    :lines: 22-31
+    :lines: 17-26
 
 For this example, we want to print out some information about the register
 model. This listener class defines callbacks that will output an indented tree
@@ -49,13 +49,13 @@ view of the register model. For ``field`` components, some additional
 information is printed about the bit range, and software access policy.
 
 .. literalinclude:: ../examples/print_hierarchy.py
-    :lines: 34-52
+    :lines: 29-47
 
 Finally, the walker is created, and is used to traverse the elaborated register
 model. At each node, the listener callbacks are executed.
 
 .. literalinclude:: ../examples/print_hierarchy.py
-    :lines: 55-58
+    :lines: 50-53
 
 
 

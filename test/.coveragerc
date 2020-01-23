@@ -1,0 +1,12 @@
+[run]
+omit =
+    # Omit Antlr-generated parser templates
+    */systemrdl/parser/SystemRDL*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise RuntimeError
+    raise NotImplementedError
+    msg.fatal
+    msg.error

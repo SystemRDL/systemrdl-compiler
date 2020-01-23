@@ -1,11 +1,10 @@
 from copy import deepcopy
 
-from antlr4 import InputStream, CommonTokenStream
+from antlr4 import InputStream
 
 from . import messages
 from . import warnings
-from .parser.SystemRDLLexer import SystemRDLLexer
-from .parser.SystemRDLParser import SystemRDLParser
+from .parser import sa_systemrdl
 from .core.ComponentVisitor import RootVisitor
 from .core.ExprVisitor import ExprVisitor
 from .core.properties import PropertyRuleBook, BuiltinUserProperty
@@ -164,18 +163,13 @@ class RDLCompiler:
         preprocessed_text, seg_map = fpp.preprocess()
         input_stream = preprocessor.PreprocessedInputStream(preprocessed_text, seg_map)
 
-        lexer = SystemRDLLexer(input_stream)
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(messages.RDLAntlrErrorListener(self.msg))
-
-        token_stream = CommonTokenStream(lexer)
-
-        parser = SystemRDLParser(token_stream)
-        parser.removeErrorListeners()
-        parser.addErrorListener(messages.RDLAntlrErrorListener(self.msg))
-
         # Run Antlr parser on input
-        parsed_tree = parser.root()
+        parsed_tree = sa_systemrdl.parse(
+            input_stream,
+            "root",
+            messages.RdlSaErrorListener(self.msg)
+        )
+
         if self.msg.had_error:
             self.msg.fatal("Parse aborted due to previous errors")
 
@@ -349,17 +343,11 @@ class RDLCompiler:
 
         input_stream = InputStream(expression)
 
-        lexer = SystemRDLLexer(input_stream)
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(messages.RDLAntlrErrorListener(msg_handler))
-
-        token_stream = CommonTokenStream(lexer)
-
-        parser = SystemRDLParser(token_stream)
-        parser.removeErrorListeners()
-        parser.addErrorListener(messages.RDLAntlrErrorListener(msg_handler))
-
-        parsed_tree = parser.expr()
+        parsed_tree = sa_systemrdl.parse(
+            input_stream,
+            "expr",
+            messages.RdlSaErrorListener(self.msg)
+        )
 
         visitor = ExprVisitor(self)
 

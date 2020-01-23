@@ -1,4 +1,4 @@
-from .unittest_utils import RDLSourceTestCase
+from unittest_utils import RDLSourceTestCase
 
 class TestRDLFormatCode(RDLSourceTestCase):
 

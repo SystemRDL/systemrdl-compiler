@@ -10,24 +10,26 @@ install:
 
 script:
   - python setup.py install
+  - cd test
   - pytest --cov=systemrdl
+  - export SYSTEMRDL_DISABLE_ACCELERATOR=1
+  - pytest --cov=systemrdl --cov-append
 
 after_success:
   - coveralls
 
 stages:
   - test
-  - name: lint
   # Only execute deployment stage on tagged release commits in the form of "v1.2.3"
   # and from your repository (e.g. not PRs).
+  # Also allows alpha/beta releases such as "v1.2.3b2"
   - name: deploy
-    if: repo = SystemRDL/systemrdl-compiler AND tag =~ ^v\d+\.\d+\.\d+$
+    if: repo = SystemRDL/systemrdl-compiler AND tag =~ ^v\d+\.\d+\.\w+$
 
 jobs:
   include:
     # Run lint
-    - stage: lint
-      name: Run Pylint
+    - name: Lint
       install:
         - python -m pip install pylint
         - python setup.py install
@@ -39,8 +41,43 @@ jobs:
       install: python -m pip install twine
       script: python setup.py sdist --formats=gztar
       after_success: python -m twine upload --skip-existing dist/*.tar.gz
+    
+    # Deploy on linux
+    - stage: deploy
+      name: Build and deploy Linux wheels
+      services: docker
+      install: python -m pip install twine cibuildwheel==1.1.0
+      script: python -m cibuildwheel --output-dir wheelhouse
+      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+
+    # Deploy on mac
+    - stage: deploy
+      name: Build and deploy macOS wheels
+      os: osx
+      language: shell
+      install: python -m pip install twine cibuildwheel==1.1.0
+      script: python -m cibuildwheel --output-dir wheelhouse
+      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+
+    # Deploy on windows
+    - stage: deploy
+      name: Build and deploy Windows wheels
+      os: windows
+      language: shell
+      before_install:
+        - choco install python --version 3.8.1
+        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+      install: python -m pip install twine cibuildwheel==1.1.0
+      script: python -m cibuildwheel --output-dir wheelhouse
+      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
 
 env:
   global:
+    # Don't deploy python2.7 (not supported), or osx 10.6 (no C++11 support)
+    - CIBW_SKIP="cp27-* *macosx_10_6*"
+
     - TWINE_USERNAME=amykyta3
       # Note: TWINE_PASSWORD is set in Travis settings
+    
+    # Signal setup.py to fail if binary build fails
+    - SYSTEMRDL_REQUIRE_BINARY_BUILD

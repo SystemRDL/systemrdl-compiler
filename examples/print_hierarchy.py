@@ -3,11 +3,6 @@
 import sys
 import os
 
-# Ignore this. Only needed for this example
-this_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, os.path.join(this_dir, "../"))
-
-
 from systemrdl import RDLCompiler, RDLListener, RDLWalker, RDLCompileError
 from systemrdl.node import FieldNode
 

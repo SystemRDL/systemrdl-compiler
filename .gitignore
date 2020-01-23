@@ -1,7 +1,13 @@
 **/__pycache__
+**/.antlr
+**/.vscode
+**/*.o
+**/.venv
+**/.coverage
+**/*.rpt
+**/htmlcov
+
 build/
 dist/
 *.egg-info/
 .eggs/
-.coverage
-.vscode

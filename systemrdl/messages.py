@@ -2,13 +2,14 @@
 import sys
 import enum
 
-from antlr4.error.ErrorListener import ErrorListener
 from antlr4.Token import CommonToken
 from antlr4 import ParserRuleContext
 from antlr4.tree.Tree import TerminalNodeImpl
 
 import colorama
 from colorama import Fore, Style
+
+from .parser.sa_systemrdl import SA_ErrorListener
 
 # Colorama needs to be initialized to properly work in Windows
 # This is a no-op in other OSes
@@ -208,22 +209,6 @@ class SourceRef:
         src_ref = cls(start, end, seg_map=seg_map)
         return src_ref
 
-    @classmethod
-    def from_antlr_recognizer(cls, recognizer):
-        from .preprocessor.preprocessor import PreprocessedInputStream # pylint: disable=import-outside-toplevel
-
-        inputStream = recognizer.inputStream
-        if isinstance(inputStream, PreprocessedInputStream):
-            seg_map = inputStream.seg_map
-        else:
-            seg_map = None
-
-        idx = recognizer.getCharIndex()
-
-        # Create object
-        src_ref = cls(idx, idx, seg_map=seg_map)
-        return src_ref
-
 #===============================================================================
 class MessagePrinter:
     """
@@ -371,25 +356,24 @@ class MessageExceptionRaiser(MessagePrinter):
             raise ValueError(text)
 
 #===============================================================================
-# Antlr error listener
+# Speedy-Antlr error listener
 #===============================================================================
-class RDLAntlrErrorListener(ErrorListener):
-
+class RdlSaErrorListener(SA_ErrorListener):
     def __init__(self, msg_handler):
         self.msg = msg_handler
 
-    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+    def syntaxError(self, input_stream, offendingSymbol, char_index, line, column, msg):
         if offendingSymbol is not None:
             src_ref = SourceRef.from_antlr(offendingSymbol)
-        elif recognizer is not None:
-            # If a offendingSymbol is not provided, then the next-best option is
-            # to use the current recognizer's state
-            src_ref = SourceRef.from_antlr_recognizer(recognizer)
         else:
-            # Out of options to provide context
-            src_ref = None
+            from .preprocessor.preprocessor import PreprocessedInputStream # pylint: disable=import-outside-toplevel
+            # If a offendingSymbol is not provided, then the next-best option is
+            # to use the input stream's current state
+            if isinstance(input_stream, PreprocessedInputStream):
+                seg_map = input_stream.seg_map
+            else:
+                seg_map = None
 
-        self.msg.error(
-            msg,
-            src_ref
-        )
+            src_ref = SourceRef(char_index, char_index, seg_map=seg_map)
+
+        self.msg.error(msg, src_ref)

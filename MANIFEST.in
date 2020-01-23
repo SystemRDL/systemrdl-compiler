@@ -1,2 +1,3 @@
 include systemrdl/preprocessor/ppp_runner.pl
+recursive-include systemrdl/parser/ext *
 recursive-exclude test *

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import unittest
 import sys
 import os
@@ -8,10 +6,14 @@ import re
 
 from antlr4 import InputStream, CommonTokenStream
 from systemrdl import RDLCompiler
-from systemrdl.parser.SystemRDLLexer import SystemRDLLexer
-from systemrdl.parser.SystemRDLParser import SystemRDLParser
+from systemrdl.parser import sa_systemrdl
 from systemrdl.core.ExprVisitor import ExprVisitor
-from systemrdl.messages import MessagePrinter, RDLCompileError
+from systemrdl.messages import MessagePrinter, RDLCompileError, RdlSaErrorListener
+#===============================================================================
+# If test requests to NOT use C++ extension, force pure-python implementation
+if 'SYSTEMRDL_DISABLE_ACCELERATOR' in os.environ:
+    sa_systemrdl.USE_CPP_IMPLEMENTATION = False
+
 #===============================================================================
 class TestPrinter(MessagePrinter):
     def emit_message(self, lines):
@@ -43,12 +45,14 @@ class RDLSourceTestCase(unittest.TestCase):
 
     def eval_RDL_expr(self, expr_text):
         input_stream = InputStream(expr_text)
-        lexer = SystemRDLLexer(input_stream)
-        token_stream = CommonTokenStream(lexer)
-        parser = SystemRDLParser(token_stream)
-        tree = parser.expr()
 
         rdlc = RDLCompiler(message_printer=TestPrinter())
+
+        tree = sa_systemrdl.parse(
+            input_stream,
+            "expr",
+            RdlSaErrorListener(rdlc.msg)
+        )
 
         visitor = ExprVisitor(rdlc)
         result = visitor.visit(tree)

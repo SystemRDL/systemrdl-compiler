@@ -1,5 +1,5 @@
 
-from .unittest_utils import RDLSourceTestCase
+from unittest_utils import RDLSourceTestCase
 
 class TestScopes(RDLSourceTestCase):
 
