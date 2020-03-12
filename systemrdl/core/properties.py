@@ -600,6 +600,8 @@ class Prop_reset(PropertyRule):
                     % (node.inst.inst_name),
                     node.inst.inst_src_ref
                 )
+        elif isinstance(value, m_node.SignalNode):
+            pass
         else:
             raise RuntimeError
 
