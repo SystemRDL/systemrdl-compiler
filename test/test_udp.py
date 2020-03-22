@@ -57,3 +57,22 @@ class TestUDP(RDLSourceTestCase):
         self.assertIs(top.get_property("int_udp"), 43)
         self.assertIs(reg1.get_property("int_udp"), 42)
         self.assertIs(field1.get_property("int_udp"), 123)
+    
+
+    def test_list_udps(self):
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        rdlc = RDLCompiler()
+        rdlc.define_udp("int_udp", int, default=123)
+        rdlc.compile_file(os.path.join(this_dir, "rdl_testcases/udp_15.2.2_ex1.rdl"))
+        rdlc.elaborate("foo")
+
+        self.assertEqual(
+            sorted(rdlc.list_udps()),
+            [
+                'a_map_p',
+                'int_udp',
+                'some_bool_p',
+                'some_num_p',
+                'some_ref_p',
+            ]
+        )

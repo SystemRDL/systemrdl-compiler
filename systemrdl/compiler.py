@@ -126,6 +126,16 @@ class RDLCompiler:
         udp = BuiltinUserProperty(self.env, name, valid_components, [valid_type], default)
 
         self.env.property_rules.user_properties[udp.name] = udp
+    
+
+    def list_udps(self):
+        """
+        List all user-defined properties encountered by the compiler.
+
+
+        .. versionadded:: 1.12
+        """
+        return list(self.env.property_rules.user_properties.keys())
 
 
     def compile_file(self, path, incl_search_paths=None):
