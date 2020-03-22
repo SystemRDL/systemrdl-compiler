@@ -166,7 +166,23 @@ class TestNodeUtils(RDLSourceTestCase):
                 sorted(n.list_properties()),
                 [
                     'some_bool_p',
-                    'some_num_p'
+                    'some_num_p',
+                    'sw',
+                ]
+            )
+
+            self.assertEqual(
+                sorted(n.list_properties(include_native=False)),
+                [
+                    'some_bool_p',
+                    'some_num_p',
+                ]
+            )
+
+            self.assertEqual(
+                sorted(n.list_properties(include_udp=False)),
+                [
+                    'sw',
                 ]
             )
         
@@ -196,6 +212,38 @@ class TestNodeUtils(RDLSourceTestCase):
                     'rsvdsetX',
                     'sharedextbus',
                     'some_ref_p',
+                ]
+            )
+
+            self.assertEqual(
+                sorted(n.list_properties(list_all=True, include_native=False)),
+                [
+                    'a_map_p',
+                    'some_ref_p',
+                ]
+            )
+
+            self.assertEqual(
+                sorted(n.list_properties(list_all=True, include_udp=False)),
+                [
+                    'addressing',
+                    'alignment',
+                    'bigendian',
+                    'bridge',
+                    'desc',
+                    'dontcompare',
+                    'donttest',
+                    'errextbus',
+                    'hdl_path',
+                    'hdl_path_gate',
+                    'ispresent',
+                    'littleendian',
+                    'lsb0',
+                    'msb0',
+                    'name',
+                    'rsvdset',
+                    'rsvdsetX',
+                    'sharedextbus',
                 ]
             )
 

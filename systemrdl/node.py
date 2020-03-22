@@ -367,7 +367,7 @@ class Node:
         return rule.get_default(self)
 
 
-    def list_properties(self, list_all=False):
+    def list_properties(self, list_all=False, include_native=True, include_udp=True):
         """
         Lists properties associated with this node.
         By default, only lists properties that were explicitly set. If ``list_all`` is
@@ -377,19 +377,38 @@ class Node:
         ----------
         list_all: bool
             If true, lists all valid properties of this component type.
+        include_native: bool
+            If set to false, does not list native SystemRDL properties in the output.
+        include_udp: bool
+            If set to false, does not list user-defined properties in the output.
+
+
+        .. versionchanged:: 1.12
+            Added ``include_native`` and ``include_udp`` options.
         """
 
         if list_all:
             props = []
-            for k, v in self.env.property_rules.rdl_properties.items():
-                if type(self.inst) in v.bindable_to:
-                    props.append(k)
-            for k, v in self.env.property_rules.user_properties.items():
-                if type(self.inst) in v.bindable_to:
-                    props.append(k)
+            if include_native:
+                for k, v in self.env.property_rules.rdl_properties.items():
+                    if type(self.inst) in v.bindable_to:
+                        props.append(k)
+            if include_udp:
+                for k, v in self.env.property_rules.user_properties.items():
+                    if type(self.inst) in v.bindable_to:
+                        props.append(k)
             return props
         else:
-            return list(self.inst.properties.keys())
+            if include_native and include_udp:
+                return list(self.inst.properties.keys())
+            else:
+                props = []
+                for prop_name in self.inst.properties.keys():
+                    if include_native and prop_name in self.env.property_rules.rdl_properties:
+                        props.append(prop_name)
+                    if include_udp and prop_name in self.env.property_rules.user_properties:
+                        props.append(prop_name)
+                return props
 
 
     def get_path_segment(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
