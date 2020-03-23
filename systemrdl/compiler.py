@@ -126,7 +126,7 @@ class RDLCompiler:
         udp = BuiltinUserProperty(self.env, name, valid_components, [valid_type], default)
 
         self.env.property_rules.user_properties[udp.name] = udp
-    
+
 
     def list_udps(self):
         """

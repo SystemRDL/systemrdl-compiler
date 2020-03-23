@@ -25,12 +25,12 @@ class TestUDP(RDLSourceTestCase):
 
         with self.subTest("field1"):
             self.assertEqual(field1.get_property("some_ref_p"), field2)
-            self.assertEqual(field1.get_property("some_bool_p"), False)
+            self.assertIs(field1.get_property("some_bool_p"), False)
             self.assertIs(field1.get_property("some_num_p"), None)
 
         with self.subTest("field2"):
             self.assertIs(field2.get_property("some_ref_p"), None)
-            self.assertEqual(field2.get_property("some_bool_p"), True)
+            self.assertIs(field2.get_property("some_bool_p"), True)
             self.assertIs(field2.get_property("some_num_p"), 0x10)
 
     def test_15_2_2_ex2(self):

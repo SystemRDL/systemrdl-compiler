@@ -63,6 +63,13 @@ class UDPVisitor(BaseVisitor):
             # the property type
             for valid_type in self.attr['valid_types']:
                 if expressions.is_castable(expr_type, valid_type):
+                    if isinstance(expr, expressions.Expr):
+                        # Found a type-compatible match. (first match is best match)
+                        # Wrap the expression with an explicit assignment cast
+                        expr = expressions.AssignmentCast(
+                            self.compiler.env, SourceRef.from_antlr(expr_ctx),
+                            expr, valid_type
+                        )
                     break
             else:
                 self.msg.fatal(
