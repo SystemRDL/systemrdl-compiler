@@ -28,3 +28,7 @@ Generate dynamic register spec documentation.
 
 ### [RALBot-ipxact](https://github.com/SystemRDL/RALBot-ipxact)
 Convert the SystemRDL register model to/from IP-XACT.
+
+## License
+
+The SystemRDL Compiler is published and distributed under the [MIT License](LICENSE).

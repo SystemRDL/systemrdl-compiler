@@ -1,6 +1,9 @@
---------------------------------------------------------------------------------
-For C++ Antlr runtime source from https://www.antlr.org
---------------------------------------------------------------------------------
+================================================================================
+ANTLR C++ runtime source and compiled binary forms (from https://www.antlr.org)
+are distributed with the systemrdl-compiler package.
+The text below also applies to the runtime source included in
+<this repository>/systemrdl/parser/ext/antlr4-cpp-runtime/
+================================================================================
 
 [The "BSD 3-clause license"]
 Copyright (c) 2012-2017 The ANTLR Project. All rights reserved.
