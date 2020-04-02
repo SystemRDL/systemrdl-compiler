@@ -436,8 +436,10 @@ class Node:
         if self.parent and not isinstance(self.parent, RootNode):
             segs = self.parent.get_path_segments(array_suffix, empty_array_suffix)
             segs.append(self.get_path_segment(array_suffix, empty_array_suffix))
-        else:
+        elif not isinstance(self, RootNode):
             segs = [self.get_path_segment(array_suffix, empty_array_suffix)]
+        else:
+            segs = []
         return segs
 
 

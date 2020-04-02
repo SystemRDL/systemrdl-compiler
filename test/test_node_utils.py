@@ -42,6 +42,10 @@ class TestNodeUtils(RDLSourceTestCase):
             a = top.find_by_path("hier.x.a")
             b = top.find_by_path("hier")
             self.assertEqual(b.get_rel_path(a), "^^")
+        
+        with self.subTest("fromroot"):
+            a = top.find_by_path("hier.x.a")
+            self.assertEqual(a.get_rel_path(top), "hier.x.a[][]")
 
         with self.subTest("updown1"):
             a = top.find_by_path("hier.x.a")
