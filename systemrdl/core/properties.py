@@ -1424,19 +1424,23 @@ class Prop_sharedextbus(PropertyRule):
 # Address map properties
 #===============================================================================
 
-class Prop_bigendian(PropertyRule):
+class Prop_bigendian(PropertyRuleBoolPair):
     bindable_to = (comp.Addrmap,)
     valid_types = (bool,)
-    default = False
+    default = False # Default both to false unless one is explicitly set
     dyn_assign_allowed = True
     mutex_group = "L"
 
-class Prop_littleendian(PropertyRule):
+    opposite_property = "littleendian"
+
+class Prop_littleendian(PropertyRuleBoolPair):
     bindable_to = (comp.Addrmap,)
     valid_types = (bool,)
-    default = False
+    default = False # Default both to false unless one is explicitly set
     dyn_assign_allowed = True
     mutex_group = "L"
+
+    opposite_property = "bigendian"
 
 class Prop_addressing(PropertyRule):
     bindable_to = (comp.Addrmap,)
