@@ -276,3 +276,15 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertEqual(f2.inst_name, "f2")
         self.assertEqual(f2.type_name, "f")
         self.assertIsNone(f2.orig_type_name)
+
+
+    def test_owning_addrmap(self):
+        top = self.compile(
+            ["rdl_testcases/references_default_lhs.rdl"],
+            "top"
+        )
+        top_addrmap = top.find_by_path("top")
+        self.assertIsNone(top.owning_addrmap)
+        self.assertIsNone(top.find_by_path("glbl_sig").owning_addrmap)
+        self.assertEqual(top_addrmap.owning_addrmap, top_addrmap)
+        self.assertEqual(top.find_by_path("top.reg3.z").owning_addrmap, top_addrmap)

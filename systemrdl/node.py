@@ -225,6 +225,25 @@ class Node:
                 yield child
 
 
+    @property
+    def owning_addrmap(self):
+        """
+        Returns the enclosing addrmap that owns this node.
+
+        If this node is already an addrmap, returns itself
+
+        If not enclosed in an addrmap, returns None
+
+        .. versionadded:: 1.12
+        """
+        if isinstance(self, AddrmapNode):
+            return self
+        elif isinstance(self, RootNode):
+            return None
+        else:
+            return self.parent.owning_addrmap
+
+
     def get_child_by_name(self, inst_name):
         """
         Returns an immediate child :class:`~Node` whose instance name matches ``inst_name``
