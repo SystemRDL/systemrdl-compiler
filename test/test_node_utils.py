@@ -41,7 +41,7 @@ class TestNodeUtils(RDLSourceTestCase):
         with self.subTest("parent"):
             a = top.find_by_path("hier.x.a")
             b = top.find_by_path("hier")
-            self.assertEqual(b.get_rel_path(a), "^^")
+            self.assertEqual(b.get_rel_path(a), "^.^")
         
         with self.subTest("fromroot"):
             a = top.find_by_path("hier.x.a")
@@ -50,12 +50,12 @@ class TestNodeUtils(RDLSourceTestCase):
         with self.subTest("updown1"):
             a = top.find_by_path("hier.x.a")
             b = top.find_by_path("hier.x.b")
-            self.assertEqual(b.get_rel_path(a), "^b[]")
+            self.assertEqual(b.get_rel_path(a), "^.b[]")
 
         with self.subTest("updown2"):
             a = top.find_by_path("hier.x.a")
             b = top.find_by_path("hier.y[2].b[1]")
-            self.assertEqual(b.get_rel_path(a), "^^y[2].b[1]")
+            self.assertEqual(b.get_rel_path(a), "^.^.y[2].b[1]")
 
         with self.subTest("self"):
             a = top.find_by_path("hier.y[0].a[1][1]")
@@ -64,17 +64,17 @@ class TestNodeUtils(RDLSourceTestCase):
         with self.subTest("self-index1"):
             a = top.find_by_path("hier.y[0].a[1][1]")
             b = top.find_by_path("hier.y[1].a[1][1]")
-            self.assertEqual(b.get_rel_path(a), "^^y[1].a[1][1]")
+            self.assertEqual(b.get_rel_path(a), "^.^.y[1].a[1][1]")
 
         with self.subTest("self-index2"):
             a = top.find_by_path("hier.y[0].a[1][1]")
             b = top.find_by_path("hier.y.a")
-            self.assertEqual(b.get_rel_path(a), "^^y[].a[][]")
+            self.assertEqual(b.get_rel_path(a), "^.^.y[].a[][]")
 
         with self.subTest("self-index3"):
             a = top.find_by_path("hier.y.a")
             b = top.find_by_path("hier.y.a[1][1]")
-            self.assertEqual(b.get_rel_path(a), "^a[1][1]")
+            self.assertEqual(b.get_rel_path(a), "^.a[1][1]")
 
     def test_address_tools(self):
         top = self.compile(

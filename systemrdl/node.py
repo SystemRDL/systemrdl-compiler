@@ -489,7 +489,7 @@ class Node:
 
         Relative path that traverses upwards::
 
-            foo.bar.baz -> foo.abc.def = "^^abc.def"
+            foo.bar.baz -> foo.abc.def = "^.^.abc.def"
 
         Relative path to self results in an empty string::
 
@@ -497,8 +497,8 @@ class Node:
 
         Paths between array nodes with/without indexes will result in upwards paths::
 
-            foo.array[].baz -> foo.array[0].baz = "^^array[0].baz"
-            foo.array[0].baz -> foo.array[].baz = "^^array[].baz"
+            foo.array[].baz -> foo.array[0].baz = "^.^.array[0].baz"
+            foo.array[0].baz -> foo.array[].baz = "^.^.array[].baz"
 
         Parameters
         ----------
@@ -532,10 +532,10 @@ class Node:
             self_segs_fmt.pop(0)
 
         # 2. length of ref_segs remaining is how many uplevels needed
-        uplevel_prefix = uplevel * len(ref_segs)
+        self_segs_fmt = ([uplevel] * len(ref_segs)) + self_segs_fmt
 
         # 3. remaining segments in self_segs_fmt is the rest of the path
-        return uplevel_prefix + hier_separator.join(self_segs_fmt)
+        return hier_separator.join(self_segs_fmt)
 
 
     def get_html_desc(self, markdown_inst=None):

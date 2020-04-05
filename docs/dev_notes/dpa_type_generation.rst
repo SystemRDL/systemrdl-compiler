@@ -102,9 +102,9 @@ Instance reference
     Hierarchy separators shall use ``.``, and parent references use ``^``.
 
     For example, the hierarchcial path from component ``foo.bar.baz`` to
-    ``foo.abc.def`` is represented by the string ``^^abc.def``
+    ``foo.abc.def`` is represented by the string ``^.^.abc.def``
 
-    The resulting 8-characters of md5 are: 63f872b2
+    The resulting 8-characters of md5 are: b0698608
 
 Property reference
     Property references (ref targets) are normalized the same as instance
@@ -114,9 +114,9 @@ Property reference
 
     For example, a property reference from component ``foo.bar.baz`` to
     the property ``foo.abc.def->anded`` is represented by the string
-    ``^^abc.def->anded``.
+    ``^.^.abc.def->anded``.
 
-    The resulting 8-characters of md5 are: 369e2729
+    The resulting 8-characters of md5 are: 429a9577
 
 Enum type references
     Enum type references shall be rendered using their enumeration type name.
@@ -155,6 +155,6 @@ The type names for each instance in this example are generated as follows:
 * ``r1.f1`` = "my_field_rclr_t"
 * ``r1.f2`` = "my_field_rclr_t"
 * ``r1`` = "my_reg_f1_4e12afb6"
-* ``r2.f1`` = "my_field_next_2e903ef3"
+* ``r2.f1`` = "my_field_next_c9e1f96f"
 * ``r2.f2`` = "my_field_rclr_t"
-* ``r2`` = "my_reg_f1_4985f1e7"
+* ``r2`` = "my_reg_f1_e0f883f9"
