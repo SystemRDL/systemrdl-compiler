@@ -138,6 +138,37 @@ class Component:
         Generate a string that represents this component's declaration namespace
         scope.
 
+        Returns ``None`` if scope is not known or not applicable.
+
+        For example, the following SystemRDL snippet:
+
+        .. code-block:: systemrdl
+
+            reg my_reg_t {
+                field {} x;
+            };
+
+            addrmap top {
+                my_reg_t foo;
+                reg my_other_reg_t {
+                    field {} y;
+                } bar;
+                reg {
+                    field {} z;
+                } baz, xyz;
+            };
+        
+        ... results in:
+
+        * Field ``x`` of hierarchical path ``top.foo.x`` was declared in the
+          lexical scope ``my_reg_t``
+        * Field ``y`` of hierarchical path ``top.bar.y`` was declared in the
+          lexical scope ``top::my_other_reg_t``
+        * Both fields ``z`` of hierarchical paths ``top.baz.z`` and ``top.xyz.z``
+          were declared in the same lexical scope ``top::baz``
+        * Register ``foo`` was declared in the root scope which is represented
+          by an empty string.
+
         Parameters
         ----------
         scope_separator: str
@@ -145,7 +176,7 @@ class Component:
         """
         if self.parent_scope is None:
             # Importer likely never set the scope
-            return ""
+            return None
         elif isinstance(self.parent_scope, Root):
             # Declaration was in root scope
             return ""
