@@ -292,6 +292,14 @@ class Node:
         pathparts = path.split('.')
         current_node = self
         for pathpart in pathparts:
+            
+            # If parent reference, jump upwards
+            if pathpart == "^":
+                if current_node.parent is not None:
+                    current_node = current_node.parent
+                continue
+
+            # .. otherwise continue parsing the path
             m = re.fullmatch(r'^(\w+)((?:\[(?:\d+|0[xX][\da-fA-F]+)\])*)$', pathpart)
             if not m:
                 raise ValueError("Invalid path")

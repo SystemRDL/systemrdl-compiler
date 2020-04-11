@@ -288,3 +288,18 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertIsNone(top.find_by_path("glbl_sig").owning_addrmap)
         self.assertEqual(top_addrmap.owning_addrmap, top_addrmap)
         self.assertEqual(top.find_by_path("top.reg3.z").owning_addrmap, top_addrmap)
+
+
+    def test_find_by_path_via_parent(self):
+        top = self.compile(
+            ["rdl_testcases/address_packing.rdl"],
+            "hier"
+        )
+
+        a = top.find_by_path("hier.x.a")
+        b = top.find_by_path("hier.y.b")
+        ba = top.find_by_path("hier.y.b.a")
+
+        self.assertEqual(top.find_by_path("hier.x.b.^.a"), a)
+        self.assertEqual(ba.find_by_path("^"), b)
+        self.assertEqual(ba.find_by_path("^.^.^.^.^.^.^.^.hier.y.b"), b)
