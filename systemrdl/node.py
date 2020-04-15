@@ -292,7 +292,6 @@ class Node:
         pathparts = path.split('.')
         current_node = self
         for pathpart in pathparts:
-            
             # If parent reference, jump upwards
             if pathpart == "^":
                 if current_node.parent is not None:

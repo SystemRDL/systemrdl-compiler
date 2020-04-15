@@ -157,7 +157,7 @@ class Component:
                     field {} z;
                 } baz, xyz;
             };
-        
+
         ... results in:
 
         * Field ``x`` of hierarchical path ``top.foo.x`` was declared in the
