@@ -23,11 +23,17 @@ See the [SystemRDL Compiler Documentation](http://systemrdl-compiler.readthedocs
 This is just the beginning! If you want to contribute, check out these other
 projects.
 
-### [RALBot-html](https://github.com/SystemRDL/RALBot-html)
+### [PeakRDL-html](https://github.com/SystemRDL/PeakRDL-html)
 Generate dynamic register spec documentation.
 
-### [RALBot-ipxact](https://github.com/SystemRDL/RALBot-ipxact)
+### [PeakRDL-ipxact](https://github.com/SystemRDL/PeakRDL-ipxact)
 Convert the SystemRDL register model to/from IP-XACT.
+
+### [PeakRDL-uvm](https://github.com/SystemRDL/PeakRDL-uvm)
+Create a UVM Register model.
+
+### [PeakRDL](https://github.com/SystemRDL/PeakRDL)
+A command-line application that ties it all together.
 
 ## License
 
