@@ -75,9 +75,6 @@ env:
   global:
     # Don't deploy python2.7 (not supported), or osx 10.6 (no C++11 support)
     - CIBW_SKIP="cp27-* *macosx_10_6*"
-
-    - TWINE_USERNAME=amykyta3
-      # Note: TWINE_PASSWORD is set in Travis settings
     
     # Signal setup.py to fail if binary build fails
     - SYSTEMRDL_REQUIRE_BINARY_BUILD
