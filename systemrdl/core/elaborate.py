@@ -226,6 +226,8 @@ class StructuralPlacementListener(walker.RDLListener):
         if 'memwidth' not in node.inst.properties:
             node.inst.properties['memwidth'] = self.max_vreg_width
 
+        self.resolve_addresses(node)
+
 
     def exit_Field(self, node):
 

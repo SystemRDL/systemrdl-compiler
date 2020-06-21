@@ -134,6 +134,9 @@ class TestNodeUtils(RDLSourceTestCase):
                     'hier.y[].b[].a',
                     'hier.y[].c[][]',
                     'hier.y[].c[][].a',
+                    'hier.z_mem',
+                    'hier.z_mem.x[]',
+                    'hier.z_mem.x[].a',
                 ]
             )
 
@@ -156,6 +159,9 @@ class TestNodeUtils(RDLSourceTestCase):
                     'hier.y[].c[][].a',
                     'hier.y[].c[][]',
                     'hier.y[]',
+                    'hier.z_mem.x[].a',
+                    'hier.z_mem.x[]',
+                    'hier.z_mem',
                     'hier',
                 ]
             )

@@ -95,4 +95,9 @@ addrmap hier {
         some_reg c[3][4]; // @0x64, size=48=0x30
     } x, // @0, size=148=0x94
     y[4]; // @0x100 size=148*4=592
+
+    external mem {
+        mementries=256;
+        some_reg x[256];
+    } z_mem;
 }; // @0, size=740
