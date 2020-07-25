@@ -172,12 +172,14 @@ Mentions "register files", even though they are not allowed in "mem" components
 as per 11.1-b-1-ii.
 
 
+
 Likely typo in type name generation BNF snippet 5.1.1.4-c
 ---------------------------------------------------------
 
 BNF-style description implies parentheses are part of the generated type name
 but the text in the same section only mentions underscore delimiters.
 Assuming the red parentheses are to be ignored.
+
 
 
 Misc compilation issues in examples
@@ -188,8 +190,8 @@ language.
 
 5.1.2.5, Examples 1,2, and 3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-All three examples fail to create an instance of `regfile example` inside
-the `top` addrmap component. This results in an empty component definition
+All three examples fail to create an instance of ``regfile example`` inside
+the ``top`` addrmap component. This results in an empty component definition
 which violates the rule described in 13.3-b.
 
 6.3.2.4, Examples 1 and 2
@@ -198,15 +200,19 @@ Numerous uses of "bool" instead of "boolean" keyword as described by grammar.
 
 9.8.1, Example 1
 ^^^^^^^^^^^^^^^^
-Illegal integer literal "4'3"
+Illegal integer literal ``4'3``.
+
+14.2.3
+^^^^^^
+Field ``f2`` uses enumeration literals that are missing their ``color::`` prefix.
 
 15.2.2, Example 1
 ^^^^^^^^^^^^^^^^^
-Missing semicolon in some_num_p after "regfile"
+Missing semicolon in ``some_num_p`` after ``regfile``.
 
 15.2.2, Example 2
 ^^^^^^^^^^^^^^^^^
-Enumeration literals are missing their "myEncoding::" prefix
+Enumeration literals are missing their ``myEncoding::`` prefix.
 
 
 
@@ -243,6 +249,7 @@ of the ``name`` property by polluting it with a long-form description.
 Not implementing the ``[desc]`` tag.
 
 
+
 Use of RDLFormatCode tags in ``name`` property seems inappropriate
 ------------------------------------------------------------------
 Use of block formatting tags in a component's ``name`` property
@@ -252,6 +259,47 @@ seems out of scope from what the property's intent is.
 
 Only implementing tags that control inline text style. Not implementing
 structural formatting tags such as ``[p]`` and ``[list]``.
+
+
+
+Definition of the ``hdl_path_slice`` property is shortsighted
+-------------------------------------------------------------
+14.1.2 Example 2 shows how multiple entries in an hdl_path_slice would be used:
+
+* A field ``f2`` is declared with bit-range [5:3]
+* The field's ``hdl_path_slice`` is assigned the following strings: ``'{"rtl_f2_5_4", "rtl_f2_3"}``
+
+Given the naming convention used in the string, this implies that the
+backdoor paths for these slices are to be mapped asymmetrically to logical bits
+as follows:
+
+* "rtl_f2_5_4" --> bit slice [5:4]
+* "rtl_f2_3" --> bit slice [3:3]
+
+However these are merely strings, and the end user could name them something
+entirely different. It is impossible to infer the intent of the user! The
+mapping could have just as easily been:
+
+* "foo" --> bit slice [5:5]
+* "bar" --> bit slice [4:3]
+
+To illustrate this issue, UVM requires that the explicit bit positions of each slice
+be provided when defining them in the model (https://verificationacademy.com/verification-methodology-reference/uvm/docs_1.2/html/files/reg/uvm_reg-svh.html#uvm_reg.add_hdl_path)
+One cannot simply provide a list of slice strings to the UVM register model.
+
+**Resolution:**
+
+Recommended interpretation is to only honor the ``hdl_path_slice`` property
+in situations where its value is completely unambiguous.
+
+* If a field is given a single slice, it is assumed it represents the hdl path
+  to all bits in the field.
+* If a field is given multiple slices, it is assumed each slice represents
+  exactly 1 bit of the field. The slice order is assumed to be from msb down to
+  lsb.
+* If multiple slices are given, and the length of the string array does not
+  match the field's bit-width, then this represents an ambiguous slice definition.
+  Tools should ignore this property and emit a warning.
 
 
 

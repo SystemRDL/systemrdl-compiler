@@ -3,9 +3,15 @@
 MISSING_RESET = 1<<0
 
 #: Check if a field's bit offset is not explicitly specified.
+#:
+#: Some organizations may want to enforce explicit assignment of bit offsets to
+#: avoid unexpected field packing.
 IMPLICIT_FIELD_POS = 1<<1
 
 #: Check if a component's address offset is not explicitly assigned.
+#:
+#: Some organizations may want to enforce explicit assignment of addresses to
+#: avoid unintended address map changes.
 IMPLICIT_ADDR = 1<<2
 
 #: Check if an instance array's address stride is not a power of two.
@@ -23,6 +29,9 @@ STRICT_SELF_ALIGN = 1<<4
 
 #: Check if an array of registers uses a stride that is not equal to the
 #: register's width.
+#:
+#: Many export formats are unable to natively represent register arrays that are
+#: not tightly packed. (IP-XACT, UVM Virtual registers, C arrays, etc..)
 SPARSE_REG_STRIDE = 1<<5
 
 #-------------------------------------------------------------------------------
