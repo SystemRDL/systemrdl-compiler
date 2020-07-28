@@ -31,8 +31,8 @@ between files.
 
 
 
-SystemRDL namespaces are global across compilation units
---------------------------------------------------------
+Namespaces are global across compilation units
+----------------------------------------------
 The root scope of the official SystemRDL namespaces are shared across files.
 
 Specifically the three namespaces described in the SystemRDL 2.0 spec:

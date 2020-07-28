@@ -80,17 +80,6 @@ Grammar is implemented to allow this.
 
 
 
-Automatic address allocation rules have many ambiguities
---------------------------------------------------------
-TODO: fill in details
-
-**Resolution:**
-
-TODO: fill in details
-
-
-
-
 Invalid SystemRDL 2.0 in Table E1
 ---------------------------------
 In Annex E, Table E1, many of the cells in the "SystemRDL 2.0" column show
@@ -122,8 +111,8 @@ Invalid entries appear to be redundant anyways.
 
 
 
-Constraint example uses struct datatype in an illegal way
----------------------------------------------------------
+Constraint example uses struct datatype in an undocumented way
+--------------------------------------------------------------
 In 14.2.3, the example declares a struct data type called "RGB".
 Immediately after, the struct is apparently "instantiated" as if it is a
 component.
@@ -159,60 +148,6 @@ It will be assumed that the example does NOT include a struct declaration for
         field {} green1[8];
         field {} blue1[8];
     };
-
-
-
-Likely typo in semantic rule 11.2-f
------------------------------------
-
-    Virtual registers, **register files**, and fields shall have the same
-    software access (sw property value) as the parent memory.
-
-Mentions "register files", even though they are not allowed in "mem" components
-as per 11.1-b-1-ii.
-
-
-
-Likely typo in type name generation BNF snippet 5.1.1.4-c
----------------------------------------------------------
-
-BNF-style description implies parentheses are part of the generated type name
-but the text in the same section only mentions underscore delimiters.
-Assuming the red parentheses are to be ignored.
-
-
-
-Misc compilation issues in examples
------------------------------------
-Some very minor typos found while compiling several code snippet examples.
-These issues do not have any significant effect on the interpretation of the
-language.
-
-5.1.2.5, Examples 1,2, and 3
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-All three examples fail to create an instance of ``regfile example`` inside
-the ``top`` addrmap component. This results in an empty component definition
-which violates the rule described in 13.3-b.
-
-6.3.2.4, Examples 1 and 2
-^^^^^^^^^^^^^^^^^^^^^^^^^
-Numerous uses of "bool" instead of "boolean" keyword as described by grammar.
-
-9.8.1, Example 1
-^^^^^^^^^^^^^^^^
-Illegal integer literal ``4'3``.
-
-14.2.3
-^^^^^^
-Field ``f2`` uses enumeration literals that are missing their ``color::`` prefix.
-
-15.2.2, Example 1
-^^^^^^^^^^^^^^^^^
-Missing semicolon in ``some_num_p`` after ``regfile``.
-
-15.2.2, Example 2
-^^^^^^^^^^^^^^^^^
-Enumeration literals are missing their ``myEncoding::`` prefix.
 
 
 
@@ -283,8 +218,8 @@ mapping could have just as easily been:
 * "foo" --> bit slice [5:5]
 * "bar" --> bit slice [4:3]
 
-To illustrate this issue, UVM requires that the explicit bit positions of each slice
-be provided when defining them in the model (https://verificationacademy.com/verification-methodology-reference/uvm/docs_1.2/html/files/reg/uvm_reg-svh.html#uvm_reg.add_hdl_path)
+To illustrate this issue, `UVM requires that the explicit bit positions of each
+slice be provided when defining them in the model. <https://verificationacademy.com/verification-methodology-reference/uvm/docs_1.2/html/files/reg/uvm_reg-svh.html#uvm_reg.add_hdl_path>`_
 One cannot simply provide a list of slice strings to the UVM register model.
 
 **Resolution:**
@@ -293,15 +228,95 @@ Recommended interpretation is to only honor the ``hdl_path_slice`` property
 in situations where its value is completely unambiguous.
 
 * If a field is given a single slice, it is assumed it represents the hdl path
-  to all bits in the field.
+  to *all bits* in the field.
 * If a field is given multiple slices, it is assumed each slice represents
-  exactly 1 bit of the field. The slice order is assumed to be from msb down to
-  lsb.
+  *exactly 1 bit* of the field. The slice order is assumed to be from msb down
+  to lsb.
 * If multiple slices are given, and the length of the string array does not
   match the field's bit-width, then this represents an ambiguous slice definition.
   Tools should ignore this property and emit a warning.
 
 
+
+Misguided use of the ```line`` Verilog-style preprocessor directive
+-------------------------------------------------------------------
+
+In 16.2.1 - Table 32, the SystemRDL spec references the ```line`` preprocessor
+directive, with the vague description text: "Source filename and number"
+
+According to SystemVerilog IEEE Std 1800-2012 Section 22.12, this directive is
+intended as a silent line/file marker for 3rd party preprocessors to use when
+augmenting Verilog source. The file/line marker's data is only visible via
+the Verilog-specific PLI. This does not make much sense in the context of
+SystemRDL.
+
+It is likely that instead, the authors intended to refer to the ```__FILE__``
+and ```__LINE__`` directives.
+
+**Resolution:**
+
+Implement ```__FILE__`` and ```__LINE__`` text-replacement directives instead.
+
+Discard any usages of ```line`` as is done with other unhandled Verilog-style
+compiler directives (16.2.1).
+
+
+
+Likely typo in semantic rule 11.2-f
+-----------------------------------
+
+    Virtual registers, **register files**, and fields shall have the same
+    software access (sw property value) as the parent memory.
+
+Mentions "register files", even though they are not allowed in "mem" components
+as per 11.1-b-1-ii.
+
+
+
+Likely typo in type name generation BNF snippet 5.1.1.4-c
+---------------------------------------------------------
+
+BNF-style description implies parentheses are part of the generated type name
+but the text in the same section only mentions underscore delimiters.
+Assuming the red parentheses are to be ignored.
+
+
+--------------------------------------------------------------------------------
+
+Misc compilation issues in examples
+-----------------------------------
+Some very minor typos found while compiling several code snippet examples.
+These issues do not have any significant effect on the interpretation of the
+language.
+
+5.1.2.5, Examples 1,2, and 3
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+All three examples fail to create an instance of ``regfile example`` inside
+the ``top`` addrmap component. This results in an empty component definition
+which violates the rule described in 13.3-b.
+
+6.3.2.4, Examples 1 and 2
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Numerous uses of "bool" instead of "boolean" keyword as described by grammar.
+
+9.8.1, Example 1
+^^^^^^^^^^^^^^^^
+Illegal integer literal ``4'3``.
+
+14.2.3
+^^^^^^
+Field ``f2`` uses enumeration literals that are missing their ``color::`` prefix.
+
+15.2.2, Example 1
+^^^^^^^^^^^^^^^^^
+Missing semicolon in ``some_num_p`` after ``regfile``.
+
+15.2.2, Example 2
+^^^^^^^^^^^^^^^^^
+Enumeration literals are missing their ``myEncoding::`` prefix.
+
+
+--------------------------------------------------------------------------------
 
 Open Questions
 --------------

@@ -85,9 +85,6 @@ Enumerations
 .. autoclass:: systemrdl.rdltypes.UserEnum
     :members:
 
-    .. automethod:: get_parent_scope
-    .. automethod:: get_scope_path
-
 .. autofunction:: systemrdl.rdltypes.is_user_enum
 
 --------------------------------------------------------------------------------

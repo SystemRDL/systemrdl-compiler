@@ -3,11 +3,13 @@
 Preprocessor Includes
 =====================
 
-RDL spec says that Perl preprocessor is executed first, followed by the Verilog
-preprocessor.
+The SystemRDL spec says that Perl preprocessor is executed first, followed by
+the Verilog-style preprocessor.
 
-How are Verilog ``include`` directives handled alongside Perl? There are
+How are Verilog ```include`` directives handled alongside Perl? There are
 generally three different interpretations I can think of.
+
+Consider the following input files:
 
 .. code-block:: systemrdl
     :caption: x.rdl
@@ -28,8 +30,9 @@ Interpretation 1
 ----------------
 
 A super-strict interpretation could imply that ``y.rdl`` never gets processed
-by the Perl preprocessor since the include only gets expanded in the final
-verilog-style preprocess phase.
+by the Perl preprocessor since the ```include`` in ``x.rdl`` only gets expanded
+in the final verilog-style preprocess phase, after Perl preprocessing has
+completed.
 
 This is pretty unreasonable since Perl tags would only be able to be used at
 the top-level file.
