@@ -238,27 +238,15 @@ in situations where its value is completely unambiguous.
 
 
 
-Misguided use of the ```line`` Verilog-style preprocessor directive
--------------------------------------------------------------------
-
-In 16.2.1 - Table 32, the SystemRDL spec references the ```line`` preprocessor
-directive, with the vague description text: "Source filename and number"
-
-According to SystemVerilog IEEE Std 1800-2012 Section 22.12, this directive is
-intended as a silent line/file marker for 3rd party preprocessors to use when
-augmenting Verilog source. The file/line marker's data is only visible via
-the Verilog-specific PLI. This does not make much sense in the context of
-SystemRDL.
-
-It is likely that instead, the authors intended to refer to the ```__FILE__``
-and ```__LINE__`` directives.
+Verilog does not have an ```if`` preprocessor directive
+-------------------------------------------------------
+In 16.2.1 - Table 32, the SystemRDL spec references an ```if`` preprocessor
+directive. Nowhere in SystemVerilog IEEE Std 1800-2012 is this defined, nor
+does the RDL spec does not offer an explanation for its semantics.
 
 **Resolution:**
 
-Implement ```__FILE__`` and ```__LINE__`` text-replacement directives instead.
-
-Discard any usages of ```line`` as is done with other unhandled Verilog-style
-compiler directives (16.2.1).
+Do not implement an ```if`` preprocessor directive.
 
 
 
