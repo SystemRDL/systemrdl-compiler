@@ -1,4 +1,3 @@
-
 import sys
 import enum
 
@@ -9,6 +8,7 @@ from antlr4.tree.Tree import TerminalNodeImpl
 import colorama
 from colorama import Fore, Style
 
+from .preprocessor.preprocessor import PreprocessedInputStream
 from .parser.sa_systemrdl import SA_ErrorListener
 
 # Colorama needs to be initialized to properly work in Windows
@@ -174,8 +174,6 @@ class SourceRef:
 
     @classmethod
     def from_antlr(cls, antlr_ref):
-        from .preprocessor.preprocessor import PreprocessedInputStream # pylint: disable=import-outside-toplevel
-
         # Normalize
         if isinstance(antlr_ref, CommonToken):
             token = antlr_ref
@@ -366,7 +364,6 @@ class RdlSaErrorListener(SA_ErrorListener):
         if offendingSymbol is not None:
             src_ref = SourceRef.from_antlr(offendingSymbol)
         else:
-            from .preprocessor.preprocessor import PreprocessedInputStream # pylint: disable=import-outside-toplevel
             # If a offendingSymbol is not provided, then the next-best option is
             # to use the input stream's current state
             if isinstance(input_stream, PreprocessedInputStream):
