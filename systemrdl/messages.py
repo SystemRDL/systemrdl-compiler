@@ -9,7 +9,7 @@ from antlr4.tree.Tree import TerminalNodeImpl
 import colorama
 from colorama import Fore, Style
 
-from .preprocessor.preprocessor import PreprocessedInputStream
+from .preprocessor import PreprocessedInputStream
 from .parser.sa_systemrdl import SA_ErrorListener
 if TYPE_CHECKING:
     from .preprocessor.segment_map import SegmentMap

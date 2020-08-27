@@ -17,7 +17,7 @@ from .core import expressions as expr
 from . import component as comp
 from . import walker
 from .node import RootNode
-from .preprocessor import preprocessor
+from . import preprocessor
 
 class RDLCompiler:
 
@@ -171,9 +171,7 @@ class RDLCompiler:
         if incl_search_paths is None:
             incl_search_paths = []
 
-        fpp = preprocessor.FilePreprocessor(self.env, path, incl_search_paths)
-        preprocessed_text, seg_map = fpp.preprocess()
-        input_stream = preprocessor.PreprocessedInputStream(preprocessed_text, seg_map)
+        input_stream = preprocessor.preprocess_file(self.env, path, incl_search_paths)
 
         # Run Antlr parser on input
         parsed_tree = sa_systemrdl.parse(
