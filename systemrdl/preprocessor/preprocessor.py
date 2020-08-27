@@ -1,4 +1,3 @@
-
 import re
 import os
 import subprocess
@@ -9,7 +8,6 @@ from antlr4 import InputStream
 
 from . import segment_map
 from .. import messages
-from ..core.backports import subprocess_run
 
 class FilePreprocessor:
 
@@ -113,12 +111,12 @@ class FilePreprocessor:
         tokens = []
         token_spec = [
             ('mlc', r'/\*.*?\*/'),
-            ('slc', r'//[^\r\n]*?\r?\n'),
+            ('slc', r'//.*?$'),
             ('perl', r'<%.*?%>'),
             ('incl', r'`include'),
         ]
         tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_spec)
-        for m in re.finditer(tok_regex, self.text, re.DOTALL):
+        for m in re.finditer(tok_regex, self.text, re.DOTALL | re.MULTILINE):
             if m.lastgroup in ("incl", "perl"):
                 tokens.append((m.lastgroup, m.start(0), m.end(0)-1))
         return tokens
@@ -161,15 +159,14 @@ class FilePreprocessor:
         incl_path_raw = m_inc.group(2) or m_inc.group(3)
         end = m_inc.end(0)-1
         path_start = m_inc.start(1)
-        #[^\r\n]*?\r?\n
+
         # Check that only comments follow
-        tail_regex = re.compile(r'(?:[ \t]*/\*[^\r\n]*?\*/)*[ \t]*(?://[^\r\n]*?|/\*[^\r\n]*?)?\r?\n')
-        if not tail_regex.match(self.text, end+1):
-            tail_capture_regex = re.compile(r'[^\r\n]*?\r?\n')
-            m = tail_capture_regex.match(self.text, end+1)
+        cruft_start, cruft_end = get_illegal_trailing_text_pos(self.text, end+1)
+        print(cruft_start, cruft_end)
+        if cruft_start is not None:
             self.env.msg.fatal(
                 "Unexpected text after include",
-                messages.SourceRef(end+1, m.end(0)-1, filename=self.path)
+                messages.SourceRef(cruft_start, cruft_end, filename=self.path)
             )
 
         # Resolve include path.
@@ -304,11 +301,11 @@ class FilePreprocessor:
 
         # Run miniscript
         runner_path = os.path.join(os.path.dirname(__file__), "ppp_runner.pl")
-        result = subprocess_run(
+        result = subprocess.run(
             ["perl", runner_path, ",".join(self.env.perl_safe_opcodes)],
             input=miniscript.encode("utf-8"),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            timeout=5
+            timeout=5, check=False
         )
         if result.returncode:
             self.env.msg.fatal(
@@ -323,7 +320,35 @@ class FilePreprocessor:
 
         return emit_list
 
-#---------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+def get_illegal_trailing_text_pos(text: str, idx: int) -> tuple:
+    """
+    Scan the remainder of a line for illegal text.
+    Verilog preprocessor directives require that there be no trailing text,
+    except for comments.
+
+    If illegal text is found, return the start/end index of it as a tuple.
+    Otherwise return (None, None)
+    """
+
+    # First, scan ahead past all block comments
+    bc_regex = re.compile(r'(?:[ \t]*/\*.*?\*/)*[ \t]*')
+    m = bc_regex.match(text, idx)
+    assert m is not None
+    idx = m.end()
+
+    # Assert that any remaining text is a comment
+    rem_regex = re.compile(r'(:?//.*|/\*.*)?$', re.MULTILINE)
+    m = rem_regex.match(text, idx)
+    if m:
+        return (None, None)
+    else:
+        # Did not match. Find end of the line
+        eol_regex = re.compile(r'.+$', re.MULTILINE)
+        m = eol_regex.match(text, idx)
+        return (m.start(), m.end())
+
+#-------------------------------------------------------------------------------
 
 class PPPSegment:
     def __init__(self, file_pp, start, end):
