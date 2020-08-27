@@ -103,24 +103,24 @@ addrmap struct_test {
     p01 = base_struct'{foo:1};
     p02 = derived_struct'{foo:0, bar:1234};
     p03 = final_struct'{foo:1, bar:5678, baz:"abcde"};
-    
+
     reg {
         field {
             p1;
         } ex1_field1;
-        
+
         field {
             p1 = struct1'{abool:false, astring:"bye"};
         } ex1_field2;
     } ex1_reg;
-    
+
     ex2_reg_t ex2_reg;
-    
+
     reg {
         field {
             p3;
         } ex3_field1;
-        
+
         field {
             p3 = substruct'{abool:true, astring:"bar"};
         } ex3_field2;

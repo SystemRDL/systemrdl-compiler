@@ -18,7 +18,7 @@ addrmap myAmap {
     myReg reg32_arr[8];
     myReg #(.SIZE(16)) reg16;
     myReg #(.SIZE(8), .SHARED(false)) reg8;
-    
+
     external fixed_mem mem32;
     external fixed_mem #(.word_size(64)) mem64;
 };
@@ -33,19 +33,19 @@ reg param_reg #(
     name = NAME;
     shared = SHARED;
     field {} data;
-    
+
     data->hdl_path_slice = FIELD_SLICES;
 };
 
 addrmap amap2 {
     param_reg reg1;
-    
+
     param_reg #(
         .NAME("myname"),
         .SHARED(false),
         .FIELD_SLICES('{"dat"})
     ) reg2;
-    
+
     param_reg #(
         .NAME("othername"),
         .SHARED(true),
@@ -88,12 +88,12 @@ addrmap elab_params #(
     ) {
         field {} f[WIDTH];
     };
-    
-    
+
+
     reg_t #(.WIDTH(INT)) r1;
     reg_t #(.WIDTH(INTARR[0])) r2;
     reg_t #(.WIDTH(INTARR[1])) r3;
-    
+
     r1.f->onwrite = ONWR;
     r2.f->donttest = BOOL;
     r3.f->name = STR;

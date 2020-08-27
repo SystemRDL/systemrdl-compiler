@@ -17,9 +17,9 @@ class TestReferences(RDLSourceTestCase):
             root.find_by_path("top.reg2[100]")
         with self.assertRaises(IndexError):
             root.find_by_path("top.reg2[1][1][1]")
-        
+
         self.assertEqual(root.find_by_path("top.doesntexist"), None)
-        
+
     def test_traversal(self):
         root = self.compile(
             ["rdl_testcases/references_direct_lhs.rdl"],
@@ -32,7 +32,7 @@ class TestReferences(RDLSourceTestCase):
         self.assertEqual(len(list(top.registers(unroll=True))), 3)
         self.assertEqual(len(list(root.descendants())), 10)
         self.assertEqual(len(list(root.descendants(unroll=True))), 14)
-    
+
     def test_direct_lhs_refs(self):
         root = self.compile(
             ["rdl_testcases/references_direct_lhs.rdl"],
@@ -59,7 +59,7 @@ class TestReferences(RDLSourceTestCase):
                 top.get_property("thisisnotaprop")
             with self.assertRaises(LookupError):
                 top.get_property("sw")
-            
+
             self.assertEqual(top.get_property("name"), "top")
             self.assertEqual(top.get_property("name", default="NA"), "NA")
 

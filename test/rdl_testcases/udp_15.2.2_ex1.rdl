@@ -7,13 +7,13 @@ addrmap foo {
     reg{
         field { some_bool_p; } field1;  // Attach some_bool_p to the field
                                         // with a value of false;
-        
+
         field { sw=rw; some_bool_p = true; some_num_p; } field2;
         // Attach some_bool_p to the field with a value of true;
         field1->some_ref_p = field2; // create a reference
         some_num_p = 0x20; // Assign this property to the reg and give it value
     } bar;
-    
+
     a_map_p; // The property has been bound to the map but it has not been
             // assigned a value so its value is undefined
 };

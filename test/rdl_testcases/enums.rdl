@@ -10,7 +10,7 @@ addrmap enum_test1 {
             desc = "this is five";
         };
     };
-    
+
     field my_field_t #(
         my_enum FOO = my_enum::four
     ) {
@@ -18,7 +18,7 @@ addrmap enum_test1 {
         reset = FOO + 1;
         encode = my_enum;
     };
-    
+
     reg {
         my_field_t f_default[4];
         my_field_t #(.FOO(my_enum::zero)) f_zero[4];

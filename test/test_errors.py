@@ -10,14 +10,14 @@ class TestErrors(RDLSourceTestCase):
             None,
             r"mismatched input '\}'"
         )
-    
+
     def test_compile_error(self):
         self.assertRDLCompileError(
             ["rdl_testcases/err_compile.rdl"],
             None,
             r"Could not resolve hierarchical reference to 'badpath'"
         )
-    
+
     def test_reg_overlap(self):
         self.assertRDLCompileError(
             ["rdl_testcases/err_validate.rdl"],

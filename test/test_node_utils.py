@@ -42,7 +42,7 @@ class TestNodeUtils(RDLSourceTestCase):
             a = top.find_by_path("hier.x.a")
             b = top.find_by_path("hier")
             self.assertEqual(b.get_rel_path(a), "^.^")
-        
+
         with self.subTest("fromroot"):
             a = top.find_by_path("hier.x.a")
             self.assertEqual(a.get_rel_path(top), "hier.x.a[][]")
@@ -90,7 +90,7 @@ class TestNodeUtils(RDLSourceTestCase):
                 node.absolute_address
             self.assertEqual(node.raw_address_offset, 0)
             self.assertEqual(node.raw_absolute_address, 0x100)
-        
+
         with self.subTest("hier.y.c[1][1]"):
             node = top.find_by_path("hier.y.c[1][1]")
             self.assertEqual(node.address_offset, 0x64 + 4*4+4)
@@ -195,7 +195,7 @@ class TestNodeUtils(RDLSourceTestCase):
                     'sw',
                 ]
             )
-        
+
         with self.subTest("all"):
             n = top.find_by_path("foo")
 

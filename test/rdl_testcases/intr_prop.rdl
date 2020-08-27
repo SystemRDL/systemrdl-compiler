@@ -214,11 +214,11 @@ reg final_int_r {
     default nonsticky intr;
     default hw = w; // w needed since dyn assign below implies interconnect to hw
                     // global_int.global_int->next = master_int->intr;
-    
+
     field {
         desc = "Global Interrupt";
     } global_int = 0x0;
-    
+
     field {
         desc = "Global Halt";
     } global_halt = 0x0;

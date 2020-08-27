@@ -88,7 +88,7 @@ addrmap example_5_1_2_5_ex3 {
 //------------------------------------------------------------------------------
 addrmap hier {
     reg some_reg { field {} a; };
-    
+
     regfile {
         some_reg a[5][3]; // @ 0, size=4*5*3=60=0x3C
         some_reg b[10]; // @ 0x3C, size=40=0x28

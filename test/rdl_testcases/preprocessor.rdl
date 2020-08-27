@@ -6,7 +6,7 @@ reg myReg {
     myField data<%=$i%> [<%=$i+1%>:<%=$i%>];
     <% } %>
 };
-// Results in: 
+// Results in:
 // reg myReg {
 //     myField data0 [1:0];
 //     myField data2 [3:2];

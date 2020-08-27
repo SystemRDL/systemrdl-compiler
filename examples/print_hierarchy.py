@@ -18,7 +18,7 @@ try:
     # Compile all the files provided
     for input_file in input_files:
         rdlc.compile_file(input_file)
-    
+
     # Elaborate the design
     root = rdlc.elaborate()
 except RDLCompileError:
@@ -30,18 +30,18 @@ except RDLCompileError:
 class MyModelPrintingListener(RDLListener):
     def __init__(self):
         self.indent = 0
-        
+
     def enter_Component(self, node):
         if not isinstance(node, FieldNode):
             print("\t"*self.indent, node.get_path_segment())
             self.indent += 1
-    
+
     def enter_Field(self, node):
         # Print some stuff about the field
         bit_range_str = "[%d:%d]" % (node.high, node.low)
         sw_access_str = "sw=%s" % node.get_property("sw").name
         print("\t"*self.indent, bit_range_str, node.get_path_segment(), sw_access_str)
-    
+
     def exit_Component(self, node):
         if not isinstance(node, FieldNode):
             self.indent -= 1

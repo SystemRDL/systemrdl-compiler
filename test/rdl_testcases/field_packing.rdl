@@ -38,13 +38,13 @@ addrmap lsb_packing {
 
     reg test_reg16_t {
         regwidth=16;
-        
+
         field {} x;
         field {} y[9:6];
         field {} z[3];
         field {fieldwidth=2;} zz;
     };
-    
+
     lsb0;
     test_reg_t reg1;
     test_reg16_t reg2;
@@ -60,13 +60,13 @@ addrmap msb_packing {
 
     reg test_reg16_t {
         regwidth=16;
-        
+
         field {} x;
         field {} y[6:9];
         field {} z[3];
         field {fieldwidth=2;} zz;
     };
-    
+
     msb0;
     test_reg_t reg1;
     test_reg16_t reg2;

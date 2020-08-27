@@ -21,7 +21,7 @@ reg root_reg_t {
 };
 
 addrmap scope_test {
-    
+
     root_reg_t r1;
 
     reg r2_t {

@@ -27,7 +27,7 @@ for known in PLATFORMS:
 
 def run_setup(with_binary):
     if with_binary:
-        
+
         extra_compile_args = {
             'windows': ['/DANTLR4CPP_STATIC'],
             'linux': ['-std=c++11'],
@@ -65,7 +65,7 @@ def run_setup(with_binary):
         include_package_data=True,
         ext_modules=ext_modules,
         cmdclass={"build_ext": ve_build_ext},
-        python_requires='>=3.4',
+        python_requires='>=3.5',
         install_requires=[
             "antlr4-python3-runtime",
             "colorama",

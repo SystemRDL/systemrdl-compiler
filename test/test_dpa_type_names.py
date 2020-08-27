@@ -8,7 +8,7 @@ class TestNodeUtils(RDLSourceTestCase):
             ["rdl_testcases/dpa_names.rdl"],
             "dpa_overrides"
         )
-        
+
         self.assertEqual(top.find_by_path("dpa_overrides.r0.f1").type_name, "my_field")
         self.assertEqual(top.find_by_path("dpa_overrides.r0.f2").type_name, "my_field_rclr_t")
         self.assertEqual(top.find_by_path("dpa_overrides.r0.f3").type_name, "my_field_encode_onoff_e_next_50a21c60")

@@ -10,7 +10,7 @@ addrmap enum_cast {
         field f_t {
             encode = test_e;
         };
-        
+
         f_t f1[2];
         f_t f2[2];
         f_t f3[2];

@@ -2,18 +2,18 @@
 addrmap intr_prop_mod_test {
     reg {
         default posedge intr;
-        
+
         field {} irq1; // intr=true, intr mod = posedge
         field {} irq2; // intr=true, intr mod = posedge
         field {} irq3; // intr=false, intr mod = posedge
         field {
             negedge intr;
         } irq4; // intr=true, intr mod = negedge
-        
+
         irq2->intr = true;
         irq3->intr = false;
     }reg1;
-    
+
     reg {
         field {
             nonsticky intr; // implies intr=true, stickybit = false;

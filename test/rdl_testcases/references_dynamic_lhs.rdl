@@ -10,27 +10,27 @@ reg my_reg {
     field {} x;
     field {} y;
     signal {} sig;
-    
+
     x->ref_prop = y;
     y->ref_prop = x;
-    
+
     x->resetsignal = sig;
     y->resetsignal = glbl_sig;
-    
+
     y->next = x->anded;
 };
 
 addrmap top {
     my_reg reg1;
     my_reg reg2[2];
-    
+
     reg1->ref_prop = reg2[0];
     reg2->ref_prop = reg2[1].x;
-    
+
     reg2.x->ref_prop = reg1;
     reg2.y->ref_prop = reg1.x;
-    
+
     reg1.x->resetsignal = glbl_sig;
-    
+
     reg1.x->next = reg2[0].y->ored;
 };

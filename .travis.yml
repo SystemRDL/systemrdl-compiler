@@ -41,7 +41,7 @@ jobs:
       install: python -m pip install twine
       script: python setup.py sdist --formats=gztar
       after_success: python -m twine upload --skip-existing dist/*.tar.gz
-    
+
     # Deploy on linux
     - stage: deploy
       name: Build and deploy Linux wheels
@@ -75,6 +75,6 @@ env:
   global:
     # Don't deploy python2.7 (not supported), or osx 10.6 (no C++11 support)
     - CIBW_SKIP="cp27-* *macosx_10_6*"
-    
+
     # Signal setup.py to fail if binary build fails
     - SYSTEMRDL_REQUIRE_BINARY_BUILD

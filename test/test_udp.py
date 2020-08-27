@@ -57,7 +57,7 @@ class TestUDP(RDLSourceTestCase):
         self.assertIs(top.get_property("int_udp"), 43)
         self.assertIs(reg1.get_property("int_udp"), 42)
         self.assertIs(field1.get_property("int_udp"), 123)
-    
+
 
     def test_list_udps(self):
         this_dir = os.path.dirname(os.path.realpath(__file__))

@@ -120,10 +120,10 @@ disable=
         invalid-str-codec,
         sys-max-int,
         bad-python3-import,
-        
+
         # Disable for now during development
         fixme,
-        
+
         # User ignored limits
         too-many-locals,
         too-many-branches,
@@ -133,7 +133,7 @@ disable=
         too-many-statements,
         too-many-instance-attributes,
         line-too-long,
-        
+
         useless-return,
         no-else-return,
         inconsistent-return-statements,
@@ -144,7 +144,7 @@ disable=
         bad-continuation,
         invalid-name,
         missing-docstring,
-        
+
         unidiomatic-typecheck,
         abstract-method,
         protected-access

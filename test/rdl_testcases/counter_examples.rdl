@@ -34,7 +34,7 @@ regfile example_9_8_1_e2 {
         regwidth=16;
         some_counter count[16]=0; // Create 16 bit counter POR to 0
     }; // End of Reg:
-    
+
     // Example 32 bit up counter
     some_counter_reg count1_low;
     some_counter_reg count1_high;

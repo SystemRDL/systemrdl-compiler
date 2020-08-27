@@ -11,23 +11,23 @@ addrmap extern_test {
     internal reg_t reg10;
     external reg { field {} x; } reg11;
     internal reg { field {} x; } reg12;
-    
+
     regfile rfile1_t {
         external reg_t rega;
         internal reg_t regb;
         reg_t regc;
     };
-    
+
     regfile rfile2_t {
         external rfile1_t rf1a;
         internal rfile1_t rf1b;
         rfile1_t rf1c;
     };
-    
+
     external rfile1_t rf1a;
     internal rfile1_t rf1b;
     rfile1_t rf1c;
-    
+
     external rfile2_t rf2a;
     internal rfile2_t rf2b;
     rfile2_t rf2c;

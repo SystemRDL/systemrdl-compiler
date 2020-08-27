@@ -30,12 +30,12 @@ property p_s1 {
 
 reg my_reg_t #(s2_t S) {
     field {} x;
-    
+
     desc = S.nest.str;
     name = S.nest_arr[0].str;
     x->sw = S.access;
     x->name = S.nest_arr[1].str;
-    
+
     p_s1 = S.nest_arr[0];
     p_bool = S.nest.bool;
     p_int = S.nest_arr[1].n_arr[2];
