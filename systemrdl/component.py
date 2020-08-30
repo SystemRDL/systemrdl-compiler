@@ -2,6 +2,11 @@ import operator
 import functools
 from copy import deepcopy
 from collections import OrderedDict
+from typing import Optional, List, Dict, TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .core.parameter import Parameter
+    from .messages import SourceRef
 
 class Component:
     """
@@ -11,7 +16,7 @@ class Component:
         :top-classes: ~Component
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         #------------------------------
         # Component definition
         #------------------------------
@@ -24,14 +29,14 @@ class Component:
         #: .. note::
         #:      This represents the parent *lexical* scope! This does *not*
         #:      refer to the hierarchical parent of this component.
-        self.parent_scope = None
+        self.parent_scope = None # type: 'Component'
 
         # Name of this component's declaration scope
         # This field is only valid in non-instantiated components (referenced
         # via an instance's original_def)
         # If declaration was anonymous, inherits the first instance's name,
         # otherwise it contains the original type name.
-        self._scope_name = None
+        self._scope_name = None # type: str
 
         #: Named definition identifier.
         #: If declaration was anonymous, instantiation type names inherit
@@ -45,7 +50,7 @@ class Component:
         #:
         #: Importers may leave this as ``None`` if an appropriate type name
         #: cannot be imported.
-        self.type_name = None
+        self.type_name = None # type: Optional[str]
 
         #: List of :class:`~systemrdl.component.Component` instances that are
         #: direct descendants of this component.
@@ -56,49 +61,49 @@ class Component:
         #: - All other components follow.
         #: - AddressableComponents are sorted by ascending base_addr
         #: - Fields are sorted by ascending low bit
-        self.children = []
+        self.children = [] # type: List['Component']
 
         # Parameters of this component definition.
         # These are listed in the order that they were defined
-        self.parameters = []
+        self.parameters = [] # type: List['Parameter']
 
         # Properties applied to this component
-        self.properties = {}
+        self.properties = {} # type: Dict[str, Any]
 
         # SourceRef for the component definition
-        self.def_src_ref = None
+        self.def_src_ref = None # type: Optional['SourceRef']
 
         #------------------------------
         # Component instantiation
         #------------------------------
         #: If instantiated, set to True
-        self.is_instance = False
+        self.is_instance = False # type: bool
 
         #: Name of instantiated element
-        self.inst_name = None
+        self.inst_name = None # type: Optional['str']
 
         #: Reference to original :class:`~systemrdl.component.Component`
         #: definition this instance is derived from.
         #:
         #: Importers may leave this as ``None`` if appropriate.
-        self.original_def = None
+        self.original_def = None # type: Optional['Component']
 
         #: True if instance type is external. False if internal.
-        self.external = None
+        self.external = None # type: bool
 
         # SourceRef for the component instantiation.
-        self.inst_src_ref = None
+        self.inst_src_ref = None # type: Optional['SourceRef']
 
         #------------------------------
         # List of property names that were assigned via a dynamic property
         # assignment.
-        self._dyn_assigned_props = []
+        self._dyn_assigned_props = [] # type: List[str]
 
         # List of child instances that were assigned "through" this component,
         # from outside this component's scope.
-        self._dyn_assigned_children = []
+        self._dyn_assigned_children = [] # type: List[str]
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: Dict[int, Any]) -> 'Component':
         """
         Deepcopy all members except for ones that should be copied by reference
         """
@@ -113,7 +118,7 @@ class Component:
                 setattr(result, k, deepcopy(v, memo))
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.is_instance:
             name_str = "%s (%s)" % (self.inst_name, self.type_name)
         else:
@@ -126,14 +131,14 @@ class Component:
         )
 
 
-    def get_child_by_name(self, inst_name):
+    def get_child_by_name(self, inst_name: str) -> Optional['Component']:
         for child in self.children:
             if child.inst_name == inst_name:
                 return child
         return None
 
 
-    def get_scope_path(self, scope_separator="::"):
+    def get_scope_path(self, scope_separator: str="::") -> Optional[str]:
         """
         Generate a string that represents this component's declaration namespace
         scope.
@@ -200,41 +205,42 @@ class AddressableComponent(Component):
     Base class for all components that can have an address
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         #------------------------------
         # Component instantiation
         #------------------------------
         #: Address offset from the parent component.
         #: If left as None, compiler will resolve with inferred value.
-        self.addr_offset = None
+        self.addr_offset = None # type: int
 
         #: Address alignment if explicitly assigned by user.
-        self.addr_align = None
+        self.addr_align = None # type: Optional[int]
 
         #------------------------------
         # Array Properties
         #------------------------------
         #: If true, then ``array_dimensions`` and ``array_stride`` are valid.
-        self.is_array = False
+        self.is_array = False # type: bool
 
         #: List of sizes for each array dimension.
         #: Last item in the list iterates the most frequently.
-        self.array_dimensions = None
+        self.array_dimensions = None # type: Optional[List[int]]
 
         #: Address offset between array elements.
         #: If left as None, compiler will resolve with inferred value.
-        self.array_stride = None
+        self.array_stride = None # type: Optional[int]
 
 
     @property
-    def n_elements(self):
+    def n_elements(self) -> int:
         """
         Total number of array elements.
         If array is multidimensional, array is flattened.
         Returns 1 if not an array.
         """
         if self.is_array:
+            assert isinstance(self.array_dimensions, list)
             return functools.reduce(operator.mul, self.array_dimensions)
         else:
             return 1
@@ -244,34 +250,34 @@ class VectorComponent(Component):
     Base class for all components that are vector-like
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         #------------------------------
         # Component instantiation
         #------------------------------
         #: Width of vector in bits
-        self.width = None
+        self.width = None # type: int
 
         #: Bit position of most significant bit
-        self.msb = None
+        self.msb = None # type: int
         #: Bit position of least significant bit
-        self.lsb = None
+        self.lsb = None # type: int
 
         #: High index of bit range
-        self.high = None
+        self.high = None # type: int
         #: Low index of bit range
-        self.low = None
+        self.low = None # type: int
 
 #===============================================================================
 class Root(Component):
     """
     Meta-component used by compiler to represent the root scope
     """
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        #: List of :class:`~systemrdl.component.Component` definitions in the
-        #: global root scope.
-        self.comp_defs = OrderedDict()
+        #: Dictionary of :class:`~systemrdl.component.Component` definitions in
+        #: the global root scope.
+        self.comp_defs = OrderedDict() # type: Dict[str, Component]
 
 class Signal(VectorComponent):
     pass
@@ -280,22 +286,22 @@ class Field(VectorComponent):
     pass
 
 class Reg(AddressableComponent):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         #: If true, fields are to be arranged in msb0 order
         #:
         #: .. versionadded:: 1.7
-        self.is_msb0_order = False
+        self.is_msb0_order = False # type: bool
         #------------------------------
         # Alias Register
         #------------------------------
         #: If true, then ``alias_primary_inst`` is valid
-        self.is_alias = False
+        self.is_alias = False # type: bool
 
         #: Reference to primary register :class:`~systemrdl.component.Component`
         #: instance
-        self.alias_primary_inst = None
+        self.alias_primary_inst = None # type: Optional[Component]
 
 class Regfile(AddressableComponent):
     pass

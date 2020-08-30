@@ -1,10 +1,15 @@
 import re
 import itertools
 from copy import deepcopy
+from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Callable, Dict
 
 from . import component as comp
 from . import rdltypes
 from .core import rdlformatcode, helpers
+
+if TYPE_CHECKING:
+    from .compiler import RDLEnvironment
+    from markdown import Markdown
 
 class Node:
     """
@@ -16,7 +21,7 @@ class Node:
 
     """
 
-    def __init__(self, inst, env, parent):
+    def __init__(self, inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']):
         # Generic Node constructor.
         # Do not call directly. Use factory() static method instead
         self.env = env
@@ -27,7 +32,7 @@ class Node:
         #: Reference to parent :class:`~Node`
         self.parent = parent
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s %s at 0x%x>" % (
             self.__class__.__qualname__,
             self.get_path(),
@@ -35,7 +40,7 @@ class Node:
         )
 
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: Dict[int, Any]) -> 'Node':
         """
         Deepcopy the node overlay.
         Members that are not part of the overlay (component tree) are not
@@ -56,7 +61,7 @@ class Node:
 
 
     @staticmethod
-    def _factory(inst, env, parent=None):
+    def _factory(inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']=None) -> 'Node':
         if isinstance(inst, comp.Field):
             return FieldNode(inst, env, parent)
         elif isinstance(inst, comp.Reg):
@@ -74,7 +79,7 @@ class Node:
 
 
     @classmethod
-    def add_derived_property(cls, getter_function, name=None):
+    def add_derived_property(cls, getter_function: Callable, name: Optional[str]=None) -> None:
         """
         Register a user-defined derived property
 
@@ -93,7 +98,7 @@ class Node:
         setattr(cls, name, mp)
 
 
-    def children(self, unroll=False, skip_not_present=True):
+    def children(self, unroll: bool=False, skip_not_present: bool=True) -> Iterator['Node']:
         """
         Returns an iterator that provides nodes for all immediate children of
         this component.
@@ -119,17 +124,18 @@ class Node:
                     continue
 
             if unroll and isinstance(child_inst, comp.AddressableComponent) and child_inst.is_array:
+                assert child_inst.array_dimensions is not None
                 # Unroll the array
                 range_list = [range(n) for n in child_inst.array_dimensions]
                 for idxs in itertools.product(*range_list):
                     N = Node._factory(child_inst, self.env, self)
-                    N.current_idx = idxs # pylint: disable=attribute-defined-outside-init
+                    N.current_idx = idxs # type: ignore # pylint: disable=attribute-defined-outside-init
                     yield N
             else:
                 yield Node._factory(child_inst, self.env, self)
 
 
-    def descendants(self, unroll=False, skip_not_present=True, in_post_order=False):
+    def descendants(self, unroll: bool=False, skip_not_present: bool=True, in_post_order: bool=False) -> Iterator['Node']:
         """
         Returns an iterator that provides nodes for all descendants of this
         component.
@@ -162,7 +168,7 @@ class Node:
                 yield from child.descendants(unroll, skip_not_present, in_post_order)
 
 
-    def signals(self, skip_not_present=True):
+    def signals(self, skip_not_present: bool=True) -> Iterator['SignalNode']:
         """
         Returns an iterator that provides nodes for all immediate signals of
         this component.
@@ -182,7 +188,7 @@ class Node:
                 yield child
 
 
-    def fields(self, skip_not_present=True):
+    def fields(self, skip_not_present: bool=True) -> Iterator['FieldNode']:
         """
         Returns an iterator that provides nodes for all immediate fields of
         this component.
@@ -202,7 +208,7 @@ class Node:
                 yield child
 
 
-    def registers(self, unroll=False, skip_not_present=True):
+    def registers(self, unroll: bool=False, skip_not_present: bool=True) -> Iterator['RegNode']:
         """
         Returns an iterator that provides nodes for all immediate registers of
         this component.
@@ -226,7 +232,7 @@ class Node:
 
 
     @property
-    def owning_addrmap(self):
+    def owning_addrmap(self) -> Optional['AddrmapNode']:
         """
         Returns the enclosing addrmap that owns this node.
 
@@ -241,10 +247,11 @@ class Node:
         elif isinstance(self, RootNode):
             return None
         else:
+            assert self.parent is not None
             return self.parent.owning_addrmap
 
 
-    def get_child_by_name(self, inst_name):
+    def get_child_by_name(self, inst_name: str) -> Optional['Node']:
         """
         Returns an immediate child :class:`~Node` whose instance name matches ``inst_name``
 
@@ -266,7 +273,7 @@ class Node:
         return Node._factory(child_inst, self.env, self)
 
 
-    def find_by_path(self, path):
+    def find_by_path(self, path: str) -> Optional['Node']:
         """
         Finds the descendant node that is located at the relative path
         Returns ``None`` if not found
@@ -310,7 +317,11 @@ class Node:
                 return None
 
             if idx_list:
-                if (isinstance(current_node, AddressableNode)) and current_node.inst.is_array:
+                if not isinstance(current_node, AddressableNode):
+                    raise IndexError("Index attempted on unindexable component")
+                assert isinstance(current_node.inst, comp.AddressableComponent)
+
+                if current_node.inst.is_array:
                     # is an array
                     if len(idx_list) != len(current_node.inst.array_dimensions):
                         raise IndexError("Wrong number of array dimensions")
@@ -326,7 +337,7 @@ class Node:
         return current_node
 
 
-    def get_property(self, prop_name, **kwargs):
+    def get_property(self, prop_name: str, **kwargs: Any)-> Any:
         """
         Gets the SystemRDL component property
 
@@ -393,7 +404,7 @@ class Node:
         return rule.get_default(self)
 
 
-    def list_properties(self, list_all=False, include_native=True, include_udp=True):
+    def list_properties(self, list_all: bool=False, include_native: bool=True, include_udp: bool=True) -> List[str]:
         """
         Lists properties associated with this node.
         By default, only lists properties that were explicitly set. If ``list_all`` is
@@ -437,7 +448,7 @@ class Node:
                 return props
 
 
-    def get_path_segment(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
+    def get_path_segment(self, array_suffix: str="[{index:d}]", empty_array_suffix: str="[]") -> str:
         """
         Gets the hierarchical path segment for just this node. This includes the
         instance name and any array suffixes.
@@ -453,7 +464,7 @@ class Node:
         return self.inst.inst_name
 
 
-    def get_path_segments(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
+    def get_path_segments(self, array_suffix: str="[{index:d}]", empty_array_suffix: str="[]") -> List[str]:
         """
         Gets a list of path segments that represent the hierarchical path.
 
@@ -469,7 +480,7 @@ class Node:
         return segs
 
 
-    def get_path(self, hier_separator=".", array_suffix="[{index:d}]", empty_array_suffix="[]"):
+    def get_path(self, hier_separator: str=".", array_suffix: str="[{index:d}]", empty_array_suffix: str="[]") -> str:
         """
         Generate an absolute path string to this node
 
@@ -486,7 +497,7 @@ class Node:
         return hier_separator.join(segs)
 
 
-    def get_rel_path(self, ref, uplevel="^", hier_separator=".", array_suffix="[{index:d}]", empty_array_suffix="[]"):
+    def get_rel_path(self, ref: 'Node', uplevel: str="^", hier_separator: str=".", array_suffix: str="[{index:d}]", empty_array_suffix: str="[]") -> str:
         """
         Generate a relative path string to this node with respect to a reference node.
 
@@ -545,7 +556,7 @@ class Node:
         return hier_separator.join(self_segs_fmt)
 
 
-    def get_html_desc(self, markdown_inst=None):
+    def get_html_desc(self, markdown_inst: Optional['Markdown']=None) -> Optional[str]:
         """
         Translates the node's 'desc' property into HTML.
 
@@ -579,7 +590,7 @@ class Node:
         return rdlformatcode.rdlfc_to_html(desc_str, self, md=markdown_inst)
 
 
-    def get_html_name(self):
+    def get_html_name(self) -> Optional[str]:
         """
         Translates the node's 'name' property into HTML.
 
@@ -601,14 +612,14 @@ class Node:
 
 
     @property
-    def inst_name(self):
+    def inst_name(self) -> str:
         """
         Name of instantiated element
         """
         return self.inst.inst_name
 
     @property
-    def type_name(self):
+    def type_name(self) -> Optional[str]:
         """
         Named definition identifier.
         If declaration was anonymous, inherits the first instance's name.
@@ -622,7 +633,7 @@ class Node:
         return self.inst.type_name
 
     @property
-    def orig_type_name(self):
+    def orig_type_name(self) -> Optional[str]:
         """
         Named definition identifier prior to type name normalization.
         If the declaration was anonymous, this reads as None.
@@ -636,7 +647,7 @@ class Node:
             return self.inst.original_def.type_name
 
     @property
-    def external(self):
+    def external(self) -> bool:
         """
         True if instance type is external. False if internal.
 
@@ -645,11 +656,13 @@ class Node:
         return self.inst.external
 
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """
         Node equality checks determine whether the other node represents the
         same position in the register model's hierarchy.
         """
+        if not isinstance(other, Node):
+            return NotImplemented
         return self.get_path() == other.get_path()
 
 #===============================================================================
@@ -658,24 +671,24 @@ class AddressableNode(Node):
     Base-class for any kind of node that can have an address
     """
 
-    def __init__(self, inst, env, parent):
+    def __init__(self, inst: comp.AddressableComponent, env: 'RDLEnvironment', parent: Optional[Node]):
         super().__init__(inst, env, parent)
 
         #: List of current array indexes this node is referencing where the last
         #: item in this list iterates the most frequently
         #:
         #: If None, then the current index is unknown
-        self.current_idx = None
+        self.current_idx = None # type: Optional[List[int]]
 
 
-    def get_path_segment(self, array_suffix="[{index:d}]", empty_array_suffix="[]"):
+    def get_path_segment(self, array_suffix: str="[{index:d}]", empty_array_suffix: str="[]") -> str:
         # Extends get_path_segment() in order to append any array suffixes
         path_segment = super().get_path_segment(array_suffix, empty_array_suffix)
 
-        if self.inst.is_array:
+        if self.is_array:
             if self.current_idx is None:
                 # Index is not known. append empty array suffixes
-                return path_segment + empty_array_suffix * len(self.inst.array_dimensions)
+                return path_segment + empty_array_suffix * len(self.array_dimensions)
             else:
                 # Index list is known
                 for idx in self.current_idx:
@@ -685,28 +698,28 @@ class AddressableNode(Node):
             return path_segment
 
 
-    def clear_lineage_index(self):
+    def clear_lineage_index(self) -> None:
         """
         Resets this node's, as well as all parent node array indexes to
         the 'unknown index' state.
 
         .. versionadded:: 1.7
         """
-        if self.inst.is_array:
+        if self.is_array:
             self.current_idx = None
 
         if isinstance(self.parent, AddressableNode):
             self.parent.clear_lineage_index()
 
 
-    def zero_lineage_index(self):
+    def zero_lineage_index(self) -> None:
         """
         Resets this node's, as well as all parent node array indexes to
         zero.
 
         .. versionadded:: 1.7
         """
-        if self.inst.is_array:
+        if self.is_array:
             self.current_idx = [0] * len(self.array_dimensions)
 
         if isinstance(self.parent, AddressableNode):
@@ -714,7 +727,7 @@ class AddressableNode(Node):
 
 
     @property
-    def raw_address_offset(self):
+    def raw_address_offset(self) -> int:
         """
         Raw byte address offset of the first array element node relative to
         it's parent.
@@ -723,11 +736,12 @@ class AddressableNode(Node):
         :attr:`address_offset`
 
         """
+        assert isinstance(self.inst, comp.AddressableComponent)
         return self.inst.addr_offset
 
 
     @property
-    def address_offset(self):
+    def address_offset(self) -> int:
         """
         Byte address offset of this node relative to it's parent
 
@@ -739,7 +753,7 @@ class AddressableNode(Node):
             If this property is referenced on a node whose array index is not
             fully defined
         """
-        if self.inst.is_array:
+        if self.is_array:
             if self.current_idx is None:
                 raise ValueError("Index of array element must be known to derive address")
 
@@ -753,20 +767,20 @@ class AddressableNode(Node):
             idx = 0
             for i in range(len(self.current_idx)):
                 sz = 1
-                for j in range(i+1, len(self.inst.array_dimensions)):
-                    sz *= self.inst.array_dimensions[j]
+                for j in range(i+1, len(self.array_dimensions)):
+                    sz *= self.array_dimensions[j]
                 idx += sz * self.current_idx[i]
 
-            offset = self.inst.addr_offset + idx * self.inst.array_stride
+            offset = self.raw_address_offset + idx * self.array_stride
 
         else:
-            offset = self.inst.addr_offset
+            offset = self.raw_address_offset
 
         return offset
 
 
     @property
-    def raw_absolute_address(self):
+    def raw_absolute_address(self) -> int:
         """
         Get the absolute byte address of this node excluding array stride of
         all parent.
@@ -777,13 +791,14 @@ class AddressableNode(Node):
         .. versionadded:: 1.7
         """
         if self.parent and not isinstance(self.parent, RootNode):
+            assert isinstance(self.parent, AddressableNode)
             return self.parent.raw_absolute_address + self.raw_address_offset
         else:
             return self.raw_address_offset
 
 
     @property
-    def absolute_address(self):
+    def absolute_address(self) -> int:
         """
         Get the absolute byte address of this node.
 
@@ -797,13 +812,14 @@ class AddressableNode(Node):
 
         """
         if self.parent and not isinstance(self.parent, RootNode):
+            assert isinstance(self.parent, AddressableNode)
             return self.parent.absolute_address + self.address_offset
         else:
             return self.address_offset
 
 
     @property
-    def size(self):
+    def size(self) -> int:
         """
         Determine the size (in bytes) of this node.
 
@@ -814,49 +830,53 @@ class AddressableNode(Node):
 
 
     @property
-    def total_size(self):
+    def total_size(self) -> int:
         """
         Determine the size (in bytes) of this node.
         If an array, returns size of the entire array
         """
-        if self.inst.is_array:
+        assert isinstance(self.inst, comp.AddressableComponent)
+        if self.is_array:
             # Total size of arrays is technically supposed to be:
             #   self.inst.array_stride * (self.inst.n_elements-1) + self.size
             # However this opens up a whole slew of ugly corner cases that the
             # spec designers may not have anticipated.
             # Using a simplified calculation for now until someone actually cares
-            return self.inst.array_stride * self.inst.n_elements
+            return self.array_stride * self.inst.n_elements
 
         else:
             return self.size
 
 
     @property
-    def is_array(self):
+    def is_array(self) -> bool:
         """
         Indicates that this node represents an array of instances
         """
+        assert isinstance(self.inst, comp.AddressableComponent)
         return self.inst.is_array
 
 
     @property
-    def array_dimensions(self):
+    def array_dimensions(self) -> Optional[List[int]]:
         """
         List of sizes for each array dimension.
         Last item in the list iterates the most frequently.
 
         If node is not an array (``is_array == False``), then this is ``None``
         """
+        assert isinstance(self.inst, comp.AddressableComponent)
         return self.inst.array_dimensions
 
 
     @property
-    def array_stride(self):
+    def array_stride(self) -> Optional[int]:
         """
         Address offset between array elements.
 
         If node is not an array (``is_array == False``), then this is ``None``
         """
+        assert isinstance(self.inst, comp.AddressableComponent)
         return self.inst.array_stride
 
 #===============================================================================
@@ -866,45 +886,50 @@ class VectorNode(Node):
     """
 
     @property
-    def width(self):
+    def width(self) -> int:
         """
         Width of vector in bits
         """
+        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.width
 
     @property
-    def msb(self):
+    def msb(self) -> int:
         """
         Bit position of most significant bit
         """
+        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.msb
 
     @property
-    def lsb(self):
+    def lsb(self) -> int:
         """
         Bit position of least significant bit
         """
+        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.lsb
 
     @property
-    def high(self):
+    def high(self) -> int:
         """
         High index of bit range
         """
+        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.high
 
     @property
-    def low(self):
+    def low(self) -> int:
         """
         Low index of bit range
         """
+        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.low
 
 
 #===============================================================================
 class RootNode(Node):
     @property
-    def top(self):
+    def top(self) -> 'AddrmapNode':
         """
         Returns the top-level addrmap node
         """
@@ -922,14 +947,15 @@ class SignalNode(VectorNode):
 class FieldNode(VectorNode):
 
     @property
-    def is_virtual(self):
+    def is_virtual(self) -> bool:
         """
         Determines if this node represents a virtual field (child of a virtual register)
         """
+        assert isinstance(self.parent, RegNode)
         return self.parent.is_virtual
 
     @property
-    def is_volatile(self):
+    def is_volatile(self) -> bool:
         """
         True if combination of field access properties result in a field that
         should be interpreted as volatile.
@@ -947,7 +973,7 @@ class FieldNode(VectorNode):
         )
 
     @property
-    def is_sw_writable(self):
+    def is_sw_writable(self) -> bool:
         """
         Field is writable by software
         """
@@ -957,7 +983,7 @@ class FieldNode(VectorNode):
                         rdltypes.AccessType.w, rdltypes.AccessType.w1)
 
     @property
-    def is_sw_readable(self):
+    def is_sw_readable(self) -> bool:
         """
         Field is readable by software
         """
@@ -967,7 +993,7 @@ class FieldNode(VectorNode):
                         rdltypes.AccessType.r)
 
     @property
-    def implements_storage(self):
+    def implements_storage(self) -> bool:
         """
         True if combination of field access properties imply that the field
         implements a storage element.
@@ -1004,11 +1030,11 @@ class FieldNode(VectorNode):
 class RegNode(AddressableNode):
 
     @property
-    def size(self):
+    def size(self) -> int:
         return self.get_property('regwidth') // 8
 
     @property
-    def is_virtual(self):
+    def is_virtual(self) -> bool:
         """
         True if this node represents a virtual register.
         (child of a mem component)
@@ -1018,7 +1044,7 @@ class RegNode(AddressableNode):
         return isinstance(self.parent, MemNode)
 
     @property
-    def has_sw_writable(self):
+    def has_sw_writable(self) -> bool:
         """
         Register contains one or more present fields writable by software
         """
@@ -1028,7 +1054,7 @@ class RegNode(AddressableNode):
         return False
 
     @property
-    def has_sw_readable(self):
+    def has_sw_readable(self) -> bool:
         """
         Register contains one or more present fields readable by software
         """
@@ -1041,27 +1067,27 @@ class RegNode(AddressableNode):
 class RegfileNode(AddressableNode):
 
     @property
-    def size(self):
+    def size(self) -> int:
         return get_group_node_size(self)
 
 #===============================================================================
 class AddrmapNode(AddressableNode):
 
     @property
-    def size(self):
+    def size(self) -> int:
         return get_group_node_size(self)
 
 #===============================================================================
 class MemNode(AddressableNode):
 
     @property
-    def size(self):
+    def size(self) -> int:
         entry_size = self.get_property('memwidth') // 8
         num_entries = self.get_property('mementries')
         return entry_size * num_entries
 
 #===============================================================================
-def get_group_node_size(node):
+def get_group_node_size(node: AddressableNode) -> int:
     """
     Shared getter for AddrmapNode and RegfileNode's "size" property
     """
@@ -1074,7 +1100,5 @@ def get_group_node_size(node):
 
     # Current node's size is based on last child
     last_child_node = Node._factory(node.inst.children[-1], node.env, node)
-    return(
-        last_child_node.inst.addr_offset
-        + last_child_node.total_size
-    )
+    assert isinstance(last_child_node, AddressableNode)
+    return last_child_node.raw_address_offset + last_child_node.total_size

@@ -1,20 +1,54 @@
 import enum
 import inspect
 from collections import OrderedDict
+import sys
+from typing import Type, Dict, Any, Optional, List, Tuple, TYPE_CHECKING
+from typing import Union
 
 from .core import rdlformatcode
-from .node import AddressableNode
+from .node import AddressableNode, Node
 from . import component as comp
 
-class AutoEnum(enum.Enum):
-    def __new__(cls):
+if TYPE_CHECKING:
+    from markdown import Markdown
+    from .messages import SourceRef
+    from .compiler import RDLEnvironment
+
+if sys.version_info >= (3,5,4):
+    # RDL Types the user will encounter via the public API
+    RDLValue = Union[
+        int, bool, str, list,
+        'BuiltinEnum', 'UserEnum', 'UserStruct', Type['UserEnum'],
+        Node, 'PropertyReference'
+    ]
+else:
+    # Stub on 3.5.3 or older due to: https://github.com/python/typing/issues/266
+    RDLValue = Any # type: ignore
+
+# RDL Types used internally prior to elaboration
+PreElabRDLValue = Union[
+    int, bool, str,
+    'BuiltinEnum', 'UserEnum', 'UserStruct',
+    'PropertyReference', comp.Component
+]
+
+if sys.version_info >= (3,5,4):
+    PreElabRDLType = Union[Type[PreElabRDLValue], 'ArrayPlaceholder']
+else:
+    # Stub on 3.5.3 or older due to: https://github.com/python/typing/issues/266
+    PreElabRDLType = Any # type: ignore
+
+#===============================================================================
+class BuiltinEnum(enum.Enum):
+    # backport equivalent py3.6 support for auto enumeration
+    def __new__(cls) -> 'BuiltinEnum':
         value = len(cls.__members__) + 1
         obj = object.__new__(cls)
         obj._value_ = value
         return obj
 
 #===============================================================================
-class AccessType(AutoEnum):
+class AccessType(BuiltinEnum):
     #: Not Accessible
     na = ()
 
@@ -33,7 +67,7 @@ class AccessType(AutoEnum):
     #: Write-only. After a reset occurs, can only be written once.
     w1 = ()
 
-class OnReadType(AutoEnum):
+class OnReadType(BuiltinEnum):
     #: Cleared on read
     rclr = ()
 
@@ -43,7 +77,7 @@ class OnReadType(AutoEnum):
     #: User-defined read side-effect
     ruser = ()
 
-class OnWriteType(AutoEnum):
+class OnWriteType(BuiltinEnum):
     #: Bitwise write one to set
     woset = ()
 
@@ -71,7 +105,7 @@ class OnWriteType(AutoEnum):
     #: Write modification is user-defined
     wuser = ()
 
-class AddressingType(AutoEnum):
+class AddressingType(BuiltinEnum):
     #: Components are packed tightly together
     compact = ()
 
@@ -81,14 +115,14 @@ class AddressingType(AutoEnum):
     #: Same as regalign, except arrays are aligned to their entire size
     fullalign = ()
 
-class PrecedenceType(AutoEnum):
+class PrecedenceType(BuiltinEnum):
     #: Hardware writes take precedence over software
     hw = ()
 
     #: Software writes take precedence over hardware
     sw = ()
 
-class InterruptType(AutoEnum):
+class InterruptType(BuiltinEnum):
     """
     A field's interrupt type is set when using an RDL interrupt property modifier:
 
@@ -126,26 +160,27 @@ class UserEnum(enum.Enum):
 
     UserEnum types can be identified using: :meth:`is_user_enum`
     """
-    def __init__(self, value, rdl_name, rdl_desc):
+
+    def __init__(self, value: int, rdl_name: Optional[str], rdl_desc: Optional[str]):
         self._value_ = value
         self._rdl_name_ = rdl_name
         self._rdl_desc_ = rdl_desc
 
     @property
-    def rdl_desc(self):
+    def rdl_desc(self) -> Optional[str]:
         """
         Enum entry's ``desc`` property
         """
         return self._rdl_desc_
 
     @property
-    def rdl_name(self):
+    def rdl_name(self) -> Optional[str]:
         """
         Enum entry's ``name`` property
         """
         return self._rdl_name_
 
-    def get_html_desc(self, markdown_inst=None):
+    def get_html_desc(self, markdown_inst: Optional['Markdown']=None) -> Optional[str]:
         """
         Translates the enum's 'desc' property into HTML.
 
@@ -178,7 +213,7 @@ class UserEnum(enum.Enum):
             return None
         return rdlformatcode.rdlfc_to_html(desc_str, md=markdown_inst)
 
-    def get_html_name(self):
+    def get_html_name(self) -> Optional[str]:
         """
         Translates the enum's 'name' property into HTML.
 
@@ -199,18 +234,18 @@ class UserEnum(enum.Enum):
         return rdlformatcode.rdlfc_to_html(name_str, is_desc=False)
 
     @classmethod
-    def _set_parent_scope(cls, scope):
-        cls._parent_scope = scope
+    def _set_parent_scope(cls, scope: comp.Component) -> None:
+        cls._parent_scope = scope # type: ignore
 
     @classmethod
-    def get_parent_scope(cls):
+    def get_parent_scope(cls) -> Optional[comp.Component]:
         """
         Returns reference to parent component that contains this type definition.
         """
         return getattr(cls, "_parent_scope", None)
 
     @classmethod
-    def get_scope_path(cls, scope_separator="::"):
+    def get_scope_path(cls, scope_separator: str="::") -> str:
         """
         Generate a string that represents this enum's declaration namespace
         scope.
@@ -242,18 +277,18 @@ class UserEnum(enum.Enum):
                 return parent_scope._scope_name
 
 
-    def __int__(self):
+    def __int__(self) -> int:
         return self.value
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.value)
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: Dict[int, Any]) -> 'UserEnum':
         # Do not deepcopy enumerations
         return self
 
 
-def is_user_enum(t):
+def is_user_enum(t: Any) -> bool:
     """
     Test if type ``t`` is a :class:`~UserEnum`
 
@@ -262,6 +297,8 @@ def is_user_enum(t):
     return inspect.isclass(t) and issubclass(t, UserEnum)
 
 #===============================================================================
+UserStructMembers = Dict[str, PreElabRDLType]
+
 class UserStruct:
     """
     All user-defined structs are based on this class.
@@ -297,10 +334,11 @@ class UserStruct:
         member_names = prop._members.keys()
     """
 
-    _members = OrderedDict()
-    _is_abstract = True
+    _members = OrderedDict() # type: UserStructMembers
+    _is_abstract = True # type: bool
+    _parent_scope = None # type: Optional[comp.Component]
 
-    def __init__(self, values):
+    def __init__(self, values: Dict[str, Any]):
         """
         Create an instance of the struct
 
@@ -316,7 +354,7 @@ class UserStruct:
         self._values = values
 
     @classmethod
-    def define_new(cls, name, members, is_abstract=False):
+    def define_new(cls, name: str, members: UserStructMembers, is_abstract: bool=False) -> Type['UserStruct']:
         """
         Define a new struct type derived from the current type.
 
@@ -344,7 +382,7 @@ class UserStruct:
         newcls = type(name, (cls,), dct)
         return newcls
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         if name == "__setstate__":
             raise AttributeError(name)
         if name in self._values:
@@ -353,18 +391,18 @@ class UserStruct:
             raise AttributeError("'%s' object has no attribute '%s'" % (type(self).__name__, name))
 
     @classmethod
-    def _set_parent_scope(cls, scope):
+    def _set_parent_scope(cls, scope: comp.Component) -> None:
         cls._parent_scope = scope
 
     @classmethod
-    def get_parent_scope(cls):
+    def get_parent_scope(cls) -> Optional[comp.Component]:
         """
         Returns reference to parent component that contains this type definition.
         """
         return getattr(cls, "_parent_scope", None)
 
     @classmethod
-    def get_scope_path(cls, scope_separator="::"):
+    def get_scope_path(cls, scope_separator: str="::") -> str:
         """
         Generate a string that represents this enum's declaration namespace
         scope.
@@ -395,20 +433,22 @@ class UserStruct:
             else:
                 return parent_scope._scope_name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<struct '%s' %s at 0x%x>" % (
             self.__class__.__qualname__,
             "(%s)" % ", ".join(self._members.keys()),
             id(self)
         )
 
-def is_user_struct(t):
+def is_user_struct(t: Any) -> bool:
     """
     Test if type ``t`` is a :class:`~UserStruct`
     """
     return inspect.isclass(t) and issubclass(t, UserStruct)
 
 #===============================================================================
+RefElement = Tuple[str, List[int], Optional['SourceRef']]
+
 class ComponentRef:
     """
     Container for hierarchical component instance references.
@@ -416,7 +456,7 @@ class ComponentRef:
     When a user requests the reference value, it is resolved into a Node object
     """
 
-    def __init__(self, ref_root, ref_elements):
+    def __init__(self, ref_root: comp.Component, ref_elements: List[RefElement]):
         # Handle to the component definition where ref_elements is relative to
         # This is the original_def, and NOT the actual instance
         self.ref_root = ref_root
@@ -427,11 +467,13 @@ class ComponentRef:
         # Each tuple in the list represents a segment of the path:
         # [
         #   ( <ID string> , [ <Index int> , ... ], SourceRef ),
-        #   ( <ID string> , None, SourceRef )
         # ]
         self.ref_elements = ref_elements
 
-    def build_node_ref(self, assignee_node, env):
+    def build_node_ref(self, assignee_node: Node, env: 'RDLEnvironment') -> Node:
+        """
+        Resolves the component reference into a Node object
+        """
         current_node = assignee_node
         # Traverse up from assignee until ref_root is reached
         while True:
@@ -444,21 +486,27 @@ class ComponentRef:
         for inst_name, idx_list, name_src_ref in self.ref_elements:
             # find instance
             current_node = current_node.get_child_by_name(inst_name)
-            if current_node is None:
-                raise RuntimeError
+
 
             # Check if indexes are valid
-            for i, idx in enumerate(idx_list):
-                if idx >= current_node.inst.array_dimensions[i]:
-                    env.msg.fatal(
-                        "Array index out of range. Expected 0-%d, got %d."
-                        % (current_node.inst.array_dimensions[i]-1, idx),
-                        name_src_ref
-                    )
+            if idx_list:
+                # Reference contains one or more suffixes
+                # Validation during compilation would have already enforced that
+                # references are sane.
+                # Safe to expect this to be an AddressableNode
+                assert isinstance(current_node, AddressableNode)
 
-            # Assign indexes if appropriate
-            if (isinstance(current_node, AddressableNode)) and current_node.inst.is_array:
-                current_node.current_idx = idx_list
+                for i, idx in enumerate(idx_list):
+                    if idx >= current_node.array_dimensions[i]:
+                        env.msg.fatal(
+                            "Array index out of range. Expected 0-%d, got %d."
+                            % (current_node.array_dimensions[i]-1, idx),
+                            name_src_ref
+                        )
+
+                # Assign indexes if appropriate
+                if current_node.is_array:
+                    current_node.current_idx = idx_list
 
         return current_node
 
@@ -492,32 +540,32 @@ class PropertyReference:
         print(next_prop.name) # prints: "intr"
 
     """
-    allowed_inst_type = None
+    allowed_inst_type = None # type: Type[comp.Component]
 
-    def __init__(self, src_ref, env, comp_ref):
+    def __init__(self, src_ref: 'SourceRef', env: 'RDLEnvironment', comp_ref: ComponentRef):
         self.env = env
         self.src_ref = src_ref
         self._comp_ref = comp_ref
 
         #: Node object that represents the component instance from which the
         #: property is being referenced.
-        self.node = None
+        self.node = None # type: Node
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Name of the property being referenced
         """
         return self.get_name()
 
     @classmethod
-    def get_name(cls):
+    def get_name(cls) -> str:
         return cls.__name__.replace("PropRef_", "")
 
-    def _resolve_node(self, assignee_node):
+    def _resolve_node(self, assignee_node: Node) -> None:
         self.node = self._comp_ref.build_node_ref(assignee_node, self.env)
 
-    def _validate(self):
+    def _validate(self) -> None:
         pass
 
 #===============================================================================
@@ -529,17 +577,17 @@ class ArrayPlaceholder():
     In the meantime, this placeholder is used to communicate expected type
     information during compilation type checking
     """
-    def __init__(self, element_type):
+    def __init__(self, element_type: PreElabRDLType):
         self.element_type = element_type
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, ArrayPlaceholder):
             return self.element_type == other.element_type
         else:
-            return False
+            return NotImplemented
 
 #===============================================================================
-def get_rdltype(value):
+def get_rdltype(value: Any) -> PreElabRDLType:
     """
     Given a value, return the type identifier object used within the RDL compiler
     If not a supported type, return None
@@ -552,12 +600,12 @@ def get_rdltype(value):
         return type(value)
     elif is_user_struct(type(value)):
         return type(value)
-    elif isinstance(value, enum.Enum):
+    elif isinstance(value, BuiltinEnum):
         return type(value)
     elif isinstance(value, list):
         # Create ArrayPlaceholder representation
         # Determine element type and make sure it is uniform
-        array_el_type = None
+        array_el_type = None # type: Optional[PreElabRDLType]
         for el in value:
             el_type = get_rdltype(el)
             if el_type is None:

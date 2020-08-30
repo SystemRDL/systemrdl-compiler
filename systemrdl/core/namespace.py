@@ -1,16 +1,43 @@
+import sys
+from typing import TYPE_CHECKING, Dict, List, Union, Type, Tuple
+
 from .. import component as comp
+
+if TYPE_CHECKING:
+    from ..compiler import RDLEnvironment
+    from ..messages import SourceRef
+    from .. import rdltypes
+    from .parameter import Parameter
+    from .expressions import Expr
+
+if sys.version_info >= (3,5,4):
+    TypeNSRef = Union[comp.Component, Type['rdltypes.UserEnum'], Type['rdltypes.UserStruct']]
+else:
+    # Stub on 3.5.3 or older due to: https://github.com/python/typing/issues/266
+    from typing import Any
+    TypeNSRef = Any # type: ignore
+TypeNSEntry = TypeNSRef
+TypeNSScope = Dict[str, TypeNSEntry]
+
+ElementNSRef = Union[comp.Component, 'Parameter']
+ElementNSEntry = Tuple[ElementNSRef, comp.Component]
+ElementNSScope = Dict[str, ElementNSEntry]
+
+DefaultNSRef = Union['Expr', bool, 'rdltypes.InterruptType']
+DefaultNSEntry = Tuple['SourceRef', DefaultNSRef]
+DefaultNSScope = Dict[str, DefaultNSEntry]
 
 class NamespaceRegistry():
 
-    def __init__(self, env):
+    def __init__(self, env: 'RDLEnvironment'):
         self.env = env
         self.msg = env.msg
 
-        self.type_ns_stack = [{}]
-        self.element_ns_stack = [{}]
-        self.default_property_ns_stack = [{}]
+        self.type_ns_stack = [{}] # type: List[TypeNSScope]
+        self.element_ns_stack = [{}] # type: List[ElementNSScope]
+        self.default_property_ns_stack = [{}] # type: List[DefaultNSScope]
 
-    def register_type(self, name: str, ref, src_ref):
+    def register_type(self, name: str, ref: TypeNSRef, src_ref: 'SourceRef') -> None:
         if name in self.type_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of type '%s'" % name,
@@ -18,7 +45,7 @@ class NamespaceRegistry():
             )
         self.type_ns_stack[-1][name] = ref
 
-    def register_element(self, name: str, ref, parent_comp_def, src_ref):
+    def register_element(self, name: str, ref: ElementNSRef, parent_comp_def: comp.Component, src_ref: 'SourceRef') -> None:
         if name in self.element_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of instance '%s'" % name,
@@ -26,7 +53,7 @@ class NamespaceRegistry():
             )
         self.element_ns_stack[-1][name] = (ref, parent_comp_def)
 
-    def register_default_property(self, name: str, ref, src_ref, overwrite_ok=False):
+    def register_default_property(self, name: str, ref: DefaultNSRef, src_ref: 'SourceRef', overwrite_ok: bool=False) -> None:
         if not overwrite_ok:
             if name in self.default_property_ns_stack[-1]:
                 self.msg.fatal(
@@ -36,17 +63,17 @@ class NamespaceRegistry():
 
         self.default_property_ns_stack[-1][name] = (src_ref, ref)
 
-    def lookup_type(self, name: str):
+    def lookup_type(self, name: str) -> TypeNSEntry:
         for scope in reversed(self.type_ns_stack):
             if name in scope:
                 return scope[name]
         return None
 
-    def lookup_element(self, name: str):
-        for idx, scope in enumerate(reversed(self.element_ns_stack)):
+    def lookup_element(self, name: str) -> ElementNSEntry:
+        for i, scope in enumerate(reversed(self.element_ns_stack)):
             if name in scope:
                 el, parent_def = scope[name]
-                if idx == 0:
+                if i == 0:
                     # Return anything from local namespace
                     return (el, parent_def)
                 elif isinstance(el, comp.Signal):
@@ -56,7 +83,7 @@ class NamespaceRegistry():
                     return (None, None)
         return (None, None)
 
-    def get_default_properties(self, comp_type):
+    def get_default_properties(self, comp_type: comp.Component) -> DefaultNSScope:
         """
         Returns a flattened dictionary of all default property assignments
         visible in the current scope that apply to the current component type.
@@ -82,12 +109,12 @@ class NamespaceRegistry():
 
         return props
 
-    def enter_scope(self):
+    def enter_scope(self) -> None:
         self.type_ns_stack.append({})
         self.element_ns_stack.append({})
         self.default_property_ns_stack.append({})
 
-    def exit_scope(self):
+    def exit_scope(self) -> None:
         self.type_ns_stack.pop()
         self.element_ns_stack.pop()
         self.default_property_ns_stack.pop()

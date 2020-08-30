@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from .helpers import get_ID_text
 
 from ..messages import SourceRef
@@ -6,9 +8,12 @@ from ..parser.SystemRDLVisitor import SystemRDLVisitor
 
 from .. import rdltypes
 
+if TYPE_CHECKING:
+    from ..compiler import RDLCompiler
+
 class BaseVisitor(SystemRDLVisitor):
 
-    def __init__(self, compiler):
+    def __init__(self, compiler: 'RDLCompiler') -> None:
         self.compiler = compiler
         self.msg = compiler.env.msg
 

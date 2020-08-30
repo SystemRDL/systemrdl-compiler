@@ -1,5 +1,6 @@
 language: python
 python:
+  - 3.5.2
   - 3.5
   - 3.6
   - 3.7
@@ -34,6 +35,12 @@ jobs:
         - python -m pip install pylint
         - python setup.py install
       script: pylint --rcfile test/pylint.rc systemrdl
+
+    # Run static type checking
+    - name: Type Check
+      install:
+        - python -m pip install mypy
+      script: mypy --config-file test/mypy.ini systemrdl
 
     # Deploy source distribution
     - stage: deploy

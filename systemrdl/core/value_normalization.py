@@ -1,9 +1,10 @@
 import hashlib
-import enum
+from typing import Any, Optional, Union, List
+
 from .. import rdltypes
 from .. import node
 
-def normalize(value, owner_node=None):
+def normalize(value: Any, owner_node: Optional[node.Node]=None) -> str:
     """
     Flatten an RDL value into a unique string that is used for type
     normalization.
@@ -17,7 +18,7 @@ def normalize(value, owner_node=None):
         return normalize_string(value)
     elif type(value) == list:
         return normalize_array(value)
-    elif isinstance(value, enum.Enum):
+    elif isinstance(value, (rdltypes.BuiltinEnum, rdltypes.UserEnum)):
         return normalize_enum(value)
     elif isinstance(value, rdltypes.UserStruct):
         return normalize_struct(value)
@@ -29,10 +30,10 @@ def normalize(value, owner_node=None):
         return normalize_user_enum_type(value)
     else:
         # Should never get here
-        raise RuntimeError
+        raise RuntimeError(value)
 
 
-def normalize_scalar(value):
+def normalize_scalar(value: int) -> str:
     """
     5.1.1.4 - c.1:
         Scalar values shall be rendered using their hexadecimal representation.
@@ -40,7 +41,7 @@ def normalize_scalar(value):
     return "%x" % value
 
 
-def normalize_boolean(value):
+def normalize_boolean(value: bool) -> str:
     """
     5.1.1.4 - c.2:
         Boolean values shall be rendered using either t for true or f for false.
@@ -51,7 +52,7 @@ def normalize_boolean(value):
         return "f"
 
 
-def normalize_string(value):
+def normalize_string(value: str) -> str:
     """
     5.1.1.4 - c.3:
         String values shall be rendered using the first eight characters of
@@ -61,7 +62,7 @@ def normalize_string(value):
     return md5[:8]
 
 
-def normalize_enum(value):
+def normalize_enum(value: Union[rdltypes.BuiltinEnum, rdltypes.UserEnum]) -> str:
     """
     5.1.1.4 - c.4:
         Enum values shall be rendered using their enumerator literal.
@@ -69,7 +70,7 @@ def normalize_enum(value):
     return value.name
 
 
-def normalize_array(value):
+def normalize_array(value: List[Any]) -> str:
     """
     5.1.1.4 - c.5:
         Arrays shall be rendered by:
@@ -91,7 +92,7 @@ def normalize_array(value):
     return md5[:8]
 
 
-def normalize_struct(value):
+def normalize_struct(value: rdltypes.UserStruct) -> str:
     """
     5.1.1.4 - c.6:
         Structs shall be rendered by:
@@ -115,7 +116,7 @@ def normalize_struct(value):
     return md5[:8]
 
 
-def normalize_component_ref(value, owner_node):
+def normalize_component_ref(value: node.Node, owner_node: node.Node) -> str:
     """
     Hash of relative path from owner of the property to the target component
     """
@@ -124,7 +125,7 @@ def normalize_component_ref(value, owner_node):
     return md5[:8]
 
 
-def normalize_property_ref(value, owner_node):
+def normalize_property_ref(value: rdltypes.PropertyReference, owner_node: node.Node) -> str:
     """
     Hash of relative path from owner of the property to the target component's
     property
@@ -134,7 +135,7 @@ def normalize_property_ref(value, owner_node):
     return md5[:8]
 
 
-def normalize_user_enum_type(value):
+def normalize_user_enum_type(value: type) -> str:
     """
     Enum type references shall be rendered using their enumeration type name.
     """

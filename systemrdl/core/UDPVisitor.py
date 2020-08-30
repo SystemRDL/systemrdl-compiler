@@ -1,3 +1,5 @@
+from typing import List, Type
+
 from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
@@ -18,7 +20,7 @@ class UDPVisitor(BaseVisitor):
         # Attributes
         self.attr = {}
 
-    def visitUdp_def(self, ctx: SystemRDLParser.Udp_defContext):
+    def visitUdp_def(self, ctx: SystemRDLParser.Udp_defContext) -> None:
         udp_name = get_ID_text(ctx.ID())
 
         # Collect all attributes
@@ -86,7 +88,7 @@ class UDPVisitor(BaseVisitor):
         self.compiler.env.property_rules.register_udp(udp, SourceRef.from_antlr(ctx.ID()))
 
 
-    def visitUdp_type(self, ctx: SystemRDLParser.Udp_typeContext):
+    def visitUdp_type(self, ctx: SystemRDLParser.Udp_typeContext) -> None:
         # Determine which type this property can hold
         if 'valid_types' in self.attr:
             self.msg.fatal(
@@ -111,7 +113,7 @@ class UDPVisitor(BaseVisitor):
         if is_array:
             # arrayify each entry in the list of valid types
             for i, valid_type in enumerate(valid_types):
-                valid_types[i] = rdltypes.ArrayPlaceholder(valid_type)
+                valid_types[i] = rdltypes.ArrayPlaceholder(valid_type) # type: ignore
 
         self.attr['valid_types'] = valid_types
 
@@ -125,7 +127,7 @@ class UDPVisitor(BaseVisitor):
         SystemRDLParser.SIGNAL_kw   : comp.Signal,
         #SystemRDLParser.CONSTRAINT_kw   : TODO,
     }
-    def visitUdp_usage(self, ctx: SystemRDLParser.Udp_usageContext):
+    def visitUdp_usage(self, ctx: SystemRDLParser.Udp_usageContext) -> None:
         # Determine which components the UDP can be bound to
         if 'bindable_to' in self.attr:
             self.msg.fatal(
@@ -133,11 +135,11 @@ class UDPVisitor(BaseVisitor):
                 SourceRef.from_antlr(ctx.COMPONENT_kw())
             )
 
-        comp_types = []
+        comp_types = [] # type: List[Type[comp.Component]]
         for token_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Udp_comp_typeContext):
             token = self.visit(token_ctx)
             if token.type == SystemRDLParser.ALL_kw:
-                comp_types.extend(self._UDPUsage_Map.values())
+                comp_types.extend(list(self._UDPUsage_Map.values()))
             else:
                 comp_types.append(self._UDPUsage_Map[token.type])
 
@@ -147,7 +149,7 @@ class UDPVisitor(BaseVisitor):
         self.attr['bindable_to'] = comp_types
 
 
-    def visitUdp_default(self, ctx: SystemRDLParser.Udp_defaultContext):
+    def visitUdp_default(self, ctx: SystemRDLParser.Udp_defaultContext) -> None:
         if 'default' in self.attr:
             self.msg.fatal(
                 "More than one 'default' attribute specified for user-defined property",
@@ -158,7 +160,7 @@ class UDPVisitor(BaseVisitor):
         self.attr['default'] = ctx.expr()
 
 
-    def visitUdp_constraint(self, ctx: SystemRDLParser.Udp_constraintContext):
+    def visitUdp_constraint(self, ctx: SystemRDLParser.Udp_constraintContext) -> None:
         # There is only one type of constraint even allowed by the grammar
         # no need to explore further
         if 'constr_componentwidth' in self.attr:

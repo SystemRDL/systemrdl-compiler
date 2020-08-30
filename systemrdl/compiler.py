@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Set, Type, Any, List, Dict, Optional
 
 from antlr4 import InputStream
 
@@ -20,7 +21,7 @@ from .preprocessor import preprocessor
 
 class RDLCompiler:
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         """
         RDLCompiler constructor.
 
@@ -77,11 +78,12 @@ class RDLCompiler:
             raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
 
         self.msg = self.env.msg
-        self.namespace = NamespaceRegistry(self.env)
+        self.namespace = NamespaceRegistry(self.env) # type: NamespaceRegistry
         self.visitor = RootVisitor(self)
         self.root = self.visitor.component
 
     def define_udp(self, name, valid_type, valid_components=None, default=None):
+        # type: (str, Type, Optional[Set[Type[comp.Component]]], Any) -> None
         """
         Pre-define a user-defined property.
 
@@ -99,8 +101,8 @@ class RDLCompiler:
         ----------
         name: str
             Property name
-        valid_components: list
-            List of :class:`~systemrdl.component.Component` types the UDP can be bound to.
+        valid_components: set
+            Set of :class:`~systemrdl.component.Component` types the UDP can be bound to.
             If None, then UDP can be bound to all components.
         valid_type: type
             Assignment type that this UDP will enforce
@@ -110,7 +112,7 @@ class RDLCompiler:
 
         """
         if valid_components is None:
-            valid_components = [
+            valid_components = {
                 comp.Field,
                 comp.Reg,
                 comp.Regfile,
@@ -118,17 +120,17 @@ class RDLCompiler:
                 comp.Mem,
                 comp.Signal,
                 #TODO constraint,
-            ]
+            }
 
         if name in self.env.property_rules.rdl_properties:
             raise ValueError("name '%s' conflicts with existing built-in RDL property")
 
-        udp = BuiltinUserProperty(self.env, name, valid_components, [valid_type], default)
+        udp = BuiltinUserProperty(self.env, name, valid_components, (valid_type,), default)
 
         self.env.property_rules.user_properties[udp.name] = udp
 
 
-    def list_udps(self):
+    def list_udps(self) -> List[str]:
         """
         List all user-defined properties encountered by the compiler.
 
@@ -138,7 +140,7 @@ class RDLCompiler:
         return list(self.env.property_rules.user_properties.keys())
 
 
-    def compile_file(self, path, incl_search_paths=None):
+    def compile_file(self, path: str, incl_search_paths: Optional[List[str]]=None) -> None:
         """
         Parse & compile a single file and append it to RDLCompiler's root
         namespace.
@@ -193,7 +195,7 @@ class RDLCompiler:
         if self.msg.had_error:
             self.msg.fatal("Compile aborted due to previous errors")
 
-    def elaborate(self, top_def_name=None, inst_name=None, parameters=None):
+    def elaborate(self, top_def_name: Optional[str]=None, inst_name: Optional[str]=None, parameters: Optional[Dict[str, Any]]=None) -> RootNode:
         """
         Elaborates the design for the given top-level addrmap component.
 
@@ -324,7 +326,7 @@ class RDLCompiler:
         return root_node
 
 
-    def eval(self, expression: str):
+    def eval(self, expression: str) -> Any:
         """
         Evaluate an RDL expression string and return its compiled value.
         This function is provided as a helper to simplify overriding top-level
@@ -374,7 +376,7 @@ class RDLEnvironment:
     Container object for misc resources that are preserved outside the lifetime
     of source compilation
     """
-    def __init__(self, args_dict):
+    def __init__(self, args_dict: Dict[str, Any]):
 
         # Collect args
         message_printer = args_dict.pop('message_printer', messages.MessagePrinter())
@@ -399,7 +401,7 @@ class RDLEnvironment:
         self.property_rules = PropertyRuleBook(self)
 
     @staticmethod
-    def chk_flag_severity(flag, w_flags, e_flags):
+    def chk_flag_severity(flag: int, w_flags: int, e_flags: int) -> messages.Severity:
         if bool(e_flags & flag):
             return messages.Severity.ERROR
         elif bool(w_flags & flag):

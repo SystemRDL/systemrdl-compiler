@@ -1,65 +1,65 @@
 
 from .node import AddressableNode, VectorNode, FieldNode, RegNode, RegfileNode
 from .node import AddrmapNode, MemNode, SignalNode
-from .node import RootNode
+from .node import RootNode, Node
 
 #===============================================================================
 class RDLListener:
     """
     Base class for user-defined RDL traversal listeners
     """
-    def enter_Component(self, node):
+    def enter_Component(self, node: Node) -> None:
         pass
 
-    def exit_Component(self, node):
+    def exit_Component(self, node: Node) -> None:
         pass
 
-    def enter_AddressableComponent(self, node):
+    def enter_AddressableComponent(self, node: AddressableNode) -> None:
         pass
 
-    def exit_AddressableComponent(self, node):
+    def exit_AddressableComponent(self, node: AddressableNode) -> None:
         pass
 
-    def enter_VectorComponent(self, node):
+    def enter_VectorComponent(self, node: VectorNode) -> None:
         pass
 
-    def exit_VectorComponent(self, node):
+    def exit_VectorComponent(self, node: VectorNode) -> None:
         pass
 
-    def enter_Addrmap(self, node):
+    def enter_Addrmap(self, node: AddrmapNode) -> None:
         pass
 
-    def exit_Addrmap(self, node):
+    def exit_Addrmap(self, node: AddrmapNode) -> None:
         pass
 
-    def enter_Regfile(self, node):
+    def enter_Regfile(self, node: RegfileNode) -> None:
         pass
 
-    def exit_Regfile(self, node):
+    def exit_Regfile(self, node: RegfileNode) -> None:
         pass
 
-    def enter_Mem(self, node):
+    def enter_Mem(self, node: MemNode) -> None:
         pass
 
-    def exit_Mem(self, node):
+    def exit_Mem(self, node: MemNode) -> None:
         pass
 
-    def enter_Reg(self, node):
+    def enter_Reg(self, node: RegNode) -> None:
         pass
 
-    def exit_Reg(self, node):
+    def exit_Reg(self, node: RegNode) -> None:
         pass
 
-    def enter_Field(self, node):
+    def enter_Field(self, node: FieldNode) -> None:
         pass
 
-    def exit_Field(self, node):
+    def exit_Field(self, node: FieldNode) -> None:
         pass
 
-    def enter_Signal(self, node):
+    def enter_Signal(self, node: SignalNode) -> None:
         pass
 
-    def exit_Signal(self, node):
+    def exit_Signal(self, node: SignalNode) -> None:
         pass
 
 #===============================================================================
@@ -79,7 +79,7 @@ class RDLWalker:
     7. Run :func:`~RDLListener.exit_Component` callback
 
     """
-    def __init__(self, unroll=False, skip_not_present=True):
+    def __init__(self, unroll: bool=False, skip_not_present: bool=True):
         """
         Parameters
         ----------
@@ -96,7 +96,7 @@ class RDLWalker:
         self.skip_not_present = skip_not_present
 
 
-    def walk(self, node, *listeners: RDLListener):
+    def walk(self, node: Node, *listeners: RDLListener) -> None:
         """
         Initiates the walker to traverse the current ``node`` and its children.
         Calls the corresponding callback for each of the ``listeners`` provided in
@@ -124,7 +124,7 @@ class RDLWalker:
             self.do_exit(node, listener)
 
 
-    def do_enter(self, node, listener: RDLListener):
+    def do_enter(self, node: Node, listener: RDLListener) -> None:
 
         # Skip RootNode since it isn't really a component
         if not isinstance(node, RootNode):
@@ -149,7 +149,7 @@ class RDLWalker:
             listener.enter_Signal(node)
 
 
-    def do_exit(self, node, listener: RDLListener):
+    def do_exit(self, node: Node, listener: RDLListener) -> None:
         if isinstance(node, FieldNode):
             listener.exit_Field(node)
         elif isinstance(node, RegNode):

@@ -1,21 +1,23 @@
 import textwrap
+from typing import Union
 
 from antlr4.Token import CommonToken
+from antlr4.tree.Tree import TerminalNodeImpl
 
-def is_pow2(x):
+def is_pow2(x: int) -> bool:
     return (x > 0) and ((x & (x - 1)) == 0)
 
 
-def roundup_pow2(x):
+def roundup_pow2(x: int) -> int:
     return 1<<(x-1).bit_length()
 
-def roundup_to(x, n):
+def roundup_to(x: int, n: int) -> int:
     if x % n:
         return (x//n + 1) * n
     else:
         return (x//n) * n
 
-def get_ID_text(token):
+def get_ID_text(token: Union[CommonToken, TerminalNodeImpl]) -> str:
     """
     Get the text from the ID token.
     Strips off leading slash escape if present
@@ -28,11 +30,11 @@ def get_ID_text(token):
     text = text.lstrip('\\')
     return text
 
-def truncate_int(v, width):
+def truncate_int(v: int, width: int) -> int:
     mask = (1 << width) - 1
     return v & mask
 
-def dedent_text(s):
+def dedent_text(s: str) -> str:
     """
     Remove any common indentation, ignoring indentation state of the first
     line of text.

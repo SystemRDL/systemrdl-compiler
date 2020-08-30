@@ -1,10 +1,15 @@
 import re
+from typing import TYPE_CHECKING, Optional
 
 import markdown
 
 from . import helpers
+from ..node import Node, AddressableNode
 
-def rdlfc_to_html(text, node=None, md=None, is_desc=True):
+if TYPE_CHECKING:
+    from markdown import Markdown
+
+def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']=None, is_desc: bool=True) -> str:
     """
     Convert an RDLFormatCode string to HTML
     """
@@ -171,11 +176,11 @@ def rdlfc_to_html(text, node=None, md=None, is_desc=True):
         elif m.lastgroup == 'sp':
             text_segs.append("&nbsp;")
         elif m.lastgroup == 'index':
-            if (node is not None) and node.inst.is_array:
+            if (node is not None) and isinstance(node, AddressableNode) and node.is_array:
                 subscripts = []
                 if node.current_idx is None:
                     # Index is not known. Use range
-                    for dim in node.inst.array_dimensions:
+                    for dim in node.array_dimensions:
                         subscripts.append("[0:%d]" % dim)
                 else:
                     # Index is known
@@ -186,11 +191,11 @@ def rdlfc_to_html(text, node=None, md=None, is_desc=True):
             else:
                 text_segs.append(m.group(0))
         elif m.lastgroup == 'index_parent':
-            if (node is not None) and (node.parent is not None) and node.parent.inst.is_array:
+            if (node is not None) and (node.parent is not None) and isinstance(node.parent, AddressableNode) and node.parent.is_array:
                 subscripts = []
                 if node.parent.current_idx is None:
                     # Index is not known. Use range
-                    for dim in node.parent.inst.array_dimensions:
+                    for dim in node.parent.array_dimensions:
                         subscripts.append("[0:%d]" % dim)
                 else:
                     # Index is known
@@ -207,7 +212,7 @@ def rdlfc_to_html(text, node=None, md=None, is_desc=True):
                 text_segs.append(m.group(0))
         elif m.lastgroup == 'instname':
             if node is not None:
-                text_segs.append(node.inst.inst_name)
+                text_segs.append(node.inst_name)
             else:
                 text_segs.append(m.group(0))
 

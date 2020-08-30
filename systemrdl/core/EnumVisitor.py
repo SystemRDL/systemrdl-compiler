@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from typing import List
 
 from ..parser.SystemRDLParser import SystemRDLParser
 
@@ -18,7 +19,7 @@ class EnumVisitor(BaseVisitor):
         enum_name = get_ID_text(ctx.ID())
 
         # Collect entries
-        entry_values = []
+        entry_values = [] # type: List[int]
         entries = OrderedDict()
         for enum_entry_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Enum_entryContext):
             name_token, value_expr_ctx, rdl_name, rdl_desc = self.visit(enum_entry_ctx)
@@ -60,7 +61,7 @@ class EnumVisitor(BaseVisitor):
 
 
         # Create Enum type
-        enum_type = rdltypes.UserEnum(enum_name, entries) #pylint: disable=no-value-for-parameter
+        enum_type = rdltypes.UserEnum(enum_name, entries) # type: ignore # pylint: disable=no-value-for-parameter
 
         self.compiler.namespace.exit_scope()
         return enum_type, get_ID_text(ctx.ID()), SourceRef.from_antlr(ctx.ID())

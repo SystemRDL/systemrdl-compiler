@@ -65,7 +65,7 @@ def run_setup(with_binary):
         include_package_data=True,
         ext_modules=ext_modules,
         cmdclass={"build_ext": ve_build_ext},
-        python_requires='>=3.5',
+        python_requires='>=3.5.2',
         install_requires=[
             "antlr4-python3-runtime",
             "colorama",

@@ -20,7 +20,7 @@ from .. import rdltypes
 # Base Component visitor
 #===============================================================================
 class ComponentVisitor(BaseVisitor):
-    comp_type = None
+    comp_type = comp.Component
 
     def __init__(self, compiler, def_name=None, param_defs=None):
         super().__init__(compiler)
@@ -1062,13 +1062,13 @@ class MemComponentVisitor(ComponentVisitor):
 class SignalComponentVisitor(ComponentVisitor):
     comp_type = comp.Signal
 
-    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         self.msg.fatal(
             "Instantiation of components not allowed inside a signal definition",
             SourceRef.from_antlr(ctx.component_inst(0).ID())
         )
 
-    def check_comp_def_allowed(self, type_token):
+    def check_comp_def_allowed(self, type_token) -> None:
         self.msg.fatal(
             "Definitions of components not allowed inside a signal definition",
             SourceRef.from_antlr(type_token)

@@ -323,7 +323,7 @@ class ExprVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # References
     #---------------------------------------------------------------------------
-    def visitInstance_ref(self, ctx: SystemRDLParser.Instance_refContext):
+    def visitInstance_ref(self, ctx: SystemRDLParser.Instance_refContext) -> e.Expr:
 
         # Get each ref element in a hierarchical chain. Each element is a tuple:
         #   (name, [index_expr, ...], SourceRef)
@@ -342,7 +342,7 @@ class ExprVisitor(BaseVisitor):
 
         if isinstance(first_elem, Parameter):
             # Reference is to a local parameter
-            ref_expr = e.ParameterRef(self.compiler.env, first_name_src_ref, first_elem)
+            ref_expr = e.ParameterRef(self.compiler.env, first_name_src_ref, first_elem) # type: e.Expr
 
             # Wrap ref_expr with array/struct dereferencers as appropriate
             for array_suffix in first_array_suffixes:

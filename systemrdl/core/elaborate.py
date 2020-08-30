@@ -1,4 +1,5 @@
 import hashlib
+from typing import TYPE_CHECKING, List, Optional
 
 from .expressions import Expr
 from .helpers import is_pow2, roundup_pow2, roundup_to
@@ -7,8 +8,12 @@ from .value_normalization import normalize
 from .. import component as comp
 from .. import walker
 from .. import rdltypes
-from ..node import AddressableNode, RegNode
+from ..node import AddressableNode, VectorNode, FieldNode, RegNode, RegfileNode
+from ..node import AddrmapNode, MemNode, SignalNode, Node
 
+if TYPE_CHECKING:
+    from ..messages import MessageHandler
+    from ..compiler import RDLEnvironment
 
 #===============================================================================
 # Elaboration Listeners
@@ -26,16 +31,17 @@ class ElabExpressionsListener(walker.RDLListener):
     Also elaborates parameterized component type names
     """
 
-    def __init__(self, msg_handler):
+    def __init__(self, msg_handler: 'MessageHandler'):
         self.msg = msg_handler
 
-    def enter_Component(self, node):
+    def enter_Component(self, node: Node) -> None:
         # Evaluate component properties
         for prop_name, prop_value in node.inst.properties.items():
             if isinstance(prop_value, Expr):
                 node.inst.properties[prop_name] = prop_value.get_value()
 
-    def enter_AddressableComponent(self, node):
+    def enter_AddressableComponent(self, node: AddressableNode) -> None:
+        assert isinstance(node.inst, comp.AddressableComponent)
         # Evaluate instance object expressions
         if isinstance(node.inst.addr_offset, Expr):
             node.inst.addr_offset = node.inst.addr_offset.get_value()
@@ -48,10 +54,10 @@ class ElabExpressionsListener(walker.RDLListener):
                     node.inst.inst_src_ref
                 )
 
-        if node.inst.array_dimensions is not None:
-            for i in range(len(node.inst.array_dimensions)):
-                if isinstance(node.inst.array_dimensions[i], Expr):
-                    node.inst.array_dimensions[i] = node.inst.array_dimensions[i].get_value()
+        if node.inst.array_dimensions:
+            for i, dim in enumerate(node.inst.array_dimensions):
+                if isinstance(dim, Expr):
+                    node.inst.array_dimensions[i] = dim.get_value()
                     if node.inst.array_dimensions[i] == 0:
                         self.msg.fatal(
                             "Array dimension must be greater than zero",
@@ -66,7 +72,8 @@ class ElabExpressionsListener(walker.RDLListener):
                     node.inst.inst_src_ref
                 )
 
-    def enter_VectorComponent(self, node):
+    def enter_VectorComponent(self, node: VectorNode) -> None:
+        assert isinstance(node.inst, comp.VectorComponent)
         # Evaluate instance object expressions
         if isinstance(node.inst.width, Expr):
             node.inst.width = node.inst.width.get_value()
@@ -90,16 +97,16 @@ class PrePlacementValidateListener(walker.RDLListener):
     """
     Performs value checks of some properties prior to StructuralPlacementListener
     """
-    def __init__(self, msg_handler):
+    def __init__(self, msg_handler: 'MessageHandler'):
         self.msg = msg_handler
 
-    def enter_Addrmap(self, node):
+    def enter_Addrmap(self, node: AddrmapNode) -> None:
         self.check_alignment(node)
 
-    def enter_Regfile(self, node):
+    def enter_Regfile(self, node: RegfileNode) -> None:
         self.check_alignment(node)
 
-    def check_alignment(self, node):
+    def check_alignment(self, node: AddressableNode) -> None:
         if 'alignment' in node.inst.properties:
             n = node.inst.properties['alignment']
             if n <= 0:
@@ -116,7 +123,7 @@ class PrePlacementValidateListener(walker.RDLListener):
 
 
 
-    def enter_Reg(self, node):
+    def enter_Reg(self, node: RegNode) -> None:
         # 10.6.1-a: All registers shall have a regwidth = 2 N , where N >=3.
         if 'regwidth' in node.inst.properties:
             n = node.inst.properties['regwidth']
@@ -145,7 +152,7 @@ class PrePlacementValidateListener(walker.RDLListener):
                     node.inst.def_src_ref
                 )
 
-    def enter_Field(self, node):
+    def enter_Field(self, node: FieldNode) -> None:
         if 'fieldwidth' in node.inst.properties:
             n = node.inst.properties['fieldwidth']
             if n <= 0:
@@ -154,7 +161,7 @@ class PrePlacementValidateListener(walker.RDLListener):
                     node.inst.def_src_ref
                 )
 
-    def enter_Signal(self, node):
+    def enter_Signal(self, node: SignalNode) -> None:
         if 'signalwidth' in node.inst.properties:
             n = node.inst.properties['signalwidth']
             if n <= 0:
@@ -163,7 +170,7 @@ class PrePlacementValidateListener(walker.RDLListener):
                     node.inst.def_src_ref
                 )
 
-    def enter_Mem(self, node):
+    def enter_Mem(self, node: MemNode) -> None:
         # 11.3.1-a: mementries shall be greater than 0.
         if 'mementries' in node.inst.properties:
             n = node.inst.properties['mementries']
@@ -191,21 +198,21 @@ class StructuralPlacementListener(walker.RDLListener):
     - Signals.
     """
 
-    def __init__(self, msg_handler):
+    def __init__(self, msg_handler: 'MessageHandler'):
         self.msg = msg_handler
-        self.msb0_mode_stack = []
-        self.addressing_mode_stack = []
-        self.alignment_stack = []
+        self.msb0_mode_stack = [] # type: List[bool]
+        self.addressing_mode_stack = [] # type: List[rdltypes.AddressingType]
+        self.alignment_stack = [] # type: List[Optional[int]]
         self.max_vreg_width = 0
 
 
-    def enter_Addrmap(self, node):
+    def enter_Addrmap(self, node: AddrmapNode) -> None:
         self.msb0_mode_stack.append(node.get_property("msb0"))
         self.addressing_mode_stack.append(node.get_property("addressing"))
         self.alignment_stack.append(node.get_property("alignment"))
 
 
-    def enter_Regfile(self, node):
+    def enter_Regfile(self, node: RegfileNode) -> None:
         # Regfile can override the current alignment, but does not block
         # the propagation of a parent's setting if left undefined
         alignment = node.get_property("alignment")
@@ -215,11 +222,11 @@ class StructuralPlacementListener(walker.RDLListener):
         self.alignment_stack.append(alignment)
 
 
-    def enter_Mem(self, node):
+    def enter_Mem(self, node: MemNode) -> None:
         self.max_vreg_width = 0
 
 
-    def exit_Mem(self, node):
+    def exit_Mem(self, node: MemNode) -> None:
         # 11.3.1-d: memwidth defaults to regwidth
         # ... I assume that means if there are vregs inside a mem, then
         # memwidth inherits the max virtual reg regwidth?
@@ -229,8 +236,8 @@ class StructuralPlacementListener(walker.RDLListener):
         self.resolve_addresses(node)
 
 
-    def exit_Field(self, node):
-
+    def exit_Field(self, node: FieldNode) -> None:
+        assert isinstance(node.inst, comp.Field)
         # Resolve field width
         if node.inst.width is None:
             fieldwidth = node.get_property('fieldwidth')
@@ -253,7 +260,8 @@ class StructuralPlacementListener(walker.RDLListener):
                 node.inst.inst_src_ref
             )
 
-    def exit_Signal(self, node):
+    def exit_Signal(self, node: SignalNode) -> None:
+        assert isinstance(node.inst, comp.Signal)
 
         # Resolve signal width
         if node.inst.width is None:
@@ -286,7 +294,8 @@ class StructuralPlacementListener(walker.RDLListener):
             )
 
 
-    def exit_Reg(self, node):
+    def exit_Reg(self, node: RegNode) -> None:
+        assert isinstance(node.inst, comp.Reg)
 
         regwidth = node.get_property('regwidth')
 
@@ -330,7 +339,7 @@ class StructuralPlacementListener(walker.RDLListener):
 
         # Assign field positions
         # Children are iterated in order of declaration
-        prev_inst = None
+        prev_inst = None # type: Optional[comp.Field]
         for inst in node.inst.children:
             if not isinstance(inst, comp.Field):
                 continue
@@ -371,7 +380,7 @@ class StructuralPlacementListener(walker.RDLListener):
 
         # Sort fields by low-bit.
         # Non-field child components are sorted to be first (signals)
-        def get_field_sort_key(inst):
+        def get_field_sort_key(inst: comp.Component) -> int:
             if not isinstance(inst, comp.Field):
                 return -1
             else:
@@ -379,13 +388,13 @@ class StructuralPlacementListener(walker.RDLListener):
         node.inst.children.sort(key=get_field_sort_key)
 
 
-    def exit_Regfile(self, node):
+    def exit_Regfile(self, node: RegfileNode) -> None:
         self.resolve_addresses(node)
 
         self.alignment_stack.pop()
 
 
-    def exit_Addrmap(self, node):
+    def exit_Addrmap(self, node: AddrmapNode) -> None:
         self.resolve_addresses(node)
 
         self.msb0_mode_stack.pop()
@@ -393,7 +402,8 @@ class StructuralPlacementListener(walker.RDLListener):
         self.alignment_stack.pop()
 
 
-    def exit_AddressableComponent(self, node):
+    def exit_AddressableComponent(self, node: AddressableNode) -> None:
+        assert isinstance(node.inst, comp.AddressableComponent)
         # Resolve array stride if needed
         if node.inst.is_array and (node.inst.array_stride is None):
             node.inst.array_stride = node.size
@@ -406,7 +416,7 @@ class StructuralPlacementListener(walker.RDLListener):
                 )
 
 
-    def resolve_addresses(self, node):
+    def resolve_addresses(self, node: AddressableNode) -> None:
         """
         Resolve addresses of children of Addrmap and Regfile components
         """
@@ -422,6 +432,7 @@ class StructuralPlacementListener(walker.RDLListener):
         for child_node in node.children(skip_not_present=False):
             if not isinstance(child_node, AddressableNode):
                 continue
+            assert isinstance(child_node.inst, comp.AddressableComponent)
 
             if child_node.inst.addr_offset is not None:
                 # Address is already known. Do not need to infer
@@ -472,7 +483,7 @@ class StructuralPlacementListener(walker.RDLListener):
             if prev_node is None:
                 next_offset = 0
             else:
-                next_offset = prev_node.inst.addr_offset + prev_node.total_size
+                next_offset = prev_node.raw_address_offset + prev_node.total_size
 
             # round next_offset up to alignment
             child_node.inst.addr_offset = roundup_to(next_offset, alignment)
@@ -481,7 +492,7 @@ class StructuralPlacementListener(walker.RDLListener):
 
         # Sort children by address offset
         # Non-addressable child components are sorted to be first (signals)
-        def get_child_sort_key(inst):
+        def get_child_sort_key(inst: comp.Component) -> int:
             if not isinstance(inst, comp.AddressableComponent):
                 return -1
             else:
@@ -493,14 +504,14 @@ class LateElabListener(walker.RDLListener):
     """
     Elaboration listener for misc late-stage things
     """
-    def __init__(self, msg_handler, env):
+    def __init__(self, msg_handler: 'MessageHandler', env: 'RDLEnvironment'):
         self.msg = msg_handler
         self.env = env
-        self.coerce_external_to = None
-        self.coerce_end_regfile = None
+        self.coerce_external_to = None # type: Optional[bool]
+        self.coerce_end_regfile = None # type: Optional[Node]
 
 
-    def enter_Field(self, node):
+    def enter_Field(self, node: FieldNode) -> None:
 
         # swwe and swwel properties enable a hardware signal that allows the
         # writability of a field to change at runtime.
@@ -508,7 +519,7 @@ class LateElabListener(walker.RDLListener):
         # writable at some point.
         # If the field's 'sw' property conflicts with this, upgrade it to be
         # writable and emit a warning to the user.
-        def ensure_field_is_writable(node, prop_name):
+        def ensure_field_is_writable(node: FieldNode, prop_name: str) -> None:
             this_f_sw = node.get_property('sw')
             if this_f_sw == rdltypes.AccessType.r:
                 node.inst.properties['sw'] = rdltypes.AccessType.rw
@@ -539,10 +550,11 @@ class LateElabListener(walker.RDLListener):
                 ensure_field_is_writable(node, 'swwe')
 
         # Inherits internal/external of parent reg
+        assert node.parent is not None
         node.inst.external = node.parent.inst.external
 
 
-    def enter_Regfile(self, node):
+    def enter_Regfile(self, node: RegfileNode) -> None:
         if self.coerce_external_to is not None:
             # Is nested inside another regfile that is coercing to a particular inst type
             node.inst.external = self.coerce_external_to
@@ -557,19 +569,19 @@ class LateElabListener(walker.RDLListener):
             node.inst.external = False
 
 
-    def enter_Reg(self, node):
+    def enter_Reg(self, node: RegNode) -> None:
         if self.coerce_external_to is not None:
             # Is nested inside regfile that is coercing to a particular inst type
             node.inst.external = self.coerce_external_to
 
 
-    def exit_Regfile(self, node):
+    def exit_Regfile(self, node: RegfileNode) -> None:
         if node is self.coerce_end_regfile:
             # Exiting inst type coercion
             self.coerce_external_to = None
             self.coerce_end_regfile = None
 
-    def exit_Component(self, node):
+    def exit_Component(self, node: Node) -> None:
         # Generate elaborated type name
         extra_type_name_segments = []
 
@@ -590,8 +602,10 @@ class LateElabListener(walker.RDLListener):
             # assignments made 'through' the component
             for child_name in node.inst._dyn_assigned_children:
                 child = node.inst.get_child_by_name(child_name)
+                assert child is not None
 
                 # <child_name>_<hash of child type name>
+                assert child.type_name is not None
                 norm_name = hashlib.md5(child.type_name.encode('utf-8')).hexdigest()[:8]
                 extra_type_name_segments.append(child_name + "_" + norm_name)
 
@@ -602,4 +616,5 @@ class LateElabListener(walker.RDLListener):
                 extra_type_name_segments.append(prop_name + "_" + norm_name)
 
         if extra_type_name_segments:
+            assert node.inst.type_name is not None
             node.inst.type_name += "_" + "_".join(extra_type_name_segments)

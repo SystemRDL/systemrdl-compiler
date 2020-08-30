@@ -16,3 +16,6 @@ generate(
     cpp_output_dir="ext",
 )
 EOF
+
+# Create stub file for mypy
+stubgen  SystemRDLParser.py -o .

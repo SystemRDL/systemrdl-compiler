@@ -1,19 +1,27 @@
 from copy import deepcopy
 from collections import OrderedDict
+from typing import TYPE_CHECKING, Union, Type, Optional, Any, Dict, Tuple, List
 
 from .. import component as comp
 from .. import rdltypes
 from .helpers import truncate_int
 
+if TYPE_CHECKING:
+    from ..compiler import RDLEnvironment
+    from ..messages import SourceRef
+    from .parameter import Parameter
+
+OSourceRef = Optional['SourceRef']
+
 class Expr:
-    def __init__(self, env, src_ref):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef):
         self.env = env
         self.msg = env.msg
 
         # SourceRef to use for error context
         self.src_ref = src_ref
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: Dict[int, Any]) -> 'Expr':
         """
         Deepcopy all members except for ones that should be copied by reference
         """
@@ -28,7 +36,7 @@ class Expr:
                 setattr(result, k, deepcopy(v, memo))
         return result
 
-    def predict_type(self):
+    def predict_type(self) -> rdltypes.PreElabRDLType:
         """
         Returns the expected type of the result of the expression
         This function shall call any child expression's predict_type()
@@ -37,7 +45,7 @@ class Expr:
         """
         raise NotImplementedError
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         """
         Returns the expressions resulting integer width based on the
         self-determined expression bit-width rules
@@ -45,7 +53,7 @@ class Expr:
         """
         raise RuntimeError
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> Any:
         """
         Compute the value of the result of the expression
 
@@ -69,18 +77,18 @@ class Expr:
 # Literals
 
 class IntLiteral(Expr):
-    def __init__(self, env, src_ref, val, width=64):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, val: int, width: int=64):
         super().__init__(env, src_ref)
         self.val = val
         self.width = width
 
-    def predict_type(self):
+    def predict_type(self) -> Type[int]:
         return int
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         return self.width
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         return self.val
 
 
@@ -89,40 +97,40 @@ class BuiltinEnumLiteral(Expr):
     Expr wrapper for builtin RDL enumeration types:
     AccessType, OnReadType, OnWriteType, AddressingType, PrecedenceType
     """
-    def __init__(self, env, src_ref, val):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, val: rdltypes.BuiltinEnum):
         super().__init__(env, src_ref)
         self.val = val
 
-    def predict_type(self):
+    def predict_type(self) -> Type[rdltypes.BuiltinEnum]:
         return type(self.val)
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.BuiltinEnum:
         return self.val
 
 
 class EnumLiteral(Expr):
-    def __init__(self, env, src_ref, val):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, val: rdltypes.UserEnum):
         super().__init__(env, src_ref)
         self.val = val
 
-    def predict_type(self):
+    def predict_type(self) -> Type[rdltypes.UserEnum]:
         return type(self.val)
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         return 64
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.UserEnum:
         return self.val
 
 
 class StructLiteral(Expr):
-    def __init__(self, env, src_ref, struct_type, values):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, struct_type: Type[rdltypes.UserStruct], values: Dict[str, Tuple[Expr, OSourceRef]]):
         super().__init__(env, src_ref)
         self.struct_type = struct_type
         # values is a dict of member_name : (member_expr, member_name_src_ref)
         self.values = values
 
-    def predict_type(self):
+    def predict_type(self) -> Type[rdltypes.UserStruct]:
         for member_name, (member_expr, member_name_src_ref) in self.values.items():
             member_type = member_expr.predict_type()
             if not is_castable(member_type, self.struct_type._members[member_name]):
@@ -134,7 +142,7 @@ class StructLiteral(Expr):
 
         return self.struct_type
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.UserStruct:
         resolved_values = OrderedDict()
         for member_name, (member_expr, member_name_src_ref) in self.values.items():
             resolved_values[member_name] = member_expr.get_value()
@@ -143,23 +151,23 @@ class StructLiteral(Expr):
 
 
 class StringLiteral(Expr):
-    def __init__(self, env, src_ref, val):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, val: str):
         super().__init__(env, src_ref)
         self.val = val
 
-    def predict_type(self):
+    def predict_type(self) -> Type[str]:
         return str
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> str:
         return self.val
 
 
 class ArrayLiteral(Expr):
-    def __init__(self, env, src_ref, elements):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, elements: List[Expr]):
         super().__init__(env, src_ref)
         self.elements = elements
 
-    def predict_type(self):
+    def predict_type(self) -> rdltypes.ArrayPlaceholder:
 
         if not self.elements:
             # Empty array. Element type is indeterminate
@@ -179,7 +187,7 @@ class ArrayLiteral(Expr):
 
         return rdltypes.ArrayPlaceholder(element_type)
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> List[Any]:
         result = []
         for element in self.elements:
             result.append(element.get_value())
@@ -191,36 +199,37 @@ class ExternalLiteral(Expr):
     Expr wrapper for literal value that was not compiled from a source file.
     The value provided is not an expression, but the actual value.
     """
-    def __init__(self, env, value):
+    def __init__(self, env: 'RDLEnvironment', value: rdltypes.RDLValue):
         super().__init__(env, None)
         self.value = value
 
-    def predict_type(self):
+    def predict_type(self) -> rdltypes.PreElabRDLType:
         return rdltypes.get_rdltype(self.value)
 
-    def get_min_eval_width(self):
-        if isinstance(self.value, int):
-            return 64
-        elif isinstance(self.value, bool):
+    def get_min_eval_width(self) -> int:
+        if isinstance(self.value, bool):
             return 1
+        elif isinstance(self.value, int):
+            return 64
         elif rdltypes.is_user_enum(self.value):
             return 64
         else:
             raise RuntimeError
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.RDLValue:
         return self.value
 
 #-------------------------------------------------------------------------------
 # Sequence Operators
 
 class Concatenate(Expr):
-    def __init__(self, env, src_ref, elements):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, elements: List[Expr]):
         super().__init__(env, src_ref)
         self.elements = elements
-        self.type = None
+        self.type = None # type: Union[Type[int], Type[str]]
 
     def predict_type(self):
+        # type: () -> Union[Type[int], Type[str]]
 
         # Get type of first element
         element_iter = iter(self.elements)
@@ -235,17 +244,16 @@ class Concatenate(Expr):
                 )
         if is_castable(element_type, int):
             self.type = int
-            return int
         elif is_castable(element_type, str):
             self.type = str
-            return str
         else:
             self.msg.fatal(
                 "Concatenation operator can only be used for integral or string types",
                 self.src_ref
             )
+        return self.type
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         if self.type == int:
             width = 0
             for element in self.elements:
@@ -255,34 +263,35 @@ class Concatenate(Expr):
         else:
             raise RuntimeError
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> Union[int, str]:
         if self.type == int:
-            result = 0
+            int_result = 0
             for element in self.elements:
                 width = element.get_min_eval_width()
-                result <<= width
-                result |= int(element.get_value())
-            return result
+                int_result <<= width
+                int_result |= int(element.get_value())
+            return int_result
 
         elif self.type == str:
-            result = ""
+            str_result = ""
             for element in self.elements:
-                result += element.get_value()
-            return result
+                str_result += element.get_value()
+            return str_result
 
         else:
             raise RuntimeError
 
 
 class Replicate(Expr):
-    def __init__(self, env, src_ref, reps, concat):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, reps: Expr, concat: Expr):
         super().__init__(env, src_ref)
         self.reps = reps
         self.concat = concat
-        self.type = None
-        self.reps_value = None
+        self.type = None # type: Union[Type[int], Type[str]]
+        self.reps_value = None # type: int
 
     def predict_type(self):
+        # type: () -> Union[Type[int], Type[str]]
 
         if not is_castable(self.reps.predict_type(), int):
             self.msg.fatal(
@@ -300,10 +309,10 @@ class Replicate(Expr):
             return str
         else:
             # All replications contain a nested concatenation
-            # Type check for invalid type is already halded there
+            # Type check for invalid type is already handled there
             raise RuntimeError
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         # Evaluate number of repetitions
         if self.reps_value is None:
             self.reps_value = self.reps.get_value()
@@ -316,7 +325,7 @@ class Replicate(Expr):
         else:
             raise RuntimeError
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> Union[int, str]:
         # Evaluate number of repetitions
         if self.reps_value is None:
             self.reps_value = self.reps.get_value()
@@ -325,17 +334,17 @@ class Replicate(Expr):
             width = self.concat.get_min_eval_width()
             val = int(self.concat.get_value())
 
-            result = 0
+            int_result = 0
             for _ in range(self.reps_value):
-                result <<= width
-                result |= val
+                int_result <<= width
+                int_result |= val
 
-            return result
+            return int_result
 
         elif self.type == str:
-            result = self.concat.get_value()
-            result *= self.reps_value
-            return result
+            str_result = self.concat.get_value()
+            str_result *= self.reps_value
+            return str_result
 
         else:
             raise RuntimeError
@@ -345,12 +354,12 @@ class Replicate(Expr):
 #   +  -  *  /  %  &  |  ^  ^~  ~^
 # Normal expression context rules
 class _BinaryIntExpr(Expr):
-    def __init__(self, env, src_ref, l, r):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, l: Expr, r: Expr):
         super().__init__(env, src_ref)
         self.l = l
         self.r = r
 
-    def predict_type(self):
+    def predict_type(self) -> Type[int]:
         l_type = self.l.predict_type()
         r_type = self.r.predict_type()
         if not is_castable(l_type, int):
@@ -365,14 +374,14 @@ class _BinaryIntExpr(Expr):
             )
         return int
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         return(max(
             self.l.get_min_eval_width(),
             self.r.get_min_eval_width()
         ))
 
 class Add(_BinaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         l = int(self.l.get_value(eval_width))
@@ -380,7 +389,7 @@ class Add(_BinaryIntExpr):
         return truncate_int(l + r, eval_width)
 
 class Sub(_BinaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         l = int(self.l.get_value(eval_width))
@@ -388,7 +397,7 @@ class Sub(_BinaryIntExpr):
         return truncate_int(l - r, eval_width)
 
 class Mult(_BinaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         l = int(self.l.get_value(eval_width))
@@ -396,7 +405,7 @@ class Mult(_BinaryIntExpr):
         return truncate_int(l * r, eval_width)
 
 class Div(_BinaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         l = int(self.l.get_value(eval_width))
@@ -410,7 +419,7 @@ class Div(_BinaryIntExpr):
         return truncate_int(l // r, eval_width)
 
 class Mod(_BinaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         l = int(self.l.get_value(eval_width))
@@ -424,7 +433,7 @@ class Mod(_BinaryIntExpr):
         return truncate_int(l % r, eval_width)
 
 class BitwiseAnd(_BinaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         l = int(self.l.get_value(eval_width))
@@ -432,7 +441,7 @@ class BitwiseAnd(_BinaryIntExpr):
         return truncate_int(l & r, eval_width)
 
 class BitwiseOr(_BinaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         l = int(self.l.get_value(eval_width))
@@ -440,7 +449,7 @@ class BitwiseOr(_BinaryIntExpr):
         return truncate_int(l | r, eval_width)
 
 class BitwiseXor(_BinaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         l = int(self.l.get_value(eval_width))
@@ -448,7 +457,7 @@ class BitwiseXor(_BinaryIntExpr):
         return truncate_int(l ^ r, eval_width)
 
 class BitwiseXnor(_BinaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         l = int(self.l.get_value(eval_width))
@@ -460,11 +469,11 @@ class BitwiseXnor(_BinaryIntExpr):
 #   +  -  ~
 # Normal expression context rules
 class _UnaryIntExpr(Expr):
-    def __init__(self, env, src_ref, n):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, n: Expr):
         super().__init__(env, src_ref)
         self.n = n
 
-    def predict_type(self):
+    def predict_type(self) -> Type[int]:
         op_type = self.n.predict_type()
         if not is_castable(op_type, int):
             self.msg.fatal(
@@ -473,25 +482,25 @@ class _UnaryIntExpr(Expr):
             )
         return int
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         return self.n.get_min_eval_width()
 
 class UnaryPlus(_UnaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         n = int(self.n.get_value(eval_width))
         return truncate_int(n, eval_width)
 
 class UnaryMinus(_UnaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         n = int(self.n.get_value(eval_width))
         return truncate_int(-n, eval_width)
 
 class BitwiseInvert(_UnaryIntExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.get_min_eval_width()
         n = int(self.n.get_value(eval_width))
@@ -505,13 +514,13 @@ class BitwiseInvert(_UnaryIntExpr):
 # Child operands are evaluated in the same width context, sized to the max
 # of either op.
 class _RelationalExpr(Expr):
-    def __init__(self, env, src_ref, l, r):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, l: Expr, r: Expr):
         super().__init__(env, src_ref)
         self.l = l
         self.r = r
-        self.is_numeric = None
+        self.is_numeric = None # type: bool
 
-    def predict_type(self):
+    def predict_type(self) -> Type[bool]:
         l_type = self.l.predict_type()
         r_type = self.r.predict_type()
 
@@ -529,10 +538,10 @@ class _RelationalExpr(Expr):
             )
         return bool
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         return 1
 
-    def get_ops(self):
+    def get_ops(self) -> Tuple[Any, Any]:
 
         if self.is_numeric:
             # New width context. Determine eval_width here
@@ -553,7 +562,7 @@ class _RelationalExpr(Expr):
 
 class _NumericRelationalExpr(_RelationalExpr):
 
-    def predict_type(self):
+    def predict_type(self) -> Type[bool]:
         l_type = self.l.predict_type()
         r_type = self.r.predict_type()
 
@@ -574,46 +583,46 @@ class _NumericRelationalExpr(_RelationalExpr):
 
 
 class Eq(_RelationalExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
         l, r = self.get_ops()
         return l == r
 
 class Neq(_RelationalExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
         l, r = self.get_ops()
         return l != r
 
 class Lt(_NumericRelationalExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
         l, r = self.get_ops()
         return l < r
 
 class Gt(_NumericRelationalExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
         l, r = self.get_ops()
         return l > r
 
 class Leq(_NumericRelationalExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
         l, r = self.get_ops()
         return l <= r
 
 class Geq(_NumericRelationalExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
         l, r = self.get_ops()
         return l >= r
 
 #-------------------------------------------------------------------------------
 # Reduction operators:
 #   &  ~&  |  ~|  ^  ^~  !
-# Result is always 1 bit bool
+# Result is always 1 bit int
 # Creates a new evaluation context
 class _ReductionExpr(Expr):
-    def __init__(self, env, src_ref, n):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, n: Expr):
         super().__init__(env, src_ref)
         self.n = n
 
-    def predict_type(self):
+    def predict_type(self) -> Type[int]:
         op_type = self.n.predict_type()
         if not is_castable(op_type, int):
             self.msg.fatal(
@@ -622,35 +631,35 @@ class _ReductionExpr(Expr):
             )
         return int
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         return 1
 
 class AndReduce(_ReductionExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         eval_width = self.n.get_min_eval_width()
         n = int(self.n.get_value(eval_width))
         n = truncate_int(~n, eval_width)
         return int(n == 0)
 
 class NandReduce(_ReductionExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         eval_width = self.n.get_min_eval_width()
         n = int(self.n.get_value(eval_width))
         n = truncate_int(~n, eval_width)
         return int(n != 0)
 
 class OrReduce(_ReductionExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         n = int(self.n.get_value())
         return int(n != 0)
 
 class NorReduce(_ReductionExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         n = int(self.n.get_value())
         return int(n == 0)
 
 class XorReduce(_ReductionExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         n = int(self.n.get_value())
         v = 0
         while n:
@@ -660,7 +669,7 @@ class XorReduce(_ReductionExpr):
         return v
 
 class XnorReduce(_ReductionExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         n = int(self.n.get_value())
         v = 1
         while n:
@@ -670,25 +679,25 @@ class XnorReduce(_ReductionExpr):
         return v
 
 class BoolNot(_ReductionExpr):
-    def get_value(self, eval_width=None):
-        n = int(self.n.get_value())
-        return not n
-
-    def predict_type(self):
+    def predict_type(self) -> Type[bool]:
         super().predict_type()
         return bool
+
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
+        n = int(self.n.get_value())
+        return not n
 
 #-------------------------------------------------------------------------------
 # Logical boolean operators:
 #   && ||
 # Both operands are self-determined
 class _BoolExpr(Expr):
-    def __init__(self, env, src_ref, l, r):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, l: Expr, r: Expr):
         super().__init__(env, src_ref)
         self.l = l
         self.r = r
 
-    def predict_type(self):
+    def predict_type(self) -> Type[bool]:
         l_type = self.l.predict_type()
         r_type = self.r.predict_type()
         if not is_castable(l_type, bool):
@@ -703,17 +712,17 @@ class _BoolExpr(Expr):
             )
         return bool
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         return 1
 
 class BoolAnd(_BoolExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
         l = bool(self.l.get_value())
         r = bool(self.r.get_value())
         return l and r
 
 class BoolOr(_BoolExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
         l = bool(self.l.get_value())
         r = bool(self.r.get_value())
         return l or r
@@ -723,12 +732,12 @@ class BoolOr(_BoolExpr):
 #   **  <<  >>
 # Righthand operand is self-determined
 class _ExpShiftExpr(Expr):
-    def __init__(self, env, src_ref, l, r):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, l: Expr, r: Expr):
         super().__init__(env, src_ref)
         self.l = l
         self.r = r
 
-    def predict_type(self):
+    def predict_type(self) -> Type[int]:
         l_type = self.l.predict_type()
         r_type = self.r.predict_type()
         if not is_castable(l_type, int):
@@ -743,12 +752,12 @@ class _ExpShiftExpr(Expr):
             )
         return int
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         # Righthand op has no influence in evaluation context
         return self.l.get_min_eval_width()
 
 class Exponent(_ExpShiftExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.l.get_min_eval_width()
         # Right operand is self-determined
@@ -757,7 +766,7 @@ class Exponent(_ExpShiftExpr):
         return truncate_int(int(l ** r), eval_width)
 
 class LShift(_ExpShiftExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.l.get_min_eval_width()
         # Right operand is self-determined
@@ -766,7 +775,7 @@ class LShift(_ExpShiftExpr):
         return truncate_int(l << r, eval_width)
 
 class RShift(_ExpShiftExpr):
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         if eval_width is None:
             eval_width = self.l.get_min_eval_width()
         # Right operand is self-determined
@@ -780,14 +789,14 @@ class RShift(_ExpShiftExpr):
 # Truth expression is self-determined and does not contribute to context
 
 class TernaryExpr(Expr):
-    def __init__(self, env, src_ref, i, j, k):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, i: Expr, j: Expr, k: Expr):
         super().__init__(env, src_ref)
         self.i = i
         self.j = j
         self.k = k
-        self.is_numeric = None
+        self.is_numeric = None # type: bool
 
-    def predict_type(self):
+    def predict_type(self) -> rdltypes.PreElabRDLType:
         t_i = self.i.predict_type()
         if not is_castable(t_i, bool):
             self.msg.fatal(
@@ -799,28 +808,30 @@ class TernaryExpr(Expr):
         t_j = self.j.predict_type()
         t_k = self.k.predict_type()
 
+        typ = None # type: Any
         if is_castable(t_j, int) and is_castable(t_k, int):
             self.is_numeric = True
-            return int
+            typ = int
         elif t_j == t_k:
             # Same types. Inherently compatible
             self.is_numeric = False
-            return t_j
+            typ = t_j
         else:
             # Incompatible
             self.msg.fatal(
                 "True/False results of ternary conditional are not compatible types",
                 self.src_ref
             )
+        return typ
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         # Truth operand has no influence in evaluation context
         return(max(
             self.j.get_min_eval_width(),
             self.k.get_min_eval_width()
         ))
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> Any:
         # i is self-determined
         i = bool(self.i.get_value())
 
@@ -849,7 +860,7 @@ class TernaryExpr(Expr):
 # The cast width determines the result's width
 # Also influences the min eval width of the value expression
 class WidthCast(Expr):
-    def __init__(self, env, src_ref, v, w_expr=None, w_int=64):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, v: Expr, w_expr: Optional[Expr]=None, w_int: int=64):
         super().__init__(env, src_ref)
 
         if w_expr is not None:
@@ -861,7 +872,7 @@ class WidthCast(Expr):
             self.w_expr = None
             self.cast_width = w_int
 
-    def predict_type(self):
+    def predict_type(self) -> Type[int]:
         if self.cast_width is None:
             if not is_castable(self.w_expr.predict_type(), int):
                 self.msg.fatal(
@@ -876,13 +887,13 @@ class WidthCast(Expr):
 
         return int
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         if self.cast_width is None:
             self.cast_width = int(self.w_expr.get_value())
         return self.cast_width
 
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> int:
         # Truncate to cast width instead of eval width
         if self.cast_width is None:
             self.cast_width = int(self.w_expr.get_value())
@@ -901,11 +912,11 @@ class WidthCast(Expr):
 # Boolean cast operator
 
 class BoolCast(Expr):
-    def __init__(self, env, src_ref, n):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, n: Expr):
         super().__init__(env, src_ref)
         self.n = n
 
-    def predict_type(self):
+    def predict_type(self) -> Type[bool]:
         if not is_castable(self.n.predict_type(), bool):
             self.msg.fatal(
                 "Value operand of cast expression cannot be cast to a boolean",
@@ -913,10 +924,10 @@ class BoolCast(Expr):
             )
         return bool
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         return 1
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
         n = int(self.n.get_value())
         return n != 0
 
@@ -924,14 +935,14 @@ class BoolCast(Expr):
 # References
 
 class ParameterRef(Expr):
-    def __init__(self, env, src_ref, param):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, param: 'Parameter'):
         super().__init__(env, src_ref)
         self.param = param
 
-    def predict_type(self):
+    def predict_type(self) -> rdltypes.PreElabRDLType:
         return self.param.param_type
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         if self.param.expr is None:
             self.msg.fatal(
                 "Value for parameter '%s' was never assigned" % self.param.name,
@@ -939,7 +950,7 @@ class ParameterRef(Expr):
             )
         return self.param.expr.get_min_eval_width()
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> Any:
         if self.param.expr is None:
             self.msg.fatal(
                 "Value for parameter '%s' was never assigned" % self.param.name,
@@ -949,12 +960,12 @@ class ParameterRef(Expr):
 
 
 class ArrayIndex(Expr):
-    def __init__(self, env, src_ref, array, index):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, array: Expr, index: Expr):
         super().__init__(env, src_ref)
         self.array = array
         self.index = index
 
-    def predict_type(self):
+    def predict_type(self) -> rdltypes.PreElabRDLType:
         if not is_castable(self.index.predict_type(), int):
             self.msg.fatal(
                 "Array index is not a compatible numeric type",
@@ -967,14 +978,15 @@ class ArrayIndex(Expr):
                 "Cannot index non-array type",
                 self.array.src_ref
             )
+        assert isinstance(array_type, rdltypes.ArrayPlaceholder)
 
         return array_type.element_type
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         # TODO: Need to actually reach in and get eval width of array element
         return 64
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> Any:
         index = self.index.get_value()
         array = self.array.get_value()
         if index >= len(array):
@@ -986,12 +998,12 @@ class ArrayIndex(Expr):
 
 
 class MemberRef(Expr):
-    def __init__(self, env, src_ref, struct, member_name):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, struct: Expr, member_name: str):
         super().__init__(env, src_ref)
         self.struct = struct
         self.member_name = member_name
 
-    def predict_type(self):
+    def predict_type(self): # type: ignore
         struct_type = self.struct.predict_type()
 
         if not rdltypes.is_user_struct(struct_type):
@@ -1009,17 +1021,20 @@ class MemberRef(Expr):
 
         return struct_type._members[self.member_name]
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         # TODO: Need to actually reach in and get eval width of struct member
         return 64
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> Any:
         struct = self.struct.get_value()
         return struct._values[self.member_name]
 
 
+RefElementsType = List[
+    Tuple[str, List[Expr], OSourceRef]
+]
 class InstRef(Expr):
-    def __init__(self, env, ref_root, ref_elements):
+    def __init__(self, env: 'RDLEnvironment', ref_root: comp.Component, ref_elements: RefElementsType):
         super().__init__(env, None) # single src_ref doesn't make sense for InstRef
 
         # Handle to the component definition where ref_elements is relative to
@@ -1038,7 +1053,7 @@ class InstRef(Expr):
         # ]
         self.ref_elements = ref_elements
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: Dict[int, Any]) -> 'InstRef':
         """
         Copy any SourceRef by ref within the ref_elements list when deepcopying
         """
@@ -1060,7 +1075,7 @@ class InstRef(Expr):
                 setattr(result, k, deepcopy(v, memo))
         return result
 
-    def predict_type(self):
+    def predict_type(self) -> Type[comp.Component]:
         """
         Traverse the ref_elements path and determine the component type being
         referenced.
@@ -1084,6 +1099,7 @@ class InstRef(Expr):
 
             # Check array suffixes
             if (isinstance(current_comp, comp.AddressableComponent)) and current_comp.is_array:
+                assert isinstance(current_comp.array_dimensions, list)
                 # is an array
                 if len(array_suffixes) != len(current_comp.array_dimensions):
                     self.msg.fatal(
@@ -1100,7 +1116,7 @@ class InstRef(Expr):
 
         return type(current_comp)
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.ComponentRef:
         """
         Build a resolved ComponentRef container that describes the relative path
         """
@@ -1118,7 +1134,7 @@ class InstRef(Expr):
 
 
 class PropRef(Expr):
-    def __init__(self, env, src_ref, inst_ref, prop_ref_type):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, inst_ref: Expr, prop_ref_type: Type[rdltypes.PropertyReference]):
         super().__init__(env, src_ref)
         # InstRef to the component whose property is being referenced
         self.inst_ref = inst_ref
@@ -1126,7 +1142,7 @@ class PropRef(Expr):
         # PropertyReference class
         self.prop_ref_type = prop_ref_type
 
-    def predict_type(self):
+    def predict_type(self) -> Type[rdltypes.PropertyReference]:
         """
         Predict the type of the inst_ref, and make sure the property being
         referenced is allowed
@@ -1141,7 +1157,7 @@ class PropRef(Expr):
 
         return self.prop_ref_type
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.PropertyReference:
         cref = self.inst_ref.get_value()
         return self.prop_ref_type(self.src_ref, self.env, cref)
 
@@ -1157,13 +1173,13 @@ class PropRef(Expr):
 # When getting value:
 #   Ensures that the expression result gets converted to the resulting type
 class AssignmentCast(Expr):
-    def __init__(self, env, src_ref, v, dest_type):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, v: Expr, dest_type: rdltypes.PreElabRDLType):
         super().__init__(env, src_ref)
 
         self.v = v
         self.dest_type = dest_type
 
-    def predict_type(self):
+    def predict_type(self) -> rdltypes.PreElabRDLType:
         op_type = self.v.predict_type()
 
         if not is_castable(op_type, self.dest_type):
@@ -1174,10 +1190,10 @@ class AssignmentCast(Expr):
 
         return self.dest_type
 
-    def get_min_eval_width(self):
+    def get_min_eval_width(self) -> int:
         return self.v.get_min_eval_width()
 
-    def get_value(self, eval_width=None):
+    def get_value(self, eval_width: Optional[int]=None) -> Any:
         v = self.v.get_value()
 
         if self.dest_type == bool:
@@ -1190,7 +1206,7 @@ class AssignmentCast(Expr):
 
 #===============================================================================
 
-def is_castable(src, dst):
+def is_castable(src: Any, dst: Any) -> bool:
     """
     Check if src type can be cast to dst type
     """

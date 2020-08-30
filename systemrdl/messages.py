@@ -1,8 +1,9 @@
 import sys
 import enum
+from typing import List, Optional, TYPE_CHECKING, Union
 
 from antlr4.Token import CommonToken
-from antlr4 import ParserRuleContext
+from antlr4 import ParserRuleContext, InputStream
 from antlr4.tree.Tree import TerminalNodeImpl
 
 import colorama
@@ -10,6 +11,8 @@ from colorama import Fore, Style
 
 from .preprocessor.preprocessor import PreprocessedInputStream
 from .parser.sa_systemrdl import SA_ErrorListener
+if TYPE_CHECKING:
+    from .preprocessor.segment_map import SegmentMap
 
 # Colorama needs to be initialized to properly work in Windows
 # This is a no-op in other OSes
@@ -31,43 +34,6 @@ class Severity(enum.IntEnum):
     FATAL = 5
 
 #===============================================================================
-class MessageHandler:
-    def __init__(self, printer, min_verbosity=Severity.WARNING):
-        self.printer = printer
-        self.min_verbosity = min_verbosity
-        self.had_error = False
-
-    def message(self, severity, text, src_ref=None):
-        if severity == Severity.NONE:
-            return
-
-        if severity >= Severity.ERROR:
-            self.had_error = True
-
-        if severity < self.min_verbosity:
-            return
-
-        self.printer.print_message(severity, text, src_ref)
-
-        if severity >= Severity.FATAL:
-            raise RDLCompileError(text)
-
-    def debug(self, text):
-        self.message(Severity.DEBUG, text)
-
-    def info(self, text):
-        self.message(Severity.INFO, text)
-
-    def warning(self, text, src_ref=None):
-        self.message(Severity.WARNING, text, src_ref)
-
-    def error(self, text, src_ref=None):
-        self.message(Severity.ERROR, text, src_ref)
-
-    def fatal(self, text, src_ref=None):
-        self.message(Severity.FATAL, text, src_ref)
-
-#===============================================================================
 class SourceRef:
     """
     Reference to a segment of source.
@@ -75,38 +41,38 @@ class SourceRef:
     This is used to provide useful context to the original RDL source when
     reporting compiler messages.
     """
-    def __init__(self, start=None, end=None, filename=None, seg_map=None):
+    def __init__(self, start: Optional[int]=None, end: Optional[int]=None, filename: str=None, seg_map: 'SegmentMap'=None):
 
         #: SegmentMap object that provides character coordinate mapping table
         self.seg_map = seg_map
 
         #: Character position of start of selection
-        self.start = start
+        self.start = start # type: int
 
         #: Character position of end of selection
-        self.end = end
+        self.end = end # type: int
 
         #: Path to file from start of selection
         self.filename = filename
 
         #: Line number of start of selection
-        self.start_line = None
+        self.start_line = None # type: int
 
         #: Column of first character in selection
-        self.start_col = None
+        self.start_col = None # type: int
 
         #: Line number of end of selection
-        self.end_line = None
+        self.end_line = None # type: int
 
         #: Column of last character in selection
-        self.end_col = None
+        self.end_col = None # type: int
 
         #: Raw line of text that corresponds to start_line
-        self.start_line_text = None
+        self.start_line_text = None # type: str
 
         self._coordinates_resolved = False
 
-    def derive_coordinates(self):
+    def derive_coordinates(self) -> None:
         """
         Depending on the compilation source, some members of the SourceRef
         object may be incomplete.
@@ -173,7 +139,7 @@ class SourceRef:
 
 
     @classmethod
-    def from_antlr(cls, antlr_ref):
+    def from_antlr(cls, antlr_ref: Union[CommonToken, TerminalNodeImpl, ParserRuleContext]) -> 'SourceRef':
         # Normalize
         if isinstance(antlr_ref, CommonToken):
             token = antlr_ref
@@ -216,11 +182,11 @@ class MessagePrinter:
     formatting or logging
     """
 
-    def print_message(self, severity, text, src_ref):
+    def print_message(self, severity: Severity, text: str, src_ref: Optional[SourceRef]) -> None:
         lines = self.format_message(severity, text, src_ref)
         self.emit_message(lines)
 
-    def format_message(self, severity, text, src_ref):
+    def format_message(self, severity: Severity, text: str, src_ref: Optional[SourceRef]) -> List[str]:
         """
         Formats the message prior to emitting it.
 
@@ -332,7 +298,7 @@ class MessagePrinter:
         return lines
 
 
-    def emit_message(self, lines):
+    def emit_message(self, lines: List[str]) -> None:
         """
         Emit message.
         Default printer emits messages to stderr
@@ -346,21 +312,58 @@ class MessagePrinter:
         for line in lines:
             print(line, file=sys.stderr)
 
+#===============================================================================
+class MessageHandler:
+    def __init__(self, printer: MessagePrinter, min_verbosity: Severity=Severity.WARNING):
+        self.printer = printer
+        self.min_verbosity = min_verbosity
+        self.had_error = False
+
+    def message(self, severity: Severity, text: str, src_ref: Optional[SourceRef]=None) -> None:
+        if severity == Severity.NONE:
+            return
+
+        if severity >= Severity.ERROR:
+            self.had_error = True
+
+        if severity < self.min_verbosity:
+            return
+
+        self.printer.print_message(severity, text, src_ref)
+
+        if severity >= Severity.FATAL:
+            raise RDLCompileError(text)
+
+    def debug(self, text: str) -> None:
+        self.message(Severity.DEBUG, text)
+
+    def info(self, text: str) -> None:
+        self.message(Severity.INFO, text)
+
+    def warning(self, text: str, src_ref: Optional[SourceRef]=None) -> None:
+        self.message(Severity.WARNING, text, src_ref)
+
+    def error(self, text: str, src_ref: Optional[SourceRef]=None) -> None:
+        self.message(Severity.ERROR, text, src_ref)
+
+    def fatal(self, text: str, src_ref: Optional[SourceRef]=None) -> None:
+        self.message(Severity.FATAL, text, src_ref)
 
 
 class MessageExceptionRaiser(MessagePrinter):
-    def print_message(self, severity, text, src_ref):
+    def print_message(self, severity: Severity, text: str, src_ref: Optional[SourceRef]) -> None:
         if severity >= Severity.ERROR:
             raise ValueError(text)
 
 #===============================================================================
 # Speedy-Antlr error listener
 #===============================================================================
+OffendingAntlrSymbol = Union[CommonToken, TerminalNodeImpl, ParserRuleContext]
 class RdlSaErrorListener(SA_ErrorListener):
-    def __init__(self, msg_handler):
+    def __init__(self, msg_handler: MessageHandler):
         self.msg = msg_handler
 
-    def syntaxError(self, input_stream, offendingSymbol, char_index, line, column, msg):
+    def syntaxError(self, input_stream: InputStream, offendingSymbol: OffendingAntlrSymbol, char_index: int, line: int, column: int, msg: str) -> None:
         if offendingSymbol is not None:
             src_ref = SourceRef.from_antlr(offendingSymbol)
         else:

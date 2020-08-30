@@ -1,91 +1,49 @@
+from typing import Any, Set, Type, Iterable, TYPE_CHECKING, Optional, Dict, List
+
 from .. import component as comp
 from .. import node as m_node
 from .. import rdltypes
 from . import expressions
 
-def get_all_subclasses(cls):
+if TYPE_CHECKING:
+    from ..compiler import RDLEnvironment
+    from ..messages import SourceRef
+
+def get_all_subclasses(cls: type) -> List[type]:
     return cls.__subclasses__() + [
         g for s in cls.__subclasses__()
         for g in get_all_subclasses(s)
     ]
 
-class PropertyRuleBook:
-    def __init__(self, env):
-        self.env = env
-
-        # Auto-discover all properties defined below and load into dict
-        self.rdl_properties = {}
-        for prop in get_all_subclasses(PropertyRule):
-            if prop.__name__.startswith("Prop_"):
-                prop_name = prop.get_name()
-                self.rdl_properties[prop_name] = prop(self.env)
-
-        self.user_properties = {}
-
-        self.rdl_prop_refs = {}
-        for prop_ref in get_all_subclasses(rdltypes.PropertyReference):
-            if prop_ref.__name__.startswith("PropRef_"):
-                prop_name = prop_ref.get_name()
-                self.rdl_prop_refs[prop_name] = prop_ref
-
-    def lookup_property(self, prop_name):
-        if prop_name in self.rdl_properties:
-            return self.rdl_properties[prop_name]
-        elif prop_name in self.user_properties:
-            return self.user_properties[prop_name]
-        else:
-            return None
-
-    def lookup_prop_ref_type(self, prop_name):
-        return self.rdl_prop_refs.get(prop_name, None)
-
-    def register_udp(self, udp, src_ref):
-        if udp.name in self.user_properties:
-            self.env.msg.fatal(
-                "Multiple declarations of user-defined property '%s'"
-                % udp.name,
-                src_ref
-            )
-
-        if udp.name in self.rdl_properties:
-            self.env.msg.fatal(
-                "User-defined property '%s' cannot be the same name as a built-in SystemRDL property"
-                % udp.name,
-                src_ref
-            )
-
-        self.user_properties[udp.name] = udp
-
 #===============================================================================
 # Base property
 #===============================================================================
 class PropertyRule:
-    # List of components this property can be bound to
-    bindable_to = []
+    # Set of components this property can be bound to
+    bindable_to = set() # type: Set[Type[comp.Component]]
 
     # List of valid assignment types. In order of cast preference
-    valid_types = []
+    valid_types = tuple() # type: Iterable[Any]
 
     # Default value if not assigned
-    default = None
+    default = None # type: Any
 
     # Whether dynamic assignments are allowed to be made to this property
-    dyn_assign_allowed = True
+    dyn_assign_allowed= True # type: bool
 
     # Group string in which this property is mutually exclusive
-    mutex_group = None
+    mutex_group = None # type: Optional[str]
 
     #---------------------------------------------------------------------------
-    def __init__(self, env):
+    def __init__(self, env: 'RDLEnvironment'):
         self.env = env
 
     #---------------------------------------------------------------------------
-    @classmethod
-    def get_name(cls):
-        return cls.__name__.replace("Prop_", "")
+    def get_name(self) -> str:
+        return type(self).__name__.replace("Prop_", "")
 
     #---------------------------------------------------------------------------
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Used by the compiler for either local or dynamic prop assignments
         This does the following:
@@ -141,7 +99,7 @@ class PropertyRule:
         comp_def.properties[self.get_name()] = value
 
     #---------------------------------------------------------------------------
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> Any:
         # pylint: disable=unused-argument
         """
         Used when the user queries a property, and it was not explicitly set.
@@ -154,43 +112,43 @@ class PropertyRule:
         return self.default
 
     #---------------------------------------------------------------------------
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
         """
         Used during the validate phase after elaboration.
         Performs checks against the property's value
         """
 
     #---------------------------------------------------------------------------
-    def _validate_ref_width(self, node, value):
+    def _validate_ref_width(self, node: m_node.VectorNode, value: Any) -> None:
         """
         Helper function to check that if value is a vector-like reference,
         that it's width matches the node.
         """
         if isinstance(value, m_node.VectorNode):
-            if node.inst.width != value.inst.width:
+            if node.width != value.width:
                 self.env.msg.error(
                     "%s '%s' references %s '%s''s value but they are not the same width (%d != %d)"
                     % (
-                        type(node.inst.__name__), node.inst_name,
-                        type(value.inst.__name__).lower(), value.inst_name,
+                        type(node.inst).__name__.lower(), node.inst_name,
+                        type(value.inst).__name__.lower(), value.inst_name,
                         node.width, value.width
                     ),
                     node.inst.inst_src_ref
                 )
 
     #---------------------------------------------------------------------------
-    def _validate_ref_width_is_1(self, node, value):
+    def _validate_ref_width_is_1(self, node: m_node.Node, value: Any) -> None:
         """
         Helper function to check that if value is a vector-like reference,
         that it's width is exactly 1.
         """
         if isinstance(value, m_node.VectorNode):
-            if value.inst.width != 1:
+            if value.width != 1:
                 self.env.msg.error(
                     "%s '%s' references %s '%s' but it's width is not 1"
                     % (
-                        type(node.inst.__name__), node.inst_name,
-                        type(value.inst.__name__).lower(), value.inst_name
+                        type(node.inst).__name__.lower(), node.inst_name,
+                        type(value.inst).__name__.lower(), value.inst_name
                     ),
                     node.inst.inst_src_ref
                 )
@@ -201,7 +159,7 @@ class PropertyRuleBoolPair(PropertyRule):
     opposite_property = ""
 
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Side effect: Ensure assignment of the opposite is cleared since it is being
         overridden
@@ -210,7 +168,7 @@ class PropertyRuleBoolPair(PropertyRule):
         if self.opposite_property in comp_def.properties:
             del comp_def.properties[self.opposite_property]
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> bool:
         """
         If not explicitly set, check if the opposite was set first before returning
         default
@@ -228,18 +186,18 @@ class Prop_name(PropertyRule):
     Specifies a more descriptive name
     (5.2.1)
     """
-    bindable_to = (comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal,)
+    bindable_to = {comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal}
     valid_types = (str,)
     default = ""
     dyn_assign_allowed = True
     mutex_group = None
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> str:
         """
         If name is undefined, it is presumed to be the instance name.
         (5.2.1.1)
         """
-        return node.inst.inst_name
+        return node.inst_name
 
 
 class Prop_desc(PropertyRule):
@@ -247,7 +205,7 @@ class Prop_desc(PropertyRule):
     Describes the component’s purpose.
     (5.2.1)
     """
-    bindable_to = (comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal,)
+    bindable_to = {comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal}
     valid_types = (str,)
     default = None
     dyn_assign_allowed = True
@@ -259,35 +217,35 @@ class Prop_dontcompare(PropertyRule):
     against expected results.
     (5.2.2)
     """
-    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile, comp.Field,)
+    bindable_to = {comp.Addrmap, comp.Reg, comp.Regfile, comp.Field}
     valid_types = (int, bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "O"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
         donttest = node.get_property("donttest")
 
         if isinstance(node, m_node.FieldNode):
             # 5.2.2.1-a: If value is a bit mask, the mask shall have the same width
             # as the field
             if isinstance(value, int):
-                if value >= (1 << node.inst.width):
+                if value >= (1 << node.width):
                     self.env.msg.error(
                         "Bit mask (%d) of property 'dontcompare' exceeds width (%d) of field '%s'"
-                        % (value, node.inst.width, node.inst.inst_name),
+                        % (value, node.width, node.inst_name),
                         node.inst.inst_src_ref
                     )
 
             # Normalize values to masks
             if isinstance(value, bool):
                 if value:
-                    value = (1 << node.inst.width) - 1
+                    value = (1 << node.width) - 1
                 else:
                     value = 0
             if isinstance(donttest, bool):
                 if donttest:
-                    donttest = (1 << node.inst.width) - 1
+                    donttest = (1 << node.width) - 1
                 else:
                     donttest = 0
 
@@ -312,15 +270,15 @@ class Prop_dontcompare(PropertyRule):
             if not isinstance(value, bool):
                 self.env.msg.error(
                     "Property 'dontcompare' expects a boolean for non-field types. Got an integer in '%s'"
-                    % (node.inst.inst_name),
+                    % (node.inst_name),
                     node.inst.inst_src_ref
                 )
 
             # 5.2.2.1-c.1: dontcompare/donttest cannot both be set to true
             if donttest and value:
                 self.env.msg.error(
-                    "Properties dontcompare/donttest cannot both be set to true."
-                    % (node.inst.inst_name),
+                    "Properties dontcompare/donttest cannot both be set to true in '%s'"
+                    % (node.inst_name),
                     node.inst.inst_src_ref
                 )
 
@@ -331,21 +289,21 @@ class Prop_donttest(PropertyRule):
     Indicates the component is not included in structural testing.
     (5.2.2)
     """
-    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile, comp.Field,)
+    bindable_to = {comp.Addrmap, comp.Reg, comp.Regfile, comp.Field}
     valid_types = (int, bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "O"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
         if isinstance(node, m_node.FieldNode):
             # 5.2.2.1-a: If value is a bit mask, the mask shall have the same width
             # as the field
             if isinstance(value, int):
-                if value >= (1 << node.inst.width):
+                if value >= (1 << node.width):
                     self.env.msg.error(
                         "Bit mask (%d) of property 'donttest' exceeds width (%d) of field '%s'"
-                        % (value, node.inst.width, node.inst.inst_name),
+                        % (value, node.width, node.inst_name),
                         node.inst.inst_src_ref
                     )
         else:
@@ -358,7 +316,7 @@ class Prop_donttest(PropertyRule):
             if not isinstance(value, bool):
                 self.env.msg.error(
                     "Property 'donttest' expects a boolean for non-field types. Got an integer in '%s'"
-                    % (node.inst.inst_name),
+                    % (node.inst_name),
                     node.inst.inst_src_ref
                 )
 
@@ -368,51 +326,51 @@ class Prop_ispresent(PropertyRule):
     from the final specification.
     (5.3)
     """
-    bindable_to = (comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal,)
+    bindable_to = {comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal}
     valid_types = (bool,)
     default = True
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_errextbus(PropertyRule):
-    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile,)
+    bindable_to = {comp.Addrmap, comp.Reg, comp.Regfile}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = None
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
         # 10.6.1-h: errextbus is only valid for external registers
         if (node.inst.external is False) and (value is True):
             self.env.msg.error(
                 "The 'errextbus' property is set to 'true', but instance '%s' is not external"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
 class Prop_hdl_path(PropertyRule):
-    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile,)
+    bindable_to = {comp.Addrmap, comp.Reg, comp.Regfile}
     valid_types = (str,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hdl_path_gate(PropertyRule):
-    bindable_to = (comp.Addrmap, comp.Reg, comp.Regfile,)
+    bindable_to = {comp.Addrmap, comp.Reg, comp.Regfile}
     valid_types = (str,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hdl_path_gate_slice(PropertyRule):
-    bindable_to = (comp.Field, comp.Mem,)
+    bindable_to = {comp.Field, comp.Mem}
     valid_types = (rdltypes.ArrayPlaceholder(str),)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hdl_path_slice(PropertyRule):
-    bindable_to = (comp.Field, comp.Mem,)
+    bindable_to = {comp.Field, comp.Mem}
     valid_types = (rdltypes.ArrayPlaceholder(str),)
     default = None
     dyn_assign_allowed = True
@@ -427,24 +385,25 @@ class Prop_signalwidth(PropertyRule):
     Width of the signal.
     (8.2)
     """
-    bindable_to = (comp.Signal,)
+    bindable_to = {comp.Signal}
     valid_types = (int,)
     default = None
     dyn_assign_allowed = False
     mutex_group = None
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> Optional[int]:
         """
         If not explicitly set, inherits the instantiation's width
         """
-        return node.inst.width
+        assert isinstance(node, m_node.SignalNode)
+        return node.width
 
 class Prop_sync(PropertyRuleBoolPair):
     """
     Signal is synchronous to the clock of the component.
     (8.2)
     """
-    bindable_to = (comp.Signal,)
+    bindable_to = {comp.Signal}
     valid_types = (bool,)
     default = True
     dyn_assign_allowed = True
@@ -457,7 +416,7 @@ class Prop_async(PropertyRuleBoolPair):
     Signal is asynchronous to the clock of the component.
     (8.2)
     """
-    bindable_to = (comp.Signal,)
+    bindable_to = {comp.Signal}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -472,7 +431,7 @@ class Prop_cpuif_reset(PropertyRule):
     parameter only controls the CPU interface of a generated slave.
     (8.2)
     """
-    bindable_to = (comp.Signal,)
+    bindable_to = {comp.Signal}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -484,7 +443,7 @@ class Prop_field_reset(PropertyRule):
     is not defined, this reverts to the default reset signal.
     (8.2)
     """
-    bindable_to = (comp.Signal,)
+    bindable_to = {comp.Signal}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -495,7 +454,7 @@ class Prop_activelow(PropertyRule):
     Signal is active low (state of 0 means ON).
     (8.2)
     """
-    bindable_to = (comp.Signal,)
+    bindable_to = {comp.Signal}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -506,7 +465,7 @@ class Prop_activehigh(PropertyRule):
     Signal is active high (state of 1 means ON).
     (8.2)
     """
-    bindable_to = (comp.Signal,)
+    bindable_to = {comp.Signal}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -524,7 +483,7 @@ class Prop_hw(PropertyRule):
     Design’s ability to sample/update a field.
     (9.4)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (rdltypes.AccessType,)
     default = rdltypes.AccessType.rw
     dyn_assign_allowed = False
@@ -535,7 +494,7 @@ class Prop_sw(PropertyRule):
     Programmer’s ability to read/write a field.
     (9.4)
     """
-    bindable_to = (comp.Field, comp.Mem,)
+    bindable_to = {comp.Field, comp.Mem}
     valid_types = (rdltypes.AccessType,)
     default = rdltypes.AccessType.rw
     dyn_assign_allowed = True
@@ -549,13 +508,15 @@ class Prop_next(PropertyRule):
     The next value of the field; the D-input for flip-flops.
     (9.5)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Field, comp.Signal, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+
         # 9.5.1-e: next cannot be self-referencing
         if isinstance(value, rdltypes.PropertyReference):
             ref_node = value.node
@@ -565,7 +526,7 @@ class Prop_next(PropertyRule):
         if node.get_path() == ref_node.get_path():
             self.env.msg.error(
                 "Field '%s' cannot reference itself in next property"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
@@ -577,19 +538,20 @@ class Prop_reset(PropertyRule):
     The reset value for the field when resetsignal is asserted.
     (9.5)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int, comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         if type(value) == int:
             # 9.5.1-c: The reset value cannot be larger than can fit in the field
-            if value >= (1 << node.inst.width):
+            if value >= (1 << node.width):
                 self.env.msg.error(
                     "The reset value (%d) of field '%s' cannot fit within it's width (%d)"
-                    % (value, node.inst.inst_name, node.inst.width),
+                    % (value, node.inst_name, node.width),
                     node.inst.inst_src_ref
                 )
         elif isinstance(value, m_node.FieldNode):
@@ -597,7 +559,7 @@ class Prop_reset(PropertyRule):
             if node.get_path() == value.get_path():
                 self.env.msg.error(
                     "Field '%s' cannot reference itself in reset property"
-                    % (node.inst.inst_name),
+                    % (node.inst_name),
                     node.inst.inst_src_ref
                 )
         elif isinstance(value, m_node.SignalNode):
@@ -615,7 +577,7 @@ class Prop_resetsignal(PropertyRule):
     Reference to the signal used to reset the field
     (9.5)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Signal,)
     default = None
     dyn_assign_allowed = True
@@ -630,13 +592,13 @@ class Prop_rclr(PropertyRule):
     Clear on read (field = 0).
     (9.6)6
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "P"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Overrides other related properties
         """
@@ -646,7 +608,7 @@ class Prop_rclr(PropertyRule):
         if "onread" in comp_def.properties:
             del comp_def.properties["onread"]
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> bool:
         """
         If not explicitly set, check if onread sets the equivalent
         """
@@ -660,13 +622,13 @@ class Prop_rset(PropertyRule):
     Set on read (field = all 1’s).
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "P"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Overrides other related properties
         """
@@ -676,7 +638,7 @@ class Prop_rset(PropertyRule):
         if "onread" in comp_def.properties:
             del comp_def.properties["onread"]
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> bool:
         """
         If not explicitly set, check if onread sets the equivalent
         """
@@ -690,13 +652,13 @@ class Prop_onread(PropertyRule):
     Read side-effect.
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (rdltypes.OnReadType,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "P"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Overrides other related properties
         """
@@ -706,7 +668,7 @@ class Prop_onread(PropertyRule):
         if "rset" in comp_def.properties:
             del comp_def.properties["rset"]
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> Optional[rdltypes.OnReadType]:
         """
         If not explicitly set, check if rset or rclr imply the value
         """
@@ -717,12 +679,13 @@ class Prop_onread(PropertyRule):
         else:
             return self.default
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         # 9.6.1-i A field with an onread property shall have software read access
         if (value is not None) and not node.is_sw_readable:
             self.env.msg.error(
                 "Field '%s' has an 'onread' property but does not have software read access"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
@@ -730,7 +693,7 @@ class Prop_onread(PropertyRule):
         if (node.inst.external is False) and (value == rdltypes.OnReadType.ruser):
             self.env.msg.error(
                 "The 'onread' property is set to 'ruser', but instance '%s' is not external"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
@@ -740,13 +703,13 @@ class Prop_woclr(PropertyRule):
     Write one to clear (field = field & ~write_data).
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "B"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Overrides other related properties
         """
@@ -756,7 +719,7 @@ class Prop_woclr(PropertyRule):
         if "onwrite" in comp_def.properties:
             del comp_def.properties["onwrite"]
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> bool:
         """
         If not explicitly set, check if onwrite sets the equivalent
         """
@@ -770,13 +733,13 @@ class Prop_woset(PropertyRule):
     Write one to set (field = field | write_data).
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "B"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Overrides other related properties
         """
@@ -786,7 +749,7 @@ class Prop_woset(PropertyRule):
         if "onwrite" in comp_def.properties:
             del comp_def.properties["onwrite"]
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> bool:
         """
         If not explicitly set, check if onread sets the equivalent
         """
@@ -800,13 +763,13 @@ class Prop_onwrite(PropertyRule):
     Write side-effect
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (rdltypes.OnWriteType,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "B"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Overrides other related properties
         """
@@ -816,7 +779,7 @@ class Prop_onwrite(PropertyRule):
         if "woset" in comp_def.properties:
             del comp_def.properties["woset"]
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> Optional[rdltypes.OnWriteType]:
         """
         If not explicitly set, check if woset or woclr imply the value
         """
@@ -827,12 +790,13 @@ class Prop_onwrite(PropertyRule):
         else:
             return self.default
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         # 9.6.1-l A field with an onwrite property shall have software write access.
         if (value is not None) and not node.is_sw_writable:
             self.env.msg.error(
                 "Field '%s' has an 'onwrite' property but does not have software write access"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
@@ -840,7 +804,7 @@ class Prop_onwrite(PropertyRule):
         if (node.inst.external is False) and (value == rdltypes.OnWriteType.wuser):
             self.env.msg.error(
                 "The 'onwrite' property is set to 'wuser', but instance '%s' is not external"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
@@ -851,13 +815,13 @@ class Prop_swwe(PropertyRule):
     Field is writable if signal/field/value is True
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "R"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
         self._validate_ref_width_is_1(node, value)
 
 class Prop_swwel(PropertyRule):
@@ -866,13 +830,13 @@ class Prop_swwel(PropertyRule):
     Field is writable if signal/field/value is False
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "R"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
         self._validate_ref_width_is_1(node, value)
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -882,7 +846,7 @@ class Prop_swmod(PropertyRule):
     modified by software
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -894,7 +858,7 @@ class Prop_swacc(PropertyRule):
     accessed by software
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -908,27 +872,28 @@ class Prop_singlepulse(PropertyRule):
     shall be specified as 0
     (9.6)
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         # 9.6.1-g: singlepulse fields shall be instantiated with a width of 1
         # and the reset value shall be specified as 0
         if value:
-            if node.inst.width != 1:
+            if node.width != 1:
                 self.env.msg.error(
                     "Field '%s' marked as 'singlepulse' shall have width of 1"
-                    % (node.inst.inst_name),
+                    % (node.inst_name),
                     node.inst.inst_src_ref
                 )
 
             if node.get_property('reset') != 0:
                 self.env.msg.error(
                     "Field '%s' marked as 'singlepulse' shall have a reset value of 0"
-                    % (node.inst.inst_name),
+                    % (node.inst_name),
                     node.inst.inst_src_ref
                 )
 
@@ -943,7 +908,7 @@ class Prop_singlepulse(PropertyRule):
                 if onwrite in illegal_onwrite:
                     self.env.msg.error(
                         "Field '%s' marked as 'singlepulse' has conflicting 'onwrite' value of '%s'"
-                        % (node.inst.inst_name, onwrite.name),
+                        % (node.inst_name, onwrite.name),
                         node.inst.inst_src_ref
                     )
 
@@ -952,66 +917,68 @@ class Prop_singlepulse(PropertyRule):
 #-------------------------------------------------------------------------------
 
 class Prop_we(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         if value and (node.get_property('hw') not in (rdltypes.AccessType.rw, rdltypes.AccessType.w)):
             self.env.msg.error(
                 "Property 'we' is 'true' on field '%s', but the field is not writable by hardware"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
         if value and not node.implements_storage:
             self.env.msg.error(
                 "Use of 'we' property on field '%s' that does not implement storage does not make sense"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
 class Prop_wel(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         if value and (node.get_property('hw') not in (rdltypes.AccessType.rw, rdltypes.AccessType.w)):
             self.env.msg.error(
                 "Property 'we' is 'true' on field '%s', but the field is not writable by hardware"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
         if value and not node.implements_storage:
             self.env.msg.error(
                 "Use of 'wel' property on field '%s' that does not implement storage does not make sense"
-                % (node.inst.inst_name),
+                % (node.inst_name),
                 node.inst.inst_src_ref
             )
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_anded(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_ored(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_xored(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -1019,28 +986,29 @@ class Prop_xored(PropertyRule):
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_fieldwidth(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int,)
     default = None
     dyn_assign_allowed = False
     mutex_group = None
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> Optional[int]:
         """
         If not explicitly set, inherits the instantiation's width
         """
-        return node.inst.width
+        assert isinstance(node, m_node.FieldNode)
+        return node.width
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwclr(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_hwset(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -1048,23 +1016,25 @@ class Prop_hwset(PropertyRule):
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwenable(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
 
 class Prop_hwmask(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
 
 
@@ -1073,7 +1043,7 @@ class Prop_hwmask(PropertyRule):
 #-------------------------------------------------------------------------------
 
 class Prop_counter(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
@@ -1083,13 +1053,13 @@ class Prop_threshold(PropertyRule):
     """
     alias of incrthreshold.
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Set both alias and actual value
         """
@@ -1100,13 +1070,13 @@ class Prop_saturate(PropertyRule):
     """
     alias of incrsaturate.
     """
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Set both alias and actual value
         """
@@ -1114,13 +1084,13 @@ class Prop_saturate(PropertyRule):
         comp_def.properties['incrsaturate'] = comp_def.properties['saturate']
 
 class Prop_incrthreshold(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Set both alias and actual value
         """
@@ -1128,13 +1098,13 @@ class Prop_incrthreshold(PropertyRule):
         comp_def.properties['threshold'] = comp_def.properties['incrthreshold']
 
 class Prop_incrsaturate(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         """
         Set both alias and actual value
         """
@@ -1142,70 +1112,70 @@ class Prop_incrsaturate(PropertyRule):
         comp_def.properties['saturate'] = comp_def.properties['incrsaturate']
 
 class Prop_overflow(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_underflow(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_incr(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_incrvalue(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int, comp.Signal, comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "F"
 
 class Prop_incrwidth(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "F"
 
 class Prop_decrvalue(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int, comp.Signal, comp.Field,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "G"
 
 class Prop_decr(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_decrwidth(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "G"
 
 class Prop_decrsaturate(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_decrthreshold(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
@@ -1216,21 +1186,20 @@ class Prop_decrthreshold(PropertyRule):
 #-------------------------------------------------------------------------------
 
 class Prop_intr(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "E"
 
 class Prop_intr_type(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (rdltypes.InterruptType,)
     default = rdltypes.InterruptType.level
     dyn_assign_allowed = True
     mutex_group = None
 
-    @classmethod
-    def get_name(cls):
+    def get_name(self) -> str:
         # Interrupt modifier type is a "special" hidden property
         # Intentinally override the property name to something that is impossible
         # to define in RDL and collide with
@@ -1238,60 +1207,64 @@ class Prop_intr_type(PropertyRule):
         return "intr type"
 
 class Prop_enable(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
 
 class Prop_mask(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
 
 class Prop_haltenable(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
 
 class Prop_haltmask(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (comp.Field, comp.Signal,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
 
 class Prop_sticky(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "I"
 
 class Prop_stickybit(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "I"
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> bool:
         """
         Unless specified otherwise, intr fields are implicitly stickybit
         """
@@ -1308,31 +1281,32 @@ class Prop_stickybit(PropertyRule):
 # Misc properties
 #-------------------------------------------------------------------------------
 class Prop_encode(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (rdltypes.UserEnum,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         # 9.10.1-b: The enumeration’s values shall fit inside the field width.
         enum_max = max(map(int, value))
-        if enum_max >= (1 << node.inst.width):
+        if enum_max >= (1 << node.width):
             self.env.msg.error(
                 "Field '%s' is not wide enough to encode as enum '%s'"
-                % (node.inst.inst_name, value.__name__),
+                % (node.inst_name, value.__name__),
                 node.inst.inst_src_ref
             )
 
 class Prop_precedence(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (rdltypes.PrecedenceType,)
     default = rdltypes.PrecedenceType.sw
     dyn_assign_allowed = True
     mutex_group = None
 
 class Prop_paritycheck(PropertyRule):
-    bindable_to = (comp.Field,)
+    bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
@@ -1346,7 +1320,7 @@ class Prop_regwidth(PropertyRule):
     """
     The bit-width of the register (power of two).
     """
-    bindable_to = (comp.Reg,)
+    bindable_to = {comp.Reg}
     valid_types = (int,)
     default = 32
     dyn_assign_allowed = False
@@ -1357,13 +1331,13 @@ class Prop_accesswidth(PropertyRule):
     The minimum software access width (power of two) operation that may be
     performed on the register.
     """
-    bindable_to = (comp.Reg,)
+    bindable_to = {comp.Reg}
     valid_types = (int,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> int:
         """
         10.6.1.d: The default value of the accesswidth property shall be
         identical to the width of the register.
@@ -1371,7 +1345,7 @@ class Prop_accesswidth(PropertyRule):
         return node.get_property('regwidth')
 
 class Prop_shared(PropertyRule):
-    bindable_to = (comp.Reg,)
+    bindable_to = {comp.Reg}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
@@ -1382,14 +1356,14 @@ class Prop_shared(PropertyRule):
 #===============================================================================
 
 class Prop_mementries(PropertyRule):
-    bindable_to = (comp.Mem,)
+    bindable_to = {comp.Mem}
     valid_types = (int,)
     default = 1
     dyn_assign_allowed = False
     mutex_group = None
 
 class Prop_memwidth(PropertyRule):
-    bindable_to = (comp.Mem,)
+    bindable_to = {comp.Mem}
     valid_types = (int,)
     default = 32
     dyn_assign_allowed = False
@@ -1400,7 +1374,7 @@ class Prop_memwidth(PropertyRule):
 #===============================================================================
 
 class Prop_alignment(PropertyRule):
-    bindable_to = (comp.Addrmap, comp.Regfile,)
+    bindable_to = {comp.Addrmap, comp.Regfile}
     valid_types = (int,)
     default = None
     dyn_assign_allowed = False
@@ -1415,7 +1389,7 @@ class Prop_alignment(PropertyRule):
     # in order to distinguish it as unspecified by the user.
 
 class Prop_sharedextbus(PropertyRule):
-    bindable_to = (comp.Addrmap, comp.Regfile,)
+    bindable_to = {comp.Addrmap, comp.Regfile}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
@@ -1425,7 +1399,7 @@ class Prop_sharedextbus(PropertyRule):
 #===============================================================================
 
 class Prop_bigendian(PropertyRuleBoolPair):
-    bindable_to = (comp.Addrmap,)
+    bindable_to = {comp.Addrmap}
     valid_types = (bool,)
     default = False # Default both to false unless one is explicitly set
     dyn_assign_allowed = True
@@ -1434,7 +1408,7 @@ class Prop_bigendian(PropertyRuleBoolPair):
     opposite_property = "littleendian"
 
 class Prop_littleendian(PropertyRuleBoolPair):
-    bindable_to = (comp.Addrmap,)
+    bindable_to = {comp.Addrmap}
     valid_types = (bool,)
     default = False # Default both to false unless one is explicitly set
     dyn_assign_allowed = True
@@ -1443,7 +1417,7 @@ class Prop_littleendian(PropertyRuleBoolPair):
     opposite_property = "bigendian"
 
 class Prop_addressing(PropertyRule):
-    bindable_to = (comp.Addrmap,)
+    bindable_to = {comp.Addrmap}
     valid_types = (rdltypes.AddressingType,)
     default = rdltypes.AddressingType.regalign
     dyn_assign_allowed = False
@@ -1454,21 +1428,21 @@ class Prop_rsvdset(PropertyRule):
     If true, the read value of all fields not explicitly defined is set to 1
     otherwise, it is set to 0.
     """
-    bindable_to = (comp.Addrmap,)
+    bindable_to = {comp.Addrmap}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = "Q"
 
 class Prop_rsvdsetX(PropertyRule):
-    bindable_to = (comp.Addrmap,)
+    bindable_to = {comp.Addrmap}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
     mutex_group = "Q"
 
 class Prop_msb0(PropertyRuleBoolPair):
-    bindable_to = (comp.Addrmap,)
+    bindable_to = {comp.Addrmap}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
@@ -1477,7 +1451,7 @@ class Prop_msb0(PropertyRuleBoolPair):
     opposite_property = "lsb0"
 
 class Prop_lsb0(PropertyRuleBoolPair):
-    bindable_to = (comp.Addrmap,)
+    bindable_to = {comp.Addrmap}
     valid_types = (bool,)
     default = True
     dyn_assign_allowed = False
@@ -1487,7 +1461,7 @@ class Prop_lsb0(PropertyRuleBoolPair):
 
 #-------------------------------------------------------------------------------
 class Prop_bridge(PropertyRule):
-    bindable_to = (comp.Addrmap,)
+    bindable_to = {comp.Addrmap}
     valid_types = (bool,)
     default = False
     dyn_assign_allowed = False
@@ -1498,7 +1472,7 @@ class Prop_bridge(PropertyRule):
 #===============================================================================
 
 class UserProperty(PropertyRule):
-    def __init__(self, env, name, bindable_to, valid_types, default=None, constr_componentwidth=False):
+    def __init__(self, env: 'RDLEnvironment', name: str, bindable_to: set, valid_types: tuple, default: Any=None, constr_componentwidth: bool=False):
         super().__init__(env)
 
         self.name = name
@@ -1507,11 +1481,11 @@ class UserProperty(PropertyRule):
         self.default = default
         self.constr_componentwidth = constr_componentwidth
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.name
 
 
-    def assign_value(self, comp_def, value, src_ref):
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
         # Property assignments with no rhs show up as None here
         # For user-defined properties, this implies the default value
         # (15.2.2)
@@ -1525,14 +1499,14 @@ class UserProperty(PropertyRule):
 
         super().assign_value(comp_def, value, src_ref)
 
-    def get_default(self, node):
+    def get_default(self, node: m_node.Node) -> Any:
         # pylint: disable=unused-argument
 
         # If a user-defined property is not explicitly assigned, then it
         # does not get bound with its default value
         return None
 
-    def validate(self, node, value):
+    def validate(self, node: m_node.Node, value: Any) -> None:
         if self.constr_componentwidth:
             # 15.1.1-g: If constraint is set to componentwidth, the assigned
             #   value of the property shall not have a value of 1 for any bit
@@ -1541,10 +1515,10 @@ class UserProperty(PropertyRule):
             # Spec does not specify, but assuming this check gets ignored for
             # non-vector nodes
             if isinstance(node, m_node.VectorNode):
-                if value >= (1 << node.inst.width):
+                if value >= (1 << node.width):
                     self.env.msg.error(
                         "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
-                        % (value, self.name, node.inst.width, node.inst.inst_name),
+                        % (value, self.name, node.width, node.inst_name),
                         node.inst.inst_src_ref
                     )
 
@@ -1575,11 +1549,11 @@ class PropRef_xored(rdltypes.PropertyReference):
 # Counter
 #-------------------------------------------------------------------------------
 class CounterPropRef(rdltypes.PropertyReference):
-    def _validate(self):
+    def _validate(self) -> None:
         if not self.node.get_property("counter"):
             self.env.msg.error(
                 "Property reference '%s' is illegal because '%s' is not a counter"
-                % (self.name, self.node.inst.inst_name),
+                % (self.name, self.node.inst_name),
                 self.src_ref
             )
 
@@ -1685,3 +1659,55 @@ class PropRef_reset(rdltypes.PropertyReference):
 
 class PropRef_resetsignal(rdltypes.PropertyReference):
     allowed_inst_type = comp.Field
+
+#===============================================================================
+# Property Rulebook
+#===============================================================================
+
+class PropertyRuleBook:
+    def __init__(self, env: 'RDLEnvironment'):
+        self.env = env
+
+        # Auto-discover all properties defined below and load into dict
+        self.rdl_properties = {} # type: Dict[str, PropertyRule]
+        for prop in get_all_subclasses(PropertyRule):
+            if prop.__name__.startswith("Prop_"):
+                prop_inst = prop(self.env)
+                self.rdl_properties[prop_inst.get_name()] = prop(self.env)
+
+        self.user_properties = {} # type: Dict[str, UserProperty]
+
+        self.rdl_prop_refs = {} # type: Dict[str, Type[rdltypes.PropertyReference]]
+        for prop_ref in get_all_subclasses(rdltypes.PropertyReference):
+            if prop_ref.__name__.startswith("PropRef_"):
+                prop_name = prop_ref.get_name() # type: ignore
+                self.rdl_prop_refs[prop_name] = prop_ref
+
+    def lookup_property(self, prop_name: str) -> Optional[PropertyRule]:
+        if prop_name in self.rdl_properties:
+            return self.rdl_properties[prop_name]
+        elif prop_name in self.user_properties:
+            return self.user_properties[prop_name]
+        else:
+            return None
+
+    def lookup_prop_ref_type(self, prop_ref_name):
+        # type: (str) -> Optional[Type[rdltypes.PropertyReference]]
+        return self.rdl_prop_refs.get(prop_ref_name, None)
+
+    def register_udp(self, udp: UserProperty, src_ref: 'SourceRef') -> None:
+        if udp.name in self.user_properties:
+            self.env.msg.fatal(
+                "Multiple declarations of user-defined property '%s'"
+                % udp.name,
+                src_ref
+            )
+
+        if udp.name in self.rdl_properties:
+            self.env.msg.fatal(
+                "User-defined property '%s' cannot be the same name as a built-in SystemRDL property"
+                % udp.name,
+                src_ref
+            )
+
+        self.user_properties[udp.name] = udp

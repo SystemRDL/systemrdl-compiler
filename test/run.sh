@@ -22,9 +22,10 @@ python=$venv_bin/python
 pytest=$venv_bin/pytest
 coverage=$venv_bin/coverage
 pylint=$venv_bin/pylint
+mypy=$venv_bin/mypy
 
 # Install test dependencies
-$python -m pip install pytest pytest-cov coverage pylint
+$python -m pip install pytest pytest-cov coverage pylint mypy
 
 # Install dut
 export SYSTEMRDL_REQUIRE_BINARY_BUILD=1
@@ -45,3 +46,6 @@ $python $this_dir/../examples/print_hierarchy.py $this_dir/../examples/atxmega_s
 
 # Run lint
 $pylint --rcfile $this_dir/pylint.rc systemrdl | tee $this_dir/lint.rpt
+
+# Run static type checking
+$mypy $this_dir/../systemrdl

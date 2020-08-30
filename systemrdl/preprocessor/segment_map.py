@@ -1,11 +1,58 @@
+from typing import Tuple, List, Union, Optional
+
 import colorama
+
+class Segment:
+    """
+    Base class for various segment map segments.
+    Not to be used directly
+    """
+    def __init__(self, start: int, end: int, src_start: int, src_end: int, src: Union[str, 'SegmentMap'], incl_ref: Optional['IncludeRef']=None):
+
+        # start/end offset of resulting text
+        self.start = start
+        self.end = end
+
+        # start/end offset of original text
+        # Offsets are relative to src
+        self.src_start = src_start
+        self.src_end = src_end
+
+        # where the original text came from
+        # If str, then this is a file path
+        # otherwise this is another SegmentMap
+        self.src = src
+
+        # IncludeRef object that describes from where this segment was included
+        self.incl_ref = incl_ref
+
+class UnalteredSegment(Segment):
+    """
+    Segment of unaltered text
+    """
+
+class MacroSegment(Segment):
+    """
+    Segment of text that was the result of a macro transformation
+    """
+
+class IncludeRef:
+    def __init__(self, start: int, end: int, path: str, parent: Optional['IncludeRef']=None):
+        # Location of the `include statement
+        self.start = start
+        self.end = end
+        self.path = path
+
+        # Reference to parent IncludeRef if nested include
+        self.parent = parent
+
 
 class SegmentMap:
 
-    def __init__(self):
-        self.segments = []
+    def __init__(self) -> None:
+        self.segments = [] # type: List[Segment]
 
-    def derive_source_offset(self, offset, is_end=False):
+    def derive_source_offset(self, offset: int, is_end: bool=False) -> Tuple[int, str, IncludeRef]:
         """
         Given a post-preprocessed coordinate, derives the corresponding coordinate
         in the original source file.
@@ -50,52 +97,7 @@ class SegmentMap:
         )
 
 
-class Segment:
-    """
-    Base class for various segment map segments.
-    Not to be used directly
-    """
-    def __init__(self, start, end, src_start, src_end, src, incl_ref=None):
-
-        # start/end offset of resulting text
-        self.start = start
-        self.end = end
-
-        # start/end offset of original text
-        # Offsets are relative to src
-        self.src_start = src_start
-        self.src_end = src_end
-
-        # where the original text came from
-        # If str, then this is a file path
-        # otherwise this is another SegmentMap
-        self.src = src
-
-        # IncludeRef object that describes from where this segment was included
-        self.incl_ref = incl_ref
-
-class UnalteredSegment(Segment):
-    """
-    Segment of unaltered text
-    """
-
-class MacroSegment(Segment):
-    """
-    Segment of text that was the result of a macro transformation
-    """
-
-class IncludeRef:
-    def __init__(self, start, end, path, parent=None):
-        # Location of the `include statement
-        self.start = start
-        self.end = end
-        self.path = path
-
-        # Reference to parent IncludeRef if nested include
-        self.parent = parent
-
-
-def print_segment_debug(text, smap): # pragma: no cover
+def print_segment_debug(text: str, smap: SegmentMap) -> None: # pragma: no cover
     colors = (
         colorama.Back.RED,
         colorama.Back.GREEN,
