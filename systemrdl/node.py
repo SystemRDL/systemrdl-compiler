@@ -1,6 +1,7 @@
 import re
 import itertools
 from copy import deepcopy
+from collections import deque
 from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Callable, Dict
 
 from . import component as comp
@@ -536,21 +537,21 @@ class Node:
         """
 
         # Collect path segments using default args to ensure paths can be compared
-        ref_segs = ref.get_path_segments()
-        self_segs = self.get_path_segments()
+        ref_segs = deque(ref.get_path_segments())
+        self_segs = deque(self.get_path_segments())
 
         # collect segments as-specified by the user
-        self_segs_fmt = self.get_path_segments(array_suffix, empty_array_suffix)
+        self_segs_fmt = deque(self.get_path_segments(array_suffix, empty_array_suffix))
 
         # 1. pop off all common segments from front of both ref_segs and self_segs
         #   also pop off self_segs_fmt
         while ref_segs and self_segs and (ref_segs[0] == self_segs[0]):
-            ref_segs.pop(0)
-            self_segs.pop(0)
-            self_segs_fmt.pop(0)
+            ref_segs.popleft()
+            self_segs.popleft()
+            self_segs_fmt.popleft()
 
         # 2. length of ref_segs remaining is how many uplevels needed
-        self_segs_fmt = ([uplevel] * len(ref_segs)) + self_segs_fmt
+        self_segs_fmt.extendleft([uplevel] * len(ref_segs))
 
         # 3. remaining segments in self_segs_fmt is the rest of the path
         return hier_separator.join(self_segs_fmt)
