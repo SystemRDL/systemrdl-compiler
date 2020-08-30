@@ -3,14 +3,18 @@ import os
 import subprocess
 import json
 import shutil
+from typing import TYPE_CHECKING, List, Optional, Tuple, Dict, Any
 
 from . import segment_map
 from .verilog_preprocessor import get_illegal_trailing_text_pos
 from .. import messages
 
+if TYPE_CHECKING:
+    from ..compiler import RDLEnvironment
+
 class PerlPreprocessor:
 
-    def __init__(self, env, path, search_paths, incl_ref=None):
+    def __init__(self, env: 'RDLEnvironment', path: str, search_paths: List[str], incl_ref: Optional[segment_map.IncludeRef]=None):
         self.env = env
         self.path = path
         self.search_paths = search_paths
@@ -20,7 +24,7 @@ class PerlPreprocessor:
             self.text = f.read()
 
     #---------------------------------------------------------------------------
-    def preprocess(self):
+    def preprocess(self) -> Tuple[str, segment_map.SegmentMap]:
         """
         Run preprocessor on a top-level file.
 
@@ -51,26 +55,26 @@ class PerlPreprocessor:
                     pl_seg = pl_segments[entry['ref']]
                     emit_text = pl_seg.get_text()
 
-                    map_seg = segment_map.UnalteredSegment(
+                    ref_seg = segment_map.UnalteredSegment(
                         offset, offset + len(emit_text) - 1,
                         pl_seg.start, pl_seg.end, pl_seg.file_pp.path,
                         pl_seg.file_pp.incl_ref
                     )
                     offset += len(emit_text)
-                    smap.segments.append(map_seg)
+                    smap.segments.append(ref_seg)
                     str_parts.append(emit_text)
 
                 elif entry['type'] == "text":
                     pl_seg = pl_segments[entry['ref']]
                     emit_text = entry['text']
 
-                    map_seg = segment_map.MacroSegment(
+                    macro_seg = segment_map.MacroSegment(
                         offset, offset + len(emit_text) - 1,
                         pl_seg.start, pl_seg.end, pl_seg.file_pp.path,
                         pl_seg.file_pp.incl_ref
                     )
                     offset += len(emit_text)
-                    smap.segments.append(map_seg)
+                    smap.segments.append(macro_seg)
                     str_parts.append(emit_text)
         else:
             # OK to bypass perl interpreter
@@ -90,7 +94,7 @@ class PerlPreprocessor:
         return ("".join(str_parts), smap)
 
     #---------------------------------------------------------------------------
-    def tokenize(self):
+    def tokenize(self) -> List[Tuple[str, int, int]]:
         """
         Tokenize the input text
 
@@ -121,7 +125,7 @@ class PerlPreprocessor:
         return tokens
 
     #---------------------------------------------------------------------------
-    def parse_include(self, start):
+    def parse_include(self, start: int) -> Tuple[int, str]:
         """
         Extract include from text based on start position of token
 
@@ -200,7 +204,7 @@ class PerlPreprocessor:
         return(end, incl_path)
 
     #---------------------------------------------------------------------------
-    def get_perl_segments(self, tokens):
+    def get_perl_segments(self, tokens: List[Tuple[str, int, int]]) -> Tuple[List['PPPSegment'], bool]:
         """
         Build a list of perl preprocessor segments:
             PPPUnalteredSegment
@@ -209,7 +213,7 @@ class PerlPreprocessor:
         returns:
             (pl_segments, has_perl_tags)
         """
-        pl_segments = []
+        pl_segments = [] # type: List[PPPSegment]
         has_perl_tags = False
         pos = 0
 
@@ -217,7 +221,7 @@ class PerlPreprocessor:
 
             # Capture any leading text
             if start != pos:
-                pl_seg = PPPUnalteredSegment(self, pos, start-1)
+                pl_seg = PPPUnalteredSegment(self, pos, start-1) # type: PPPSegment
                 pl_segments.append(pl_seg)
 
             if typ == "incl":
@@ -257,7 +261,7 @@ class PerlPreprocessor:
         return (pl_segments, has_perl_tags)
 
     #---------------------------------------------------------------------------
-    def run_perl_miniscript(self, segments):
+    def run_perl_miniscript(self, segments: List['PPPSegment']) -> List[Dict[str, Any]]:
         """
         Generates and runs a perl miniscript that derives the text that will be
         emitted from the preprocessor
@@ -322,21 +326,21 @@ class PerlPreprocessor:
 #-------------------------------------------------------------------------------
 
 class PPPSegment:
-    def __init__(self, file_pp, start, end):
+    def __init__(self, file_pp: PerlPreprocessor, start: int, end: int):
         self.file_pp = file_pp
         self.start = start
         self.end = end
 
-    def get_text(self):
+    def get_text(self) -> str:
         return self.file_pp.text[self.start:self.end+1]
 
 class PPPUnalteredSegment(PPPSegment):
     pass
 
 class PPPPerlSegment(PPPSegment):
-    def get_text(self):
+    def get_text(self) -> str:
         return self.file_pp.text[self.start+2:self.end-1]
 
 class PPPMacroSegment(PPPSegment):
-    def get_text(self):
+    def get_text(self) -> str:
         return self.file_pp.text[self.start+3:self.end-1]

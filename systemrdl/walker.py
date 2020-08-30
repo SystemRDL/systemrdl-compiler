@@ -108,11 +108,10 @@ class RDLWalker:
             Node to start traversing.
             Listener traversal includes this node.
 
-        listeners : list
-            List of :class:`~RDLListener` that are invoked during
+        listeners : :class:`~RDLListener`
+            One or more :class:`~RDLListener` that are invoked during
             node traversal.
-            Listener callbacks are executed in the same order as provided by this
-            parameter.
+            Listener callbacks are executed in the same order as provided.
         """
 
 

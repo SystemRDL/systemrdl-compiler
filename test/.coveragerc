@@ -10,3 +10,4 @@ exclude_lines =
     raise NotImplementedError
     msg.fatal
     msg.error
+    if TYPE_CHECKING:

@@ -18,6 +18,7 @@ from . import component as comp
 from . import walker
 from .node import RootNode
 from . import preprocessor
+from . import rdltypes
 
 class RDLCompiler:
 
@@ -83,7 +84,7 @@ class RDLCompiler:
         self.root = self.visitor.component
 
     def define_udp(self, name, valid_type, valid_components=None, default=None):
-        # type: (str, Type, Optional[Set[Type[comp.Component]]], Any) -> None
+        # type: (str, List[Any], Optional[Set[Type[comp.Component]]], Any) -> None
         """
         Pre-define a user-defined property.
 
@@ -193,7 +194,7 @@ class RDLCompiler:
         if self.msg.had_error:
             self.msg.fatal("Compile aborted due to previous errors")
 
-    def elaborate(self, top_def_name: Optional[str]=None, inst_name: Optional[str]=None, parameters: Optional[Dict[str, Any]]=None) -> RootNode:
+    def elaborate(self, top_def_name: Optional[str]=None, inst_name: Optional[str]=None, parameters: Optional[Dict[str, rdltypes.RDLValue]]=None) -> RootNode:
         """
         Elaborates the design for the given top-level addrmap component.
 
@@ -324,7 +325,7 @@ class RDLCompiler:
         return root_node
 
 
-    def eval(self, expression: str) -> Any:
+    def eval(self, expression: str) -> rdltypes.RDLValue:
         """
         Evaluate an RDL expression string and return its compiled value.
         This function is provided as a helper to simplify overriding top-level

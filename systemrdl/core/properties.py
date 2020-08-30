@@ -1472,7 +1472,8 @@ class Prop_bridge(PropertyRule):
 #===============================================================================
 
 class UserProperty(PropertyRule):
-    def __init__(self, env: 'RDLEnvironment', name: str, bindable_to: set, valid_types: tuple, default: Any=None, constr_componentwidth: bool=False):
+    def __init__(self, env, name, bindable_to, valid_types, default=None, constr_componentwidth=False):
+        # type: (RDLEnvironment, str, Set[Type[comp.Component]], Iterable[Any], Any, bool) -> None
         super().__init__(env)
 
         self.name = name
