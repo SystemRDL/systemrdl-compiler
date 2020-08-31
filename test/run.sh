@@ -25,7 +25,8 @@ pylint=$venv_bin/pylint
 mypy=$venv_bin/mypy
 
 # Install test dependencies
-$python -m pip install pytest pytest-cov coverage pylint mypy
+$python -m pip install -U setuptools wheel
+$python -m pip install -U pytest pytest-cov coverage pylint mypy
 
 # Install dut
 export SYSTEMRDL_REQUIRE_BINARY_BUILD=1
@@ -39,7 +40,7 @@ export SYSTEMRDL_DISABLE_ACCELERATOR=1
 $pytest --cov=systemrdl --cov-append
 
 # Generate coverage report
-$coverage html -d $this_dir/htmlcov
+$coverage html -i -d $this_dir/htmlcov
 
 # Also run examples in order to make sure output is up-to-date
 $python $this_dir/../examples/print_hierarchy.py $this_dir/../examples/atxmega_spi.rdl > $this_dir/../docs/print_hierarchy_spi.stdout
