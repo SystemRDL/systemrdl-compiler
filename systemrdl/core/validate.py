@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Any
+from typing import TYPE_CHECKING, List
 
 from .helpers import is_pow2, roundup_pow2, roundup_to
 from .. import walker

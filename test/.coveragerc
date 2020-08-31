@@ -3,6 +3,11 @@ omit =
     # Omit Antlr-generated parser templates
     */systemrdl/parser/SystemRDL*
 
+[paths]
+source =
+    systemrdl/
+    *.egg/systemrdl
+
 [report]
 exclude_lines =
     pragma: no cover
