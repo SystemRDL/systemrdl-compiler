@@ -27,11 +27,11 @@ class TestExternal(RDLSourceTestCase):
         for name,external in extern_map.items():
             with self.subTest(name):
                 reg = root.find_by_path("extern_test.%s" % name)
-                self.assertEqual(reg.inst.external, external)
+                self.assertEqual(reg.external, external)
 
         with self.subTest("addrmap"):
             addrmap = root.find_by_path("extern_test")
-            self.assertEqual(addrmap.inst.external, True)
+            self.assertEqual(addrmap.external, True)
 
 
     def test_regfile(self):

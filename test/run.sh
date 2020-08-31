@@ -26,7 +26,7 @@ mypy=$venv_bin/mypy
 
 # Install test dependencies
 $python -m pip install -U setuptools wheel
-$python -m pip install -U pytest pytest-cov coverage pylint mypy
+$python -m pip install pytest pytest-cov coverage pylint mypy
 
 # Install dut
 export SYSTEMRDL_REQUIRE_BINARY_BUILD=1

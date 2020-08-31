@@ -302,7 +302,7 @@ class Node:
         for pathpart in pathparts:
             # If parent reference, jump upwards
             if pathpart == "^":
-                if current_node.parent is not None:
+                if current_node.parent:
                     current_node = current_node.parent
                 continue
 

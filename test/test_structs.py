@@ -68,6 +68,10 @@ class TestStructs(RDLSourceTestCase):
             self.assertEqual(f2p3.abool, True)
             self.assertEqual(f2p3.astring, "bar")
 
+        with self.subTest("__repr__"):
+            f2p3 = root.find_by_path("struct_test.ex3_reg.ex3_field2").get_property("p3")
+            self.assertRegex(str(f2p3), r"<struct 'substruct' \(astring, abool\) at 0x\w+>")
+
 
     def test_struct_compositions(self):
         root = self.compile(

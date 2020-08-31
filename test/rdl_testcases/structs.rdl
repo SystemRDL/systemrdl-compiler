@@ -122,6 +122,10 @@ addrmap struct_test {
         } ex3_field1;
 
         field {
+            struct extended : struct_composed_abs {
+                string xyz;
+            };
+            p2 = extended'{xyz: "yay"};
             p3 = substruct'{abool:true, astring:"bar"};
         } ex3_field2;
     } ex3_reg;

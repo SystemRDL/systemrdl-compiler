@@ -18,6 +18,14 @@ reg root_reg_t {
     };
 
     f2_t f2;
+
+    enum f3_enum {
+        x;
+        y;
+    };
+    field {
+        encode = f3_enum;
+    } f3;
 };
 
 addrmap scope_test {

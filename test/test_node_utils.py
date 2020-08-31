@@ -99,14 +99,24 @@ class TestNodeUtils(RDLSourceTestCase):
             self.assertEqual(node.raw_address_offset, 0x64)
             self.assertEqual(node.raw_absolute_address, 0x100 + 0x64)
 
-    def test_repr(self):
+    def test_class_utils(self):
         top = self.compile(
             ["rdl_testcases/address_packing.rdl"],
             "hier"
         )
 
-        node = top.find_by_path("hier.x.b.a")
-        self.assertRegex(str(node), r"<FieldNode hier\.x\.b\[\]\.a at 0x\w+>")
+        with self.subTest("__repr__"):
+            node = top.find_by_path("hier.x.b.a")
+            self.assertRegex(str(node), r"<FieldNode hier\.x\.b\[\]\.a at 0x\w+>")
+
+        with self.subTest("__eq__"):
+            a = top.find_by_path("hier.x.b.a")
+            a2 = top.find_by_path("hier.x.b.a")
+            b = top.find_by_path("hier.x.b")
+
+            self.assertTrue(a == a2)
+            self.assertFalse(a == b)
+            self.assertFalse(a == 123)
 
     def test_iterators(self):
         top = self.compile(
@@ -309,3 +319,38 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertEqual(top.find_by_path("hier.x.b.^.a"), a)
         self.assertEqual(ba.find_by_path("^"), b)
         self.assertEqual(ba.find_by_path("^.^.^.^.^.^.^.^.hier.y.b"), b)
+
+    def test_typed_iterators(self):
+        top = self.compile(
+            ["rdl_testcases/address_packing.rdl"],
+            "hier"
+        )
+
+        x = top.find_by_path("hier.x")
+        a = top.find_by_path("hier.x.a")
+
+        with self.subTest("registers"):
+            paths = [n.get_path() for n in top.top.registers()]
+            self.assertEqual(paths, [])
+
+            paths = [n.get_path() for n in x.registers()]
+            self.assertEqual(
+                paths,
+                [
+                    'hier.x.a[][]',
+                    'hier.x.b[]',
+                    'hier.x.c[][]',
+                ]
+            )
+
+        with self.subTest("registers"):
+            paths = [n.get_path() for n in x.fields()]
+            self.assertEqual(paths, [])
+
+            paths = [n.get_path() for n in a.fields()]
+            self.assertEqual(
+                paths,
+                [
+                    'hier.x.a[][].a',
+                ]
+            )

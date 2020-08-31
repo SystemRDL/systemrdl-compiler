@@ -1,4 +1,6 @@
 [run]
+#branch = True
+
 omit =
     # Omit Antlr-generated parser templates
     */systemrdl/parser/SystemRDL*
