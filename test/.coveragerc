@@ -6,7 +6,8 @@ omit =
 [paths]
 source =
     systemrdl/
-    *.egg/systemrdl
+    */site-packages/*/systemrdl
+    */site-packages/systemrdl
 
 [report]
 exclude_lines =
