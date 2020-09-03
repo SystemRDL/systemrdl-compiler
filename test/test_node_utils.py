@@ -1,9 +1,5 @@
-
 from unittest_utils import RDLSourceTestCase
 
-#===============================================================================
-# Validate inferred field bit placement/packing
-#===============================================================================
 class TestNodeUtils(RDLSourceTestCase):
 
     def test_index_tools(self):
@@ -354,3 +350,38 @@ class TestNodeUtils(RDLSourceTestCase):
                     'hier.x.a[][].a',
                 ]
             )
+
+    def test_field_prop_helpers(self):
+        root = self.compile(
+            ["rdl_testcases/field_access_types.rdl"],
+            "top"
+        )
+
+        f1 = root.find_by_path("top.r1.f1")
+        f2 = root.find_by_path("top.r1.f2")
+        f3 = root.find_by_path("top.r1.f3")
+        f4 = root.find_by_path("top.r1.f4")
+        f5 = root.find_by_path("top.r1.f5")
+        f6 = root.find_by_path("top.r1.f6")
+
+        r1 = root.find_by_path("top.r1")
+        r2 = root.find_by_path("top.r2")
+        r3 = root.find_by_path("top.r3")
+
+        self.assertFalse(f1.is_volatile)
+        self.assertTrue(f2.is_volatile)
+        self.assertTrue(f1.implements_storage)
+        self.assertFalse(f2.implements_storage)
+        self.assertTrue(f3.implements_storage)
+        self.assertTrue(f4.implements_storage)
+        self.assertTrue(f5.implements_storage)
+        self.assertTrue(f6.implements_storage)
+
+        self.assertTrue(r1.has_sw_writable)
+        self.assertTrue(r1.has_sw_readable)
+
+        self.assertFalse(r2.has_sw_writable)
+        self.assertTrue(r2.has_sw_readable)
+
+        self.assertTrue(r3.has_sw_writable)
+        self.assertFalse(r3.has_sw_readable)

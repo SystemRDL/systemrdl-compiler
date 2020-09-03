@@ -32,6 +32,9 @@ addrmap rdlformatcode {
     r18->desc = "[list][*]a[*]b[*]c[/list]";
     r19->desc = "[list=a][*]a[*]b[*]c[/list]";
 
+    reg_t r20, r21;
+    r20->desc = "[index]";
+    r21->desc = "[index_parent]";
 
 
     r1->name = "[b]asdf[/b]";

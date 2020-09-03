@@ -38,6 +38,7 @@ Links
 -----
 
 - `Source repository <https://github.com/SystemRDL/systemrdl-compiler>`_
+- `Release Notes <https://github.com/SystemRDL/systemrdl-compiler/releases>`_
 - `Issue tracker <https://github.com/SystemRDL/systemrdl-compiler/issues>`_
 - `PyPi <https://pypi.org/project/systemrdl-compiler>`_
 - `SystemRDL Specification <http://accellera.org/downloads/standards/systemrdl>`_

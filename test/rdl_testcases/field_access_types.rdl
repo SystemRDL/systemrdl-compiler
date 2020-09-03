@@ -1,0 +1,34 @@
+
+addrmap top {
+    reg {
+        field {
+            sw=rw;hw=r;
+        } f1 = 0;
+
+        field {
+            sw=r;hw=w;
+        } f2 = 0;
+        field {
+            sw=r;hw=rw;
+            we;
+        } f3 = 0;
+        field {
+            sw=w;hw=r;
+        } f4 = 0;
+        field {
+            sw=r;hw=r;
+            onread = rclr;
+        } f5 = 1;
+        field {
+            sw=r;hw=r;
+            hwclr;
+        } f6 = 1;
+    } r1;
+
+    reg {
+        field {sw=r; hw=w;} f;
+    } r2;
+    reg {
+        field {sw=w; hw=r;} f;
+    } r3;
+};

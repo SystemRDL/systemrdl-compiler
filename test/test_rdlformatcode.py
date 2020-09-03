@@ -11,7 +11,7 @@ class TestRDLFormatCode(RDLSourceTestCase):
         self.assertIs(root.top.get_html_desc(), None)
 
         html = []
-        for i in range(0,20):
+        for i in range(0,22):
             reg = root.find_by_path("rdlformatcode.r%d" % i)
             html.append(reg.get_html_desc())
 
@@ -39,11 +39,16 @@ class TestRDLFormatCode(RDLSourceTestCase):
 
         f = root.find_by_path("rdlformatcode.r15[2].f")
         self.assertEqual(f.get_html_desc(), p("<span class='rdlfc-index_parent'>[2]</span>"))
+        f = root.find_by_path("rdlformatcode.r15.f")
+        self.assertEqual(f.get_html_desc(), p("<span class='rdlfc-index_parent'>[0:2]</span>"))
 
         self.assertEqual(html[16], "")
         self.assertEqual(html[17], "")
         self.assertEqual(html[18], "<ul><li>a</li><li>b</li><li>c</li></ul>")
-        self.assertEqual(html[19], "<ol type=\"a\"><li>a</li><li>b</li><li>c</li></ol>")
+        self.assertEqual(html[19], '<ol type="a"><li>a</li><li>b</li><li>c</li></ol>')
+        self.assertEqual(html[20], p("[index]"))
+        self.assertEqual(html[21], p("[index_parent]"))
+
 
     def test_name_tags(self):
         root = self.compile(

@@ -181,7 +181,7 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
                 if node.current_idx is None:
                     # Index is not known. Use range
                     for dim in node.array_dimensions:
-                        subscripts.append("[0:%d]" % dim)
+                        subscripts.append("[0:%d]" % (dim-1))
                 else:
                     # Index is known
                     for idx in node.current_idx:
@@ -196,7 +196,7 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
                 if node.parent.current_idx is None:
                     # Index is not known. Use range
                     for dim in node.parent.array_dimensions:
-                        subscripts.append("[0:%d]" % dim)
+                        subscripts.append("[0:%d]" % (dim-1))
                 else:
                     # Index is known
                     for idx in node.parent.current_idx:

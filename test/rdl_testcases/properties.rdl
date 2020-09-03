@@ -1,0 +1,50 @@
+
+addrmap donttest_top {
+    reg reg_t {
+        field {
+            donttest = 1;
+        } f1;
+        field {
+            donttest = true;
+        } f2;
+        field {
+            donttest = false;
+        } f3;
+    };
+
+    reg_t r1;
+    reg_t r2;
+    reg_t r3;
+    reg_t r4;
+    reg_t r5;
+
+    r2->donttest = 0;
+    r3->donttest = 1;
+    r4->donttest = true;
+    r5->donttest = false;
+};
+
+addrmap dontcompare_top {
+    reg reg_t {
+        field {
+            dontcompare = 1;
+        } f1;
+        field {
+            dontcompare = true;
+        } f2;
+        field {
+            dontcompare = false;
+        } f3;
+    };
+
+    reg_t r1;
+    reg_t r2;
+    reg_t r3;
+    reg_t r4;
+    reg_t r5;
+
+    r2->dontcompare = 0;
+    r3->dontcompare = 1;
+    r4->dontcompare = true;
+    r5->dontcompare = false;
+};
