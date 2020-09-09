@@ -9,7 +9,7 @@ from .helpers import get_ID_text
 from . import properties
 from . import expressions
 
-from ..messages import SourceRef
+from ..source_ref import src_ref_from_antlr
 from .. import component as comp
 from .. import rdltypes
 
@@ -34,7 +34,7 @@ class UDPVisitor(BaseVisitor):
             self.msg.fatal(
                 "User-defined property '%s' does not specify the 'type' attribute"
                 % udp_name,
-                SourceRef.from_antlr(ctx.ID())
+                src_ref_from_antlr(ctx.ID())
             )
 
         # 15.1.1.c: A user-defined property definition shall include its type definition
@@ -42,7 +42,7 @@ class UDPVisitor(BaseVisitor):
             self.msg.fatal(
                 "User-defined property '%s' does not specify the 'component' attribute"
                 % udp_name,
-                SourceRef.from_antlr(ctx.ID())
+                src_ref_from_antlr(ctx.ID())
             )
 
         # 15.1 Table 30: Currently limited to componentwidth for type bit
@@ -50,7 +50,7 @@ class UDPVisitor(BaseVisitor):
             if int not in self.attr['valid_types']:
                 self.msg.fatal(
                     "Constraint 'componentwidth' is only valid for properties of type 'bit'",
-                    SourceRef.from_antlr(ctx.ID())
+                    src_ref_from_antlr(ctx.ID())
                 )
 
         # Evaluate default value, if any
@@ -69,14 +69,14 @@ class UDPVisitor(BaseVisitor):
                         # Found a type-compatible match. (first match is best match)
                         # Wrap the expression with an explicit assignment cast
                         expr = expressions.AssignmentCast(
-                            self.compiler.env, SourceRef.from_antlr(expr_ctx),
+                            self.compiler.env, src_ref_from_antlr(expr_ctx),
                             expr, valid_type
                         )
                     break
             else:
                 self.msg.fatal(
                     "Property default is incompatible with property type",
-                    SourceRef.from_antlr(expr_ctx)
+                    src_ref_from_antlr(expr_ctx)
                 )
 
             # OK to immediately evaluate the expression since there is no way that it
@@ -85,7 +85,7 @@ class UDPVisitor(BaseVisitor):
 
         # Create and register the new property rule
         udp = properties.UserProperty(self.compiler.env, udp_name, **self.attr)
-        self.compiler.env.property_rules.register_udp(udp, SourceRef.from_antlr(ctx.ID()))
+        self.compiler.env.property_rules.register_udp(udp, src_ref_from_antlr(ctx.ID()))
 
 
     def visitUdp_type(self, ctx: SystemRDLParser.Udp_typeContext) -> None:
@@ -93,7 +93,7 @@ class UDPVisitor(BaseVisitor):
         if 'valid_types' in self.attr:
             self.msg.fatal(
                 "More than one 'type' attribute specified for user-defined property",
-                SourceRef.from_antlr(ctx.TYPE_kw())
+                src_ref_from_antlr(ctx.TYPE_kw())
             )
 
         token = self.visit(ctx.udp_data_type())
@@ -132,7 +132,7 @@ class UDPVisitor(BaseVisitor):
         if 'bindable_to' in self.attr:
             self.msg.fatal(
                 "More than one 'component' attribute specified for user-defined property",
-                SourceRef.from_antlr(ctx.COMPONENT_kw())
+                src_ref_from_antlr(ctx.COMPONENT_kw())
             )
 
         comp_types = [] # type: List[Type[comp.Component]]
@@ -153,7 +153,7 @@ class UDPVisitor(BaseVisitor):
         if 'default' in self.attr:
             self.msg.fatal(
                 "More than one 'default' attribute specified for user-defined property",
-                SourceRef.from_antlr(ctx.DEFAULT_kw())
+                src_ref_from_antlr(ctx.DEFAULT_kw())
             )
 
         # defer expr evaluation until later
@@ -166,7 +166,7 @@ class UDPVisitor(BaseVisitor):
         if 'constr_componentwidth' in self.attr:
             self.msg.fatal(
                 "More than one 'constraint' attribute specified for user-defined property",
-                SourceRef.from_antlr(ctx.CONSTRAINT_kw())
+                src_ref_from_antlr(ctx.CONSTRAINT_kw())
             )
 
         self.attr['constr_componentwidth'] = True

@@ -5,3 +5,8 @@ field myField {};
 
 
 `include "preprocessor_incl2.rdl"
+
+`define msg(x,y) `"x: `\`"y`\`"`"
+`define TOP(a,b) a + b
+`define STR(s) `"s`"
+`define TOPSTR `STR(`TOP( `TOP(b,1), `TOP(42,a) ))

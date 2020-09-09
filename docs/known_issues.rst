@@ -30,20 +30,6 @@ SystemRDL ``constraint`` blocks are not implemented yet.
 
 
 
-
-Partial implementation of Verilog Preprocessor
-----------------------------------------------
-
-The Verilog-style preprocessor currently only implements ```include`` directive
-expansion.
-Conditional and macro directives are not implemented yet. (```ifdef``,
-```else``, ```define``, etc.)
-
-As a workaround, equivalent preprocessing can be accomplished using the
-embedded Perl preprocessor.
-
-
-
 No support for non-homogeneous arrays
 -------------------------------------
 

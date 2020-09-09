@@ -46,6 +46,3 @@ Message Handling
 ----------------
 .. autoclass:: systemrdl.messages.MessagePrinter
     :members:
-
-.. autoclass:: systemrdl.messages.SourceRef
-    :members:

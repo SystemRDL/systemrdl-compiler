@@ -5,7 +5,7 @@ from .. import component as comp
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
-    from ..messages import SourceRef
+    from ..source_ref import SourceRefBase
     from .. import rdltypes
     from .parameter import Parameter
     from .expressions import Expr
@@ -24,7 +24,7 @@ ElementNSEntry = Tuple[ElementNSRef, comp.Component]
 ElementNSScope = Dict[str, ElementNSEntry]
 
 DefaultNSRef = Union['Expr', bool, 'rdltypes.InterruptType']
-DefaultNSEntry = Tuple['SourceRef', DefaultNSRef]
+DefaultNSEntry = Tuple['SourceRefBase', DefaultNSRef]
 DefaultNSScope = Dict[str, DefaultNSEntry]
 
 class NamespaceRegistry():
@@ -37,7 +37,7 @@ class NamespaceRegistry():
         self.element_ns_stack = [{}] # type: List[ElementNSScope]
         self.default_property_ns_stack = [{}] # type: List[DefaultNSScope]
 
-    def register_type(self, name: str, ref: TypeNSRef, src_ref: 'SourceRef') -> None:
+    def register_type(self, name: str, ref: TypeNSRef, src_ref: 'SourceRefBase') -> None:
         if name in self.type_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of type '%s'" % name,
@@ -45,7 +45,7 @@ class NamespaceRegistry():
             )
         self.type_ns_stack[-1][name] = ref
 
-    def register_element(self, name: str, ref: ElementNSRef, parent_comp_def: comp.Component, src_ref: 'SourceRef') -> None:
+    def register_element(self, name: str, ref: ElementNSRef, parent_comp_def: comp.Component, src_ref: 'SourceRefBase') -> None:
         if name in self.element_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of instance '%s'" % name,
@@ -53,7 +53,7 @@ class NamespaceRegistry():
             )
         self.element_ns_stack[-1][name] = (ref, parent_comp_def)
 
-    def register_default_property(self, name: str, ref: DefaultNSRef, src_ref: 'SourceRef', overwrite_ok: bool=False) -> None:
+    def register_default_property(self, name: str, ref: DefaultNSRef, src_ref: 'SourceRefBase', overwrite_ok: bool=False) -> None:
         if not overwrite_ok:
             if name in self.default_property_ns_stack[-1]:
                 self.msg.fatal(
@@ -83,7 +83,8 @@ class NamespaceRegistry():
                     return (None, None)
         return (None, None)
 
-    def get_default_properties(self, comp_type: comp.Component) -> DefaultNSScope:
+    def get_default_properties(self, comp_type):
+        # type: (Type[comp.Component]) -> DefaultNSScope
         """
         Returns a flattened dictionary of all default property assignments
         visible in the current scope that apply to the current component type.

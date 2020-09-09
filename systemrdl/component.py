@@ -6,7 +6,7 @@ from typing import Optional, List, Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .core.parameter import Parameter
-    from .messages import SourceRef
+    from .source_ref import SourceRefBase
 
 class Component:
     """
@@ -70,8 +70,8 @@ class Component:
         # Properties applied to this component
         self.properties = {} # type: Dict[str, Any]
 
-        # SourceRef for the component definition
-        self.def_src_ref = None # type: Optional['SourceRef']
+        # Source Ref for the component definition
+        self.def_src_ref = None # type: Optional['SourceRefBase']
 
         #------------------------------
         # Component instantiation
@@ -91,8 +91,8 @@ class Component:
         #: True if instance type is external. False if internal.
         self.external = None # type: bool
 
-        # SourceRef for the component instantiation.
-        self.inst_src_ref = None # type: Optional['SourceRef']
+        # Source Ref for the component instantiation.
+        self.inst_src_ref = None # type: Optional['SourceRefBase']
 
         #------------------------------
         # List of property names that were assigned via a dynamic property

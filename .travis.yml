@@ -31,6 +31,7 @@ jobs:
   include:
     # Run lint
     - name: Lint
+      python: 3.8
       install:
         - python -m pip install pylint
         - python setup.py install
@@ -38,6 +39,7 @@ jobs:
 
     # Run static type checking
     - name: Type Check
+      python: 3.8
       install:
         - python -m pip install mypy
       script: mypy --config-file test/mypy.ini systemrdl

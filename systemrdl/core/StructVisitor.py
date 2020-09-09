@@ -6,7 +6,7 @@ from .BaseVisitor import BaseVisitor
 from .helpers import get_ID_text
 
 from .. import component as comp
-from ..messages import SourceRef
+from ..source_ref import src_ref_from_antlr
 from .. import rdltypes
 
 class StructVisitor(BaseVisitor):
@@ -24,12 +24,12 @@ class StructVisitor(BaseVisitor):
             if base_type is None:
                 self.msg.fatal(
                     "Type '%s' is not defined" % base_name,
-                    SourceRef.from_antlr(ctx.base)
+                    src_ref_from_antlr(ctx.base)
                 )
             if not rdltypes.is_user_struct(base_type):
                 self.msg.fatal(
                     "Base type '%s' is not a struct" % base_name,
-                    SourceRef.from_antlr(ctx.base)
+                    src_ref_from_antlr(ctx.base)
                 )
         else:
             base_type = rdltypes.UserStruct
@@ -62,13 +62,13 @@ class StructVisitor(BaseVisitor):
         struct_type = base_type.define_new(struct_name, members, is_abstract)
 
         self.compiler.namespace.exit_scope()
-        return struct_type, struct_name, SourceRef.from_antlr(ctx.name)
+        return struct_type, struct_name, src_ref_from_antlr(ctx.name)
 
 
     def visitStruct_elem(self, ctx: SystemRDLParser.Struct_elemContext):
 
         member_name = get_ID_text(ctx.ID())
-        member_src_ref = SourceRef.from_antlr(ctx.ID())
+        member_src_ref = src_ref_from_antlr(ctx.ID())
 
         member_type = self.visit(ctx.struct_type())
 

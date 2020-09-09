@@ -81,7 +81,7 @@ class RDLCompiler:
         self.msg = self.env.msg
         self.namespace = NamespaceRegistry(self.env) # type: NamespaceRegistry
         self.visitor = RootVisitor(self)
-        self.root = self.visitor.component
+        self.root = self.visitor.component # type: comp.Root # type: ignore
 
     def define_udp(self, name, valid_type, valid_components=None, default=None):
         # type: (str, List[Any], Optional[Set[Type[comp.Component]]], Any) -> None

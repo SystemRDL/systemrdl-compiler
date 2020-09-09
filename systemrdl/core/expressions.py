@@ -8,17 +8,17 @@ from .helpers import truncate_int
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
-    from ..messages import SourceRef
     from .parameter import Parameter
+    from ..source_ref import SourceRefBase
 
-OSourceRef = Optional['SourceRef']
+OSourceRef = Optional['SourceRefBase']
 
 class Expr:
     def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef):
         self.env = env
         self.msg = env.msg
 
-        # SourceRef to use for error context
+        # Source Ref to use for error context
         self.src_ref = src_ref
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> 'Expr':
@@ -1048,14 +1048,14 @@ class InstRef(Expr):
         # Path is relative to ref_inst
         # Each tuple in the list represents a segment of the path:
         # [
-        #   ( str , [ <Index Expr> , ... ] , SourceRef),
-        #   ( str , [ <Index Expr> , ... ] , SourceRef)
+        #   ( str , [ <Index Expr> , ... ] , SourceRefBase),
+        #   ( str , [ <Index Expr> , ... ] , SourceRefBase)
         # ]
         self.ref_elements = ref_elements
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> 'InstRef':
         """
-        Copy any SourceRef by ref within the ref_elements list when deepcopying
+        Copy any Source Ref by ref within the ref_elements list when deepcopying
         """
         copy_by_ref = ["src_ref", "env", "msg", "ref_root"]
         cls = self.__class__

@@ -9,10 +9,15 @@ from antlr4.tree.Tree import TerminalNodeImpl
 import colorama
 from colorama import Fore, Style
 
-from .preprocessor import PreprocessedInputStream
+from .preprocessor.stream import PreprocessedInputStream
 from .parser.sa_systemrdl import SA_ErrorListener
+
+from .source_ref import SourceRefBase, src_ref_from_antlr, SegmentedSourceRef
+from .source_ref import DetailedFileSourceRef, FileSourceRef
+
 if TYPE_CHECKING:
     from .preprocessor.segment_map import SegmentMap
+    from typing import NoReturn
 
 # Colorama needs to be initialized to properly work in Windows
 # This is a no-op in other OSes
@@ -34,146 +39,6 @@ class Severity(enum.IntEnum):
     FATAL = 5
 
 #===============================================================================
-class SourceRef:
-    """
-    Reference to a segment of source.
-
-    This is used to provide useful context to the original RDL source when
-    reporting compiler messages.
-    """
-    def __init__(self, start: Optional[int]=None, end: Optional[int]=None, filename: str=None, seg_map: 'SegmentMap'=None):
-
-        #: SegmentMap object that provides character coordinate mapping table
-        self.seg_map = seg_map
-
-        #: Character position of start of selection
-        self.start = start # type: int
-
-        #: Character position of end of selection
-        self.end = end # type: int
-
-        #: Path to file from start of selection
-        self.filename = filename
-
-        #: Line number of start of selection
-        self.start_line = None # type: int
-
-        #: Column of first character in selection
-        self.start_col = None # type: int
-
-        #: Line number of end of selection
-        self.end_line = None # type: int
-
-        #: Column of last character in selection
-        self.end_col = None # type: int
-
-        #: Raw line of text that corresponds to start_line
-        self.start_line_text = None # type: str
-
-        self._coordinates_resolved = False
-
-    def derive_coordinates(self) -> None:
-        """
-        Depending on the compilation source, some members of the SourceRef
-        object may be incomplete.
-        Calling this function performs the necessary derivations to complete the
-        object.
-        """
-
-        if self._coordinates_resolved:
-            # Coordinates were already resolved. Skip
-            return
-
-        if self.seg_map is not None:
-            # Translate coordinates
-            self.start, self.filename, include_ref = self.seg_map.derive_source_offset(self.start)
-            self.end, end_filename, _ = self.seg_map.derive_source_offset(self.end, is_end=True)
-        else:
-            end_filename = self.filename
-
-        line_start = 0
-        lineno = 1
-        file_pos = 0
-
-        # Skip deriving end coordinate if selection spans multiple files
-        if self.filename != end_filename:
-            get_end = False
-        elif self.end is None:
-            get_end = False
-        else:
-            get_end = True
-
-        if (self.filename is not None) and (self.start is not None):
-            with open(self.filename, 'r', newline='', encoding='utf_8') as fp:
-
-                while True:
-                    line_text = fp.readline()
-
-                    file_pos += len(line_text)
-
-                    if line_text == "":
-                        break
-
-                    if (self.start_line is None) and (self.start < file_pos):
-                        self.start_line = lineno
-                        self.start_col = self.start - line_start
-                        self.start_line_text = line_text.rstrip("\n").rstrip("\r")
-                        if not get_end:
-                            break
-
-                    if get_end and (self.end_line is None) and (self.end < file_pos):
-                        self.end_line = lineno
-                        self.end_col = self.end - line_start
-                        break
-
-                    lineno += 1
-                    line_start = file_pos
-
-            # If no end coordinate was derived, just do a single char selection
-            if not get_end:
-                self.end_line = self.start_line
-                self.end_col = self.start_col
-                self.end = self.start
-
-        self._coordinates_resolved = True
-
-
-    @classmethod
-    def from_antlr(cls, antlr_ref: Union[CommonToken, TerminalNodeImpl, ParserRuleContext]) -> 'SourceRef':
-        # Normalize
-        if isinstance(antlr_ref, CommonToken):
-            token = antlr_ref
-            end_token = None
-        elif isinstance(antlr_ref, TerminalNodeImpl):
-            token = antlr_ref.symbol
-            end_token = None
-        elif isinstance(antlr_ref, ParserRuleContext):
-            # antlr_ref is an entire context (token range)
-            token = antlr_ref.start
-            end_token = antlr_ref.stop
-        else:
-            print(antlr_ref)
-            raise NotImplementedError
-
-        # Get source segment map
-        inputStream = token.getInputStream()
-        if isinstance(inputStream, PreprocessedInputStream):
-            seg_map = inputStream.seg_map
-        else:
-            seg_map = None
-
-        # Extract selection coordinates
-        start = token.start
-        if end_token is None:
-            end = token.stop
-        else:
-            end = end_token.stop
-
-        # Create object
-        src_ref = cls(start, end, seg_map=seg_map)
-        return src_ref
-
-#===============================================================================
 class MessagePrinter:
     """
     Printer class that handles formatting and emitting compiler messages
@@ -182,11 +47,11 @@ class MessagePrinter:
     formatting or logging
     """
 
-    def print_message(self, severity: Severity, text: str, src_ref: Optional[SourceRef]) -> None:
+    def print_message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]) -> None:
         lines = self.format_message(severity, text, src_ref)
         self.emit_message(lines)
 
-    def format_message(self, severity: Severity, text: str, src_ref: Optional[SourceRef]) -> List[str]:
+    def format_message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]) -> List[str]:
         """
         Formats the message prior to emitting it.
 
@@ -196,7 +61,7 @@ class MessagePrinter:
             Message severity.
         text: str
             Body of message
-        src_ref: :class:`SourceRef`
+        src_ref: :class:`SourceRefBase`
             Reference to source context object
 
         Returns
@@ -220,81 +85,71 @@ class MessagePrinter:
             )
             return lines
 
-        src_ref.derive_coordinates()
 
-        if (src_ref.start_line is not None) and (src_ref.start_col is not None):
-            # Start line and column is known
+        if isinstance(src_ref, DetailedFileSourceRef):
+            # Detailed message selection context is available
             lines.append(
                 Fore.WHITE + Style.BRIGHT
-                + "%s:%d:%d: " % (src_ref.filename, src_ref.start_line, src_ref.start_col)
+                + "%s:%d:%d: " % (src_ref.path, src_ref.line, src_ref.line_selection[0]+1)
                 + color + severity.name.lower() + ": "
                 + Style.RESET_ALL
                 + text
             )
-        elif src_ref.start_line is not None:
-            # Only line number is known
+            lines.extend(self.get_selection_context(src_ref, color))
+        elif isinstance(src_ref, FileSourceRef):
+            # Only the file path is known
             lines.append(
                 Fore.WHITE + Style.BRIGHT
-                + "%s:%d: " % (src_ref.filename, src_ref.start_line)
+                + "%s: " % src_ref.path
                 + color + severity.name.lower() + ": "
                 + Style.RESET_ALL
                 + text
             )
         else:
-            # Only filename is known
-            lines.append(
-                Fore.WHITE + Style.BRIGHT
-                + "%s: " % src_ref.filename
-                + color + severity.name.lower() + ": "
-                + Style.RESET_ALL
-                + text
-            )
+            raise RuntimeError
 
-        # If src_ref highlights a span within a single line of text, print it
-        if (src_ref.start_line is not None) and (src_ref.end_line is not None):
-            line_text = src_ref.start_line_text.rstrip()
-            start_col = src_ref.start_col
-            end_col = src_ref.end_col
+        return lines
 
-            # Normalize whitespace in line snippet (convert tabs to spaces)
-            TPS = 4
-            new_line_text = ""
-            i = 0
-            for char in line_text:
-                if char == "\t":
-                    new_line_text += " " * TPS
-                    if i < start_col:
-                        start_col += TPS-1
-                    if i < end_col:
-                        end_col += TPS-1
-                    i += TPS-1
-                else:
-                    new_line_text += char
-                i += 1
-            line_text = new_line_text
+    def get_selection_context(self, src_ref: DetailedFileSourceRef, color_code: str) -> List[str]:
+        """
+        Generates the message context lines
+        """
+        line_text = src_ref.line_text
+        start_col, end_col = src_ref.line_selection
 
-            if src_ref.start_line != src_ref.end_line:
-                # multi-line reference
-                # Select remainder of the line
-                end_col = len(line_text)-1
+        # Normalize whitespace in line snippet (convert tabs to spaces)
+        TPS = 4
+        new_line_text = ""
+        i = 0
+        for char in line_text:
+            if char == "\t":
+                new_line_text += " " * TPS
+                if i < start_col:
+                    start_col += TPS-1
+                if i < end_col:
+                    end_col += TPS-1
+                i += TPS-1
+            else:
+                new_line_text += char
+            i += 1
+        line_text = new_line_text
 
-            width = end_col - start_col + 1
-
-            lines.append(
-                line_text[:start_col]
-                + color + Style.BRIGHT
-                + line_text[start_col : end_col+1]
-                + Style.RESET_ALL
-                + line_text[end_col+1:]
-            )
-
-            lines.append(
-                " "*start_col
-                + color + Style.BRIGHT
-                + "^"*width
-                + Style.RESET_ALL
-            )
-
+        # Build the context string
+        width = end_col - start_col + 1
+        lines = []
+        lines.append(
+            line_text[:start_col]
+            + color_code + Style.BRIGHT
+            + line_text[start_col : end_col+1]
+            + Style.RESET_ALL
+            + line_text[end_col+1:]
+        )
+        lines.append(
+            " "*start_col
+            + color_code + Style.BRIGHT
+            + "^"*width
+            + Style.RESET_ALL
+        )
         return lines
 
 
@@ -319,7 +174,7 @@ class MessageHandler:
         self.min_verbosity = min_verbosity
         self.had_error = False
 
-    def message(self, severity: Severity, text: str, src_ref: Optional[SourceRef]=None) -> None:
+    def message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
         if severity == Severity.NONE:
             return
 
@@ -340,18 +195,18 @@ class MessageHandler:
     def info(self, text: str) -> None:
         self.message(Severity.INFO, text)
 
-    def warning(self, text: str, src_ref: Optional[SourceRef]=None) -> None:
+    def warning(self, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
         self.message(Severity.WARNING, text, src_ref)
 
-    def error(self, text: str, src_ref: Optional[SourceRef]=None) -> None:
+    def error(self, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
         self.message(Severity.ERROR, text, src_ref)
 
-    def fatal(self, text: str, src_ref: Optional[SourceRef]=None) -> None:
+    def fatal(self, text: str, src_ref: Optional[SourceRefBase]=None) -> 'NoReturn': # type: ignore
         self.message(Severity.FATAL, text, src_ref)
 
 
 class MessageExceptionRaiser(MessagePrinter):
-    def print_message(self, severity: Severity, text: str, src_ref: Optional[SourceRef]) -> None:
+    def print_message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]) -> None:
         if severity >= Severity.ERROR:
             raise ValueError(text)
 
@@ -365,15 +220,27 @@ class RdlSaErrorListener(SA_ErrorListener):
 
     def syntaxError(self, input_stream: InputStream, offendingSymbol: OffendingAntlrSymbol, char_index: int, line: int, column: int, msg: str) -> None:
         if offendingSymbol is not None:
-            src_ref = SourceRef.from_antlr(offendingSymbol)
+            src_ref = src_ref_from_antlr(offendingSymbol)
         else:
             # If a offendingSymbol is not provided, then the next-best option is
             # to use the input stream's current state
             if isinstance(input_stream, PreprocessedInputStream):
-                seg_map = input_stream.seg_map
+                src_ref = SegmentedSourceRef(
+                    input_stream.seg_map,
+                    char_index, char_index
+                )
             else:
-                seg_map = None
-
-            src_ref = SourceRef(char_index, char_index, seg_map=seg_map)
+                # This originated from a non-file, so the full src_ref is not known
+                # TODO: Eventually extend this to a stream source ref
+                src_ref = None
 
         self.msg.error(msg, src_ref)
+
+
+#===============================================================================
+def SourceRef(filename: str) -> FileSourceRef:
+    """
+    Deprecated callable that provides a compatible stand-in for the old-style
+    SourceRef class constructor
+    """
+    return FileSourceRef(filename)

@@ -8,7 +8,7 @@ from .ExprVisitor import ExprVisitor
 from .helpers import get_ID_text
 from . import expressions, helpers
 
-from ..messages import SourceRef
+from ..source_ref import src_ref_from_antlr
 from .. import rdltypes
 
 class EnumVisitor(BaseVisitor):
@@ -28,7 +28,7 @@ class EnumVisitor(BaseVisitor):
             if entry_name in entries:
                 self.msg.fatal(
                     "Entry '%s' has already been defined in this enum" % entry_name,
-                    SourceRef.from_antlr(name_token)
+                    src_ref_from_antlr(name_token)
                 )
 
             if value_expr_ctx is not None:
@@ -53,7 +53,7 @@ class EnumVisitor(BaseVisitor):
                 # Value was already assigned
                 self.msg.fatal(
                     "Enumeration encoding values must be unique",
-                    SourceRef.from_antlr(name_token)
+                    src_ref_from_antlr(name_token)
                 )
 
             entry_values.append(entry_value)
@@ -64,7 +64,7 @@ class EnumVisitor(BaseVisitor):
         enum_type = rdltypes.UserEnum(enum_name, entries) # type: ignore # pylint: disable=no-value-for-parameter
 
         self.compiler.namespace.exit_scope()
-        return enum_type, get_ID_text(ctx.ID()), SourceRef.from_antlr(ctx.ID())
+        return enum_type, get_ID_text(ctx.ID()), src_ref_from_antlr(ctx.ID())
 
     def visitEnum_entry(self, ctx: SystemRDLParser.Enum_entryContext):
         name_token = ctx.ID()
@@ -81,7 +81,7 @@ class EnumVisitor(BaseVisitor):
                 if rdl_desc is not None:
                     self.msg.error(
                         "Property 'desc' was already assigned in this scope",
-                        SourceRef.from_antlr(prop_token)
+                        src_ref_from_antlr(prop_token)
                     )
                     continue
                 if self.compiler.env.dedent_desc:
@@ -92,14 +92,14 @@ class EnumVisitor(BaseVisitor):
                 if rdl_name is not None:
                     self.msg.error(
                         "Property 'name' was already assigned in this scope",
-                        SourceRef.from_antlr(prop_token)
+                        src_ref_from_antlr(prop_token)
                     )
                     continue
                 rdl_name = prop_value
             else:
                 self.msg.fatal(
                     "Illegal enum property assignment '%s'" % prop_name,
-                    SourceRef.from_antlr(prop_token)
+                    src_ref_from_antlr(prop_token)
                 )
 
         return name_token, value_expr_ctx, rdl_name, rdl_desc

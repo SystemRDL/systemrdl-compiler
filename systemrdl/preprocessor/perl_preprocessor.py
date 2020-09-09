@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Dict, Any
 
 from . import segment_map
 from .verilog_preprocessor import get_illegal_trailing_text_pos
-from .. import messages
+from ..source_ref import DirectSourceRef, FileSourceRef
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
@@ -89,8 +89,6 @@ class PerlPreprocessor:
                 smap.segments.append(map_seg)
                 str_parts.append(emit_text)
 
-        #segment_map.print_segment_debug("".join(str_parts), smap)
-
         return ("".join(str_parts), smap)
 
     #---------------------------------------------------------------------------
@@ -148,7 +146,7 @@ class PerlPreprocessor:
         if not (self.text[line_start:start] == "" or self.text[line_start:start].isspace()):
             self.env.msg.fatal(
                 "Unexpected text before include",
-                messages.SourceRef(line_start, start-1, filename=self.path)
+                DirectSourceRef(self.path, line_start, start-1)
             )
 
         # Capture include contents
@@ -157,7 +155,7 @@ class PerlPreprocessor:
         if m_inc is None:
             self.env.msg.fatal(
                 "Invalid usage of include directive",
-                messages.SourceRef(start, start+7, filename=self.path)
+                DirectSourceRef(self.path, start, start+7)
             )
         incl_path_raw = m_inc.group(2) or m_inc.group(3)
         end = m_inc.end(0)-1
@@ -165,11 +163,10 @@ class PerlPreprocessor:
 
         # Check that only comments follow
         cruft_start, cruft_end = get_illegal_trailing_text_pos(self.text, end+1)
-        print(cruft_start, cruft_end)
         if cruft_start is not None:
             self.env.msg.fatal(
                 "Unexpected text after include",
-                messages.SourceRef(cruft_start, cruft_end, filename=self.path)
+                DirectSourceRef(self.path, cruft_start, cruft_end)
             )
 
         # Resolve include path.
@@ -188,7 +185,7 @@ class PerlPreprocessor:
         if not os.path.isfile(incl_path):
             self.env.msg.fatal(
                 "Could not find '%s' in include search paths" % incl_path_raw,
-                messages.SourceRef(path_start, end, filename=self.path)
+                DirectSourceRef(self.path, path_start, end)
             )
 
         # Check if path has already been referenced before
@@ -197,7 +194,7 @@ class PerlPreprocessor:
             if os.path.samefile(incl_path, incl_ref.path):
                 self.env.msg.fatal(
                     "Include of '%s' results in a circular reference" % incl_path_raw,
-                    messages.SourceRef(path_start, end, filename=self.path)
+                    DirectSourceRef(self.path, path_start, end)
                 )
             incl_ref = incl_ref.parent
 
@@ -296,7 +293,7 @@ class PerlPreprocessor:
                 if re.match(r'[\s;]', var):
                     self.env.msg.fatal(
                         "Invalid text found in Perl macro expansion",
-                        messages.SourceRef(pp_seg.start, pp_seg.end, filename=self.path)
+                        DirectSourceRef(self.path, pp_seg.start, pp_seg.end)
                     )
 
                 lines.append("rdlppp_utils::emit_text(%d, %s);" % (i, var))
@@ -315,7 +312,7 @@ class PerlPreprocessor:
                 "Encountered a Perl syntax error while executing embedded Perl preprocessor commands:\n"
                 + result.stderr.decode("utf-8"),
                 # TODO: Fix useless context somehow
-                messages.SourceRef(filename=self.path)
+                FileSourceRef(self.path)
             )
 
         # miniscript returns the emit list in JSON format. Convert it

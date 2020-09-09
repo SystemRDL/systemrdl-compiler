@@ -7,7 +7,7 @@ from . import expressions
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
-    from ..messages import SourceRef
+    from ..source_ref import SourceRefBase
 
 def get_all_subclasses(cls: type) -> List[type]:
     return cls.__subclasses__() + [
@@ -43,7 +43,7 @@ class PropertyRule:
         return type(self).__name__.replace("Prop_", "")
 
     #---------------------------------------------------------------------------
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Used by the compiler for either local or dynamic prop assignments
         This does the following:
@@ -159,7 +159,7 @@ class PropertyRuleBoolPair(PropertyRule):
     opposite_property = ""
 
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Side effect: Ensure assignment of the opposite is cleared since it is being
         overridden
@@ -598,7 +598,7 @@ class Prop_rclr(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "P"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Overrides other related properties
         """
@@ -628,7 +628,7 @@ class Prop_rset(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "P"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Overrides other related properties
         """
@@ -658,7 +658,7 @@ class Prop_onread(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "P"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Overrides other related properties
         """
@@ -709,7 +709,7 @@ class Prop_woclr(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "B"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Overrides other related properties
         """
@@ -739,7 +739,7 @@ class Prop_woset(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "B"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Overrides other related properties
         """
@@ -769,7 +769,7 @@ class Prop_onwrite(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "B"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Overrides other related properties
         """
@@ -1059,7 +1059,7 @@ class Prop_threshold(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Set both alias and actual value
         """
@@ -1076,7 +1076,7 @@ class Prop_saturate(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Set both alias and actual value
         """
@@ -1090,7 +1090,7 @@ class Prop_incrthreshold(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Set both alias and actual value
         """
@@ -1104,7 +1104,7 @@ class Prop_incrsaturate(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         """
         Set both alias and actual value
         """
@@ -1486,7 +1486,7 @@ class UserProperty(PropertyRule):
         return self.name
 
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         # Property assignments with no rhs show up as None here
         # For user-defined properties, this implies the default value
         # (15.2.2)
@@ -1696,7 +1696,7 @@ class PropertyRuleBook:
         # type: (str) -> Optional[Type[rdltypes.PropertyReference]]
         return self.rdl_prop_refs.get(prop_ref_name, None)
 
-    def register_udp(self, udp: UserProperty, src_ref: 'SourceRef') -> None:
+    def register_udp(self, udp: UserProperty, src_ref: 'SourceRefBase') -> None:
         if udp.name in self.user_properties:
             self.env.msg.fatal(
                 "Multiple declarations of user-defined property '%s'"

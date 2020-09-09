@@ -4,7 +4,7 @@ from .compiler import RDLCompiler
 from .component import Component
 
 if TYPE_CHECKING:
-    from .messages import SourceRef
+    from .source_ref import SourceRefBase
 
 class RDLImporter:
     """
@@ -41,7 +41,7 @@ class RDLImporter:
     def lookup_root_component(self, type_name: str) -> Optional[Component]:
         return self.compiler.root.comp_defs.get(type_name, None)
 
-    def assign_property(self, component: Component, prop_name: str, value: Any, src_ref: 'SourceRef') -> None:
+    def assign_property(self, component: Component, prop_name: str, value: Any, src_ref: 'SourceRefBase') -> None:
         rule = self.compiler.env.property_rules.lookup_property(prop_name)
         if rule is None:
             self.msg.fatal(

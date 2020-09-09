@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING, Dict, Tuple, List, Optional, Any
 from copy import deepcopy
 from collections import OrderedDict
 
@@ -12,9 +13,16 @@ from .parameter import Parameter
 from .helpers import get_ID_text
 from . import expressions
 
-from ..messages import SourceRef
+from ..source_ref import src_ref_from_antlr, SourceRefBase
 from .. import component as comp
 from .. import rdltypes
+
+if TYPE_CHECKING:
+    from .namespace import TypeNSEntry
+    from typing import Type, Union
+    from ..compiler import RDLCompiler
+    from antlr4.Token import CommonToken
+    from antlr4 import ParserRuleContext
 
 #===============================================================================
 # Base Component visitor
@@ -22,7 +30,7 @@ from .. import rdltypes
 class ComponentVisitor(BaseVisitor):
     comp_type = comp.Component
 
-    def __init__(self, compiler, def_name=None, param_defs=None):
+    def __init__(self, compiler: 'RDLCompiler', def_name: str=None, param_defs: List[Parameter]=None):
         super().__init__(compiler)
 
         self.component = self.comp_type() #pylint: disable=not-callable
@@ -37,7 +45,7 @@ class ComponentVisitor(BaseVisitor):
         #   {
         #       prop_name : (prop_src_ref, prop_rhs)
         #   }
-        self.property_dict = OrderedDict()
+        self.property_dict = OrderedDict() # type: Dict[str, Tuple[SourceRefBase, Any]]
 
         # Scratchpad of dynamic property assignments encountered in body of component
         # format is:
@@ -46,18 +54,21 @@ class ComponentVisitor(BaseVisitor):
         #           prop_name : (prop_src_ref, prop_rhs)
         #       }
         #   }
-        self.dynamic_property_dict = OrderedDict()
+        self.dynamic_property_dict = OrderedDict() # type: Dict[comp.Component, Dict[str, Tuple[SourceRefBase, Any]]]
 
         # Scratchpad to pass stuff down between visitor functions
-        self._tmp = None
+        self._tmp_comp_def = None # type: comp.Component
+        self._tmp_comp_inst = None # type: comp.Component
+        self._tmp_inst_type = None # type: CommonToken
+        self._tmp_alias_primary_inst = None # type: Optional[comp.Component]
 
     #---------------------------------------------------------------------------
     # Component Definitions
     #---------------------------------------------------------------------------
-    def visitComponent_body(self, ctx: SystemRDLParser.Component_bodyContext):
+    def visitComponent_body(self, ctx: SystemRDLParser.Component_bodyContext) -> comp.Component:
         self.compiler.namespace.enter_scope()
 
-        self.component.def_src_ref = SourceRef.from_antlr(ctx)
+        self.component.def_src_ref = src_ref_from_antlr(ctx)
 
         # Re-Load any parameters into the local scope
         for param in self.component.parameters:
@@ -73,7 +84,7 @@ class ComponentVisitor(BaseVisitor):
         self.compiler.namespace.exit_scope()
         return self.component
 
-    def visitComponent_def(self, ctx: SystemRDLParser.Component_defContext):
+    def visitComponent_def(self, ctx: SystemRDLParser.Component_defContext) -> None:
         """
         Create, and possibly instantiate a component
         """
@@ -89,10 +100,10 @@ class ComponentVisitor(BaseVisitor):
         comp_def.parent_scope = self.component
 
         if ctx.component_insts() is not None:
-            if isinstance(self, RootVisitor) and isinstance(comp_def, comp.Addrmap):
+            if isinstance(self, RootVisitor) and isinstance(comp_def, comp.Addrmap): # type: ignore
                 self.msg.warning(
                     "Non-standard instantiation of an addrmap in root namespace will be ignored",
-                    SourceRef.from_antlr(ctx.component_insts().component_inst(0).ID())
+                    src_ref_from_antlr(ctx.component_insts().component_inst(0).ID())
                 )
             else:
                 # Component is instantiated one or more times
@@ -102,12 +113,12 @@ class ComponentVisitor(BaseVisitor):
                     inst_type = None
 
                 # Pass some temporary info to visitComponent_insts
-                self._tmp = (comp_def, inst_type, None)
+                self._tmp_comp_def = comp_def
+                self._tmp_inst_type = inst_type
+                self._tmp_alias_primary_inst = None
                 self.visit(ctx.component_insts())
 
-        return None
-
-    def visitComponent_named_def(self, ctx: SystemRDLParser.Component_named_defContext):
+    def visitComponent_named_def(self, ctx: SystemRDLParser.Component_named_defContext) -> comp.Component:
         type_token = self.visit(ctx.component_type())
 
         self.check_comp_def_allowed(type_token)
@@ -124,7 +135,7 @@ class ComponentVisitor(BaseVisitor):
         comp_def = self.define_component(body, type_token, def_name, param_defs)
 
         # Since the definition is named, register it with the namespace
-        self.compiler.namespace.register_type(def_name, comp_def, SourceRef.from_antlr(ctx.ID()))
+        self.compiler.namespace.register_type(def_name, comp_def, src_ref_from_antlr(ctx.ID()))
 
         # A named component's scope name is the same as it's type name
         comp_def._scope_name = def_name
@@ -132,7 +143,7 @@ class ComponentVisitor(BaseVisitor):
         return comp_def
 
 
-    def visitComponent_anon_def(self, ctx: SystemRDLParser.Component_anon_defContext):
+    def visitComponent_anon_def(self, ctx: SystemRDLParser.Component_anon_defContext) -> comp.Component:
         type_token = self.visit(ctx.component_type())
 
         self.check_comp_def_allowed(type_token)
@@ -142,7 +153,7 @@ class ComponentVisitor(BaseVisitor):
 
         return comp_def
 
-    def check_comp_def_allowed(self, type_token):
+    def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
         pass
 
     _CompType_Map = {
@@ -153,7 +164,7 @@ class ComponentVisitor(BaseVisitor):
         SystemRDLParser.SIGNAL_kw   : comp.Signal,
         SystemRDLParser.MEM_kw      : comp.Mem
     }
-    def define_component(self, body, type_token, def_name, param_defs):
+    def define_component(self, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: str, param_defs: List[Parameter]) -> comp.Component:
         """
         Given component definition, recurse to another ComponentVisitor
         to define a new component
@@ -167,7 +178,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Component Instantiation
     #---------------------------------------------------------------------------
-    def visitExplicit_component_inst(self, ctx: SystemRDLParser.Explicit_component_instContext):
+    def visitExplicit_component_inst(self, ctx: SystemRDLParser.Explicit_component_instContext) -> None:
         if ctx.component_inst_type() is not None:
             inst_type = self.visit(ctx.component_inst_type())
         else:
@@ -182,41 +193,43 @@ class ComponentVisitor(BaseVisitor):
             if not isinstance(comp_def, comp.Reg):
                 self.msg.error(
                     "Type of alias must be a 'reg' component",
-                    SourceRef.from_antlr(ctx.ID())
+                    src_ref_from_antlr(ctx.ID())
                 )
-                return None
+                return
         else:
             alias_primary_inst = None
 
         # Pass some temporary info to visitComponent_insts
-        self._tmp = (comp_def, inst_type, alias_primary_inst)
+        self._tmp_comp_def = comp_def
+        self._tmp_inst_type = inst_type
+        self._tmp_alias_primary_inst = alias_primary_inst
         self.visit(ctx.component_insts())
 
-        return None
-
-    def visitComponent_inst_alias(self, ctx: SystemRDLParser.Component_inst_aliasContext):
+    def visitComponent_inst_alias(self, ctx: SystemRDLParser.Component_inst_aliasContext) -> comp.Component:
         name = get_ID_text(ctx.ID())
         inst, _ = self.compiler.namespace.lookup_element(name)
         if inst is None:
             self.msg.fatal(
                 "Reference to '%s' not found" % name,
-                SourceRef.from_antlr(ctx.ID())
+                src_ref_from_antlr(ctx.ID())
             )
-        if not isinstance(inst, comp.Reg):
+        elif not isinstance(inst, comp.Reg):
             self.msg.fatal(
                 "Alias primary component '%s' must be of type 'reg'" % name,
-                SourceRef.from_antlr(ctx.ID())
+                src_ref_from_antlr(ctx.ID())
             )
-        if inst.is_alias:
+        elif inst.is_alias:
             self.msg.fatal(
                 "Alias primary register '%s' cannot be another alias" % name,
-                SourceRef.from_antlr(ctx.ID())
+                src_ref_from_antlr(ctx.ID())
             )
         return inst
 
-    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp
+        comp_def = self._tmp_comp_def
+        inst_type = self._tmp_inst_type
+        alias_primary_inst = self._tmp_alias_primary_inst
 
         # Get a dictionary of parameter assignments
         if ctx.param_inst() is not None:
@@ -248,12 +261,17 @@ class ComponentVisitor(BaseVisitor):
             else:
                 self.msg.fatal(
                     "Parameter '%s' not found in definition for component '%s'"
-                    % (param_name, comp_inst_template.name),
+                    % (param_name, comp_inst_template.type_name),
                     src_ref
                 )
 
             # Override the parameter's value
-            assign_expr = expressions.AssignmentCast(self.compiler.env, src_ref, assign_expr, param.param_type)
+            assign_expr = expressions.AssignmentCast(
+                self.compiler.env,
+                src_ref,
+                assign_expr,
+                param.param_type
+            )
             assign_expr.predict_type()
             param.expr = assign_expr
             external_refs.append(assign_expr)
@@ -263,21 +281,21 @@ class ComponentVisitor(BaseVisitor):
         if isinstance(comp_inst_template, (comp.Field, comp.Signal)) and inst_type is not None:
             self.msg.error(
                 "internal/external instance type is not valid for signal or field components",
-                SourceRef.from_antlr(inst_type)
+                src_ref_from_antlr(inst_type)
             )
         elif isinstance(comp_inst_template, comp.Mem):
             comp_inst_template.external = True
             if (inst_type is None) or (inst_type.type != SystemRDLParser.EXTERNAL_kw):
                 self.msg.error(
                     "mem components shall be instantiated as 'external'",
-                    SourceRef.from_antlr(ctx)
+                    src_ref_from_antlr(ctx)
                 )
         elif isinstance(comp_inst_template, comp.Addrmap):
             comp_inst_template.external = True
             if (inst_type is not None) and (inst_type.type == SystemRDLParser.INTERNAL_kw):
                 self.msg.error(
                     "addrmap components are implicitly external. Cannot declare as internal",
-                    SourceRef.from_antlr(inst_type)
+                    src_ref_from_antlr(inst_type)
                 )
         elif isinstance(comp_inst_template, comp.Reg):
             comp_inst_template.external = False
@@ -318,12 +336,11 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.original_def._scope_name = common_type_name
 
             # Pass some temporary info to visitComponent_inst
-            self._tmp = comp_inst, alias_primary_inst
+            self._tmp_comp_inst = comp_inst
+            self._tmp_alias_primary_inst = alias_primary_inst
             self.visit(inst)
 
-        return None
-
-    def get_instance_assignment(self, ctx):
+    def get_instance_assignment(self, ctx: 'ParserRuleContext') -> expressions.Expr:
         """
         Gets the integer expression in any of the four instance assignment
         operators ('=' '@' '+=' '%=')
@@ -333,17 +350,18 @@ class ComponentVisitor(BaseVisitor):
 
         visitor = ExprVisitor(self.compiler)
         expr = visitor.visit(ctx.expr())
-        expr = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.op), expr, int)
+        expr = expressions.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.op), expr, int)
         expr.predict_type()
         return expr
 
-    def visitComponent_inst(self, ctx: SystemRDLParser.Component_instContext):
+    def visitComponent_inst(self, ctx: SystemRDLParser.Component_instContext) -> None:
         # Unpack instance def info from parent
-        comp_inst, alias_primary_inst = self._tmp
+        comp_inst = self._tmp_comp_inst
+        alias_primary_inst = self._tmp_alias_primary_inst
 
         inst_name = get_ID_text(ctx.ID())
         comp_inst.inst_name = inst_name
-        comp_inst.inst_src_ref = SourceRef.from_antlr(ctx.ID())
+        comp_inst.inst_src_ref = src_ref_from_antlr(ctx.ID())
 
         # Get array or range suffix
         array_suffixes = []
@@ -361,26 +379,26 @@ class ComponentVisitor(BaseVisitor):
             if len(array_suffixes) > 1:
                 self.msg.fatal(
                     "Instances of a field can only use one array suffix",
-                    SourceRef.from_antlr(ctx.array_suffix(1))
+                    src_ref_from_antlr(ctx.array_suffix(1))
                 )
         elif isinstance(comp_inst, comp.Signal):
             # signal can use a single array suffix
             if len(array_suffixes) > 1:
                 self.msg.fatal(
                     "Instances of a signal can only use one array suffix",
-                    SourceRef.from_antlr(ctx.array_suffix(1))
+                    src_ref_from_antlr(ctx.array_suffix(1))
                 )
             if range_suffix is not None:
                 self.msg.fatal(
                     "Unexpected range suffix after signal instance",
-                    SourceRef.from_antlr(ctx.range_suffix())
+                    src_ref_from_antlr(ctx.range_suffix())
                 )
         else:
             # Everything else can use any number of array suffixes
             if range_suffix is not None:
                 self.msg.fatal(
                     "Unexpected range suffix after instance",
-                    SourceRef.from_antlr(ctx.range_suffix())
+                    src_ref_from_antlr(ctx.range_suffix())
                 )
 
         # Get all instance assignment expressions
@@ -402,7 +420,7 @@ class ComponentVisitor(BaseVisitor):
             if err_token is not None:
                 self.msg.fatal(
                     "Unexpected address allocation operator for non-addressable instance",
-                    SourceRef.from_antlr(err_token)
+                    src_ref_from_antlr(err_token)
                 )
 
         if isinstance(comp_inst, comp.Signal):
@@ -410,20 +428,20 @@ class ComponentVisitor(BaseVisitor):
             if field_inst_reset is not None:
                 self.msg.fatal(
                     "Unexpected field reset assignment for non-field instance",
-                    SourceRef.from_antlr(ctx.field_inst_reset().start)
+                    src_ref_from_antlr(ctx.field_inst_reset().start)
                 )
         elif not isinstance(comp_inst, comp.Field):
             # Otherwise, inst_addr_fixed and inst_addr_align are mutually exclusive
             if all([inst_addr_fixed, inst_addr_align]):
                 self.msg.fatal(
                     "Fixed address allocator '@' cannot be used along with an alignment allocator '%='",
-                    SourceRef.from_antlr(ctx.inst_addr_fixed().start)
+                    src_ref_from_antlr(ctx.inst_addr_fixed().start)
                 )
 
             if field_inst_reset is not None:
                 self.msg.fatal(
                     "Unexpected field reset assignment for non-field instance",
-                    SourceRef.from_antlr(ctx.field_inst_reset().start)
+                    src_ref_from_antlr(ctx.field_inst_reset().start)
                 )
 
 
@@ -431,7 +449,7 @@ class ComponentVisitor(BaseVisitor):
         if (inst_addr_stride is not None) and (not array_suffixes):
             self.msg.fatal(
                 "Unexpected address stride allocator '+=' on non-array instance",
-                SourceRef.from_antlr(ctx.inst_addr_stride().start)
+                src_ref_from_antlr(ctx.inst_addr_stride().start)
             )
 
         # Do instantiation
@@ -447,12 +465,12 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.properties['reset'] = field_inst_reset
 
         elif isinstance(comp_inst, comp.AddressableComponent):
-            comp_inst.addr_offset = inst_addr_fixed
-            comp_inst.addr_align = inst_addr_align
+            comp_inst.addr_offset = inst_addr_fixed # type: ignore
+            comp_inst.addr_align = inst_addr_align # type: ignore
             if array_suffixes:
                 comp_inst.is_array = True
                 comp_inst.array_dimensions = array_suffixes
-                comp_inst.array_stride = inst_addr_stride
+                comp_inst.array_stride = inst_addr_stride # type: ignore
         else:
             raise RuntimeError
 
@@ -467,15 +485,13 @@ class ComponentVisitor(BaseVisitor):
 
         self.compiler.namespace.register_element(
             inst_name, comp_inst, self.component,
-            SourceRef.from_antlr(ctx.ID())
+            src_ref_from_antlr(ctx.ID())
         )
-
-        return None
 
     #---------------------------------------------------------------------------
     # Parameters
     #---------------------------------------------------------------------------
-    def visitParam_def(self, ctx: SystemRDLParser.Param_defContext):
+    def visitParam_def(self, ctx: SystemRDLParser.Param_defContext) -> List[Parameter]:
         """
         Parameter Definition block
         """
@@ -489,7 +505,7 @@ class ComponentVisitor(BaseVisitor):
         self.compiler.namespace.exit_scope()
         return param_defs
 
-    def visitParam_def_elem(self, ctx: SystemRDLParser.Param_def_elemContext):
+    def visitParam_def_elem(self, ctx: SystemRDLParser.Param_def_elemContext) -> Parameter:
         """
         Individual parameter definition elements
         """
@@ -499,7 +515,7 @@ class ComponentVisitor(BaseVisitor):
         param_data_type = self.datatype_from_token(data_type_token)
         if ctx.array_type_suffix() is None:
             # Non-array type
-            param_type = param_data_type
+            param_type = param_data_type # type: Union[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct]], rdltypes.ArrayPlaceholder]
         else:
             # Array-like type
             param_type = rdltypes.ArrayPlaceholder(param_data_type)
@@ -511,7 +527,12 @@ class ComponentVisitor(BaseVisitor):
         if ctx.expr() is not None:
             visitor = ExprVisitor(self.compiler)
             default_expr = visitor.visit(ctx.expr())
-            default_expr = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.ID()), default_expr, param_type)
+            default_expr = expressions.AssignmentCast(
+                self.compiler.env,
+                src_ref_from_antlr(ctx.ID()),
+                default_expr,
+                param_type
+            )
             default_expr.predict_type()
         else:
             default_expr = None
@@ -520,16 +541,16 @@ class ComponentVisitor(BaseVisitor):
         param = Parameter(param_type, param_name, default_expr)
 
         # Register it in the parameter def namespace scope
-        self.compiler.namespace.register_element(param_name, param, None, SourceRef.from_antlr(ctx.ID()))
+        self.compiler.namespace.register_element(param_name, param, None, src_ref_from_antlr(ctx.ID()))
 
         return param
 
-    def visitParam_inst(self, ctx: SystemRDLParser.Param_instContext):
+    def visitParam_inst(self, ctx: SystemRDLParser.Param_instContext) -> Dict[str, Tuple[expressions.Expr, SourceRefBase]]:
         param_assigns = {}
         for assignment in ctx.getTypedRuleContexts(SystemRDLParser.Param_assignmentContext):
             param_name, assign_expr = self.visit(assignment)
 
-            src_ref = SourceRef.from_antlr(assignment.ID())
+            src_ref = src_ref_from_antlr(assignment.ID())
 
             if param_name in param_assigns:
                 self.msg.fatal(
@@ -540,7 +561,7 @@ class ComponentVisitor(BaseVisitor):
             param_assigns[param_name] = (assign_expr, src_ref)
         return param_assigns
 
-    def visitParam_assignment(self, ctx: SystemRDLParser.Param_assignmentContext):
+    def visitParam_assignment(self, ctx: SystemRDLParser.Param_assignmentContext) -> Tuple[str, expressions.Expr]:
         param_name = get_ID_text(ctx.ID())
 
         visitor = ExprVisitor(self.compiler)
@@ -551,7 +572,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Property Assignments
     #---------------------------------------------------------------------------
-    def visitLocal_property_assignment(self, ctx: SystemRDLParser.Local_property_assignmentContext):
+    def visitLocal_property_assignment(self, ctx: SystemRDLParser.Local_property_assignmentContext) -> None:
 
         default = (ctx.DEFAULT_kw() is not None)
 
@@ -600,7 +621,7 @@ class ComponentVisitor(BaseVisitor):
             else:
                 self.property_dict[prop_name] = (prop_src_ref, rhs)
 
-    def visitDynamic_property_assignment(self, ctx: SystemRDLParser.Dynamic_property_assignmentContext):
+    def visitDynamic_property_assignment(self, ctx: SystemRDLParser.Dynamic_property_assignmentContext) -> None:
 
         # List of component instance names in the hierarchical path
         name_tokens = self.visit(ctx.instance_ref())
@@ -628,7 +649,7 @@ class ComponentVisitor(BaseVisitor):
                 # Not found!
                 self.msg.fatal(
                     "Could not resolve hierarchical reference to '%s'" % inst_name,
-                    SourceRef.from_antlr(name_token)
+                    src_ref_from_antlr(name_token)
                 )
 
         # Add assignment to dynamic_property_dict
@@ -647,13 +668,13 @@ class ComponentVisitor(BaseVisitor):
         target_inst._dyn_assigned_props.append(prop_name)
 
 
-    def visitInstance_ref(self, ctx: SystemRDLParser.Instance_refContext):
+    def visitInstance_ref(self, ctx: SystemRDLParser.Instance_refContext) -> List['CommonToken']:
         name_tokens = []
         for ref_elem in ctx.getTypedRuleContexts(SystemRDLParser.Instance_ref_elementContext):
             name_tokens.append(self.visit(ref_elem))
         return name_tokens
 
-    def visitInstance_ref_element(self, ctx: SystemRDLParser.Instance_ref_elementContext):
+    def visitInstance_ref_element(self, ctx: SystemRDLParser.Instance_ref_elementContext) -> 'CommonToken':
         name_token = ctx.ID()
 
         # Intentionally not supporting array references in dynamic assignments
@@ -661,12 +682,12 @@ class ComponentVisitor(BaseVisitor):
         for as_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Array_suffixContext):
             self.msg.fatal(
                 "Use of array suffixes in dynamic property assignments is not supported",
-                SourceRef.from_antlr(as_ctx)
+                src_ref_from_antlr(as_ctx)
             )
 
         return name_token
 
-    def visitNormal_prop_assign(self, ctx: SystemRDLParser.Normal_prop_assignContext):
+    def visitNormal_prop_assign(self, ctx: SystemRDLParser.Normal_prop_assignContext) -> Tuple[SourceRefBase, str, Optional[expressions.Expr]]:
 
         # Get property string
         if ctx.prop_keyword() is not None:
@@ -683,9 +704,9 @@ class ComponentVisitor(BaseVisitor):
             # What this implies is resolved later
             rhs = None
 
-        return SourceRef.from_antlr(prop_token), prop_name, rhs
+        return src_ref_from_antlr(prop_token), prop_name, rhs
 
-    def visitEncode_prop_assign(self, ctx: SystemRDLParser.Encode_prop_assignContext):
+    def visitEncode_prop_assign(self, ctx: SystemRDLParser.Encode_prop_assignContext) -> Tuple[SourceRefBase, str, rdltypes.UserEnum]:
         # Get property string
         prop_token = ctx.ENCODE_kw()
         prop_name = get_ID_text(prop_token)
@@ -696,19 +717,19 @@ class ComponentVisitor(BaseVisitor):
         if enum_type is None:
             self.msg.fatal(
                 "Type '%s' is not defined" % enum_name,
-                SourceRef.from_antlr(ctx.ID())
+                src_ref_from_antlr(ctx.ID())
             )
         if not rdltypes.is_user_enum(enum_type):
             self.msg.fatal(
                 "Assignment to encode property is not an enum type",
-                SourceRef.from_antlr(ctx.ID())
+                src_ref_from_antlr(ctx.ID())
             )
         rhs = enum_type
 
-        return SourceRef.from_antlr(prop_token), prop_name, rhs
+        return src_ref_from_antlr(prop_token), prop_name, rhs # type: ignore
 
 
-    def visitProp_mod_assign(self, ctx: SystemRDLParser.Prop_mod_assignContext):
+    def visitProp_mod_assign(self, ctx: SystemRDLParser.Prop_mod_assignContext) -> Tuple[SourceRefBase, str]:
         prop_mod_token = self.visit(ctx.prop_mod())
         prop_mod = prop_mod_token.text
 
@@ -717,12 +738,12 @@ class ComponentVisitor(BaseVisitor):
         if intr_token.getText() != "intr":
             self.msg.fatal(
                 "extraneous input '%s' expecting 'intr'" % intr_token.getText(),
-                SourceRef.from_antlr(intr_token)
+                src_ref_from_antlr(intr_token)
             )
 
-        return SourceRef.from_antlr(prop_mod_token), prop_mod
+        return src_ref_from_antlr(prop_mod_token), prop_mod
 
-    def visitProp_assignment_rhs(self, ctx: SystemRDLParser.Prop_assignment_rhsContext):
+    def visitProp_assignment_rhs(self, ctx: SystemRDLParser.Prop_assignment_rhsContext) -> Any:
 
         if ctx.expr() is not None:
             visitor = ExprVisitor(self.compiler)
@@ -732,10 +753,10 @@ class ComponentVisitor(BaseVisitor):
 
         return rhs
 
-    def visitPrecedencetype_literal(self, ctx: SystemRDLParser.Precedencetype_literalContext):
+    def visitPrecedencetype_literal(self, ctx: SystemRDLParser.Precedencetype_literalContext) -> rdltypes.PrecedenceType:
         return rdltypes.PrecedenceType[ctx.kw.text]
 
-    def apply_local_properties(self):
+    def apply_local_properties(self) -> None:
 
         # First, apply default property assignments inherited from namespace
         for prop_name, (prop_src_ref, prop_rhs) in self.compiler.namespace.get_default_properties(type(self.component)).items():
@@ -748,7 +769,7 @@ class ComponentVisitor(BaseVisitor):
             rule.assign_value(self.component, prop_rhs, prop_src_ref)
 
         # Apply locally-assigned properties
-        mutex_bins = {}
+        mutex_bins = {} # type: Dict[str, str]
         for prop_name, (prop_src_ref, prop_rhs) in self.property_dict.items():
             rule = self.compiler.env.property_rules.lookup_property(prop_name)
             if rule is None:
@@ -776,10 +797,10 @@ class ComponentVisitor(BaseVisitor):
         # Clear out pending assignments now that they have been resolved
         self.property_dict = {}
 
-    def apply_dynamic_properties(self):
+    def apply_dynamic_properties(self) -> None:
 
         for target_inst, target_inst_dict in self.dynamic_property_dict.items():
-            mutex_bins = {}
+            mutex_bins = {} # type: Dict[str, str]
             for prop_name, (prop_src_ref, prop_rhs) in target_inst_dict.items():
                 rule = self.compiler.env.property_rules.lookup_property(prop_name)
                 if rule is None:
@@ -817,22 +838,22 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Array and Range suffixes
     #---------------------------------------------------------------------------
-    def visitRange_suffix(self, ctx: SystemRDLParser.Range_suffixContext):
+    def visitRange_suffix(self, ctx: SystemRDLParser.Range_suffixContext) -> Tuple[expressions.Expr, expressions.Expr]:
         visitor = ExprVisitor(self.compiler)
         expr1 = visitor.visit(ctx.expr(0))
-        expr1 = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr(0)), expr1, int)
+        expr1 = expressions.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.expr(0)), expr1, int)
         expr1.predict_type()
 
         expr2 = visitor.visit(ctx.expr(1))
-        expr2 = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr(1)), expr2, int)
+        expr2 = expressions.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.expr(1)), expr2, int)
         expr2.predict_type()
 
         return expr1, expr2
 
-    def visitArray_suffix(self, ctx: SystemRDLParser.Array_suffixContext):
+    def visitArray_suffix(self, ctx: SystemRDLParser.Array_suffixContext) -> expressions.Expr:
         visitor = ExprVisitor(self.compiler)
         expr = visitor.visit(ctx.expr())
-        expr = expressions.AssignmentCast(self.compiler.env, SourceRef.from_antlr(ctx.expr()), expr, int)
+        expr = expressions.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.expr()), expr, int)
         expr.predict_type()
         return expr
 
@@ -840,18 +861,18 @@ class ComponentVisitor(BaseVisitor):
     # Type Handling
     #---------------------------------------------------------------------------
 
-    def component_def_from_token(self, id_token):
+    def component_def_from_token(self, id_token: 'CommonToken') -> comp.Component:
         def_name = get_ID_text(id_token)
         comp_def = self.compiler.namespace.lookup_type(def_name)
         if comp_def is None:
             self.msg.fatal(
                 "Type '%s' is not defined" % def_name,
-                SourceRef.from_antlr(id_token)
+                src_ref_from_antlr(id_token)
             )
         if not isinstance(comp_def, comp.Component):
             self.msg.fatal(
                 "Type '%s' is not a component type" % def_name,
-                SourceRef.from_antlr(id_token)
+                src_ref_from_antlr(id_token)
             )
 
         return comp_def
@@ -859,7 +880,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # User-defined enum
     #---------------------------------------------------------------------------
-    def visitEnum_def(self, ctx: SystemRDLParser.Enum_defContext):
+    def visitEnum_def(self, ctx: SystemRDLParser.Enum_defContext) -> None:
         visitor = EnumVisitor(self.compiler)
         enum_type, name, src_ref = visitor.visit(ctx)
         enum_type._set_parent_scope(self.component)
@@ -868,7 +889,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # User-defined struct
     #---------------------------------------------------------------------------
-    def visitStruct_def(self, ctx: SystemRDLParser.Struct_defContext):
+    def visitStruct_def(self, ctx: SystemRDLParser.Struct_defContext) -> None:
         visitor = StructVisitor(self.compiler)
         struct_type, name, src_ref = visitor.visit(ctx)
         struct_type._set_parent_scope(self.component)
@@ -877,7 +898,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Constraint Definition
     #---------------------------------------------------------------------------
-    def visitConstraint_def(self, ctx: SystemRDLParser.Constraint_defContext):
+    def visitConstraint_def(self, ctx: SystemRDLParser.Constraint_defContext) -> None:
         # TODO: Implement constraints
         pass
 
@@ -887,45 +908,45 @@ class ComponentVisitor(BaseVisitor):
 class RootVisitor(ComponentVisitor):
     comp_type = comp.Root
 
-    def visitRoot(self, ctx: SystemRDLParser.RootContext):
+    def visitRoot(self, ctx: SystemRDLParser.RootContext) -> None:
         self.visitChildren(ctx)
         self.apply_dynamic_properties()
 
 
-    def define_component(self, body, type_token, def_name, param_defs):
+    def define_component(self, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: str, param_defs: List[Parameter]) -> comp.Component:
         comp_def = super().define_component(body, type_token, def_name, param_defs)
 
         if def_name is not None:
-            self.component.comp_defs[def_name] = comp_def
+            self.component.comp_defs[def_name] = comp_def # type: ignore
 
         return comp_def
 
-    def visitComponent_anon_def(self, ctx: SystemRDLParser.Component_anon_defContext):
+    def visitComponent_anon_def(self, ctx: SystemRDLParser.Component_anon_defContext) -> comp.Component:
         type_token = self.visit(ctx.component_type())
         if type_token.type == SystemRDLParser.ADDRMAP_kw:
             self.msg.fatal(
                 "Definitions of addrmap components in the root namespace must declare a type name.",
-                SourceRef.from_antlr(type_token)
+                src_ref_from_antlr(type_token)
             )
         return super().visitComponent_anon_def(ctx)
 
-    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
+        comp_def = self._tmp_comp_def
 
         if not isinstance(comp_def, comp.Signal):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed in the root namespace"
                 % type(comp_def).__name__.lower(),
-                SourceRef.from_antlr(ctx.component_inst(0).ID())
+                src_ref_from_antlr(ctx.component_inst(0).ID())
             )
 
-        return super().visitComponent_insts(ctx)
+        super().visitComponent_insts(ctx)
 
     #---------------------------------------------------------------------------
     # User-defined Properties
     #---------------------------------------------------------------------------
-    def visitUdp_def(self, ctx: SystemRDLParser.Udp_defContext):
+    def visitUdp_def(self, ctx: SystemRDLParser.Udp_defContext) -> None:
         visitor = UDPVisitor(self.compiler)
         visitor.visit(ctx)
 
@@ -935,17 +956,17 @@ class RootVisitor(ComponentVisitor):
 class FieldComponentVisitor(ComponentVisitor):
     comp_type = comp.Field
 
-    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # 9.2-a: No other types of structural components shall be defined within a field component.
         self.msg.fatal(
             "Instantiation of components not allowed inside a field definition",
-            SourceRef.from_antlr(ctx.component_inst(0).ID())
+            src_ref_from_antlr(ctx.component_inst(0).ID())
         )
 
-    def check_comp_def_allowed(self, type_token):
+    def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
         self.msg.fatal(
             "Definitions of components not allowed inside a field definition",
-            SourceRef.from_antlr(type_token)
+            src_ref_from_antlr(type_token)
         )
 
 #===============================================================================
@@ -954,20 +975,20 @@ class FieldComponentVisitor(ComponentVisitor):
 class RegComponentVisitor(ComponentVisitor):
     comp_type = comp.Reg
 
-    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
+        comp_def = self._tmp_comp_def
 
         # 10.2-b-1-ii: Component instantiations are limited to field, constraint, and signal instances
         if not isinstance(comp_def, (comp.Signal, comp.Field)):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a reg definition"
                 % type(comp_def).__name__.lower(),
-                SourceRef.from_antlr(ctx.component_inst(0).ID())
+                src_ref_from_antlr(ctx.component_inst(0).ID())
             )
-        return super().visitComponent_insts(ctx)
+        super().visitComponent_insts(ctx)
 
-    def check_comp_def_allowed(self, type_token):
+    def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
         comp_type = self._CompType_Map[type_token.type]
 
         # 10.2-b-1-i: Component definitions are limited to field, constraint, signal, and enum components
@@ -975,7 +996,7 @@ class RegComponentVisitor(ComponentVisitor):
             self.msg.fatal(
                 "Definitions of '%s' components not allowed inside a reg definition"
                 % comp_type.__name__.lower(),
-                SourceRef.from_antlr(type_token)
+                src_ref_from_antlr(type_token)
             )
 
 #===============================================================================
@@ -984,20 +1005,20 @@ class RegComponentVisitor(ComponentVisitor):
 class RegfileComponentVisitor(ComponentVisitor):
     comp_type = comp.Regfile
 
-    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
+        comp_def = self._tmp_comp_def
 
         # 12.1-b-1-ii: Component instantiations are limited to reg, regfile, constraint, and signal instances
         if not isinstance(comp_def, (comp.Signal, comp.Reg, comp.Regfile)):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a regfile definition"
                 % type(comp_def).__name__.lower(),
-                SourceRef.from_antlr(ctx.component_inst(0).ID())
+                src_ref_from_antlr(ctx.component_inst(0).ID())
             )
-        return super().visitComponent_insts(ctx)
+        super().visitComponent_insts(ctx)
 
-    def check_comp_def_allowed(self, type_token):
+    def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
         comp_type = self._CompType_Map[type_token.type]
 
         # 12.1-b-1-i: Component definitions are limited to field, reg, regfile, signal, constraint, and enum
@@ -1005,7 +1026,7 @@ class RegfileComponentVisitor(ComponentVisitor):
             self.msg.fatal(
                 "Definitions of '%s' components not allowed inside a regfile definition"
                 % comp_type.__name__.lower(),
-                SourceRef.from_antlr(type_token)
+                src_ref_from_antlr(type_token)
             )
 #===============================================================================
 # Addrmap Component visitor
@@ -1013,9 +1034,9 @@ class RegfileComponentVisitor(ComponentVisitor):
 class AddrmapComponentVisitor(ComponentVisitor):
     comp_type = comp.Addrmap
 
-    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
+        comp_def = self._tmp_comp_def
 
         # 13.3-a: The components instantiated within an address map shall be
         #   registers, register files, memories, address maps, or signals.
@@ -1023,9 +1044,9 @@ class AddrmapComponentVisitor(ComponentVisitor):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a addrmap definition"
                 % type(comp_def).__name__.lower(),
-                SourceRef.from_antlr(ctx.component_inst(0).ID())
+                src_ref_from_antlr(ctx.component_inst(0).ID())
             )
-        return super().visitComponent_insts(ctx)
+        super().visitComponent_insts(ctx)
 
 #===============================================================================
 # Mem Component visitor
@@ -1033,20 +1054,20 @@ class AddrmapComponentVisitor(ComponentVisitor):
 class MemComponentVisitor(ComponentVisitor):
     comp_type = comp.Mem
 
-    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext):
+    def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
-        comp_def, inst_type, alias_primary_inst = self._tmp #pylint: disable=unused-variable
+        comp_def = self._tmp_comp_def
 
         # 11.1-b-a-ii: Component instantiations are limited to reg and constraint instances.
         if not isinstance(comp_def, comp.Reg):
             self.msg.fatal(
                 "Instantiation of '%s' components not allowed inside a mem definition"
                 % type(comp_def).__name__.lower(),
-                SourceRef.from_antlr(ctx.component_inst(0).ID())
+                src_ref_from_antlr(ctx.component_inst(0).ID())
             )
-        return super().visitComponent_insts(ctx)
+        super().visitComponent_insts(ctx)
 
-    def check_comp_def_allowed(self, type_token):
+    def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
         comp_type = self._CompType_Map[type_token.type]
 
         # 11.1-b-a-i: Component definitions are limited to field, reg, constraint, and enum components.
@@ -1054,7 +1075,7 @@ class MemComponentVisitor(ComponentVisitor):
             self.msg.fatal(
                 "Definitions of '%s' components not allowed inside a mem definition"
                 % comp_type.__name__.lower(),
-                SourceRef.from_antlr(type_token)
+                src_ref_from_antlr(type_token)
             )
 #===============================================================================
 # Signal Component visitor
@@ -1065,11 +1086,11 @@ class SignalComponentVisitor(ComponentVisitor):
     def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         self.msg.fatal(
             "Instantiation of components not allowed inside a signal definition",
-            SourceRef.from_antlr(ctx.component_inst(0).ID())
+            src_ref_from_antlr(ctx.component_inst(0).ID())
         )
 
-    def check_comp_def_allowed(self, type_token) -> None:
+    def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
         self.msg.fatal(
             "Definitions of components not allowed inside a signal definition",
-            SourceRef.from_antlr(type_token)
+            src_ref_from_antlr(type_token)
         )

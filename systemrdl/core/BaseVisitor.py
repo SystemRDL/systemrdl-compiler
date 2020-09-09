@@ -1,15 +1,19 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .helpers import get_ID_text
 
-from ..messages import SourceRef
 from ..parser.SystemRDLParser import SystemRDLParser
 from ..parser.SystemRDLVisitor import SystemRDLVisitor
+from ..source_ref import src_ref_from_antlr
 
 from .. import rdltypes
 
 if TYPE_CHECKING:
     from ..compiler import RDLCompiler
+    from antlr4.Token import CommonToken
+    from antlr4 import ParserRuleContext
+    from .namespace import TypeNSEntry
+    from typing import Union, Type
 
 class BaseVisitor(SystemRDLVisitor):
 
@@ -32,6 +36,7 @@ class BaseVisitor(SystemRDLVisitor):
         SystemRDLParser.BOOLEAN_kw          : bool
     }
     def datatype_from_token(self, token):
+        # type: ('CommonToken') -> Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct]]
         """
         Given a SystemRDLParser token, lookup the type
         This only includes types under the "data_type" grammar rule
@@ -44,19 +49,18 @@ class BaseVisitor(SystemRDLVisitor):
             if typ is None:
                 self.msg.fatal(
                     "Type '%s' is not defined" % get_ID_text(token),
-                    SourceRef.from_antlr(token)
+                    src_ref_from_antlr(token)
                 )
 
             if rdltypes.is_user_enum(typ) or rdltypes.is_user_struct(typ):
-                return typ
+                return typ # type: ignore
             else:
                 self.msg.fatal(
                     "Type '%s' is not a struct or enum" % get_ID_text(token),
-                    SourceRef.from_antlr(token)
+                    src_ref_from_antlr(token)
                 )
 
-        else:
-            return self._DataType_Map[token.type]
+        return self._DataType_Map[token.type]
 
     #---------------------------------------------------------------------------
     # Keyword passthrough visitors
@@ -67,35 +71,35 @@ class BaseVisitor(SystemRDLVisitor):
     # These visitors propagate the original tokens all the way back up to the
     # visitor that actually needs to know which keyword was used.
 
-    def passthru_kw_token(self, ctx):
+    def passthru_kw_token(self, ctx: 'ParserRuleContext') -> Any:
         if ctx.kw is not None:
             return ctx.kw
         else:
             return self.visitChildren(ctx)
 
-    def visitComponent_inst_type(self, ctx: SystemRDLParser.Component_inst_typeContext):
+    def visitComponent_inst_type(self, ctx: SystemRDLParser.Component_inst_typeContext) -> Any:
         return self.passthru_kw_token(ctx)
 
-    def visitComponent_type(self, ctx: SystemRDLParser.Component_typeContext):
+    def visitComponent_type(self, ctx: SystemRDLParser.Component_typeContext) -> Any:
         return self.passthru_kw_token(ctx)
 
-    def visitComponent_type_primary(self, ctx: SystemRDLParser.Component_type_primaryContext):
+    def visitComponent_type_primary(self, ctx: SystemRDLParser.Component_type_primaryContext) -> Any:
         return self.passthru_kw_token(ctx)
 
-    def visitData_type(self, ctx: SystemRDLParser.Data_typeContext):
+    def visitData_type(self, ctx: SystemRDLParser.Data_typeContext) -> Any:
         return self.passthru_kw_token(ctx)
 
-    def visitBasic_data_type(self, ctx: SystemRDLParser.Basic_data_typeContext):
+    def visitBasic_data_type(self, ctx: SystemRDLParser.Basic_data_typeContext) -> Any:
         return self.passthru_kw_token(ctx)
 
-    def visitProp_keyword(self, ctx: SystemRDLParser.Prop_keywordContext):
+    def visitProp_keyword(self, ctx: SystemRDLParser.Prop_keywordContext) -> Any:
         return self.passthru_kw_token(ctx)
 
-    def visitProp_mod(self, ctx: SystemRDLParser.Prop_modContext):
+    def visitProp_mod(self, ctx: SystemRDLParser.Prop_modContext) -> Any:
         return self.passthru_kw_token(ctx)
 
-    def visitUdp_data_type(self, ctx: SystemRDLParser.Udp_data_typeContext):
+    def visitUdp_data_type(self, ctx: SystemRDLParser.Udp_data_typeContext) -> Any:
         return self.passthru_kw_token(ctx)
 
-    def visitUdp_comp_type(self, ctx: SystemRDLParser.Udp_comp_typeContext):
+    def visitUdp_comp_type(self, ctx: SystemRDLParser.Udp_comp_typeContext) -> Any:
         return self.passthru_kw_token(ctx)

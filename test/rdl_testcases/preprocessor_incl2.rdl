@@ -2,3 +2,5 @@
 reg reg2_t {
     myField x;
 };
+
+`define INST_TPASTE(typ, a, b) `INST(typ, a``b) \

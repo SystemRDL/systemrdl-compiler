@@ -34,82 +34,110 @@ class TestPreprocessor(RDLSourceTestCase):
             "top"
         )
 
+        with self.subTest("top def"):
+            src_ref = root.find_by_path("top").inst.def_src_ref
+
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(src_ref.line, 25)
+            self.assertEqual(src_ref.line_selection, (18, 20))
+
         with self.subTest("reg1 def"):
             src_ref = root.find_by_path("top.reg1").inst.def_src_ref
-            src_ref.derive_coordinates()
 
-            self.assertEqual(os.path.basename(src_ref.filename), "preprocessor.rdl")
-            self.assertEqual(src_ref.start_line, 4)
-            self.assertEqual(src_ref.start_col, 10)
-            self.assertEqual(src_ref.end_line, 8)
-            self.assertEqual(src_ref.end_col, 0)
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(src_ref.line, 11)
+            self.assertEqual(src_ref.line_selection, (10, 12))
 
         with self.subTest("reg1 inst"):
             src_ref = root.find_by_path("top.reg1").inst.inst_src_ref
-            src_ref.derive_coordinates()
 
-            self.assertEqual(os.path.basename(src_ref.filename), "preprocessor.rdl")
-            self.assertEqual(src_ref.start_line, 18)
-            self.assertEqual(src_ref.start_col, 10)
-            self.assertEqual(src_ref.end_line, 18)
-            self.assertEqual(src_ref.end_col, 13)
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(src_ref.line, 26)
+            self.assertEqual(src_ref.line_selection, (10, 13))
 
         with self.subTest("data0 def"):
             src_ref = root.find_by_path("top.reg1.data0").inst.def_src_ref
-            src_ref.derive_coordinates()
 
-            self.assertEqual(os.path.basename(src_ref.filename), "preprocessor_incl.rdl")
-            self.assertEqual(src_ref.start_line, 4)
-            self.assertEqual(src_ref.start_col, 14)
-            self.assertEqual(src_ref.end_line, 4)
-            self.assertEqual(src_ref.end_col, 15)
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor_incl.rdl")
+            self.assertEqual(src_ref.line, 4)
+            self.assertEqual(src_ref.line_selection, (14, 15))
 
         with self.subTest("data0 inst"):
             src_ref = root.find_by_path("top.reg1.data0").inst.inst_src_ref
-            src_ref.derive_coordinates()
 
-            self.assertEqual(os.path.basename(src_ref.filename), "preprocessor.rdl")
-            self.assertEqual(src_ref.start_line, 6)
-            self.assertEqual(src_ref.start_col, 12)
-            self.assertEqual(src_ref.end_line, 6)
-            self.assertEqual(src_ref.end_col, 22)
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(src_ref.line, 13)
+            self.assertEqual(src_ref.line_selection, (12, 22))
 
         with self.subTest("reg2 def"):
             src_ref = root.find_by_path("top.reg2").inst.def_src_ref
-            src_ref.derive_coordinates()
 
-            self.assertEqual(os.path.basename(src_ref.filename), "preprocessor_incl2.rdl")
-            self.assertEqual(src_ref.start_line, 2)
-            self.assertEqual(src_ref.start_col, 11)
-            self.assertEqual(src_ref.end_line, 4)
-            self.assertEqual(src_ref.end_col, 0)
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor_incl2.rdl")
+            self.assertEqual(src_ref.line, 2)
+            self.assertEqual(src_ref.line_selection, (11, 13))
 
         with self.subTest("reg2 inst"):
             src_ref = root.find_by_path("top.reg2").inst.inst_src_ref
-            src_ref.derive_coordinates()
 
-            self.assertEqual(os.path.basename(src_ref.filename), "preprocessor.rdl")
-            self.assertEqual(src_ref.start_line, 19)
-            self.assertEqual(src_ref.start_col, 11)
-            self.assertEqual(src_ref.end_line, 19)
-            self.assertEqual(src_ref.end_col, 14)
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(src_ref.line, 27)
+            self.assertEqual(src_ref.line_selection, (11, 14))
+
+        with self.subTest("reg3 inst"):
+            src_ref = root.find_by_path("top.reg3").inst.inst_src_ref
+
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(src_ref.line, 28)
+            self.assertEqual(src_ref.line_selection, (4, 22))
 
         with self.subTest("x def"):
             src_ref = root.find_by_path("top.reg2.x").inst.def_src_ref
-            src_ref.derive_coordinates()
 
-            self.assertEqual(os.path.basename(src_ref.filename), "preprocessor_incl.rdl")
-            self.assertEqual(src_ref.start_line, 4)
-            self.assertEqual(src_ref.start_col, 14)
-            self.assertEqual(src_ref.end_line, 4)
-            self.assertEqual(src_ref.end_col, 15)
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor_incl.rdl")
+            self.assertEqual(src_ref.line, 4)
+            self.assertEqual(src_ref.line_selection, (14, 15))
 
         with self.subTest("x inst"):
             src_ref = root.find_by_path("top.reg2.x").inst.inst_src_ref
-            src_ref.derive_coordinates()
 
-            self.assertEqual(os.path.basename(src_ref.filename), "preprocessor_incl2.rdl")
-            self.assertEqual(src_ref.start_line, 3)
-            self.assertEqual(src_ref.start_col, 12)
-            self.assertEqual(src_ref.end_line, 3)
-            self.assertEqual(src_ref.end_col, 12)
+            self.assertEqual(os.path.basename(src_ref.path), "preprocessor_incl2.rdl")
+            self.assertEqual(src_ref.line, 3)
+            self.assertEqual(src_ref.line_selection, (12, 12))
+
+        with self.subTest("conditional1"):
+            self.assertIsNone(root.find_by_path("top.foo1"))
+            self.assertIsNone(root.find_by_path("top.bar1"))
+            self.assertIsNotNone(root.find_by_path("top.else1"))
+            self.assertIsNone(root.find_by_path("top.macro_foo1"))
+            self.assertIsNone(root.find_by_path("top.macro_bar1"))
+            self.assertIsNotNone(root.find_by_path("top.macro_else1"))
+
+        with self.subTest("conditional2"):
+            self.assertIsNotNone(root.find_by_path("top.foo2"))
+            self.assertIsNone(root.find_by_path("top.bar2"))
+            self.assertIsNone(root.find_by_path("top.else2"))
+
+        with self.subTest("conditional3"):
+            self.assertIsNotNone(root.find_by_path("top.foo3"))
+            self.assertIsNone(root.find_by_path("top.bar3"))
+            self.assertIsNone(root.find_by_path("top.else3"))
+            self.assertIsNone(root.find_by_path("top.xxx3"))
+            self.assertIsNone(root.find_by_path("top.yyy3"))
+            self.assertIsNone(root.find_by_path("top.xyelse3"))
+
+        with self.subTest("conditional4"):
+            self.assertIsNone(root.find_by_path("top.foo4"))
+            self.assertIsNotNone(root.find_by_path("top.bar4"))
+            self.assertIsNone(root.find_by_path("top.else4"))
+            self.assertIsNone(root.find_by_path("top.xxx4"))
+            self.assertIsNotNone(root.find_by_path("top.yyy4"))
+            self.assertIsNone(root.find_by_path("top.xyelse4"))
+
+        with self.subTest("Misc maros"):
+            self.assertIsNotNone(root.find_by_path("top.abcd1234"))
+
+            desc = root.find_by_path("top").get_property("desc")
+            self.assertEqual(desc, "left side: \"right side\"")
+
+            name = root.find_by_path("top").get_property("name")
+            self.assertEqual(name, "b + 1 + 42 + a")

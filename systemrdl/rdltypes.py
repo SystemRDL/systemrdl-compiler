@@ -11,8 +11,8 @@ from . import component as comp
 
 if TYPE_CHECKING:
     from markdown import Markdown
-    from .messages import SourceRef
     from .compiler import RDLEnvironment
+    from .source_ref import SourceRefBase
 
 if sys.version_info >= (3,5,4):
     # RDL Types the user will encounter via the public API
@@ -447,7 +447,7 @@ def is_user_struct(t: Any) -> bool:
     return inspect.isclass(t) and issubclass(t, UserStruct)
 
 #===============================================================================
-RefElement = Tuple[str, List[int], Optional['SourceRef']]
+RefElement = Tuple[str, List[int], Optional['SourceRefBase']]
 
 class ComponentRef:
     """
@@ -466,7 +466,7 @@ class ComponentRef:
         # Path is relative to the instance of ref_root
         # Each tuple in the list represents a segment of the path:
         # [
-        #   ( <ID string> , [ <Index int> , ... ], SourceRef ),
+        #   ( <ID string> , [ <Index int> , ... ], SourceRefBase ),
         # ]
         self.ref_elements = ref_elements
 
@@ -542,7 +542,7 @@ class PropertyReference:
     """
     allowed_inst_type = None # type: Type[comp.Component]
 
-    def __init__(self, src_ref: 'SourceRef', env: 'RDLEnvironment', comp_ref: ComponentRef):
+    def __init__(self, src_ref: 'SourceRefBase', env: 'RDLEnvironment', comp_ref: ComponentRef):
         self.env = env
         self.src_ref = src_ref
         self._comp_ref = comp_ref

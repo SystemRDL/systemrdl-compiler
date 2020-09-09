@@ -52,49 +52,51 @@ class SegmentMap:
     def __init__(self) -> None:
         self.segments = [] # type: List[Segment]
 
-    def derive_source_offset(self, offset: int, is_end: bool=False) -> Tuple[int, str, IncludeRef]:
-        """
-        Given a post-preprocessed coordinate, derives the corresponding coordinate
-        in the original source file.
-
-        Returns result in the following tuple:
-            (src_offset, src_path, include_ref)
-        where:
-            - src_offset is the translated coordinate
-                If the input offset lands on a macro expansion, then src_offset
-                returns the start or end coordinate according to is_end
-            - src_path points to the original source file
-            - include_ref describes any `include lineage using a IncludeRef object
-                Is none if file was not referenced via include
-        """
+    def translate_offset(self, offset: int, round_up: bool) -> Tuple[int, str]:
+        # Scan through segments
         for segment in self.segments:
             if offset <= segment.end:
                 if isinstance(segment, MacroSegment):
-                    if is_end:
-                        return (
-                            segment.src_end,
-                            segment.src,
-                            segment.incl_ref
-                        )
+                    if round_up:
+                        new_offset = segment.src_end
                     else:
-                        return (
-                            segment.src_start,
-                            segment.src,
-                            segment.incl_ref
-                        )
+                        new_offset = segment.src_start
+                    new_src = segment.src
                 else:
-                    return (
-                        segment.src_start + (offset - segment.start),
-                        segment.src,
-                        segment.incl_ref
-                    )
+                    new_offset = segment.src_start + (offset - segment.start)
+                    new_src = segment.src
+                break
+        else:
+            # Reached end without finding a segment
+            # Clamp to the end of the last segment
+            new_offset = self.segments[-1].src_end
+            new_src = self.segments[-1].src
 
-        # Reached end. Assume end of last segment
+        if isinstance(new_src, SegmentMap):
+            # Got nested segment map. Peel back the next layer
+            new_offset, new_src = new_src.translate_offset(new_offset, round_up)
+
         return (
-            self.segments[-1].src_end,
-            self.segments[-1].src,
-            self.segments[-1].incl_ref
+            new_offset,
+            new_src,
         )
+
+    def get_selection(self, start: int, end: int) -> Tuple[int, int, str]:
+        """
+        Given post-processed start/end character offsets, derives the coordinates
+        witin the original source file.
+
+        If the selection spans two files, the end coordiante is discarded and is
+        instead pinned to the start coordinate
+        """
+        start, path = self.translate_offset(start, round_up=False)
+        end, end_path = self.translate_offset(end, round_up=True)
+
+        # Do not allow selections that span multiple files
+        if path != end_path:
+            end = start
+
+        return (start, end, path)
 
 
 def print_segment_debug(text: str, smap: SegmentMap) -> None: # pragma: no cover
