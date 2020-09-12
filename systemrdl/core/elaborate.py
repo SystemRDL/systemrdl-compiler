@@ -112,13 +112,13 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'alignment' property must be greater than zero",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('alignment', node.inst.def_src_ref)
                 )
             # 12.3.1-a, 13.4.1-b: All alignment values shall be a power of two (1, 2, 4, etc.)
             if not is_pow2(n):
                 self.msg.fatal(
                     "'alignment' property must be a power of 2",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('alignment', node.inst.def_src_ref)
                 )
 
 
@@ -130,12 +130,12 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n < 8:
                 self.msg.fatal(
                     "'regwidth' property must be at least 8",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('regwidth', node.inst.def_src_ref)
                 )
             if not is_pow2(n):
                 self.msg.fatal(
                     "'regwidth' property must be a power of 2",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('regwidth', node.inst.def_src_ref)
                 )
 
         # 10.6.1-b: All registers shall have a accesswidth = 2 N , where N >=3.
@@ -144,12 +144,12 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n < 8:
                 self.msg.fatal(
                     "'accesswidth' property must be at least 8",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('accesswidth', node.inst.def_src_ref)
                 )
             if not is_pow2(n):
                 self.msg.fatal(
                     "'accesswidth' property must be a power of 2",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('accesswidth', node.inst.def_src_ref)
                 )
 
     def enter_Field(self, node: FieldNode) -> None:
@@ -158,7 +158,7 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'fieldwidth' property must be greater than zero",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('fieldwidth', node.inst.def_src_ref)
                 )
 
     def enter_Signal(self, node: SignalNode) -> None:
@@ -167,7 +167,7 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'signalwidth' property must be greater than zero",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('signalwidth', node.inst.def_src_ref)
                 )
 
     def enter_Mem(self, node: MemNode) -> None:
@@ -177,7 +177,7 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'mementries' property must be greater than zero",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('mementries', node.inst.def_src_ref)
                 )
 
         # 11.3.1-a: memwidth shall be greater than 0.
@@ -186,7 +186,7 @@ class PrePlacementValidateListener(walker.RDLListener):
             if n <= 0:
                 self.msg.fatal(
                     "'memwidth' property must be greater than zero",
-                    node.inst.def_src_ref
+                    node.inst.property_src_ref.get('memwidth', node.inst.def_src_ref)
                 )
 
 #-------------------------------------------------------------------------------

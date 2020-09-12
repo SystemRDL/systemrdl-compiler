@@ -25,7 +25,7 @@ class Expr:
         """
         Deepcopy all members except for ones that should be copied by reference
         """
-        copy_by_ref = ["src_ref", "env", "msg"]
+        copy_by_ref = ["env", "msg"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -1057,7 +1057,7 @@ class InstRef(Expr):
         """
         Copy any Source Ref by ref within the ref_elements list when deepcopying
         """
-        copy_by_ref = ["src_ref", "env", "msg", "ref_root"]
+        copy_by_ref = ["env", "msg", "ref_root"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result

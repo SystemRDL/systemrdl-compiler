@@ -98,6 +98,9 @@ class PropertyRule:
         # Store the property
         comp_def.properties[self.get_name()] = value
 
+        if src_ref is not None:
+            comp_def.property_src_ref[self.get_name()] = src_ref
+
     #---------------------------------------------------------------------------
     def get_default(self, node: m_node.Node) -> Any:
         # pylint: disable=unused-argument

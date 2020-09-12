@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, Dict, Any
 
 from antlr4.Token import CommonToken
 from antlr4 import ParserRuleContext
@@ -20,6 +20,10 @@ class SourceRefBase:
         DEPRECATED
         Some dependents may call this if using the old SourceRef API
         """
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> 'SourceRefBase':
+        # Don't deepcopy source refs
+        return self
 
 
 class FileSourceRef(SourceRefBase):

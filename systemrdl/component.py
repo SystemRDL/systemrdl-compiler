@@ -29,7 +29,7 @@ class Component:
         #: .. note::
         #:      This represents the parent *lexical* scope! This does *not*
         #:      refer to the hierarchical parent of this component.
-        self.parent_scope = None # type: 'Component'
+        self.parent_scope = None # type: Component
 
         # Name of this component's declaration scope
         # This field is only valid in non-instantiated components (referenced
@@ -61,17 +61,20 @@ class Component:
         #: - All other components follow.
         #: - AddressableComponents are sorted by ascending base_addr
         #: - Fields are sorted by ascending low bit
-        self.children = [] # type: List['Component']
+        self.children = [] # type: List[Component]
 
         # Parameters of this component definition.
         # These are listed in the order that they were defined
-        self.parameters = [] # type: List['Parameter']
+        self.parameters = [] # type: List[Parameter]
 
         # Properties applied to this component
         self.properties = {} # type: Dict[str, Any]
 
+        # Source references for each explicit property assignment (if available)
+        self.property_src_ref = {} # type: Dict[str, SourceRefBase]
+
         # Source Ref for the component definition
-        self.def_src_ref = None # type: Optional['SourceRefBase']
+        self.def_src_ref = None # type: Optional[SourceRefBase]
 
         #------------------------------
         # Component instantiation
@@ -80,19 +83,19 @@ class Component:
         self.is_instance = False # type: bool
 
         #: Name of instantiated element
-        self.inst_name = None # type: Optional['str']
+        self.inst_name = None # type: Optional[str]
 
         #: Reference to original :class:`~systemrdl.component.Component`
         #: definition this instance is derived from.
         #:
         #: Importers may leave this as ``None`` if appropriate.
-        self.original_def = None # type: Optional['Component']
+        self.original_def = None # type: Optional[Component]
 
         #: True if instance type is external. False if internal.
         self.external = None # type: bool
 
         # Source Ref for the component instantiation.
-        self.inst_src_ref = None # type: Optional['SourceRefBase']
+        self.inst_src_ref = None # type: Optional[SourceRefBase]
 
         #------------------------------
         # List of property names that were assigned via a dynamic property
@@ -107,7 +110,7 @@ class Component:
         """
         Deepcopy all members except for ones that should be copied by reference
         """
-        copy_by_ref = ["original_def", "def_src_ref", "inst_src_ref", "parent_scope"]
+        copy_by_ref = ["original_def", "parent_scope"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
