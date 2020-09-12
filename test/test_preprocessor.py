@@ -39,14 +39,14 @@ class TestPreprocessor(RDLSourceTestCase):
 
             self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
             self.assertEqual(src_ref.line, 25)
-            self.assertEqual(src_ref.line_selection, (18, 20))
+            self.assertEqual(src_ref.line_selection, (18, 18))
 
         with self.subTest("reg1 def"):
             src_ref = root.find_by_path("top.reg1").inst.def_src_ref
 
             self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
             self.assertEqual(src_ref.line, 11)
-            self.assertEqual(src_ref.line_selection, (10, 12))
+            self.assertEqual(src_ref.line_selection, (10, 10))
 
         with self.subTest("reg1 inst"):
             src_ref = root.find_by_path("top.reg1").inst.inst_src_ref
@@ -74,7 +74,7 @@ class TestPreprocessor(RDLSourceTestCase):
 
             self.assertEqual(os.path.basename(src_ref.path), "preprocessor_incl2.rdl")
             self.assertEqual(src_ref.line, 2)
-            self.assertEqual(src_ref.line_selection, (11, 13))
+            self.assertEqual(src_ref.line_selection, (11, 11))
 
         with self.subTest("reg2 inst"):
             src_ref = root.find_by_path("top.reg2").inst.inst_src_ref

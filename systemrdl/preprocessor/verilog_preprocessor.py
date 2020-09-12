@@ -201,7 +201,7 @@ class VerilogPreprocessor:
         if not self._conditional.is_in_if_block or self._conditional.is_in_else_block:
             self.env.msg.fatal(
                 "Unexpected `elsif",
-                self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1))
+                self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1) - 1)
             )
 
         self._conditional.do_elsif(identifier in self._macro_defs)
@@ -214,7 +214,7 @@ class VerilogPreprocessor:
         if not self._conditional.is_in_if_block or self._conditional.is_in_else_block:
             self.env.msg.fatal(
                 "Unexpected `else",
-                self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1))
+                self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1) - 1)
             )
         self._conditional.do_else()
         self._scan_idx = m.end()
@@ -226,7 +226,7 @@ class VerilogPreprocessor:
         if self._conditional.is_idle and not self._conditional_stack:
             self.env.msg.fatal(
                 "Unexpected `endif",
-                self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1))
+                self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1) - 1)
             )
 
         self._conditional.do_endif()
@@ -249,7 +249,7 @@ class VerilogPreprocessor:
         if identifier in reserved_macro_names:
             self.env.msg.fatal(
                 "Macro name '%s' is a reserved keyword" % identifier,
-                self.get_err_src_ref(m.start(m.lastindex + 2), m.end(m.lastindex + 2))
+                self.get_err_src_ref(m.start(m.lastindex + 2), m.end(m.lastindex + 2) - 1)
             )
 
         self._scan_idx = m.end(m.lastindex + 2)
@@ -287,13 +287,27 @@ class VerilogPreprocessor:
         if self._src_ref_override:
             macro_src_ref = self._src_ref_override
         else:
-            macro_src_ref = SegmentedSourceRef(self._src_seg_map, m.start(), m.end())
+            macro_src_ref = SegmentedSourceRef(self._src_seg_map, m.start(), m.end() - 1)
+
+        # Check if macro identifier is not one of the reserved directives
+        # Preprocessor can end up here if the user did not provide the expected
+        # args to a directive. The parser will instead fall back to thinking it
+        # is a macro expansion
+        reserved_macro_names = (
+            "include", "ifdef", "ifndef", "elsif", "define",
+            "undef", "line"
+        )
+        if identifier in reserved_macro_names:
+            self.env.msg.fatal(
+                "Preprocessor directive '`%s' is incomplete" % identifier,
+                self.get_err_src_ref(m.start(), m.end() - 1)
+            )
 
         # Lookup macro identifier
         if identifier not in self._macro_defs:
             self.env.msg.fatal(
                 "Macro '`%s' has not been defined" % identifier,
-                self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1))
+                self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1) - 1)
             )
         macro = self._macro_defs[identifier]
 
@@ -319,7 +333,7 @@ class VerilogPreprocessor:
             if identifier in self._active_macro_stack:
                 self.env.msg.fatal(
                     "Found recursive macro expansion when processing '`%s'" % identifier,
-                    self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1))
+                    self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1) - 1)
                 )
             self._active_macro_stack.append(identifier)
 
@@ -386,6 +400,7 @@ class VerilogPreprocessor:
                 "Syntax error when parsing define args",
                 self.get_err_src_ref(self._scan_idx, self._scan_idx)
             )
+        current_arg_idx = self._scan_idx + 1
         self._scan_idx = m.end()
 
         # Extract individual arg identifiers
@@ -396,9 +411,10 @@ class VerilogPreprocessor:
             if not m:
                 self.env.msg.fatal(
                     "Syntax error when parsing define args",
-                    self.get_err_src_ref(m.start(), m.end())
+                    self.get_err_src_ref(current_arg_idx, current_arg_idx + len(raw_arg) - 1)
                 )
             args.append(m.group(1))
+            current_arg_idx += len(raw_arg) + 1
         return args
 
     def define_contents_scanner(self) -> str:
@@ -473,11 +489,11 @@ class VerilogPreprocessor:
         m = re.compile(r'\s*\(').match(self._text, self._scan_idx)
         if not m:
             self.env.msg.fatal(
-                "Macro expansion did not provide any args",
+                "Expected arguments to macro. Got none.",
                 self.get_err_src_ref(self._scan_idx, self._scan_idx)
             )
         self._scan_idx = m.end()
-        args_start_idx = self._scan_idx
+        args_start_idx = self._scan_idx - 1
 
         queries = [
             # Skip over stuff
@@ -513,7 +529,7 @@ class VerilogPreprocessor:
                 if self._src_ref_override:
                     argvs.append((argv, self._src_ref_override))
                 else:
-                    src_ref = SegmentedSourceRef(self._src_seg_map, argv_start_idx, m.start())
+                    src_ref = SegmentedSourceRef(self._src_seg_map, argv_start_idx, m.start() - 1)
                     argvs.append((argv, src_ref))
                 argv_start_idx = m.end()
             elif not enclosures_stack and punc == ')':
@@ -522,7 +538,7 @@ class VerilogPreprocessor:
                 if self._src_ref_override:
                     argvs.append((argv, self._src_ref_override))
                 else:
-                    src_ref = SegmentedSourceRef(self._src_seg_map, argv_start_idx, m.start())
+                    src_ref = SegmentedSourceRef(self._src_seg_map, argv_start_idx, m.start() - 1)
                     argvs.append((argv, src_ref))
                 self._scan_idx = m.end()
                 break
@@ -532,13 +548,13 @@ class VerilogPreprocessor:
                 if not enclosures_stack:
                     self.env.msg.fatal(
                         "Unexpected '%s' while parsing macro arguments." % punc,
-                        self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1))
+                        self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1) - 1)
                     )
                 c = enclosures_stack.pop()
                 if punc != punc_pairs[c]:
                     self.env.msg.fatal(
                         "Unexpected '%s' while parsing macro arguments." % punc,
-                        self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1))
+                        self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1) - 1)
                     )
         else:
             self.env.msg.fatal(
@@ -573,7 +589,7 @@ def get_illegal_trailing_text_pos(text: str, idx: int) -> Tuple[Union[int, None]
         # Did not match. Find end of the line
         eol_regex = re.compile(r'.+$', re.MULTILINE)
         m = eol_regex.match(text, idx)
-        return (m.start(), m.end())
+        return (m.start(), m.end() - 1)
 
 
 class ConditionalState:

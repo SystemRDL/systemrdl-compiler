@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import List
+from typing import List, TYPE_CHECKING, Tuple, Any, Optional
 
 from ..parser.SystemRDLParser import SystemRDLParser
 
@@ -11,9 +11,15 @@ from . import expressions, helpers
 from ..source_ref import src_ref_from_antlr
 from .. import rdltypes
 
+if TYPE_CHECKING:
+    from antlr4.Token import CommonToken
+    from ..source_ref import SourceRefBase
+    from typing import Type
+
 class EnumVisitor(BaseVisitor):
 
-    def visitEnum_def(self, ctx: SystemRDLParser.Enum_defContext):
+    def visitEnum_def(self, ctx):
+        # type: (SystemRDLParser.Enum_defContext) -> Tuple[Type[rdltypes.UserEnum], str, SourceRefBase]
         self.compiler.namespace.enter_scope()
 
         enum_name = get_ID_text(ctx.ID())
@@ -61,17 +67,17 @@ class EnumVisitor(BaseVisitor):
 
 
         # Create Enum type
-        enum_type = rdltypes.UserEnum(enum_name, entries) # type: ignore # pylint: disable=no-value-for-parameter
+        enum_type = rdltypes.UserEnum(enum_name, entries) # type: Type[rdltypes.UserEnum] # type: ignore # pylint: disable=no-value-for-parameter
 
         self.compiler.namespace.exit_scope()
         return enum_type, get_ID_text(ctx.ID()), src_ref_from_antlr(ctx.ID())
 
-    def visitEnum_entry(self, ctx: SystemRDLParser.Enum_entryContext):
+    def visitEnum_entry(self, ctx: SystemRDLParser.Enum_entryContext) -> Tuple['CommonToken', SystemRDLParser.ExprContext, Optional[str], Optional[str]]:
         name_token = ctx.ID()
         value_expr_ctx = ctx.expr()
 
-        rdl_name = None
-        rdl_desc = None
+        rdl_name = None # type: Optional[str]
+        rdl_desc = None # type: Optional[str]
 
         for pa_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Enum_prop_assignContext):
             prop_token, prop_value = self.visit(pa_ctx)
@@ -104,7 +110,7 @@ class EnumVisitor(BaseVisitor):
 
         return name_token, value_expr_ctx, rdl_name, rdl_desc
 
-    def visitEnum_prop_assign(self, ctx: SystemRDLParser.Enum_prop_assignContext):
+    def visitEnum_prop_assign(self, ctx: SystemRDLParser.Enum_prop_assignContext) -> Tuple['CommonToken', Any]:
         prop_token = ctx.ID()
 
         visitor = ExprVisitor(self.compiler)

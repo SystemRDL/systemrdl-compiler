@@ -111,17 +111,16 @@ class DirectSourceRef(DetailedFileSourceRef):
 
                 # This line contains the start_idx
                 if self._start_idx < idx:
+                    line_text = line_text.rstrip("\n").rstrip("\r")
                     self._line = lineno
-                    self._line_text = line_text.rstrip("\n").rstrip("\r")
+                    self._line_text = line_text
                     start_column = self._start_idx - line_start_idx
 
                     # Get the end of the selection
-                    end_column =self._end_idx - line_start_idx
+                    end_column = self._end_idx - line_start_idx
                     # Clamp it to the end of the current line
-                    if end_column > len(line_text):
-                        # TODO: Perhaps denote that the selection extends past
-                        # the current line somehow? Or is this a YAGNI
-                        end_column = len(line_text)
+                    if end_column >= len(line_text):
+                        end_column = len(line_text) - 1
 
                     self._line_selection = (start_column, end_column)
 
