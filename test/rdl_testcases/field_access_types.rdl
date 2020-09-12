@@ -14,6 +14,7 @@ addrmap top {
         } f3 = 0;
         field {
             sw=w;hw=r;
+            swwe;
         } f4 = 0;
         field {
             sw=r;hw=r;
@@ -23,6 +24,18 @@ addrmap top {
             sw=r;hw=r;
             hwclr;
         } f6 = 1;
+        field {
+            sw=r;hw=r;
+            swwe; // coerces sw=rw
+        } f7 = 1;
+        field {
+            sw=na;hw=r;
+            swwe; // coerces sw=w
+        } f8 = 0;
+        field {
+            sw=r;hw=r;
+            swwel; // coerces sw=rw
+        } f9 = 1;
     } r1;
 
     reg {

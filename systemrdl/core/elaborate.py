@@ -545,9 +545,9 @@ class LateElabListener(walker.RDLListener):
         elif "swwel" in node.inst.properties:
             swwel = node.inst.properties['swwel']
             if isinstance(swwel, rdltypes.ComponentRef):
-                ensure_field_is_writable(node, 'swwe')
+                ensure_field_is_writable(node, 'swwel')
             elif swwel is True:
-                ensure_field_is_writable(node, 'swwe')
+                ensure_field_is_writable(node, 'swwel')
 
         # Inherits internal/external of parent reg
         assert node.parent is not None
