@@ -12,6 +12,7 @@
 #
 import os
 import sys
+import datetime
 sys.path.insert(0, os.path.abspath('..'))
 
 
@@ -24,7 +25,7 @@ with open(os.path.join(base_dir, "systemrdl", "__about__.py")) as f:
     rdl_version_short = ".".join(rdl_version.split('.')[:2])
 
 project = 'SystemRDL Compiler'
-copyright = '2019, Alex Mykyta'
+copyright = '%d, Alex Mykyta' % datetime.datetime.now().year
 author = 'Alex Mykyta'
 
 # The full version, including alpha/beta/rc tags
