@@ -321,3 +321,21 @@ class TestReferences(RDLSourceTestCase):
             self.assertIs(top_reg3_z.get_property("resetsignal").inst, top_reg21_sig.inst)
             self.assertEqual(top_reg3_z.get_property("next").name, "ored")
             self.assertEqual(top_reg3_z.get_property("next").node, top_reg20_y)
+
+    def test_signal_dpa(self):
+        root = self.compile(
+            ["rdl_testcases/signal_scope.rdl"],
+            "top"
+        )
+
+        my_signal = root.find_by_path("top.my_signal")
+        b = root.find_by_path("top.a.b")
+        my_signal_via_prop = b.get_property("resetsignal")
+
+        self.assertEqual(my_signal, my_signal_via_prop)
+
+        self.assertEqual(
+            my_signal.get_property("name"),
+            my_signal_via_prop.get_property("name")
+        )
+        self.assertEqual(my_signal.get_property("name"), "override")

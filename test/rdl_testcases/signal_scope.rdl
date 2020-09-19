@@ -1,0 +1,17 @@
+
+addrmap top {
+    signal {
+        name = "default";
+    } my_signal;
+
+    reg my_reg_t {
+        field my_field_t {
+            sw=rw; hw=r;
+            resetsignal = my_signal;
+        };
+        my_field_t b;
+    };
+    my_reg_t a;
+
+    my_signal->name = "override";
+};

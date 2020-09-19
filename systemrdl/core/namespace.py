@@ -70,6 +70,16 @@ class NamespaceRegistry():
         return None
 
     def lookup_element(self, name: str) -> ElementNSEntry:
+        """
+        Look up the element (component instance, or parameter) visible in the
+        current scope.
+
+        Returns a tuple:
+            (element, parent_def)
+
+        Where 'element' is the Component or Parameter being fetched
+        and 'parent_def' is the component definition that encloses it.
+        """
         for i, scope in enumerate(reversed(self.element_ns_stack)):
             if name in scope:
                 el, parent_def = scope[name]
