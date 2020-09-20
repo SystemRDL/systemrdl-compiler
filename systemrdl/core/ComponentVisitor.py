@@ -237,31 +237,48 @@ class ComponentVisitor(BaseVisitor):
         else:
             param_assigns = {}
 
-        if param_assigns:
-            # Component definition is being parameterized.
-            # Make a copy of the definition prior to applying the parameters
-            # in order to preserve the original definition
-            comp_inst_template = deepcopy(comp_def)
-            comp_inst_template.original_def = comp_def
-        else:
-            # Component is not being parameterized. No need to copy it
-            comp_inst_template = comp_def
-            comp_inst_template.original_def = comp_def
+        # Do instantiations
+        common_type_name = comp_def.type_name
+        for inst_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
+            # Make a copy of the definition for instantiation
+            comp_inst = deepcopy(comp_def)
+            comp_inst.original_def = comp_def
 
-        # Assign any parameter overrides to the instance template
-        # Keep track of any override expressions as they are external references
-        # to outside the instance's tree, and shall not be deepcopied.
-        external_refs = []
+            # Resolve whether instance is internal/external
+            self.resolve_inst_external(ctx, comp_inst, inst_type)
+
+            # Override parameters
+            self.assign_inst_parameters(comp_inst, param_assigns)
+
+            # Resolve type name
+            if common_type_name is None:
+                # 5.1.1-f: The first instance name of an anonymous definition is
+                #   also used as the component type name.
+                common_type_name = get_ID_text(inst_ctx.ID())
+            comp_inst.type_name = common_type_name
+
+            # If scope name was unset, then this was an anonymous declaration.
+            # Use the common type name inherited by the first instantiation
+            if comp_inst.original_def._scope_name is None:
+                comp_inst.original_def._scope_name = common_type_name
+
+            # Pass some temporary info to visitComponent_inst
+            self._tmp_comp_inst = comp_inst
+            self._tmp_alias_primary_inst = alias_primary_inst
+            self.visit(inst_ctx)
+
+
+    def assign_inst_parameters(self, comp_inst: comp.Component, param_assigns: Dict[str, Tuple[expressions.Expr, SourceRefBase]]) -> None:
         for param_name, (assign_expr, src_ref) in param_assigns.items():
             # Lookup corresponding parameter in component
-            for comp_param in comp_inst_template.parameters:
+            for comp_param in comp_inst.parameters:
                 if comp_param.name == param_name:
                     param = comp_param
                     break
             else:
                 self.msg.fatal(
                     "Parameter '%s' not found in definition for component '%s'"
-                    % (param_name, comp_inst_template.type_name),
+                    % (param_name, comp_inst.type_name),
                     src_ref
                 )
 
@@ -274,71 +291,48 @@ class ComponentVisitor(BaseVisitor):
             )
             assign_expr.predict_type()
             param.expr = assign_expr
-            external_refs.append(assign_expr)
 
 
+    def resolve_inst_external(self, ctx: SystemRDLParser.Component_instsContext, comp_inst: comp.Component, inst_type: 'CommonToken') -> None:
+        """
+        Given the instance type token (external/internal), resolve the
+        Component.external boolean value specific to the component type
+        """
         # Resolve internal/external instance type
-        if isinstance(comp_inst_template, (comp.Field, comp.Signal)) and inst_type is not None:
+        if isinstance(comp_inst, (comp.Field, comp.Signal)) and inst_type is not None:
             self.msg.error(
                 "internal/external instance type is not valid for signal or field components",
                 src_ref_from_antlr(inst_type)
             )
-        elif isinstance(comp_inst_template, comp.Mem):
-            comp_inst_template.external = True
+        elif isinstance(comp_inst, comp.Mem):
+            comp_inst.external = True
             if (inst_type is None) or (inst_type.type != SystemRDLParser.EXTERNAL_kw):
                 self.msg.error(
                     "mem components shall be instantiated as 'external'",
                     src_ref_from_antlr(ctx)
                 )
-        elif isinstance(comp_inst_template, comp.Addrmap):
-            comp_inst_template.external = True
+        elif isinstance(comp_inst, comp.Addrmap):
+            comp_inst.external = True
             if (inst_type is not None) and (inst_type.type == SystemRDLParser.INTERNAL_kw):
                 self.msg.error(
                     "addrmap components are implicitly external. Cannot declare as internal",
                     src_ref_from_antlr(inst_type)
                 )
-        elif isinstance(comp_inst_template, comp.Reg):
-            comp_inst_template.external = False
+        elif isinstance(comp_inst, comp.Reg):
+            comp_inst.external = False
             if (inst_type is not None) and (inst_type.type == SystemRDLParser.EXTERNAL_kw):
-                comp_inst_template.external = True
+                comp_inst.external = True
 
-        elif isinstance(comp_inst_template, comp.Regfile):
+        elif isinstance(comp_inst, comp.Regfile):
             if inst_type is not None:
                 if inst_type.type == SystemRDLParser.EXTERNAL_kw:
-                    comp_inst_template.external = True
+                    comp_inst.external = True
                 elif inst_type.type == SystemRDLParser.INTERNAL_kw:
-                    comp_inst_template.external = False
+                    comp_inst.external = False
             else:
                 # Leave as None. Elaborate step will resolve later.
-                comp_inst_template.external = None
+                comp_inst.external = None
 
-
-        # Do instantiations
-        common_type_name = comp_inst_template.type_name
-        for inst in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
-            # Make a copy of the template so that the instance is unique
-            # in case any dynamic property assignments are made to it.
-
-            # Use a pre-loaded memo dictionary for this deepcopy to force
-            # any external reference objects to be copied by reference only
-            copy_by_ref_memo = {id(obj):obj for obj in external_refs}
-            comp_inst = deepcopy(comp_inst_template, copy_by_ref_memo)
-
-            if common_type_name is None:
-                # 5.1.1-f: The first instance name of an anonymous definition is
-                #   also used as the component type name.
-                common_type_name = get_ID_text(inst.ID())
-            comp_inst.type_name = common_type_name
-
-            # If scope name was unset, then this was an anonymous declaration.
-            # Use the common type name inherited by the first instantiation
-            if comp_inst.original_def._scope_name is None:
-                comp_inst.original_def._scope_name = common_type_name
-
-            # Pass some temporary info to visitComponent_inst
-            self._tmp_comp_inst = comp_inst
-            self._tmp_alias_primary_inst = alias_primary_inst
-            self.visit(inst)
 
     def get_instance_assignment(self, ctx: 'ParserRuleContext') -> expressions.Expr:
         """
