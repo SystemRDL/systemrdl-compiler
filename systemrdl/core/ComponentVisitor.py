@@ -1,5 +1,4 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Optional, Any
-from copy import deepcopy
 from collections import OrderedDict
 
 from ..parser.SystemRDLParser import SystemRDLParser
@@ -241,7 +240,7 @@ class ComponentVisitor(BaseVisitor):
         common_type_name = comp_def.type_name
         for inst_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Component_instContext):
             # Make a copy of the definition for instantiation
-            comp_inst = deepcopy(comp_def)
+            comp_inst = comp_def._copy_for_inst({})
             comp_inst.original_def = comp_def
 
             # Resolve whether instance is internal/external

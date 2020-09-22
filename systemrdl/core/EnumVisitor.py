@@ -22,6 +22,12 @@ class EnumVisitor(BaseVisitor):
         # type: (SystemRDLParser.Enum_defContext) -> Tuple[Type[rdltypes.UserEnum], str, SourceRefBase]
         self.compiler.namespace.enter_scope()
 
+        # Allowing enum definitions to access Parameters from the parent scope
+        # opens a whole can of worms since there is no clear way for me to ensure
+        # they are elaborated accurately (deepcopying a python Enum is a pain)
+        # Since this is an extreme corner case, simply disallow it.
+        self.compiler.namespace.parent_parameters_visible = False
+
         enum_name = get_ID_text(ctx.ID())
 
         # Collect entries
@@ -70,6 +76,7 @@ class EnumVisitor(BaseVisitor):
         enum_type = rdltypes.UserEnum(enum_name, entries) # type: Type[rdltypes.UserEnum] # type: ignore # pylint: disable=no-value-for-parameter
 
         self.compiler.namespace.exit_scope()
+        self.compiler.namespace.parent_parameters_visible = True # restore parameter behavior
         return enum_type, get_ID_text(ctx.ID()), src_ref_from_antlr(ctx.ID())
 
     def visitEnum_entry(self, ctx: SystemRDLParser.Enum_entryContext) -> Tuple['CommonToken', SystemRDLParser.ExprContext, Optional[str], Optional[str]]:

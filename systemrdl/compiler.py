@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Set, Type, Any, List, Dict, Optional
 
 from antlr4 import InputStream
@@ -260,13 +259,13 @@ class RDLCompiler:
                 self.msg.fatal("Could not find any 'addrmap' components to elaborate")
 
         # Create an instance of the root component
-        root_inst = deepcopy(self.root)
+        root_inst = self.root._copy_for_inst({})
         root_inst.is_instance = True
         root_inst.original_def = self.root
         root_inst.inst_name = "$root"
 
         # Create a top-level instance
-        top_inst = deepcopy(top_def)
+        top_inst = top_def._copy_for_inst({})
         top_inst.is_instance = True
         top_inst.original_def = top_def
         top_inst.addr_offset = 0

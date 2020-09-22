@@ -1,13 +1,14 @@
 import sys
 from typing import TYPE_CHECKING, Dict, List, Union, Type, Tuple
 
+from .parameter import Parameter
+
 from .. import component as comp
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
     from .. import rdltypes
-    from .parameter import Parameter
     from .expressions import Expr
 
 if sys.version_info >= (3,5,4):
@@ -19,7 +20,7 @@ else:
 TypeNSEntry = TypeNSRef
 TypeNSScope = Dict[str, TypeNSEntry]
 
-ElementNSRef = Union[comp.Component, 'Parameter']
+ElementNSRef = Union[comp.Component, Parameter]
 ElementNSEntry = Tuple[ElementNSRef, comp.Component]
 ElementNSScope = Dict[str, ElementNSEntry]
 
@@ -36,6 +37,9 @@ class NamespaceRegistry():
         self.type_ns_stack = [{}] # type: List[TypeNSScope]
         self.element_ns_stack = [{}] # type: List[ElementNSScope]
         self.default_property_ns_stack = [{}] # type: List[DefaultNSScope]
+
+        # Control if Parameter objects are visible from parent scopes
+        self.parent_parameters_visible = True
 
     def register_type(self, name: str, ref: TypeNSRef, src_ref: 'SourceRefBase') -> None:
         if name in self.type_ns_stack[-1]:
@@ -89,8 +93,10 @@ class NamespaceRegistry():
                 elif isinstance(el, comp.Signal):
                     # Signals are allowed to be found in parent namespaces
                     return (el, parent_def)
-                else:
-                    return (None, None)
+                elif self.parent_parameters_visible and isinstance(el, Parameter):
+                    # Parameters are allowed to be found in parent namespaces,
+                    # except in some contexts
+                    return (el, parent_def)
         return (None, None)
 
     def get_default_properties(self, comp_type):

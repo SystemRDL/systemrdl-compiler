@@ -29,32 +29,6 @@ Rule 10.6.1.c seems unnecessary. Waiving checks for it.
 
 
 
-Example in 6.2.6 uses an invalid hierarchical reference
--------------------------------------------------------
-In section 6.2.6, an example shows a child component definition incorrectly
-inheriting a parameter from its parent lexical scope:
-
-
-.. code-block:: systemrdl
-
-    regfile some_regfile #( my_struct arg ) {
-        reg {
-            desc = arg.inner.foo; // <-- Illegal out-of-scope reference to 'arg'
-            field {} a;
-        } regA;
-    };
-
-This is inconsistent with the namespace rules described in 5.1.4.
-Also, 5.1.1.2-d explicitly says that nested component definitions do not inherit
-parents' parameters.
-
-**Resolution:**
-
-Invalid example appears to be an accidental oversight.
-Implementation will enforce semantics described in 5.1.1.2-d.
-
-
-
 Grammar does not allow empty array literals
 -------------------------------------------
 The grammar in appendix B.10 shows that an array literal's

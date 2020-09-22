@@ -177,3 +177,16 @@ class TestParameters(RDLSourceTestCase):
         self.assertEqual(f1.get_property("onwrite"), rdlt.OnWriteType.woclr)
         self.assertEqual(f2.get_property("donttest"), False)
         self.assertEqual(f3.get_property("name"), "python!")
+
+    def test_param_scope(self):
+        root = self.compile(
+            ["rdl_testcases/parameters.rdl"],
+            "param_scope"
+        )
+        ffX = root.find_by_path("param_scope.rfX.rf3.rf2.rr.ff")
+        ffY = root.find_by_path("param_scope.rfY.rf3.rf2.rr.ff")
+        ffZ = root.find_by_path("param_scope.rfZ.rf3.rf2.rr.ff")
+
+        self.assertEqual(ffX.width, 2)
+        self.assertEqual(ffY.width, 3)
+        self.assertEqual(ffZ.width, 1)

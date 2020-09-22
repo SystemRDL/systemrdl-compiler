@@ -5,8 +5,11 @@ from collections import OrderedDict
 from typing import Optional, List, Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from typing import TypeVar
     from .core.parameter import Parameter
     from .source_ref import SourceRefBase
+
+    ComponentClass = TypeVar('ComponentClass', bound='Component')
 
 class Component:
     """
@@ -106,20 +109,39 @@ class Component:
         # from outside this component's scope.
         self._dyn_assigned_children = [] # type: List[str]
 
-    def __deepcopy__(self, memo: Dict[int, Any]) -> 'Component':
+
+    def _copy_for_inst(self: 'ComponentClass', memo: Dict[int, Any]) -> 'ComponentClass':
         """
-        Deepcopy all members except for ones that should be copied by reference
+        Make a copy of the component tree in order to instantiate it.
+
+        This is subtly different from a normal deepcopy since it ensures that
+        references within the component tree are deepcopied, while references
+        to external parameters are copied by reference.
         """
-        copy_by_ref = ["original_def", "parent_scope"]
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
+
+        # First, explicitly copy all parameter objects
+        result.parameters = [param._copy_for_inst(memo) for param in self.parameters]
+
+        # Ensure child components get copied first
+        result.children = [child._copy_for_inst(memo) for child in self.children]
+
+        # Finally, continue deepcopying everything else
+        copy_by_ref = {"original_def", "parent_scope", "comp_defs"}
+        skip = {"parameters", "children"}
         for k, v in self.__dict__.items():
+            if k in skip:
+                continue
             if k in copy_by_ref:
                 setattr(result, k, v)
             else:
                 setattr(result, k, deepcopy(v, memo))
         return result
+
+    def __deepcopy__(self: 'ComponentClass', memo: Dict[int, Any]) -> 'ComponentClass':
+        return self._copy_for_inst(memo)
 
     def __repr__(self) -> str:
         if self.is_instance:
