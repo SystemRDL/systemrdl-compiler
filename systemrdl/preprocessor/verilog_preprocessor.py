@@ -427,7 +427,7 @@ class VerilogPreprocessor:
         # First, do a rough scan of the text to determine the max extent of the
         # define, solely based on escaped newlines.
         # Find the first newline without a backslash
-        unescaped_newline_regex = re.compile(r'[^\\]$', re.MULTILINE)
+        unescaped_newline_regex = re.compile(r'[^\\\r]\r?$', re.MULTILINE)
         m = unescaped_newline_regex.search(
             self._text,
             # Intentionally rewind the scan index by 1 character in case it is
