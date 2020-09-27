@@ -1,11 +1,18 @@
 import os
+
+from parameterized import parameterized_class
+
 from unittest_utils import RDLSourceTestCase
 
+@parameterized_class([
+   { "src": "rdl_testcases/preprocessor.rdl"},
+   { "src": "rdl_testcases/preprocessor_CRLF.rdl"},
+])
 class TestPreprocessor(RDLSourceTestCase):
 
     def test_preprocessor(self):
         root = self.compile(
-            ["rdl_testcases/preprocessor.rdl"],
+            [self.src],
             "top"
         )
 
@@ -30,28 +37,28 @@ class TestPreprocessor(RDLSourceTestCase):
 
     def test_src_ref_translation(self):
         root = self.compile(
-            ["rdl_testcases/preprocessor.rdl"],
+            [self.src],
             "top"
         )
 
         with self.subTest("top def"):
             src_ref = root.find_by_path("top").inst.def_src_ref
 
-            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(os.path.basename(src_ref.path), os.path.basename(self.src))
             self.assertEqual(src_ref.line, 25)
             self.assertEqual(src_ref.line_selection, (18, 18))
 
         with self.subTest("reg1 def"):
             src_ref = root.find_by_path("top.reg1").inst.def_src_ref
 
-            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(os.path.basename(src_ref.path), os.path.basename(self.src))
             self.assertEqual(src_ref.line, 11)
             self.assertEqual(src_ref.line_selection, (10, 10))
 
         with self.subTest("reg1 inst"):
             src_ref = root.find_by_path("top.reg1").inst.inst_src_ref
 
-            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(os.path.basename(src_ref.path), os.path.basename(self.src))
             self.assertEqual(src_ref.line, 26)
             self.assertEqual(src_ref.line_selection, (10, 13))
 
@@ -65,7 +72,7 @@ class TestPreprocessor(RDLSourceTestCase):
         with self.subTest("data0 inst"):
             src_ref = root.find_by_path("top.reg1.data0").inst.inst_src_ref
 
-            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(os.path.basename(src_ref.path), os.path.basename(self.src))
             self.assertEqual(src_ref.line, 13)
             self.assertEqual(src_ref.line_selection, (12, 22))
 
@@ -79,14 +86,14 @@ class TestPreprocessor(RDLSourceTestCase):
         with self.subTest("reg2 inst"):
             src_ref = root.find_by_path("top.reg2").inst.inst_src_ref
 
-            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(os.path.basename(src_ref.path), os.path.basename(self.src))
             self.assertEqual(src_ref.line, 27)
             self.assertEqual(src_ref.line_selection, (11, 14))
 
         with self.subTest("reg3 inst"):
             src_ref = root.find_by_path("top.reg3").inst.inst_src_ref
 
-            self.assertEqual(os.path.basename(src_ref.path), "preprocessor.rdl")
+            self.assertEqual(os.path.basename(src_ref.path), os.path.basename(self.src))
             self.assertEqual(src_ref.line, 28)
             self.assertEqual(src_ref.line_selection, (4, 22))
 
@@ -141,3 +148,9 @@ class TestPreprocessor(RDLSourceTestCase):
 
             name = root.find_by_path("top").get_property("name")
             self.assertEqual(name, "b + 1 + 42 + a")
+
+        with self.subTest("conditional undef"):
+            self.assertIsNotNone(root.find_by_path("top.macrox_exists1"))
+            self.assertIsNone(root.find_by_path("top.macrox_dne1"))
+            self.assertIsNone(root.find_by_path("top.macrox_exists2"))
+            self.assertIsNotNone(root.find_by_path("top.macrox_dne2"))

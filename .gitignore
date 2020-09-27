@@ -2,6 +2,7 @@
 **/.antlr
 **/.vscode
 **/*.o
+**/*.so
 **/.venv
 **/.coverage
 **/*.rpt

@@ -90,4 +90,35 @@ addrmap `TOP_NAME {
 
     desc = `msg(left side,right side);
     name = `TOPSTR;
+
+
+    `ifdef MACRO_X
+        // Not defined, but is skipped, so no error
+        `MACRO_X
+    `endif
+
+    `define MACRO_X
+    `ifdef MACRO_Y
+        // Is skipped
+        `undef MACRO_X
+    `endif
+    `ifdef MACRO_X
+        // Is not skipped
+        reg2_t macrox_exists1;
+    `else
+        // Is skipped
+        reg2_t macrox_dne1;
+    `endif
+
+    `ifndef MACRO_Y
+        // Is not skipped
+        `undef MACRO_X
+    `endif
+    `ifdef MACRO_X
+        // Is skipped
+        reg2_t macrox_exists2;
+    `else
+        // Is not skipped
+        reg2_t macrox_dne2;
+    `endif
 };

@@ -272,8 +272,9 @@ class VerilogPreprocessor:
     def process_undef(self, m: Match) -> None:
         self.emit_segment(m.start(m.lastindex + 1))
 
-        identifier = m.group(m.lastindex + 2)
-        self._macro_defs.pop(identifier, None)
+        if self._conditional.is_active:
+            identifier = m.group(m.lastindex + 2)
+            self._macro_defs.pop(identifier, None)
 
         self._scan_idx = m.end()
         self._seg_start_idx = self._scan_idx
@@ -282,6 +283,10 @@ class VerilogPreprocessor:
         self.emit_segment(m.start())
         identifier = m.group(m.lastindex + 1)
         self._scan_idx = m.end()
+
+        if not self._conditional.is_active:
+            return
+
         macro_start_idx = m.start()
 
         if self._src_ref_override:
@@ -328,34 +333,33 @@ class VerilogPreprocessor:
 
         macro_end_idx = self._scan_idx - 1
 
-        if self._conditional.is_active:
-            # Push current macro into active stack
-            if identifier in self._active_macro_stack:
-                self.env.msg.fatal(
-                    "Found recursive macro expansion when processing '`%s'" % identifier,
-                    self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1) - 1)
-                )
-            self._active_macro_stack.append(identifier)
+        # Push current macro into active stack
+        if identifier in self._active_macro_stack:
+            self.env.msg.fatal(
+                "Found recursive macro expansion when processing '`%s'" % identifier,
+                self.get_err_src_ref(m.start(m.lastindex + 1), m.end(m.lastindex + 1) - 1)
+            )
+        self._active_macro_stack.append(identifier)
 
-            # Emit macro text
-            text = macro.render_macro(self, argv, macro_src_ref)
-            self._output_text_segments.append(text)
+        # Emit macro text
+        text = macro.render_macro(self, argv, macro_src_ref)
+        self._output_text_segments.append(text)
 
-            # If this is the top-level preprocessing pass (and therefore it
-            # has a src seg map), also create a source tracking segment.
-            if self._src_seg_map:
-                text_len = len(text)
-                segment = segment_map.MacroSegment(
-                    self._current_output_idx,
-                    self._current_output_idx + text_len - 1,
-                    macro_start_idx, macro_end_idx,
-                    self._src_seg_map
-                )
-                self._output_seg_map.segments.append(segment)
-                self._current_output_idx += text_len
+        # If this is the top-level preprocessing pass (and therefore it
+        # has a src seg map), also create a source tracking segment.
+        if self._src_seg_map:
+            text_len = len(text)
+            segment = segment_map.MacroSegment(
+                self._current_output_idx,
+                self._current_output_idx + text_len - 1,
+                macro_start_idx, macro_end_idx,
+                self._src_seg_map
+            )
+            self._output_seg_map.segments.append(segment)
+            self._current_output_idx += text_len
 
-            # Done processing this macro
-            self._active_macro_stack.pop()
+        # Done processing this macro
+        self._active_macro_stack.pop()
 
         self._seg_start_idx = self._scan_idx
 
@@ -423,7 +427,7 @@ class VerilogPreprocessor:
         # First, do a rough scan of the text to determine the max extent of the
         # define, solely based on escaped newlines.
         # Find the first newline without a backslash
-        unescaped_newline_regex = re.compile(r'[^\\]$', re.MULTILINE)
+        unescaped_newline_regex = re.compile(r'[^\\\r]\r?$', re.MULTILINE)
         m = unescaped_newline_regex.search(
             self._text,
             # Intentionally rewind the scan index by 1 character in case it is
@@ -581,7 +585,7 @@ def get_illegal_trailing_text_pos(text: str, idx: int) -> Tuple[Union[int, None]
     idx = m.end()
 
     # Assert that any remaining text is a comment
-    rem_regex = re.compile(r'(:?//.*|/\*.*)?$', re.MULTILINE)
+    rem_regex = re.compile(r'(:?//.*|/\*.*)?\r?$', re.MULTILINE)
     m = rem_regex.match(text, idx)
     if m:
         return (None, None)

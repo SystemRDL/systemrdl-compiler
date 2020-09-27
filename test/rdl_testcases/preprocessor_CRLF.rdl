@@ -1,0 +1,124 @@
+`define INST(type, name) type /* yo /* sup */ name \
+/*
+multi line comment
+*/
+
+
+`include "preprocessor_incl.rdl"
+
+
+`define TOP_NAME top // single line comment \
+reg myReg {
+    <% for( $i = 0; $i < $n_regs*2; $i += 2 ) { %>
+    myField data<%=$i%> [<%=$i+1%>:<%=$i%>];
+    <% } %>
+};
+// Results in:
+// reg myReg {
+//     myField data0 [1:0];
+//     myField data2 [3:2];
+//     myField data4 [5:4];
+// };
+
+
+
+addrmap `TOP_NAME {
+    myReg reg1;
+    reg2_t reg2;
+    `INST(reg2_t, reg3);
+
+    `ifdef FOO
+        reg2_t foo1;
+        `INST(reg2_t, macro_foo1);
+    `elsif BAR
+        reg2_t bar1;
+        `INST(reg2_t, macro_bar1);
+    `else
+        reg2_t else1;
+        `INST(reg2_t, macro_else1);
+    `endif
+
+    `line 123 "asdf" 1
+
+    `ifndef FOO
+        reg2_t foo2;
+    `elsif BAR
+        reg2_t bar2;
+    `else
+        reg2_t else2;
+    `endif
+
+    `define FOO
+    `undef XXX
+
+    `ifdef FOO
+        reg2_t foo3;
+    `elsif BAR
+        reg2_t bar3;
+        `ifndef XXX
+            reg2_t xxx3;
+        `elsif YYY
+            reg2_t yyy3;
+        `else
+            reg2_t xyelse3;
+        `endif
+    `else
+        reg2_t else3;
+    `endif
+
+    `define BAR
+    `undef FOO
+
+    `ifdef FOO
+        reg2_t foo4;
+        `define XXX
+    `elsif BAR
+        `define YYY
+        reg2_t bar4;
+        `ifdef XXX
+            reg2_t xxx4;
+        `elsif YYY
+            reg2_t yyy4;
+        `else
+            reg2_t xyelse4;
+        `endif
+    `else
+        reg2_t else4;
+    `endif
+
+    `INST_TPASTE(reg2_t, abcd, 1234[2] /* bonjour),) */ );
+
+    desc = `msg(left side,right side);
+    name = `TOPSTR;
+
+
+    `ifdef MACRO_X
+        // Not defined, but is skipped, so no error
+        `MACRO_X
+    `endif
+
+    `define MACRO_X
+    `ifdef MACRO_Y
+        // Is skipped
+        `undef MACRO_X
+    `endif
+    `ifdef MACRO_X
+        // Is not skipped
+        reg2_t macrox_exists1;
+    `else
+        // Is skipped
+        reg2_t macrox_dne1;
+    `endif
+
+    `ifndef MACRO_Y
+        // Is not skipped
+        `undef MACRO_X
+    `endif
+    `ifdef MACRO_X
+        // Is skipped
+        reg2_t macrox_exists2;
+    `else
+        // Is not skipped
+        reg2_t macrox_dne2;
+    `endif
+};
