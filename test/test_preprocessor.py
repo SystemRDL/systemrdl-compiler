@@ -1,11 +1,18 @@
 import os
+
+from parameterized import parameterized_class
+
 from unittest_utils import RDLSourceTestCase
 
+@parameterized_class([
+   { "src": "rdl_testcases/preprocessor.rdl"},
+   #{ "src": "rdl_testcases/preprocessor_CRLF.rdl"},
+])
 class TestPreprocessor(RDLSourceTestCase):
 
     def test_preprocessor(self):
         root = self.compile(
-            ["rdl_testcases/preprocessor.rdl"],
+            [self.src],
             "top"
         )
 
@@ -30,7 +37,7 @@ class TestPreprocessor(RDLSourceTestCase):
 
     def test_src_ref_translation(self):
         root = self.compile(
-            ["rdl_testcases/preprocessor.rdl"],
+            [self.src],
             "top"
         )
 
@@ -141,3 +148,9 @@ class TestPreprocessor(RDLSourceTestCase):
 
             name = root.find_by_path("top").get_property("name")
             self.assertEqual(name, "b + 1 + 42 + a")
+
+        with self.subTest("conditional undef"):
+            self.assertIsNotNone(root.find_by_path("top.macrox_exists1"))
+            self.assertIsNone(root.find_by_path("top.macrox_dne1"))
+            self.assertIsNone(root.find_by_path("top.macrox_exists2"))
+            self.assertIsNotNone(root.find_by_path("top.macrox_dne2"))
