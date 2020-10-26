@@ -120,6 +120,7 @@ disable=
         invalid-str-codec,
         sys-max-int,
         bad-python3-import,
+        unsubscriptable-object,
 
         # Disable for now during development
         fixme,
