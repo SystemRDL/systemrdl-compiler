@@ -29,7 +29,7 @@ stages:
   # and from your repository (e.g. not PRs).
   # Also allows alpha/beta releases such as "v1.2.3b2"
   - name: deploy
-    #if: repo = SystemRDL/systemrdl-compiler AND tag =~ ^v\d+\.\d+\.\w+$
+    if: repo = SystemRDL/systemrdl-compiler AND tag =~ ^v\d+\.\d+\.\w+$
 
 jobs:
   include:
