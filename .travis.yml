@@ -1,17 +1,20 @@
 language: python
 python:
+  # Default version
+  - 3.8
+
+  # Also run tests on:
   - 3.5.2
   - 3.5
   - 3.6
   - 3.7
-  - 3.8
   - 3.9
 
 install:
-  - python -m pip install -U pytest pytest-cov coveralls parameterized
+  - python3 -m pip install -U pytest pytest-cov coveralls parameterized
 
 script:
-  - python setup.py install
+  - python3 setup.py install
   - cd test
   - pytest --cov=systemrdl
   - export SYSTEMRDL_DISABLE_ACCELERATOR=1
@@ -26,48 +29,46 @@ stages:
   # and from your repository (e.g. not PRs).
   # Also allows alpha/beta releases such as "v1.2.3b2"
   - name: deploy
-    if: repo = SystemRDL/systemrdl-compiler AND tag =~ ^v\d+\.\d+\.\w+$
+    #if: repo = SystemRDL/systemrdl-compiler AND tag =~ ^v\d+\.\d+\.\w+$
 
 jobs:
   include:
     # Run lint
     - name: Lint
-      python: 3.8
       install:
-        - python -m pip install pylint
-        - python setup.py install
+        - python3 -m pip install pylint
+        - python3 setup.py install
       script: pylint --rcfile test/pylint.rc systemrdl
 
     # Run static type checking
     - name: Type Check
-      python: 3.8
       install:
-        - python -m pip install mypy
+        - python3 -m pip install mypy
       script: mypy --config-file test/mypy.ini systemrdl
 
     # Deploy source distribution
     - stage: deploy
       name: Deploy source distribution
-      install: python -m pip install twine
-      script: python setup.py sdist --formats=gztar
-      after_success: python -m twine upload --skip-existing dist/*.tar.gz
+      install: python3 -m pip install twine
+      script: python3 setup.py sdist --formats=gztar
+      after_success: python3 -m twine upload --skip-existing dist/*.tar.gz
 
     # Deploy on linux
     - stage: deploy
       name: Build and deploy Linux wheels
       services: docker
-      install: python -m pip install twine cibuildwheel==1.1.0
-      script: python -m cibuildwheel --output-dir wheelhouse
-      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+      install: python3 -m pip install twine cibuildwheel==1.6.3
+      script: python3 -m cibuildwheel --output-dir wheelhouse
+      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
 
     # Deploy on mac
     - stage: deploy
       name: Build and deploy macOS wheels
       os: osx
       language: shell
-      install: python -m pip install twine cibuildwheel==1.1.0
-      script: python -m cibuildwheel --output-dir wheelhouse
-      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+      install: python3 -m pip install twine cibuildwheel==1.6.3
+      script: python3 -m cibuildwheel --output-dir wheelhouse
+      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
 
     # Deploy on windows
     - stage: deploy
@@ -75,11 +76,15 @@ jobs:
       os: windows
       language: shell
       before_install:
-        - choco install python --version 3.8.1
+        - choco install python --version 3.8.6
         - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
-      install: python -m pip install twine cibuildwheel==1.1.0
-      script: python -m cibuildwheel --output-dir wheelhouse
-      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+        - ln -s /c/Python38/python.exe /c/Python38/python3.exe
+      install:
+        - python3 -m pip install twine certifi cibuildwheel==1.6.3
+        - export SSL_CERT_FILE=`python3 -c "import certifi;print(certifi.where())"`
+
+      script: python3 -m cibuildwheel --output-dir wheelhouse
+      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
 
 env:
   global:
