@@ -49,26 +49,31 @@ jobs:
     # Deploy source distribution
     - stage: deploy
       name: Deploy source distribution
-      install: python3 -m pip install twine
       script: python3 setup.py sdist --formats=gztar
-      after_success: python3 -m twine upload --skip-existing dist/*.tar.gz
+      after_success:
+        - python3 -m pip install twine
+        - python3 -m twine upload --skip-existing wheelhouse/*.whl
 
     # Deploy on linux
     - stage: deploy
       name: Build and deploy Linux wheels
       services: docker
-      install: python3 -m pip install twine cibuildwheel==1.6.3
+      install: python3 -m pip install cibuildwheel==1.6.3
       script: python3 -m cibuildwheel --output-dir wheelhouse
-      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
+      after_success:
+        - python3 -m pip install twine
+        - python3 -m twine upload --skip-existing wheelhouse/*.whl
 
     # Deploy on mac
     - stage: deploy
       name: Build and deploy macOS wheels
       os: osx
       language: shell
-      install: python3 -m pip install twine cibuildwheel==1.6.3
+      install: python3 -m pip install cibuildwheel==1.6.3
       script: python3 -m cibuildwheel --output-dir wheelhouse
-      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
+      after_success:
+        - python3 -m pip install twine
+        - python3 -m twine upload --skip-existing wheelhouse/*.whl
 
     # Deploy on windows
     - stage: deploy
@@ -80,16 +85,20 @@ jobs:
         - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
         - ln -s /c/Python38/python.exe /c/Python38/python3.exe
       install:
-        - python3 -m pip install twine certifi cibuildwheel==1.6.3
+        - python3 -m pip install certifi cibuildwheel==1.6.3
         - export SSL_CERT_FILE=`python3 -c "import certifi;print(certifi.where())"`
 
       script: python3 -m cibuildwheel --output-dir wheelhouse
-      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
+      after_success:
+        - python3 -m pip install twine
+        - python3 -m twine upload --skip-existing wheelhouse/*.whl
 
 env:
   global:
-    # Don't deploy python2.7 (not supported), or osx 10.6 (no C++11 support)
-    - CIBW_SKIP="cp27-* *macosx_10_6*"
+    # Only build CPython 3.x targets
+    - CIBW_BUILD="cp3*"
+    # Don't build osx 10.6 (no C++11 support)
+    - CIBW_SKIP="*macosx_10_6*"
 
     # Signal setup.py to fail if binary build fails
     - SYSTEMRDL_REQUIRE_BINARY_BUILD
