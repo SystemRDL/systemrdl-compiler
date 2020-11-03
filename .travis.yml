@@ -52,7 +52,7 @@ jobs:
       script: python3 setup.py sdist --formats=gztar
       after_success:
         - python3 -m pip install twine
-        - python3 -m twine upload --skip-existing wheelhouse/*.whl
+        - python3 -m twine upload --skip-existing dist/*.tar.gz
 
     # Deploy on linux
     - stage: deploy
