@@ -32,9 +32,6 @@ Convert the SystemRDL register model to/from IP-XACT.
 ### [PeakRDL-uvm](https://github.com/SystemRDL/PeakRDL-uvm)
 Create a UVM Register model.
 
-### [PeakRDL](https://github.com/SystemRDL/PeakRDL)
-A command-line application that ties it all together.
-
 ## License
 
 The SystemRDL Compiler is published and distributed under the [MIT License](LICENSE).
