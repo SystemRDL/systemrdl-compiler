@@ -1,5 +1,5 @@
 
-// Generated from SystemRDL.g4 by ANTLR 4.8
+// Generated from SystemRDL.g4 by ANTLR 4.9
 
 
 #include "SystemRDLVisitor.h"
@@ -67,7 +67,11 @@ SystemRDLParser::RootContext* SystemRDLParser::root() {
   enterRule(_localctx, 0, SystemRDLParser::RuleRoot);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -180,7 +184,11 @@ SystemRDLParser::Root_elemContext* SystemRDLParser::root_elem() {
   Root_elemContext *_localctx = _tracker.createInstance<Root_elemContext>(_ctx, getState());
   enterRule(_localctx, 2, SystemRDLParser::RuleRoot_elem);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -243,6 +251,8 @@ SystemRDLParser::Root_elemContext* SystemRDLParser::root_elem() {
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -295,7 +305,11 @@ SystemRDLParser::Component_defContext* SystemRDLParser::component_def() {
   enterRule(_localctx, 4, SystemRDLParser::RuleComponent_def);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -389,6 +403,8 @@ SystemRDLParser::Component_defContext* SystemRDLParser::component_def() {
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -441,7 +457,11 @@ SystemRDLParser::Explicit_component_instContext* SystemRDLParser::explicit_compo
   enterRule(_localctx, 6, SystemRDLParser::RuleExplicit_component_inst);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -510,7 +530,11 @@ SystemRDLParser::Component_inst_aliasContext* SystemRDLParser::component_inst_al
   Component_inst_aliasContext *_localctx = _tracker.createInstance<Component_inst_aliasContext>(_ctx, getState());
   enterRule(_localctx, 8, SystemRDLParser::RuleComponent_inst_alias);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -570,7 +594,11 @@ SystemRDLParser::Component_named_defContext* SystemRDLParser::component_named_de
   enterRule(_localctx, 10, SystemRDLParser::RuleComponent_named_def);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -631,7 +659,11 @@ SystemRDLParser::Component_anon_defContext* SystemRDLParser::component_anon_def(
   Component_anon_defContext *_localctx = _tracker.createInstance<Component_anon_defContext>(_ctx, getState());
   enterRule(_localctx, 12, SystemRDLParser::RuleComponent_anon_def);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -683,7 +715,11 @@ SystemRDLParser::Component_bodyContext* SystemRDLParser::component_body() {
   enterRule(_localctx, 14, SystemRDLParser::RuleComponent_body);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -793,7 +829,11 @@ SystemRDLParser::Component_body_elemContext* SystemRDLParser::component_body_ele
   Component_body_elemContext *_localctx = _tracker.createInstance<Component_body_elemContext>(_ctx, getState());
   enterRule(_localctx, 16, SystemRDLParser::RuleComponent_body_elem);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -849,6 +889,8 @@ SystemRDLParser::Component_body_elemContext* SystemRDLParser::component_body_ele
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -897,7 +939,11 @@ SystemRDLParser::Component_instsContext* SystemRDLParser::component_insts() {
   enterRule(_localctx, 18, SystemRDLParser::RuleComponent_insts);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -991,7 +1037,11 @@ SystemRDLParser::Component_instContext* SystemRDLParser::component_inst() {
   enterRule(_localctx, 20, SystemRDLParser::RuleComponent_inst);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1022,6 +1072,8 @@ SystemRDLParser::Component_instContext* SystemRDLParser::component_inst() {
       break;
     }
 
+    default:
+      break;
     }
     setState(277);
     _errHandler->sync(this);
@@ -1097,7 +1149,11 @@ SystemRDLParser::Field_inst_resetContext* SystemRDLParser::field_inst_reset() {
   Field_inst_resetContext *_localctx = _tracker.createInstance<Field_inst_resetContext>(_ctx, getState());
   enterRule(_localctx, 22, SystemRDLParser::RuleField_inst_reset);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1148,7 +1204,11 @@ SystemRDLParser::Inst_addr_fixedContext* SystemRDLParser::inst_addr_fixed() {
   Inst_addr_fixedContext *_localctx = _tracker.createInstance<Inst_addr_fixedContext>(_ctx, getState());
   enterRule(_localctx, 24, SystemRDLParser::RuleInst_addr_fixed);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1199,7 +1259,11 @@ SystemRDLParser::Inst_addr_strideContext* SystemRDLParser::inst_addr_stride() {
   Inst_addr_strideContext *_localctx = _tracker.createInstance<Inst_addr_strideContext>(_ctx, getState());
   enterRule(_localctx, 26, SystemRDLParser::RuleInst_addr_stride);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1250,7 +1314,11 @@ SystemRDLParser::Inst_addr_alignContext* SystemRDLParser::inst_addr_align() {
   Inst_addr_alignContext *_localctx = _tracker.createInstance<Inst_addr_alignContext>(_ctx, getState());
   enterRule(_localctx, 28, SystemRDLParser::RuleInst_addr_align);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1302,7 +1370,11 @@ SystemRDLParser::Component_inst_typeContext* SystemRDLParser::component_inst_typ
   enterRule(_localctx, 30, SystemRDLParser::RuleComponent_inst_type);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1361,7 +1433,11 @@ SystemRDLParser::Component_typeContext* SystemRDLParser::component_type() {
   Component_typeContext *_localctx = _tracker.createInstance<Component_typeContext>(_ctx, getState());
   enterRule(_localctx, 32, SystemRDLParser::RuleComponent_type);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1444,7 +1520,11 @@ SystemRDLParser::Component_type_primaryContext* SystemRDLParser::component_type_
   enterRule(_localctx, 34, SystemRDLParser::RuleComponent_type_primary);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1507,7 +1587,11 @@ SystemRDLParser::Param_defContext* SystemRDLParser::param_def() {
   enterRule(_localctx, 36, SystemRDLParser::RuleParam_def);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1587,7 +1671,11 @@ SystemRDLParser::Param_def_elemContext* SystemRDLParser::param_def_elem() {
   enterRule(_localctx, 38, SystemRDLParser::RuleParam_def_elem);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1657,7 +1745,11 @@ SystemRDLParser::Param_instContext* SystemRDLParser::param_inst() {
   enterRule(_localctx, 40, SystemRDLParser::RuleParam_inst);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1724,7 +1816,11 @@ SystemRDLParser::Param_assignmentContext* SystemRDLParser::param_assignment() {
   Param_assignmentContext *_localctx = _tracker.createInstance<Param_assignmentContext>(_ctx, getState());
   enterRule(_localctx, 42, SystemRDLParser::RuleParam_assignment);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -1969,7 +2065,11 @@ SystemRDLParser::ExprContext* SystemRDLParser::expr(int precedence) {
 
     size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     unrollRecursionContexts(parentContext);
   });
   try {
@@ -2312,6 +2412,8 @@ SystemRDLParser::ExprContext* SystemRDLParser::expr(int precedence) {
           break;
         }
 
+        default:
+          break;
         } 
       }
       setState(396);
@@ -2386,7 +2488,11 @@ SystemRDLParser::Expr_primaryContext* SystemRDLParser::expr_primary() {
   Expr_primaryContext *_localctx = _tracker.createInstance<Expr_primaryContext>(_ctx, getState());
   enterRule(_localctx, 46, SystemRDLParser::RuleExpr_primary);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -2456,6 +2562,8 @@ SystemRDLParser::Expr_primaryContext* SystemRDLParser::expr_primary() {
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -2500,7 +2608,11 @@ SystemRDLParser::ConcatenateContext* SystemRDLParser::concatenate() {
   enterRule(_localctx, 48, SystemRDLParser::RuleConcatenate);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -2565,7 +2677,11 @@ SystemRDLParser::ReplicateContext* SystemRDLParser::replicate() {
   ReplicateContext *_localctx = _tracker.createInstance<ReplicateContext>(_ctx, getState());
   enterRule(_localctx, 50, SystemRDLParser::RuleReplicate);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -2616,7 +2732,11 @@ SystemRDLParser::Paren_exprContext* SystemRDLParser::paren_expr() {
   Paren_exprContext *_localctx = _tracker.createInstance<Paren_exprContext>(_ctx, getState());
   enterRule(_localctx, 52, SystemRDLParser::RuleParen_expr);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -2704,7 +2824,11 @@ SystemRDLParser::CastContext* SystemRDLParser::cast() {
   enterRule(_localctx, 54, SystemRDLParser::RuleCast);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -2832,7 +2956,11 @@ SystemRDLParser::Cast_width_exprContext* SystemRDLParser::cast_width_expr() {
   Cast_width_exprContext *_localctx = _tracker.createInstance<Cast_width_exprContext>(_ctx, getState());
   enterRule(_localctx, 56, SystemRDLParser::RuleCast_width_expr);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -2928,7 +3056,11 @@ SystemRDLParser::Range_suffixContext* SystemRDLParser::range_suffix() {
   Range_suffixContext *_localctx = _tracker.createInstance<Range_suffixContext>(_ctx, getState());
   enterRule(_localctx, 58, SystemRDLParser::RuleRange_suffix);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -2981,7 +3113,11 @@ SystemRDLParser::Array_suffixContext* SystemRDLParser::array_suffix() {
   Array_suffixContext *_localctx = _tracker.createInstance<Array_suffixContext>(_ctx, getState());
   enterRule(_localctx, 60, SystemRDLParser::RuleArray_suffix);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3026,7 +3162,11 @@ SystemRDLParser::Array_type_suffixContext* SystemRDLParser::array_type_suffix() 
   Array_type_suffixContext *_localctx = _tracker.createInstance<Array_type_suffixContext>(_ctx, getState());
   enterRule(_localctx, 62, SystemRDLParser::RuleArray_type_suffix);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3090,7 +3230,11 @@ SystemRDLParser::Data_typeContext* SystemRDLParser::data_type() {
   enterRule(_localctx, 64, SystemRDLParser::RuleData_type);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3192,7 +3336,11 @@ SystemRDLParser::Basic_data_typeContext* SystemRDLParser::basic_data_type() {
   enterRule(_localctx, 66, SystemRDLParser::RuleBasic_data_type);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3317,7 +3465,11 @@ SystemRDLParser::LiteralContext* SystemRDLParser::literal() {
   LiteralContext *_localctx = _tracker.createInstance<LiteralContext>(_ctx, getState());
   enterRule(_localctx, 68, SystemRDLParser::RuleLiteral);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3487,7 +3639,11 @@ SystemRDLParser::NumberContext* SystemRDLParser::number() {
   NumberContext *_localctx = _tracker.createInstance<NumberContext>(_ctx, getState());
   enterRule(_localctx, 70, SystemRDLParser::RuleNumber);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3559,7 +3715,11 @@ SystemRDLParser::String_literalContext* SystemRDLParser::string_literal() {
   String_literalContext *_localctx = _tracker.createInstance<String_literalContext>(_ctx, getState());
   enterRule(_localctx, 72, SystemRDLParser::RuleString_literal);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3609,7 +3769,11 @@ SystemRDLParser::Boolean_literalContext* SystemRDLParser::boolean_literal() {
   enterRule(_localctx, 74, SystemRDLParser::RuleBoolean_literal);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3669,7 +3833,11 @@ SystemRDLParser::Array_literalContext* SystemRDLParser::array_literal() {
   enterRule(_localctx, 76, SystemRDLParser::RuleArray_literal);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3712,6 +3880,8 @@ SystemRDLParser::Array_literalContext* SystemRDLParser::array_literal() {
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -3760,7 +3930,11 @@ SystemRDLParser::Struct_literalContext* SystemRDLParser::struct_literal() {
   enterRule(_localctx, 78, SystemRDLParser::RuleStruct_literal);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3829,7 +4003,11 @@ SystemRDLParser::Struct_kvContext* SystemRDLParser::struct_kv() {
   Struct_kvContext *_localctx = _tracker.createInstance<Struct_kvContext>(_ctx, getState());
   enterRule(_localctx, 80, SystemRDLParser::RuleStruct_kv);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3882,7 +4060,11 @@ SystemRDLParser::Enum_literalContext* SystemRDLParser::enum_literal() {
   Enum_literalContext *_localctx = _tracker.createInstance<Enum_literalContext>(_ctx, getState());
   enterRule(_localctx, 82, SystemRDLParser::RuleEnum_literal);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -3956,7 +4138,11 @@ SystemRDLParser::Accesstype_literalContext* SystemRDLParser::accesstype_literal(
   enterRule(_localctx, 84, SystemRDLParser::RuleAccesstype_literal);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4025,7 +4211,11 @@ SystemRDLParser::Onreadtype_literalContext* SystemRDLParser::onreadtype_literal(
   enterRule(_localctx, 86, SystemRDLParser::RuleOnreadtype_literal);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4114,7 +4304,11 @@ SystemRDLParser::Onwritetype_literalContext* SystemRDLParser::onwritetype_litera
   enterRule(_localctx, 88, SystemRDLParser::RuleOnwritetype_literal);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4185,7 +4379,11 @@ SystemRDLParser::Addressingtype_literalContext* SystemRDLParser::addressingtype_
   enterRule(_localctx, 90, SystemRDLParser::RuleAddressingtype_literal);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4246,7 +4444,11 @@ SystemRDLParser::Precedencetype_literalContext* SystemRDLParser::precedencetype_
   enterRule(_localctx, 92, SystemRDLParser::RulePrecedencetype_literal);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4305,7 +4507,11 @@ SystemRDLParser::Instance_refContext* SystemRDLParser::instance_ref() {
   Instance_refContext *_localctx = _tracker.createInstance<Instance_refContext>(_ctx, getState());
   enterRule(_localctx, 94, SystemRDLParser::RuleInstance_ref);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4373,7 +4579,11 @@ SystemRDLParser::Instance_ref_elementContext* SystemRDLParser::instance_ref_elem
   Instance_ref_elementContext *_localctx = _tracker.createInstance<Instance_ref_elementContext>(_ctx, getState());
   enterRule(_localctx, 96, SystemRDLParser::RuleInstance_ref_element);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4439,7 +4649,11 @@ SystemRDLParser::Prop_refContext* SystemRDLParser::prop_ref() {
   Prop_refContext *_localctx = _tracker.createInstance<Prop_refContext>(_ctx, getState());
   enterRule(_localctx, 98, SystemRDLParser::RuleProp_ref);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4522,7 +4736,11 @@ SystemRDLParser::Local_property_assignmentContext* SystemRDLParser::local_proper
   enterRule(_localctx, 100, SystemRDLParser::RuleLocal_property_assignment);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4574,6 +4792,8 @@ SystemRDLParser::Local_property_assignmentContext* SystemRDLParser::local_proper
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -4621,7 +4841,11 @@ SystemRDLParser::Dynamic_property_assignmentContext* SystemRDLParser::dynamic_pr
   Dynamic_property_assignmentContext *_localctx = _tracker.createInstance<Dynamic_property_assignmentContext>(_ctx, getState());
   enterRule(_localctx, 102, SystemRDLParser::RuleDynamic_property_assignment);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4650,6 +4874,8 @@ SystemRDLParser::Dynamic_property_assignmentContext* SystemRDLParser::dynamic_pr
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -4702,7 +4928,11 @@ SystemRDLParser::Normal_prop_assignContext* SystemRDLParser::normal_prop_assign(
   enterRule(_localctx, 104, SystemRDLParser::RuleNormal_prop_assign);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4786,7 +5016,11 @@ SystemRDLParser::Encode_prop_assignContext* SystemRDLParser::encode_prop_assign(
   Encode_prop_assignContext *_localctx = _tracker.createInstance<Encode_prop_assignContext>(_ctx, getState());
   enterRule(_localctx, 106, SystemRDLParser::RuleEncode_prop_assign);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4839,7 +5073,11 @@ SystemRDLParser::Prop_mod_assignContext* SystemRDLParser::prop_mod_assign() {
   Prop_mod_assignContext *_localctx = _tracker.createInstance<Prop_mod_assignContext>(_ctx, getState());
   enterRule(_localctx, 108, SystemRDLParser::RuleProp_mod_assign);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4890,7 +5128,11 @@ SystemRDLParser::Prop_assignment_rhsContext* SystemRDLParser::prop_assignment_rh
   Prop_assignment_rhsContext *_localctx = _tracker.createInstance<Prop_assignment_rhsContext>(_ctx, getState());
   enterRule(_localctx, 110, SystemRDLParser::RuleProp_assignment_rhs);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -4911,6 +5153,8 @@ SystemRDLParser::Prop_assignment_rhsContext* SystemRDLParser::prop_assignment_rh
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -4971,7 +5215,11 @@ SystemRDLParser::Prop_keywordContext* SystemRDLParser::prop_keyword() {
   enterRule(_localctx, 112, SystemRDLParser::RuleProp_keyword);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5047,7 +5295,11 @@ SystemRDLParser::Prop_modContext* SystemRDLParser::prop_mod() {
   enterRule(_localctx, 114, SystemRDLParser::RuleProp_mod);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5118,7 +5370,11 @@ SystemRDLParser::Udp_defContext* SystemRDLParser::udp_def() {
   enterRule(_localctx, 116, SystemRDLParser::RuleUdp_def);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5197,7 +5453,11 @@ SystemRDLParser::Udp_attrContext* SystemRDLParser::udp_attr() {
   Udp_attrContext *_localctx = _tracker.createInstance<Udp_attrContext>(_ctx, getState());
   enterRule(_localctx, 118, SystemRDLParser::RuleUdp_attr);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5286,7 +5546,11 @@ SystemRDLParser::Udp_typeContext* SystemRDLParser::udp_type() {
   enterRule(_localctx, 120, SystemRDLParser::RuleUdp_type);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5356,7 +5620,11 @@ SystemRDLParser::Udp_data_typeContext* SystemRDLParser::udp_data_type() {
   enterRule(_localctx, 122, SystemRDLParser::RuleUdp_data_type);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5465,7 +5733,11 @@ SystemRDLParser::Udp_usageContext* SystemRDLParser::udp_usage() {
   enterRule(_localctx, 124, SystemRDLParser::RuleUdp_usage);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5535,7 +5807,11 @@ SystemRDLParser::Udp_comp_typeContext* SystemRDLParser::udp_comp_type() {
   enterRule(_localctx, 126, SystemRDLParser::RuleUdp_comp_type);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5621,7 +5897,11 @@ SystemRDLParser::Udp_defaultContext* SystemRDLParser::udp_default() {
   Udp_defaultContext *_localctx = _tracker.createInstance<Udp_defaultContext>(_ctx, getState());
   enterRule(_localctx, 128, SystemRDLParser::RuleUdp_default);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5678,7 +5958,11 @@ SystemRDLParser::Udp_constraintContext* SystemRDLParser::udp_constraint() {
   Udp_constraintContext *_localctx = _tracker.createInstance<Udp_constraintContext>(_ctx, getState());
   enterRule(_localctx, 130, SystemRDLParser::RuleUdp_constraint);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5740,7 +6024,11 @@ SystemRDLParser::Enum_defContext* SystemRDLParser::enum_def() {
   enterRule(_localctx, 132, SystemRDLParser::RuleEnum_def);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5820,7 +6108,11 @@ SystemRDLParser::Enum_entryContext* SystemRDLParser::enum_entry() {
   enterRule(_localctx, 134, SystemRDLParser::RuleEnum_entry);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5905,7 +6197,11 @@ SystemRDLParser::Enum_prop_assignContext* SystemRDLParser::enum_prop_assign() {
   Enum_prop_assignContext *_localctx = _tracker.createInstance<Enum_prop_assignContext>(_ctx, getState());
   enterRule(_localctx, 136, SystemRDLParser::RuleEnum_prop_assign);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -5975,7 +6271,11 @@ SystemRDLParser::Struct_defContext* SystemRDLParser::struct_def() {
   enterRule(_localctx, 138, SystemRDLParser::RuleStruct_def);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6079,7 +6379,11 @@ SystemRDLParser::Struct_elemContext* SystemRDLParser::struct_elem() {
   enterRule(_localctx, 140, SystemRDLParser::RuleStruct_elem);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6138,7 +6442,11 @@ SystemRDLParser::Struct_typeContext* SystemRDLParser::struct_type() {
   Struct_typeContext *_localctx = _tracker.createInstance<Struct_typeContext>(_ctx, getState());
   enterRule(_localctx, 142, SystemRDLParser::RuleStruct_type);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6222,7 +6530,11 @@ SystemRDLParser::Constraint_defContext* SystemRDLParser::constraint_def() {
   enterRule(_localctx, 144, SystemRDLParser::RuleConstraint_def);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6253,6 +6565,8 @@ SystemRDLParser::Constraint_defContext* SystemRDLParser::constraint_def() {
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -6300,7 +6614,11 @@ SystemRDLParser::Constraint_named_defContext* SystemRDLParser::constraint_named_
   Constraint_named_defContext *_localctx = _tracker.createInstance<Constraint_named_defContext>(_ctx, getState());
   enterRule(_localctx, 146, SystemRDLParser::RuleConstraint_named_def);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6353,7 +6671,11 @@ SystemRDLParser::Constraint_anon_defContext* SystemRDLParser::constraint_anon_de
   Constraint_anon_defContext *_localctx = _tracker.createInstance<Constraint_anon_defContext>(_ctx, getState());
   enterRule(_localctx, 148, SystemRDLParser::RuleConstraint_anon_def);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6405,7 +6727,11 @@ SystemRDLParser::Constraint_bodyContext* SystemRDLParser::constraint_body() {
   enterRule(_localctx, 150, SystemRDLParser::RuleConstraint_body);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6524,7 +6850,11 @@ SystemRDLParser::Constraint_body_elemContext* SystemRDLParser::constraint_body_e
   Constraint_body_elemContext *_localctx = _tracker.createInstance<Constraint_body_elemContext>(_ctx, getState());
   enterRule(_localctx, 152, SystemRDLParser::RuleConstraint_body_elem);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6559,6 +6889,8 @@ SystemRDLParser::Constraint_body_elemContext* SystemRDLParser::constraint_body_e
       break;
     }
 
+    default:
+      break;
     }
    
   }
@@ -6603,7 +6935,11 @@ SystemRDLParser::Constraint_instsContext* SystemRDLParser::constraint_insts() {
   enterRule(_localctx, 154, SystemRDLParser::RuleConstraint_insts);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6689,7 +7025,11 @@ SystemRDLParser::Constr_relationalContext* SystemRDLParser::constr_relational() 
   enterRule(_localctx, 156, SystemRDLParser::RuleConstr_relational);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6760,7 +7100,11 @@ SystemRDLParser::Constr_prop_assignContext* SystemRDLParser::constr_prop_assign(
   Constr_prop_assignContext *_localctx = _tracker.createInstance<Constr_prop_assignContext>(_ctx, getState());
   enterRule(_localctx, 158, SystemRDLParser::RuleConstr_prop_assign);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6822,7 +7166,11 @@ SystemRDLParser::Constr_inside_valuesContext* SystemRDLParser::constr_inside_val
   enterRule(_localctx, 160, SystemRDLParser::RuleConstr_inside_values);
   size_t _la = 0;
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6895,7 +7243,11 @@ SystemRDLParser::Constr_inside_enumContext* SystemRDLParser::constr_inside_enum(
   Constr_inside_enumContext *_localctx = _tracker.createInstance<Constr_inside_enumContext>(_ctx, getState());
   enterRule(_localctx, 162, SystemRDLParser::RuleConstr_inside_enum);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -6948,7 +7300,11 @@ SystemRDLParser::Constr_lhsContext* SystemRDLParser::constr_lhs() {
   Constr_lhsContext *_localctx = _tracker.createInstance<Constr_lhsContext>(_ctx, getState());
   enterRule(_localctx, 164, SystemRDLParser::RuleConstr_lhs);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -7014,7 +7370,11 @@ SystemRDLParser::Constr_inside_valueContext* SystemRDLParser::constr_inside_valu
   Constr_inside_valueContext *_localctx = _tracker.createInstance<Constr_inside_valueContext>(_ctx, getState());
   enterRule(_localctx, 166, SystemRDLParser::RuleConstr_inside_value);
 
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
   auto onExit = finally([=] {
+#endif
     exitRule();
   });
   try {
@@ -7166,22 +7526,23 @@ std::vector<std::string> SystemRDLParser::_ruleNames = {
 };
 
 std::vector<std::string> SystemRDLParser::_literalNames = {
-  "", "';'", "'{'", "'}'", "','", "'#'", "'('", "')'", "'.'", "'?'", "':'", 
-  "'''", "'['", "']'", "'::'", "'->'", "", "", "'boolean'", "'bit'", "'longint'", 
-  "'unsigned'", "'string'", "'accesstype'", "'addressingtype'", "'onreadtype'", 
-  "'onwritetype'", "'alias'", "'external'", "'internal'", "'addrmap'", "'regfile'", 
-  "'reg'", "'field'", "'mem'", "'signal'", "'true'", "'false'", "'na'", 
-  "'rw'", "'wr'", "'r'", "'w'", "'rw1'", "'w1'", "'rclr'", "'rset'", "'ruser'", 
-  "'woset'", "'woclr'", "'wot'", "'wzs'", "'wzc'", "'wzt'", "'wclr'", "'wset'", 
-  "'wuser'", "'compact'", "'regalign'", "'fullalign'", "'hw'", "'sw'", "'posedge'", 
-  "'negedge'", "'bothedge'", "'level'", "'nonsticky'", "'abstract'", "'all'", 
-  "'component'", "'componentwidth'", "'constraint'", "'default'", "'enum'", 
-  "'encode'", "'inside'", "'number'", "'property'", "'ref'", "'struct'", 
-  "'this'", "'type'", "'alternate'", "'byte'", "'int'", "'precedencetype'", 
-  "'real'", "'shortint'", "'shortreal'", "'signed'", "'with'", "'within'", 
-  "", "", "", "", "'+'", "'-'", "'!'", "'~'", "'&&'", "'~&'", "'&'", "'|'", 
-  "'||'", "'~|'", "'^'", "", "'<<'", "'>>'", "'*'", "'**'", "'/'", "'%'", 
-  "'=='", "'='", "'!='", "'<='", "'<'", "'>='", "'>'", "'@'", "'+='", "'%='"
+  "", "';'", "'{'", "'}'", "','", "'#'", "'('", "')'", "'.'", "'\u003F'", 
+  "':'", "'''", "'['", "']'", "'::'", "'->'", "", "", "'boolean'", "'bit'", 
+  "'longint'", "'unsigned'", "'string'", "'accesstype'", "'addressingtype'", 
+  "'onreadtype'", "'onwritetype'", "'alias'", "'external'", "'internal'", 
+  "'addrmap'", "'regfile'", "'reg'", "'field'", "'mem'", "'signal'", "'true'", 
+  "'false'", "'na'", "'rw'", "'wr'", "'r'", "'w'", "'rw1'", "'w1'", "'rclr'", 
+  "'rset'", "'ruser'", "'woset'", "'woclr'", "'wot'", "'wzs'", "'wzc'", 
+  "'wzt'", "'wclr'", "'wset'", "'wuser'", "'compact'", "'regalign'", "'fullalign'", 
+  "'hw'", "'sw'", "'posedge'", "'negedge'", "'bothedge'", "'level'", "'nonsticky'", 
+  "'abstract'", "'all'", "'component'", "'componentwidth'", "'constraint'", 
+  "'default'", "'enum'", "'encode'", "'inside'", "'number'", "'property'", 
+  "'ref'", "'struct'", "'this'", "'type'", "'alternate'", "'byte'", "'int'", 
+  "'precedencetype'", "'real'", "'shortint'", "'shortreal'", "'signed'", 
+  "'with'", "'within'", "", "", "", "", "'+'", "'-'", "'!'", "'~'", "'&&'", 
+  "'~&'", "'&'", "'|'", "'||'", "'~|'", "'^'", "", "'<<'", "'>>'", "'*'", 
+  "'**'", "'/'", "'%'", "'=='", "'='", "'!='", "'<='", "'<'", "'>='", "'>'", 
+  "'@'", "'+='", "'%='"
 };
 
 std::vector<std::string> SystemRDLParser::_symbolicNames = {

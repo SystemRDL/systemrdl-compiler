@@ -67,7 +67,7 @@ def run_setup(with_binary):
         cmdclass={"build_ext": ve_build_ext},
         python_requires='>=3.5.2',
         install_requires=[
-            "antlr4-python3-runtime",
+            "antlr4-python3-runtime >= 4.9, < 4.10",
             "colorama",
             "markdown",
         ],

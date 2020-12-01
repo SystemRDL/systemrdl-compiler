@@ -1,5 +1,5 @@
 
-// Generated from SystemRDL.g4 by ANTLR 4.8
+// Generated from SystemRDL.g4 by ANTLR 4.9
 
 #pragma once
 
@@ -38,7 +38,7 @@ public:
     INC = 122, ALIGN = 123, WS = 124, ID = 125
   };
 
-  SystemRDLLexer(antlr4::CharStream *input);
+  explicit SystemRDLLexer(antlr4::CharStream *input);
   ~SystemRDLLexer();
 
   virtual std::string getGrammarFileName() const override;

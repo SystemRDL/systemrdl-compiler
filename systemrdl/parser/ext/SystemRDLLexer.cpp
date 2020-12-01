@@ -1,5 +1,5 @@
 
-// Generated from SystemRDL.g4 by ANTLR 4.8
+// Generated from SystemRDL.g4 by ANTLR 4.9
 
 
 #include "SystemRDLLexer.h"
@@ -60,28 +60,25 @@ atn::ATN SystemRDLLexer::_atn;
 std::vector<uint16_t> SystemRDLLexer::_serializedATN;
 
 std::vector<std::string> SystemRDLLexer::_ruleNames = {
-  u8"T__0", u8"T__1", u8"T__2", u8"T__3", u8"T__4", u8"T__5", u8"T__6", 
-  u8"T__7", u8"T__8", u8"T__9", u8"T__10", u8"T__11", u8"T__12", u8"T__13", 
-  u8"T__14", u8"SL_COMMENT", u8"ML_COMMENT", u8"BOOLEAN_kw", u8"BIT_kw", 
-  u8"LONGINT_kw", u8"UNSIGNED_kw", u8"STRING_kw", u8"ACCESSTYPE_kw", u8"ADDRESSINGTYPE_kw", 
-  u8"ONREADTYPE_kw", u8"ONWRITETYPE_kw", u8"ALIAS_kw", u8"EXTERNAL_kw", 
-  u8"INTERNAL_kw", u8"ADDRMAP_kw", u8"REGFILE_kw", u8"REG_kw", u8"FIELD_kw", 
-  u8"MEM_kw", u8"SIGNAL_kw", u8"TRUE_kw", u8"FALSE_kw", u8"NA_kw", u8"RW_kw", 
-  u8"WR_kw", u8"R_kw", u8"W_kw", u8"RW1_kw", u8"W1_kw", u8"RCLR_kw", u8"RSET_kw", 
-  u8"RUSER_kw", u8"WOSET_kw", u8"WOCLR_kw", u8"WOT_kw", u8"WZS_kw", u8"WZC_kw", 
-  u8"WZT_kw", u8"WCLR_kw", u8"WSET_kw", u8"WUSER_kw", u8"COMPACT_kw", u8"REGALIGN_kw", 
-  u8"FULLALIGN_kw", u8"HW_kw", u8"SW_kw", u8"POSEDGE_kw", u8"NEGEDGE_kw", 
-  u8"BOTHEDGE_kw", u8"LEVEL_kw", u8"NONSTICKY_kw", u8"ABSTRACT_kw", u8"ALL_kw", 
-  u8"COMPONENT_kw", u8"COMPONENTWIDTH_kw", u8"CONSTRAINT_kw", u8"DEFAULT_kw", 
-  u8"ENUM_kw", u8"ENCODE_kw", u8"INSIDE_kw", u8"NUMBER_kw", u8"PROPERTY_kw", 
-  u8"REF_kw", u8"STRUCT_kw", u8"THIS_kw", u8"TYPE_kw", u8"ALTERNATE_kw", 
-  u8"BYTE_kw", u8"INT_kw", u8"PRECEDENCETYPE_kw", u8"REAL_kw", u8"SHORTINT_kw", 
-  u8"SHORTREAL_kw", u8"SIGNED_kw", u8"WITH_kw", u8"WITHIN_kw", u8"NUM_BIN", 
-  u8"NUM_DEC", u8"NUM_HEX", u8"INT", u8"HEX_INT", u8"VLOG_INT", u8"ESC", 
-  u8"STRING", u8"PLUS", u8"MINUS", u8"BNOT", u8"NOT", u8"BAND", u8"NAND", 
-  u8"AND", u8"OR", u8"BOR", u8"NOR", u8"XOR", u8"XNOR", u8"LSHIFT", u8"RSHIFT", 
-  u8"MULT", u8"EXP", u8"DIV", u8"MOD", u8"EQ", u8"ASSIGN", u8"NEQ", u8"LEQ", 
-  u8"LT", u8"GEQ", u8"GT", u8"AT", u8"INC", u8"ALIGN", u8"WS", u8"ID"
+  "T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "T__6", "T__7", "T__8", 
+  "T__9", "T__10", "T__11", "T__12", "T__13", "T__14", "SL_COMMENT", "ML_COMMENT", 
+  "BOOLEAN_kw", "BIT_kw", "LONGINT_kw", "UNSIGNED_kw", "STRING_kw", "ACCESSTYPE_kw", 
+  "ADDRESSINGTYPE_kw", "ONREADTYPE_kw", "ONWRITETYPE_kw", "ALIAS_kw", "EXTERNAL_kw", 
+  "INTERNAL_kw", "ADDRMAP_kw", "REGFILE_kw", "REG_kw", "FIELD_kw", "MEM_kw", 
+  "SIGNAL_kw", "TRUE_kw", "FALSE_kw", "NA_kw", "RW_kw", "WR_kw", "R_kw", 
+  "W_kw", "RW1_kw", "W1_kw", "RCLR_kw", "RSET_kw", "RUSER_kw", "WOSET_kw", 
+  "WOCLR_kw", "WOT_kw", "WZS_kw", "WZC_kw", "WZT_kw", "WCLR_kw", "WSET_kw", 
+  "WUSER_kw", "COMPACT_kw", "REGALIGN_kw", "FULLALIGN_kw", "HW_kw", "SW_kw", 
+  "POSEDGE_kw", "NEGEDGE_kw", "BOTHEDGE_kw", "LEVEL_kw", "NONSTICKY_kw", 
+  "ABSTRACT_kw", "ALL_kw", "COMPONENT_kw", "COMPONENTWIDTH_kw", "CONSTRAINT_kw", 
+  "DEFAULT_kw", "ENUM_kw", "ENCODE_kw", "INSIDE_kw", "NUMBER_kw", "PROPERTY_kw", 
+  "REF_kw", "STRUCT_kw", "THIS_kw", "TYPE_kw", "ALTERNATE_kw", "BYTE_kw", 
+  "INT_kw", "PRECEDENCETYPE_kw", "REAL_kw", "SHORTINT_kw", "SHORTREAL_kw", 
+  "SIGNED_kw", "WITH_kw", "WITHIN_kw", "NUM_BIN", "NUM_DEC", "NUM_HEX", 
+  "INT", "HEX_INT", "VLOG_INT", "ESC", "STRING", "PLUS", "MINUS", "BNOT", 
+  "NOT", "BAND", "NAND", "AND", "OR", "BOR", "NOR", "XOR", "XNOR", "LSHIFT", 
+  "RSHIFT", "MULT", "EXP", "DIV", "MOD", "EQ", "ASSIGN", "NEQ", "LEQ", "LT", 
+  "GEQ", "GT", "AT", "INC", "ALIGN", "WS", "ID"
 };
 
 std::vector<std::string> SystemRDLLexer::_channelNames = {
@@ -89,53 +86,48 @@ std::vector<std::string> SystemRDLLexer::_channelNames = {
 };
 
 std::vector<std::string> SystemRDLLexer::_modeNames = {
-  u8"DEFAULT_MODE"
+  "DEFAULT_MODE"
 };
 
 std::vector<std::string> SystemRDLLexer::_literalNames = {
-  "", u8"';'", u8"'{'", u8"'}'", u8"','", u8"'#'", u8"'('", u8"')'", u8"'.'", 
-  u8"'?'", u8"':'", u8"'''", u8"'['", u8"']'", u8"'::'", u8"'->'", "", "", 
-  u8"'boolean'", u8"'bit'", u8"'longint'", u8"'unsigned'", u8"'string'", 
-  u8"'accesstype'", u8"'addressingtype'", u8"'onreadtype'", u8"'onwritetype'", 
-  u8"'alias'", u8"'external'", u8"'internal'", u8"'addrmap'", u8"'regfile'", 
-  u8"'reg'", u8"'field'", u8"'mem'", u8"'signal'", u8"'true'", u8"'false'", 
-  u8"'na'", u8"'rw'", u8"'wr'", u8"'r'", u8"'w'", u8"'rw1'", u8"'w1'", u8"'rclr'", 
-  u8"'rset'", u8"'ruser'", u8"'woset'", u8"'woclr'", u8"'wot'", u8"'wzs'", 
-  u8"'wzc'", u8"'wzt'", u8"'wclr'", u8"'wset'", u8"'wuser'", u8"'compact'", 
-  u8"'regalign'", u8"'fullalign'", u8"'hw'", u8"'sw'", u8"'posedge'", u8"'negedge'", 
-  u8"'bothedge'", u8"'level'", u8"'nonsticky'", u8"'abstract'", u8"'all'", 
-  u8"'component'", u8"'componentwidth'", u8"'constraint'", u8"'default'", 
-  u8"'enum'", u8"'encode'", u8"'inside'", u8"'number'", u8"'property'", 
-  u8"'ref'", u8"'struct'", u8"'this'", u8"'type'", u8"'alternate'", u8"'byte'", 
-  u8"'int'", u8"'precedencetype'", u8"'real'", u8"'shortint'", u8"'shortreal'", 
-  u8"'signed'", u8"'with'", u8"'within'", "", "", "", "", u8"'+'", u8"'-'", 
-  u8"'!'", u8"'~'", u8"'&&'", u8"'~&'", u8"'&'", u8"'|'", u8"'||'", u8"'~|'", 
-  u8"'^'", "", u8"'<<'", u8"'>>'", u8"'*'", u8"'**'", u8"'/'", u8"'%'", 
-  u8"'=='", u8"'='", u8"'!='", u8"'<='", u8"'<'", u8"'>='", u8"'>'", u8"'@'", 
-  u8"'+='", u8"'%='"
+  "", "';'", "'{'", "'}'", "','", "'#'", "'('", "')'", "'.'", "'\u003F'", 
+  "':'", "'''", "'['", "']'", "'::'", "'->'", "", "", "'boolean'", "'bit'", 
+  "'longint'", "'unsigned'", "'string'", "'accesstype'", "'addressingtype'", 
+  "'onreadtype'", "'onwritetype'", "'alias'", "'external'", "'internal'", 
+  "'addrmap'", "'regfile'", "'reg'", "'field'", "'mem'", "'signal'", "'true'", 
+  "'false'", "'na'", "'rw'", "'wr'", "'r'", "'w'", "'rw1'", "'w1'", "'rclr'", 
+  "'rset'", "'ruser'", "'woset'", "'woclr'", "'wot'", "'wzs'", "'wzc'", 
+  "'wzt'", "'wclr'", "'wset'", "'wuser'", "'compact'", "'regalign'", "'fullalign'", 
+  "'hw'", "'sw'", "'posedge'", "'negedge'", "'bothedge'", "'level'", "'nonsticky'", 
+  "'abstract'", "'all'", "'component'", "'componentwidth'", "'constraint'", 
+  "'default'", "'enum'", "'encode'", "'inside'", "'number'", "'property'", 
+  "'ref'", "'struct'", "'this'", "'type'", "'alternate'", "'byte'", "'int'", 
+  "'precedencetype'", "'real'", "'shortint'", "'shortreal'", "'signed'", 
+  "'with'", "'within'", "", "", "", "", "'+'", "'-'", "'!'", "'~'", "'&&'", 
+  "'~&'", "'&'", "'|'", "'||'", "'~|'", "'^'", "", "'<<'", "'>>'", "'*'", 
+  "'**'", "'/'", "'%'", "'=='", "'='", "'!='", "'<='", "'<'", "'>='", "'>'", 
+  "'@'", "'+='", "'%='"
 };
 
 std::vector<std::string> SystemRDLLexer::_symbolicNames = {
-  "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", u8"SL_COMMENT", 
-  u8"ML_COMMENT", u8"BOOLEAN_kw", u8"BIT_kw", u8"LONGINT_kw", u8"UNSIGNED_kw", 
-  u8"STRING_kw", u8"ACCESSTYPE_kw", u8"ADDRESSINGTYPE_kw", u8"ONREADTYPE_kw", 
-  u8"ONWRITETYPE_kw", u8"ALIAS_kw", u8"EXTERNAL_kw", u8"INTERNAL_kw", u8"ADDRMAP_kw", 
-  u8"REGFILE_kw", u8"REG_kw", u8"FIELD_kw", u8"MEM_kw", u8"SIGNAL_kw", u8"TRUE_kw", 
-  u8"FALSE_kw", u8"NA_kw", u8"RW_kw", u8"WR_kw", u8"R_kw", u8"W_kw", u8"RW1_kw", 
-  u8"W1_kw", u8"RCLR_kw", u8"RSET_kw", u8"RUSER_kw", u8"WOSET_kw", u8"WOCLR_kw", 
-  u8"WOT_kw", u8"WZS_kw", u8"WZC_kw", u8"WZT_kw", u8"WCLR_kw", u8"WSET_kw", 
-  u8"WUSER_kw", u8"COMPACT_kw", u8"REGALIGN_kw", u8"FULLALIGN_kw", u8"HW_kw", 
-  u8"SW_kw", u8"POSEDGE_kw", u8"NEGEDGE_kw", u8"BOTHEDGE_kw", u8"LEVEL_kw", 
-  u8"NONSTICKY_kw", u8"ABSTRACT_kw", u8"ALL_kw", u8"COMPONENT_kw", u8"COMPONENTWIDTH_kw", 
-  u8"CONSTRAINT_kw", u8"DEFAULT_kw", u8"ENUM_kw", u8"ENCODE_kw", u8"INSIDE_kw", 
-  u8"NUMBER_kw", u8"PROPERTY_kw", u8"REF_kw", u8"STRUCT_kw", u8"THIS_kw", 
-  u8"TYPE_kw", u8"ALTERNATE_kw", u8"BYTE_kw", u8"INT_kw", u8"PRECEDENCETYPE_kw", 
-  u8"REAL_kw", u8"SHORTINT_kw", u8"SHORTREAL_kw", u8"SIGNED_kw", u8"WITH_kw", 
-  u8"WITHIN_kw", u8"INT", u8"HEX_INT", u8"VLOG_INT", u8"STRING", u8"PLUS", 
-  u8"MINUS", u8"BNOT", u8"NOT", u8"BAND", u8"NAND", u8"AND", u8"OR", u8"BOR", 
-  u8"NOR", u8"XOR", u8"XNOR", u8"LSHIFT", u8"RSHIFT", u8"MULT", u8"EXP", 
-  u8"DIV", u8"MOD", u8"EQ", u8"ASSIGN", u8"NEQ", u8"LEQ", u8"LT", u8"GEQ", 
-  u8"GT", u8"AT", u8"INC", u8"ALIGN", u8"WS", u8"ID"
+  "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "SL_COMMENT", 
+  "ML_COMMENT", "BOOLEAN_kw", "BIT_kw", "LONGINT_kw", "UNSIGNED_kw", "STRING_kw", 
+  "ACCESSTYPE_kw", "ADDRESSINGTYPE_kw", "ONREADTYPE_kw", "ONWRITETYPE_kw", 
+  "ALIAS_kw", "EXTERNAL_kw", "INTERNAL_kw", "ADDRMAP_kw", "REGFILE_kw", 
+  "REG_kw", "FIELD_kw", "MEM_kw", "SIGNAL_kw", "TRUE_kw", "FALSE_kw", "NA_kw", 
+  "RW_kw", "WR_kw", "R_kw", "W_kw", "RW1_kw", "W1_kw", "RCLR_kw", "RSET_kw", 
+  "RUSER_kw", "WOSET_kw", "WOCLR_kw", "WOT_kw", "WZS_kw", "WZC_kw", "WZT_kw", 
+  "WCLR_kw", "WSET_kw", "WUSER_kw", "COMPACT_kw", "REGALIGN_kw", "FULLALIGN_kw", 
+  "HW_kw", "SW_kw", "POSEDGE_kw", "NEGEDGE_kw", "BOTHEDGE_kw", "LEVEL_kw", 
+  "NONSTICKY_kw", "ABSTRACT_kw", "ALL_kw", "COMPONENT_kw", "COMPONENTWIDTH_kw", 
+  "CONSTRAINT_kw", "DEFAULT_kw", "ENUM_kw", "ENCODE_kw", "INSIDE_kw", "NUMBER_kw", 
+  "PROPERTY_kw", "REF_kw", "STRUCT_kw", "THIS_kw", "TYPE_kw", "ALTERNATE_kw", 
+  "BYTE_kw", "INT_kw", "PRECEDENCETYPE_kw", "REAL_kw", "SHORTINT_kw", "SHORTREAL_kw", 
+  "SIGNED_kw", "WITH_kw", "WITHIN_kw", "INT", "HEX_INT", "VLOG_INT", "STRING", 
+  "PLUS", "MINUS", "BNOT", "NOT", "BAND", "NAND", "AND", "OR", "BOR", "NOR", 
+  "XOR", "XNOR", "LSHIFT", "RSHIFT", "MULT", "EXP", "DIV", "MOD", "EQ", 
+  "ASSIGN", "NEQ", "LEQ", "LT", "GEQ", "GT", "AT", "INC", "ALIGN", "WS", 
+  "ID"
 };
 
 dfa::Vocabulary SystemRDLLexer::_vocabulary(_literalNames, _symbolicNames);

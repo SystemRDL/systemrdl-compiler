@@ -1,5 +1,5 @@
 
-// Generated from SystemRDL.g4 by ANTLR 4.8
+// Generated from SystemRDL.g4 by ANTLR 4.9
 
 #pragma once
 
@@ -67,7 +67,7 @@ public:
     RuleConstr_lhs = 82, RuleConstr_inside_value = 83
   };
 
-  SystemRDLParser(antlr4::TokenStream *input);
+  explicit SystemRDLParser(antlr4::TokenStream *input);
   ~SystemRDLParser();
 
   virtual std::string getGrammarFileName() const override;
@@ -343,7 +343,7 @@ public:
 
   class  Field_inst_resetContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;;
+    antlr4::Token *op = nullptr;
     Field_inst_resetContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     ExprContext *expr();
@@ -358,7 +358,7 @@ public:
 
   class  Inst_addr_fixedContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;;
+    antlr4::Token *op = nullptr;
     Inst_addr_fixedContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     ExprContext *expr();
@@ -373,7 +373,7 @@ public:
 
   class  Inst_addr_strideContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;;
+    antlr4::Token *op = nullptr;
     Inst_addr_strideContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     ExprContext *expr();
@@ -388,7 +388,7 @@ public:
 
   class  Inst_addr_alignContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;;
+    antlr4::Token *op = nullptr;
     Inst_addr_alignContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     ExprContext *expr();
@@ -403,7 +403,7 @@ public:
 
   class  Component_inst_typeContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Component_inst_typeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *EXTERNAL_kw();
@@ -418,7 +418,7 @@ public:
 
   class  Component_typeContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Component_typeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     Component_type_primaryContext *component_type_primary();
@@ -433,7 +433,7 @@ public:
 
   class  Component_type_primaryContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Component_type_primaryContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ADDRMAP_kw();
@@ -751,7 +751,7 @@ public:
 
   class  Data_typeContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Data_typeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     Basic_data_typeContext *basic_data_type();
@@ -769,7 +769,7 @@ public:
 
   class  Basic_data_typeContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Basic_data_typeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *BIT_kw();
@@ -864,7 +864,7 @@ public:
 
   class  Boolean_literalContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *val = nullptr;;
+    antlr4::Token *val = nullptr;
     Boolean_literalContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *TRUE_kw();
@@ -936,7 +936,7 @@ public:
 
   class  Accesstype_literalContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Accesstype_literalContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *NA_kw();
@@ -956,7 +956,7 @@ public:
 
   class  Onreadtype_literalContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Onreadtype_literalContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *RCLR_kw();
@@ -972,7 +972,7 @@ public:
 
   class  Onwritetype_literalContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Onwritetype_literalContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *WOSET_kw();
@@ -994,7 +994,7 @@ public:
 
   class  Addressingtype_literalContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Addressingtype_literalContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *COMPACT_kw();
@@ -1010,7 +1010,7 @@ public:
 
   class  Precedencetype_literalContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Precedencetype_literalContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *HW_kw();
@@ -1159,7 +1159,7 @@ public:
 
   class  Prop_keywordContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Prop_keywordContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *SW_kw();
@@ -1178,7 +1178,7 @@ public:
 
   class  Prop_modContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Prop_modContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *POSEDGE_kw();
@@ -1244,7 +1244,7 @@ public:
 
   class  Udp_data_typeContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Udp_data_typeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     Component_type_primaryContext *component_type_primary();
@@ -1279,7 +1279,7 @@ public:
 
   class  Udp_comp_typeContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *kw = nullptr;;
+    antlr4::Token *kw = nullptr;
     Udp_comp_typeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     Component_typeContext *component_type();
@@ -1373,8 +1373,8 @@ public:
 
   class  Struct_defContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *name = nullptr;;
-    antlr4::Token *base = nullptr;;
+    antlr4::Token *name = nullptr;
+    antlr4::Token *base = nullptr;
     Struct_defContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *STRUCT_kw();
@@ -1510,7 +1510,7 @@ public:
 
   class  Constr_relationalContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;;
+    antlr4::Token *op = nullptr;
     Constr_relationalContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<ExprContext *> expr();
@@ -1591,9 +1591,9 @@ public:
 
   class  Constr_inside_valueContext : public antlr4::ParserRuleContext {
   public:
-    SystemRDLParser::ExprContext *val = nullptr;;
-    SystemRDLParser::ExprContext *l_val = nullptr;;
-    SystemRDLParser::ExprContext *r_val = nullptr;;
+    SystemRDLParser::ExprContext *val = nullptr;
+    SystemRDLParser::ExprContext *l_val = nullptr;
+    SystemRDLParser::ExprContext *r_val = nullptr;
     Constr_inside_valueContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<ExprContext *> expr();
