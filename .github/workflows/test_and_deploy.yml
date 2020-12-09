@@ -1,0 +1,179 @@
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - 3.5
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pytest pytest-cov coveralls parameterized
+
+      - name: Install
+        run: |
+          python setup.py install
+
+      - name: Test
+        run: |
+          cd test
+          pytest --cov=systemrdl
+
+      - name: Test (without antlr accelerator)
+        run: |
+          cd test
+          export SYSTEMRDL_DISABLE_ACCELERATOR=1
+          pytest --cov=systemrdl --cov-append
+
+      - name: Coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd test
+          coveralls
+
+#-------------------------------------------------------------------------------
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pylint
+          python setup.py install
+
+      - name: Install
+        run: |
+          python setup.py install
+
+      - name: Run Lint
+        run: |
+          pylint --rcfile test/pylint.rc systemrdl
+
+#-------------------------------------------------------------------------------
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -U mypy
+
+      - name: Type Check
+        run: |
+          mypy --config-file test/mypy.ini systemrdl
+
+#-------------------------------------------------------------------------------
+  build_wheels:
+    needs:
+      - test
+      - lint
+      - mypy
+
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-18.04
+          - windows-latest
+          - macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: 3.8
+
+      - name: Install cibuildwheel
+        run: |
+          python -m pip install cibuildwheel==1.7.1
+
+      - name: Build wheels
+        env:
+          # Only build CPython 3.x targets
+          CIBW_BUILD: "cp3*"
+          # Don't build osx 10.6 (no C++11 support)
+          CIBW_SKIP: "*macosx_10_6*"
+          # Signal setup.py to fail if binary build fails
+          SYSTEMRDL_REQUIRE_BINARY_BUILD: ~
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+
+#-------------------------------------------------------------------------------
+  build_sdist:
+    needs:
+      - test
+      - lint
+      - mypy
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: 3.8
+
+      - name: Build sdist
+        run: python setup.py sdist
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: dist/*.tar.gz
+
+#-------------------------------------------------------------------------------
+  deploy:
+    needs:
+      #- build_wheels
+      - build_sdist
+
+    runs-on: ubuntu-latest
+
+    # Only publish when a GitHub Release is created.
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}

@@ -1,5 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/systemrdl-compiler/badge/?version=latest)](http://systemrdl-compiler.readthedocs.io)
-[![Build Status](https://travis-ci.com/SystemRDL/systemrdl-compiler.svg?branch=master)](https://travis-ci.com/SystemRDL/systemrdl-compiler)
+![.github/workflows/test_and_deploy.yml](https://github.com/SystemRDL/systemrdl-compiler/workflows/.github/workflows/test_and_deploy.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/SystemRDL/systemrdl-compiler/badge.svg?branch=master)](https://coveralls.io/github/SystemRDL/systemrdl-compiler?branch=master)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/systemrdl-compiler.svg)](https://pypi.org/project/systemrdl-compiler)
 
