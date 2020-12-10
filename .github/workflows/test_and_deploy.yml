@@ -160,7 +160,7 @@ jobs:
 #-------------------------------------------------------------------------------
   deploy:
     needs:
-      #- build_wheels
+      - build_wheels
       - build_sdist
 
     runs-on: ubuntu-latest
