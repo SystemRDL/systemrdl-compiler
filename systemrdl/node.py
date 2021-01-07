@@ -91,6 +91,15 @@ class Node:
         name : str
             Derived property name
             If unassigned, will default to the function's name
+
+        .. deprecated:: 1.15
+            Use of this function is not recommended since it encourages the bad
+            practice of modifying the SystemRDL API at runtime. Instead, it is
+            recommended that any extended property derivations be done in a
+            separate function outside of the Node interface.
+
+            In future revisions, use of this function will emit a warning, and will
+            eventually be removed entirely.
         """
 
         if name is None:
