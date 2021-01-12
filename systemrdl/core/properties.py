@@ -1,4 +1,4 @@
-from typing import Any, Set, Type, Iterable, TYPE_CHECKING, Optional, Dict, List
+from typing import Any, Set, Type, Iterable, TYPE_CHECKING, Optional, Dict, List, Union
 
 from .. import component as comp
 from .. import node as m_node
@@ -122,7 +122,7 @@ class PropertyRule:
         """
 
     #---------------------------------------------------------------------------
-    def _validate_ref_width(self, node: m_node.VectorNode, value: Any) -> None:
+    def _validate_ref_width(self, node: m_node.VectorNode, name: str, value: Any) -> None:
         """
         Helper function to check that if value is a vector-like reference,
         that it's width matches the node.
@@ -136,11 +136,11 @@ class PropertyRule:
                         type(value.inst).__name__.lower(), value.inst_name,
                         node.width, value.width
                     ),
-                    node.inst.inst_src_ref
+                    node.inst.property_src_ref.get(name, node.inst.inst_src_ref)
                 )
 
     #---------------------------------------------------------------------------
-    def _validate_ref_width_is_1(self, node: m_node.Node, value: Any) -> None:
+    def _validate_ref_width_is_1(self, node: m_node.Node, name: str, value: Any) -> None:
         """
         Helper function to check that if value is a vector-like reference,
         that it's width is exactly 1.
@@ -153,7 +153,7 @@ class PropertyRule:
                         type(node.inst).__name__.lower(), node.inst_name,
                         type(value.inst).__name__.lower(), value.inst_name
                     ),
-                    node.inst.inst_src_ref
+                    node.inst.property_src_ref.get(name, node.inst.inst_src_ref)
                 )
 
 #===============================================================================
@@ -237,7 +237,7 @@ class Prop_dontcompare(PropertyRule):
                     self.env.msg.error(
                         "Bit mask (%d) of property 'dontcompare' exceeds width (%d) of field '%s'"
                         % (value, node.width, node.inst_name),
-                        node.inst.inst_src_ref
+                        node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                     )
 
             # Normalize values to masks
@@ -307,7 +307,7 @@ class Prop_donttest(PropertyRule):
                     self.env.msg.error(
                         "Bit mask (%d) of property 'donttest' exceeds width (%d) of field '%s'"
                         % (value, node.width, node.inst_name),
-                        node.inst.inst_src_ref
+                        node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                     )
         else:
             # A boolean may end up cast as an int. Normalize 0 or 1 to boolean
@@ -320,7 +320,7 @@ class Prop_donttest(PropertyRule):
                 self.env.msg.error(
                     "Property 'donttest' expects a boolean for non-field types. Got an integer in '%s'"
                     % (node.inst_name),
-                    node.inst.inst_src_ref
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
 
 class Prop_ispresent(PropertyRule):
@@ -530,11 +530,11 @@ class Prop_next(PropertyRule):
             self.env.msg.error(
                 "Field '%s' cannot reference itself in next property"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
         # Check width
-        self._validate_ref_width(node, value)
+        self._validate_ref_width(node, "next", value)
 
 class Prop_reset(PropertyRule):
     """
@@ -555,7 +555,7 @@ class Prop_reset(PropertyRule):
                 self.env.msg.error(
                     "The reset value (%d) of field '%s' cannot fit within it's width (%d)"
                     % (value, node.inst_name, node.width),
-                    node.inst.inst_src_ref
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
         elif isinstance(value, m_node.FieldNode):
             # 9.5.1-e: reset cannot be self-referencing
@@ -563,7 +563,7 @@ class Prop_reset(PropertyRule):
                 self.env.msg.error(
                     "Field '%s' cannot reference itself in reset property"
                     % (node.inst_name),
-                    node.inst.inst_src_ref
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
         elif isinstance(value, m_node.SignalNode):
             pass
@@ -573,7 +573,7 @@ class Prop_reset(PropertyRule):
         # Check width
         # 9.5.1-d: When reset is a reference, it shall reference another
         # field of the same size.
-        self._validate_ref_width(node, value)
+        self._validate_ref_width(node, "reset", value)
 
 class Prop_resetsignal(PropertyRule):
     """
@@ -689,7 +689,7 @@ class Prop_onread(PropertyRule):
             self.env.msg.error(
                 "Field '%s' has an 'onread' property but does not have software read access"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
         # 9.6.1-j A field with an onread value of ruser shall be external
@@ -800,7 +800,7 @@ class Prop_onwrite(PropertyRule):
             self.env.msg.error(
                 "Field '%s' has an 'onwrite' property but does not have software write access"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
         # 9.6.1-m A field with an onwrite value of wuser shall be external
@@ -812,6 +812,36 @@ class Prop_onwrite(PropertyRule):
             )
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def _validate_swwe_writable(env: "RDLEnvironment", node: m_node.Node, prop_name: str, prop_value: Union[bool, rdltypes.ComponentRef]) -> None:
+    # swwe and swwel properties enable a hardware signal that allows the
+    # writability of a field to change at runtime.
+    # If either property is used, then the field is implicitly considered
+    # writable at some point.
+    # If the field's 'sw' property conflicts with this, emit an error to
+    # the user.
+    this_f_sw = node.get_property('sw')
+
+    if isinstance(prop_value, rdltypes.ComponentRef):
+        shall_be_writable = True
+    elif prop_value is True:
+        shall_be_writable = True
+    else:
+        shall_be_writable = False
+
+    if shall_be_writable:
+        if this_f_sw == rdltypes.AccessType.r:
+            env.msg.error(
+                "Field's software access is 'sw=r' but property '%s' implies it can be written in some situations during runtime."
+                % prop_name,
+                node.inst.property_src_ref.get(prop_name, node.inst.inst_src_ref)
+            )
+        elif this_f_sw == rdltypes.AccessType.na:
+            env.msg.error(
+                "Field's software access is 'sw=na' but property '%s' implies it can be written in some situations during runtime."
+                % prop_name,
+                node.inst.property_src_ref.get(prop_name, node.inst.inst_src_ref)
+            )
+
 class Prop_swwe(PropertyRule):
     """
     Override software-writeability of this field.
@@ -825,7 +855,8 @@ class Prop_swwe(PropertyRule):
     mutex_group = "R"
 
     def validate(self, node: m_node.Node, value: Any) -> None:
-        self._validate_ref_width_is_1(node, value)
+        self._validate_ref_width_is_1(node, "swwe", value)
+        _validate_swwe_writable(self.env, node, "swwe", value)
 
 class Prop_swwel(PropertyRule):
     """
@@ -840,7 +871,8 @@ class Prop_swwel(PropertyRule):
     mutex_group = "R"
 
     def validate(self, node: m_node.Node, value: Any) -> None:
-        self._validate_ref_width_is_1(node, value)
+        self._validate_ref_width_is_1(node, "swwel", value)
+        _validate_swwe_writable(self.env, node, "swwel", value)
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_swmod(PropertyRule):
@@ -890,14 +922,14 @@ class Prop_singlepulse(PropertyRule):
                 self.env.msg.error(
                     "Field '%s' marked as 'singlepulse' shall have width of 1"
                     % (node.inst_name),
-                    node.inst.inst_src_ref
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
 
             if node.get_property('reset') != 0:
                 self.env.msg.error(
                     "Field '%s' marked as 'singlepulse' shall have a reset value of 0"
                     % (node.inst_name),
-                    node.inst.inst_src_ref
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
 
             # singlepulse does not make sense alongside any onwrite properties
@@ -912,7 +944,7 @@ class Prop_singlepulse(PropertyRule):
                     self.env.msg.error(
                         "Field '%s' marked as 'singlepulse' has conflicting 'onwrite' value of '%s'"
                         % (node.inst_name, onwrite.name),
-                        node.inst.inst_src_ref
+                        node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                     )
 
 #-------------------------------------------------------------------------------
@@ -932,14 +964,14 @@ class Prop_we(PropertyRule):
             self.env.msg.error(
                 "Property 'we' is 'true' on field '%s', but the field is not writable by hardware"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
         if value and not node.implements_storage:
             self.env.msg.error(
                 "Use of 'we' property on field '%s' that does not implement storage does not make sense"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
 class Prop_wel(PropertyRule):
@@ -955,14 +987,14 @@ class Prop_wel(PropertyRule):
             self.env.msg.error(
                 "Property 'we' is 'true' on field '%s', but the field is not writable by hardware"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
         if value and not node.implements_storage:
             self.env.msg.error(
                 "Use of 'wel' property on field '%s' that does not implement storage does not make sense"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1027,7 +1059,7 @@ class Prop_hwenable(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        self._validate_ref_width(node, value)
+        self._validate_ref_width(node, "hwenable", value)
 
 class Prop_hwmask(PropertyRule):
     bindable_to = {comp.Field}
@@ -1038,7 +1070,7 @@ class Prop_hwmask(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        self._validate_ref_width(node, value)
+        self._validate_ref_width(node, "hwmask", value)
 
 
 #-------------------------------------------------------------------------------
@@ -1218,7 +1250,7 @@ class Prop_enable(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        self._validate_ref_width(node, value)
+        self._validate_ref_width(node, "enable", value)
 
 class Prop_mask(PropertyRule):
     bindable_to = {comp.Field}
@@ -1229,7 +1261,7 @@ class Prop_mask(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        self._validate_ref_width(node, value)
+        self._validate_ref_width(node, "mask", value)
 
 class Prop_haltenable(PropertyRule):
     bindable_to = {comp.Field}
@@ -1240,7 +1272,7 @@ class Prop_haltenable(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        self._validate_ref_width(node, value)
+        self._validate_ref_width(node, "haltenable", value)
 
 class Prop_haltmask(PropertyRule):
     bindable_to = {comp.Field}
@@ -1251,7 +1283,7 @@ class Prop_haltmask(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        self._validate_ref_width(node, value)
+        self._validate_ref_width(node, "haltmask", value)
 
 class Prop_sticky(PropertyRule):
     bindable_to = {comp.Field}
@@ -1298,7 +1330,7 @@ class Prop_encode(PropertyRule):
             self.env.msg.error(
                 "Field '%s' is not wide enough to encode as enum '%s'"
                 % (node.inst_name, value.__name__),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
 class Prop_precedence(PropertyRule):
@@ -1523,7 +1555,7 @@ class UserProperty(PropertyRule):
                     self.env.msg.error(
                         "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
                         % (value, self.name, node.width, node.inst_name),
-                        node.inst.inst_src_ref
+                        node.inst.property_src_ref.get(self.name, node.inst.inst_src_ref)
                     )
 
 

@@ -350,3 +350,21 @@ provided my own extended interpretation of how dynamic property assignments
 should affect a component's generated type name.
 
 See :ref:`dpa_type_generation` notes for more details.
+
+--------------------------------------------------------------------------------
+
+Clarifications
+--------------
+
+Interpretation of ``swwe`` and ``swwel`` properties
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The spec is vague in describing the logic these properties infer. The ``swwe``
+and ``swwel`` properties are used to infer logic that overrides a field's
+ability to be written at runtime.
+
+If either property is set to a field or signal component reference, then the state
+of that signal/field determines whether the current field is writable by software.
+
+If either property is set to a boolean ``true``, then an input signal is inferred,
+which controls software's ability to write the field.

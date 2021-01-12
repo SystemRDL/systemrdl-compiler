@@ -3,6 +3,7 @@ import itertools
 from copy import deepcopy
 from collections import deque
 from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Callable, Dict
+import warnings
 
 from . import component as comp
 from . import rdltypes
@@ -101,6 +102,7 @@ class Node:
             In future revisions, use of this function will emit a warning, and will
             eventually be removed entirely.
         """
+        warnings.warn("deprecated", DeprecationWarning)
 
         if name is None:
             name = getter_function.__name__

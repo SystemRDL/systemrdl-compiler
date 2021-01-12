@@ -512,43 +512,6 @@ class LateElabListener(walker.RDLListener):
 
 
     def enter_Field(self, node: FieldNode) -> None:
-
-        # swwe and swwel properties enable a hardware signal that allows the
-        # writability of a field to change at runtime.
-        # If either property is used, then the field is implicitly considered
-        # writable at some point.
-        # If the field's 'sw' property conflicts with this, upgrade it to be
-        # writable and emit a warning to the user.
-        def ensure_field_is_writable(node: FieldNode, prop_name: str) -> None:
-            this_f_sw = node.get_property('sw')
-            if this_f_sw == rdltypes.AccessType.r:
-                node.inst.properties['sw'] = rdltypes.AccessType.rw
-                self.msg.warning(
-                    "Upgrading field's software access to 'sw=rw' since property '%s' implies it can be written to at runtime."
-                    % prop_name,
-                    node.inst.inst_src_ref
-                )
-            elif this_f_sw == rdltypes.AccessType.na:
-                node.inst.properties['sw'] = rdltypes.AccessType.w
-                self.msg.warning(
-                    "Upgrading field's software access to 'sw=w' since property '%s' implies it can be written to at runtime."
-                    % prop_name,
-                    node.inst.inst_src_ref
-                )
-
-        if "swwe" in node.inst.properties:
-            swwe = node.inst.properties['swwe']
-            if isinstance(swwe, rdltypes.ComponentRef):
-                ensure_field_is_writable(node, 'swwe')
-            elif swwe is True:
-                ensure_field_is_writable(node, 'swwe')
-        elif "swwel" in node.inst.properties:
-            swwel = node.inst.properties['swwel']
-            if isinstance(swwel, rdltypes.ComponentRef):
-                ensure_field_is_writable(node, 'swwel')
-            elif swwel is True:
-                ensure_field_is_writable(node, 'swwel')
-
         # Inherits internal/external of parent reg
         assert node.parent is not None
         node.inst.external = node.parent.inst.external
