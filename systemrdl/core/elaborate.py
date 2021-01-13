@@ -34,11 +34,13 @@ class ElabExpressionsListener(walker.RDLListener):
     def __init__(self, msg_handler: 'MessageHandler'):
         self.msg = msg_handler
 
+
     def enter_Component(self, node: Node) -> None:
         # Evaluate component properties
         for prop_name, prop_value in node.inst.properties.items():
             if isinstance(prop_value, Expr):
                 node.inst.properties[prop_name] = prop_value.get_value()
+
 
     def enter_AddressableComponent(self, node: AddressableNode) -> None:
         assert isinstance(node.inst, comp.AddressableComponent)
@@ -72,6 +74,7 @@ class ElabExpressionsListener(walker.RDLListener):
                     node.inst.inst_src_ref
                 )
 
+
     def enter_VectorComponent(self, node: VectorNode) -> None:
         assert isinstance(node.inst, comp.VectorComponent)
         # Evaluate instance object expressions
@@ -100,11 +103,14 @@ class PrePlacementValidateListener(walker.RDLListener):
     def __init__(self, msg_handler: 'MessageHandler'):
         self.msg = msg_handler
 
+
     def enter_Addrmap(self, node: AddrmapNode) -> None:
         self.check_alignment(node)
 
+
     def enter_Regfile(self, node: RegfileNode) -> None:
         self.check_alignment(node)
+
 
     def check_alignment(self, node: AddressableNode) -> None:
         if 'alignment' in node.inst.properties:
@@ -120,7 +126,6 @@ class PrePlacementValidateListener(walker.RDLListener):
                     "'alignment' property must be a power of 2",
                     node.inst.property_src_ref.get('alignment', node.inst.def_src_ref)
                 )
-
 
 
     def enter_Reg(self, node: RegNode) -> None:
@@ -152,6 +157,7 @@ class PrePlacementValidateListener(walker.RDLListener):
                     node.inst.property_src_ref.get('accesswidth', node.inst.def_src_ref)
                 )
 
+
     def enter_Field(self, node: FieldNode) -> None:
         if 'fieldwidth' in node.inst.properties:
             n = node.inst.properties['fieldwidth']
@@ -161,6 +167,7 @@ class PrePlacementValidateListener(walker.RDLListener):
                     node.inst.property_src_ref.get('fieldwidth', node.inst.def_src_ref)
                 )
 
+
     def enter_Signal(self, node: SignalNode) -> None:
         if 'signalwidth' in node.inst.properties:
             n = node.inst.properties['signalwidth']
@@ -169,6 +176,7 @@ class PrePlacementValidateListener(walker.RDLListener):
                     "'signalwidth' property must be greater than zero",
                     node.inst.property_src_ref.get('signalwidth', node.inst.def_src_ref)
                 )
+
 
     def enter_Mem(self, node: MemNode) -> None:
         # 11.3.1-a: mementries shall be greater than 0.
@@ -259,6 +267,7 @@ class StructuralPlacementListener(walker.RDLListener):
                 % (node.inst.width, fieldwidth),
                 node.inst.inst_src_ref
             )
+
 
     def exit_Signal(self, node: SignalNode) -> None:
         assert isinstance(node.inst, comp.Signal)
@@ -544,40 +553,46 @@ class LateElabListener(walker.RDLListener):
             self.coerce_external_to = None
             self.coerce_end_regfile = None
 
+
     def exit_Component(self, node: Node) -> None:
         # Generate elaborated type name
-        extra_type_name_segments = []
+        # (only if it exists. Some importers will not assign a type name)
+        if node.inst.type_name is not None:
+            extra_type_name_segments = []
 
-        # Augment based on paramter overrides as per 5.1.1.4
-        if node.inst.original_def is not None:
-            for i in range(len(node.inst.parameters)):
-                orig_param_value = node.inst.original_def.parameters[i].get_value()
-                new_param_value = node.inst.parameters[i].get_value()
-                if new_param_value != orig_param_value:
-                    extra_type_name_segments.append(node.inst.parameters[i].get_normalized_parameter())
+            # Augment based on paramter overrides as per 5.1.1.4
+            if node.inst.original_def is not None:
+                for i in range(len(node.inst.parameters)):
+                    orig_param_value = node.inst.original_def.parameters[i].get_value()
+                    new_param_value = node.inst.parameters[i].get_value()
+                    if new_param_value != orig_param_value:
+                        extra_type_name_segments.append(node.inst.parameters[i].get_normalized_parameter())
 
-        # Further augment type name as per extended type generation from DPAs
-        if self.env.use_extended_type_name_gen:
-            # Strip duplicates and sort alphabetically
-            node.inst._dyn_assigned_props = sorted(set(node.inst._dyn_assigned_props))
-            node.inst._dyn_assigned_children = sorted(set(node.inst._dyn_assigned_children))
+            # Further augment type name as per extended type generation from DPAs
+            if self.env.use_extended_type_name_gen:
+                # Strip duplicates and sort alphabetically
+                node.inst._dyn_assigned_props = sorted(set(node.inst._dyn_assigned_props))
+                node.inst._dyn_assigned_children = sorted(set(node.inst._dyn_assigned_children))
 
-            # assignments made 'through' the component
-            for child_name in node.inst._dyn_assigned_children:
-                child = node.inst.get_child_by_name(child_name)
-                assert child is not None
+                # assignments made 'through' the component
+                for child_name in node.inst._dyn_assigned_children:
+                    child = node.inst.get_child_by_name(child_name)
+                    assert child is not None
 
-                # <child_name>_<hash of child type name>
-                assert child.type_name is not None
-                norm_name = hashlib.md5(child.type_name.encode('utf-8')).hexdigest()[:8]
-                extra_type_name_segments.append(child_name + "_" + norm_name)
+                    # <child_name>_<hash of child type name>
+                    if child.type_name is not None:
+                        norm_name = hashlib.md5(child.type_name.encode('utf-8')).hexdigest()[:8]
+                    else:
+                        # an external importer did not assign a type name.
+                        # Use the inst name instead
+                        norm_name = hashlib.md5(child.inst_name.encode('utf-8')).hexdigest()[:8]
+                    extra_type_name_segments.append(child_name + "_" + norm_name)
 
-            # this component's DPAs
-            for prop_name in node.inst._dyn_assigned_props:
-                # <prop_name>_<norm prop value>
-                norm_name = normalize(node.get_property(prop_name), owner_node=node)
-                extra_type_name_segments.append(prop_name + "_" + norm_name)
+                # this component's DPAs
+                for prop_name in node.inst._dyn_assigned_props:
+                    # <prop_name>_<norm prop value>
+                    norm_name = normalize(node.get_property(prop_name), owner_node=node)
+                    extra_type_name_segments.append(prop_name + "_" + norm_name)
 
-        if extra_type_name_segments:
-            assert node.inst.type_name is not None
-            node.inst.type_name += "_" + "_".join(extra_type_name_segments)
+            if extra_type_name_segments:
+                node.inst.type_name += "_" + "_".join(extra_type_name_segments)
