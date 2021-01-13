@@ -935,6 +935,13 @@ class Prop_singlepulse(PropertyRule):
                     node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
 
+            if not node.is_sw_writable:
+                self.env.msg.error(
+                    "Field '%s' marked as 'singlepulse' shall be writable by software"
+                    % (node.inst_name),
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+
             # singlepulse does not make sense alongside any onwrite properties
             # that conflict with singlepulse semantics
             onwrite = node.get_property('onwrite')
