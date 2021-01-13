@@ -586,6 +586,9 @@ class Prop_resetsignal(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = None
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        self._validate_ref_width_is_1(node, "resetsignal", value)
+
 #-------------------------------------------------------------------------------
 # Software access properties
 #-------------------------------------------------------------------------------
@@ -1101,6 +1104,10 @@ class Prop_threshold(PropertyRule):
         super().assign_value(comp_def, value, src_ref)
         comp_def.properties['incrthreshold'] = comp_def.properties['threshold']
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        self._validate_ref_width(node, "threshold", value)
+
 class Prop_saturate(PropertyRule):
     """
     alias of incrsaturate.
@@ -1118,6 +1125,10 @@ class Prop_saturate(PropertyRule):
         super().assign_value(comp_def, value, src_ref)
         comp_def.properties['incrsaturate'] = comp_def.properties['saturate']
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        self._validate_ref_width(node, "saturate", value)
+
 class Prop_incrthreshold(PropertyRule):
     bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field,)
@@ -1132,6 +1143,10 @@ class Prop_incrthreshold(PropertyRule):
         super().assign_value(comp_def, value, src_ref)
         comp_def.properties['threshold'] = comp_def.properties['incrthreshold']
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        self._validate_ref_width(node, "incrthreshold", value)
+
 class Prop_incrsaturate(PropertyRule):
     bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field,)
@@ -1145,6 +1160,10 @@ class Prop_incrsaturate(PropertyRule):
         """
         super().assign_value(comp_def, value, src_ref)
         comp_def.properties['saturate'] = comp_def.properties['incrsaturate']
+
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        self._validate_ref_width(node, "incrsaturate", value)
 
 class Prop_overflow(PropertyRule):
     bindable_to = {comp.Field}
@@ -1209,12 +1228,20 @@ class Prop_decrsaturate(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = None
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        self._validate_ref_width(node, "decrsaturate", value)
+
 class Prop_decrthreshold(PropertyRule):
     bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
+
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        self._validate_ref_width(node, "decrthreshold", value)
 
 #-------------------------------------------------------------------------------
 # Field access interrupt properties
