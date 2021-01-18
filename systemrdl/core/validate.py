@@ -256,8 +256,9 @@ class ValidateListener(walker.RDLListener):
                 node.inst.inst_src_ref
             )
 
-        # Optional warning if a field that implements storage has no reset defined
+        # Optional warning if a field is missing a reset assignment
         if node.env.chk_missing_reset:
+            # Implements storage but was never assigned a reset
             if node.implements_storage and (node.get_property("reset") is None):
                 node.env.msg.message(
                     node.env.chk_missing_reset,
@@ -265,6 +266,21 @@ class ValidateListener(walker.RDLListener):
                     % node.inst_name,
                     node.inst.inst_src_ref
                 )
+
+            # Field is a static tie-off (no storage element, no hardware update path),
+            # but the user never specified its value, so its readback value is
+            # ambiguous.
+            if (
+                not node.implements_storage and node.is_sw_readable and (node.get_property("reset") is None)
+                and (node.get_property('hw') in {rdltypes.AccessType.na, rdltypes.AccessType.r})
+            ):
+                node.env.msg.message(
+                    node.env.chk_missing_reset,
+                    "Field '%s' is a constant at runtime but does not have a known value. Recommend assigning it a reset value."
+                    % node.inst_name,
+                    node.inst.inst_src_ref
+                )
+
 
         # 11.2-e: ... and all the virtual fields shall fit within the memory width.
         if node.is_virtual:
