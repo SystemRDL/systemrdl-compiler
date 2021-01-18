@@ -391,10 +391,16 @@ class ExprVisitor(BaseVisitor):
         prop_ref_type = self.compiler.env.property_rules.lookup_prop_ref_type(prop_name)
 
         if prop_ref_type is None:
-            self.msg.fatal(
-                "'%s' is not a known property" % prop_name,
-                src_ref_from_antlr(prop_token)
-            )
+            if self.compiler.env.property_rules.lookup_property(prop_name):
+                self.msg.fatal(
+                    "'%s' can not be referenced in the righthand side of an assignment expression" % prop_name,
+                    src_ref_from_antlr(prop_token)
+                )
+            else:
+                self.msg.fatal(
+                    "'%s' is not a known property" % prop_name,
+                    src_ref_from_antlr(prop_token)
+                )
 
         propref_expr = e.PropRef(
             self.compiler.env,
@@ -403,10 +409,6 @@ class ExprVisitor(BaseVisitor):
             prop_ref_type
         )
 
-        #self.msg.fatal(
-        #    "Property references in expressions are not supported.",
-        #    src_ref_from_antlr(prop_token)
-        #)
         return propref_expr
 
     def visitArray_suffix(self, ctx: SystemRDLParser.Array_suffixContext):
