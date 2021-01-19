@@ -423,13 +423,10 @@ A Verilog code generator may output something similar to this:
 
     logic my_anded_field;
     always_ff @(posedge clk) begin
-        if(rst) begin
+        if(my_anded_field_swwe) begin
+            my_anded_field <= cpuif_bus[0];
         end else begin
-            if(my_anded_field_swwe) begin
-                my_anded_field <= cpuif_bus[0];
-            end else begin
-                my_anded_field <= &(my_field);
-            end
+            my_anded_field <= &(my_field);
         end
     end
 
