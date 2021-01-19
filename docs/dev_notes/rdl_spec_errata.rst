@@ -368,3 +368,70 @@ of that signal/field determines whether the current field is writable by softwar
 
 If either property is set to a boolean ``true``, then an input signal is inferred,
 which controls software's ability to write the field.
+
+
+Property "Ref Targets"
+^^^^^^^^^^^^^^^^^^^^^^
+
+In Annex G, the specification vaguely suggests that some properties can be
+referenced in the righthand side of assignment expressions. Only through
+detailed reading of examples and some property semantics is it possible to infer
+how these work.
+
+Let's take the ``anded`` property as an example. If assigned ``true`` using a
+normal property assignment, a hardware output signal will be generated. This
+signal will be assigned the AND-reduction of that field's value.
+
+.. code-block:: systemrdl
+
+    field {
+        anded = true;
+    } my_field[7:0];
+
+A Verilog code generator may output something similar to this:
+
+.. code-block:: verilog
+
+    output wire my_field__anded;
+
+    logic [7:0] my_field;
+    // (field logic not shown)
+    assign my_field__anded = &(my_field);
+
+
+If the ``anded`` property is referenced in the righthand side of an assignment
+expression (aka a "ref target"), then the assigned property receives the
+AND-reduction of the field's value at *runtime*.
+
+.. code-block:: systemrdl
+
+    field {
+        sw=rw; hw=r;
+    } my_field[7:0];
+
+    field {
+        sw=rw; hw=r;
+    } my_anded_field;
+    my_anded_field->next = my_field->anded;
+
+A Verilog code generator may output something similar to this:
+
+.. code-block:: verilog
+
+    logic [7:0] my_field;
+    // (field logic not shown)
+
+    logic my_anded_field;
+    always_ff @(posedge clk) begin
+        if(rst) begin
+        end else begin
+            if(my_anded_field_swwe) begin
+                my_anded_field <= cpuif_bus[0];
+            end else begin
+                my_anded_field <= &(my_field);
+            end
+        end
+    end
+
+The spec really ought to have a brief section explaining this in more explicit
+detail.
