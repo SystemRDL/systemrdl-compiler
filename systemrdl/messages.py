@@ -89,7 +89,7 @@ class MessagePrinter:
         if isinstance(src_ref, DetailedFileSourceRef):
             # Detailed message selection context is available
             lines.append(
-                Fore.WHITE + Style.BRIGHT
+                Style.BRIGHT
                 + "%s:%d:%d: " % (src_ref.path, src_ref.line, src_ref.line_selection[0]+1)
                 + color + severity.name.lower() + ": "
                 + Style.RESET_ALL
@@ -99,7 +99,7 @@ class MessagePrinter:
         elif isinstance(src_ref, FileSourceRef):
             # Only the file path is known
             lines.append(
-                Fore.WHITE + Style.BRIGHT
+                Style.BRIGHT
                 + "%s: " % src_ref.path
                 + color + severity.name.lower() + ": "
                 + Style.RESET_ALL
