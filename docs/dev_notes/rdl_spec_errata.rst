@@ -351,6 +351,31 @@ should affect a component's generated type name.
 
 See :ref:`dpa_type_generation` notes for more details.
 
+Precedence of ``hwclr`` and ``hwset`` at runtime
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``hwclr`` and ``hwset`` properties provide a mechanism to clear or set a
+field at runtime using a user signal. Nothing prevents the user from enabling
+both of these control signals, however their runtime precedence is ambiguous.
+
+Consider the following:
+
+.. code-block:: systemrdl
+    signal {} set_me;
+    signal {} clear_me;
+
+    field {
+        hwset = set_me;
+        hwclr = clear_me;
+    } my_field;
+
+If at runtime, a design simultaneously asserts the ``set_me`` and ``clear_me``
+signals, is the next value of ``my_field`` 1 or 0? Table 17 does not specify the
+assignment priority.
+
+**Resolution:**
+It is out of scope for the compiler to suggest either has preference. Instead,
+any RTL generators should clearly state the precedence used.
+
 --------------------------------------------------------------------------------
 
 Clarifications

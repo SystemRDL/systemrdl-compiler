@@ -1,11 +1,11 @@
 [![Documentation Status](https://readthedocs.org/projects/systemrdl-compiler/badge/?version=latest)](http://systemrdl-compiler.readthedocs.io)
-![.github/workflows/build.yml](https://github.com/SystemRDL/systemrdl-compiler/workflows/.github/workflows/build.yml/badge.svg)
+[![build](https://github.com/SystemRDL/systemrdl-compiler/workflows/.github/workflows/build/badge.svg)](https://github.com/SystemRDL/systemrdl-compiler/actions?query=workflow%3Abuild+branch%3Amaster)
 [![Coverage Status](https://coveralls.io/repos/github/SystemRDL/systemrdl-compiler/badge.svg?branch=master)](https://coveralls.io/github/SystemRDL/systemrdl-compiler?branch=master)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/systemrdl-compiler.svg)](https://pypi.org/project/systemrdl-compiler)
 
 # SystemRDL Compiler
 
-The `systemrdl-compiler` module implements a generic compiler front-end for
+The `systemrdl-compiler` project implements a generic compiler front-end for
 Accellera's [SystemRDL 2.0](http://accellera.org/downloads/standards/systemrdl)
 register description language. The goal of this project is to provide a free and
 open compiler that lowers the barrier to entry to using an industry standard
