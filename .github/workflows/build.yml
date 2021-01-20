@@ -54,6 +54,7 @@ jobs:
           coveralls --service=github
 
   finish_coveralls:
+    runs-on: ubuntu-latest
     steps:
       - name: Coveralls
         env:
