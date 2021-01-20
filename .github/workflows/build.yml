@@ -57,10 +57,12 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Coveralls
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.x
+
+      - name: Coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
