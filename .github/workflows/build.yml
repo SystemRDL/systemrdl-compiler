@@ -5,6 +5,9 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  release:
+    types:
+      - published
 
 jobs:
   test:
@@ -185,7 +188,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # Only publish when a GitHub Release is created.
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release'
     steps:
       - uses: actions/download-artifact@v2
         with:
