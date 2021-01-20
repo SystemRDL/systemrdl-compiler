@@ -60,7 +60,7 @@ jobs:
       - name: Coveralls
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.x
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
