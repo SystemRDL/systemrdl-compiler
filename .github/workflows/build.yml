@@ -53,6 +53,16 @@ jobs:
           cd test
           coveralls --service=github
 
+  finish_coveralls:
+    steps:
+      - name: Coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: true
+        run: |
+          python -m pip install -U coveralls>=3.0.0
+          coveralls --service=github --finish
+
 #-------------------------------------------------------------------------------
   lint:
     runs-on: ubuntu-latest
