@@ -58,6 +58,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Coveralls
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
