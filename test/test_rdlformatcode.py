@@ -4,7 +4,7 @@ class TestRDLFormatCode(RDLSourceTestCase):
 
     def test_desc_tags(self):
         root = self.compile(
-            ["rdl_testcases/rdlformatcode.rdl"],
+            ["rdl_src/rdlformatcode.rdl"],
             "rdlformatcode"
         )
 
@@ -52,7 +52,7 @@ class TestRDLFormatCode(RDLSourceTestCase):
 
     def test_name_tags(self):
         root = self.compile(
-            ["rdl_testcases/rdlformatcode.rdl"],
+            ["rdl_src/rdlformatcode.rdl"],
             "rdlformatcode"
         )
 

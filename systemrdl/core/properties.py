@@ -995,7 +995,7 @@ class Prop_wel(PropertyRule):
         assert isinstance(node, m_node.FieldNode)
         if value and (node.get_property('hw') not in (rdltypes.AccessType.rw, rdltypes.AccessType.w)):
             self.env.msg.error(
-                "Property 'we' is 'true' on field '%s', but the field is not writable by hardware"
+                "Property 'wel' is 'true' on field '%s', but the field is not writable by hardware"
                 % (node.inst_name),
                 node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )

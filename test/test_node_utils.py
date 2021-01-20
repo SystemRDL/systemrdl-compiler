@@ -4,7 +4,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_index_tools(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "hier"
         )
 
@@ -26,7 +26,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_rel_path(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "hier"
         )
         with self.subTest("descendant"):
@@ -74,7 +74,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_address_tools(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "hier"
         )
 
@@ -97,7 +97,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_class_utils(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "hier"
         )
 
@@ -116,7 +116,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_iterators(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "hier"
         )
 
@@ -173,7 +173,7 @@ class TestNodeUtils(RDLSourceTestCase):
             )
 
     def test_list_properties(self):
-        top = self.compile(["rdl_testcases/udp_15.2.2_ex1.rdl"], None)
+        top = self.compile(["rdl_src/udp_15.2.2_ex1.rdl"], None)
 
         with self.subTest("udps"):
             n = top.find_by_path("foo.bar.field2")
@@ -265,7 +265,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_names(self):
         top = self.compile(
-            ["rdl_testcases/parameters.rdl"],
+            ["rdl_src/parameters.rdl"],
             "nested"
         )
         r1 = top.find_by_path("nested.r1_inst")
@@ -292,7 +292,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_owning_addrmap(self):
         top = self.compile(
-            ["rdl_testcases/references_default_lhs.rdl"],
+            ["rdl_src/references_default_lhs.rdl"],
             "top"
         )
         top_addrmap = top.find_by_path("top")
@@ -304,7 +304,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_find_by_path_via_parent(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "hier"
         )
 
@@ -318,7 +318,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_typed_iterators(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "hier"
         )
 
@@ -353,7 +353,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_field_prop_helpers(self):
         root = self.compile(
-            ["rdl_testcases/field_access_types.rdl"],
+            ["rdl_src/field_access_types.rdl"],
             "top"
         )
 

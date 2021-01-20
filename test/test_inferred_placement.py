@@ -8,7 +8,7 @@ class TestFieldPlacement(RDLSourceTestCase):
 
     def test_example_10_7_2_lsb(self):
         top = self.compile(
-            ["rdl_testcases/field_packing.rdl"],
+            ["rdl_src/field_packing.rdl"],
             "example_10_7_2_lsb"
         )
 
@@ -43,7 +43,7 @@ class TestFieldPlacement(RDLSourceTestCase):
 
     def test_example_10_7_2_msb(self):
         top = self.compile(
-            ["rdl_testcases/field_packing.rdl"],
+            ["rdl_src/field_packing.rdl"],
             "example_10_7_2_msb"
         )
 
@@ -78,7 +78,7 @@ class TestFieldPlacement(RDLSourceTestCase):
 
     def test_lsb_packing_32bit(self):
         top = self.compile(
-            ["rdl_testcases/field_packing.rdl"],
+            ["rdl_src/field_packing.rdl"],
             "lsb_packing"
         )
 
@@ -112,7 +112,7 @@ class TestFieldPlacement(RDLSourceTestCase):
 
     def test_lsb_packing_16bit(self):
         top = self.compile(
-            ["rdl_testcases/field_packing.rdl"],
+            ["rdl_src/field_packing.rdl"],
             "lsb_packing"
         )
 
@@ -146,7 +146,7 @@ class TestFieldPlacement(RDLSourceTestCase):
 
     def test_msb_packing_32bit(self):
         top = self.compile(
-            ["rdl_testcases/field_packing.rdl"],
+            ["rdl_src/field_packing.rdl"],
             "msb_packing"
         )
 
@@ -180,7 +180,7 @@ class TestFieldPlacement(RDLSourceTestCase):
 
     def test_msb_packing_16bit(self):
         top = self.compile(
-            ["rdl_testcases/field_packing.rdl"],
+            ["rdl_src/field_packing.rdl"],
             "msb_packing"
         )
 
@@ -219,7 +219,7 @@ class TestAddressingModes(RDLSourceTestCase):
 
     def test_example_5_1_2_2_2_ex1(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "example_5_1_2_2_2_ex1"
         )
 
@@ -250,7 +250,7 @@ class TestAddressingModes(RDLSourceTestCase):
 
     def test_example_5_1_2_2_2_ex2(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "example_5_1_2_2_2_ex2"
         )
 
@@ -281,7 +281,7 @@ class TestAddressingModes(RDLSourceTestCase):
 
     def test_example_5_1_2_2_2_ex3(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "example_5_1_2_2_2_ex3"
         )
 
@@ -312,7 +312,7 @@ class TestAddressingModes(RDLSourceTestCase):
 
     def test_example_5_1_2_2_2_ex4(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "example_5_1_2_2_2_ex4"
         )
 
@@ -346,7 +346,7 @@ class TestAddressAllocators(RDLSourceTestCase):
 
     def test_example_5_1_2_5_ex1(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "example_5_1_2_5_ex1"
         )
 
@@ -376,7 +376,7 @@ class TestAddressAllocators(RDLSourceTestCase):
 
     def test_example_5_1_2_5_ex2(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "example_5_1_2_5_ex2"
         )
 
@@ -408,7 +408,7 @@ class TestAddressAllocators(RDLSourceTestCase):
 
     def test_example_5_1_2_5_ex3(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "example_5_1_2_5_ex3"
         )
 
@@ -449,7 +449,7 @@ class TestHierarchicalAddressing(RDLSourceTestCase):
 
     def test_hier(self):
         top = self.compile(
-            ["rdl_testcases/address_packing.rdl"],
+            ["rdl_src/address_packing.rdl"],
             "hier"
         )
 

@@ -1,0 +1,23 @@
+
+addrmap top {
+    reg {
+        field {
+            singlepulse;
+        } good1 = 0;
+
+        field {
+            singlepulse=false;
+        } good2 = 0;
+
+        field {
+            singlepulse;
+            sw=r;
+        } bad1[8] = 3;
+
+        field {
+            singlepulse;
+            sw=rw;
+            onwrite=wclr;
+        } bad2 = 0;
+    } r1;
+};

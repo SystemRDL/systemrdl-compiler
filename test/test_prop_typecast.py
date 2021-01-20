@@ -6,7 +6,7 @@ class TestIntr(RDLSourceTestCase):
 
     def test_intr(self):
         top = self.compile(
-            ["rdl_testcases/property_typecast.rdl"],
+            ["rdl_src/property_typecast.rdl"],
             "enum_cast"
         )
 

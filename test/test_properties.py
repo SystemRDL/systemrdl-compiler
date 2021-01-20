@@ -5,7 +5,7 @@ class TestProperties(RDLSourceTestCase):
 
     def test_donttest(self):
         root = self.compile(
-            ["rdl_testcases/properties.rdl"],
+            ["rdl_src/properties.rdl"],
             "donttest_top"
         )
 
@@ -19,7 +19,7 @@ class TestProperties(RDLSourceTestCase):
 
     def test_dontcompare(self):
         root = self.compile(
-            ["rdl_testcases/properties.rdl"],
+            ["rdl_src/properties.rdl"],
             "dontcompare_top"
         )
 

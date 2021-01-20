@@ -5,7 +5,7 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_dpa_name_generation(self):
         top = self.compile(
-            ["rdl_testcases/dpa_names.rdl"],
+            ["rdl_src/dpa_names.rdl"],
             "dpa_overrides"
         )
 

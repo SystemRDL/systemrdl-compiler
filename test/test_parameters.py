@@ -7,7 +7,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_spec_examples(self):
         root = self.compile(
-            ["rdl_testcases/parameters.rdl"],
+            ["rdl_src/parameters.rdl"],
             "myAmap"
         )
 
@@ -61,7 +61,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_more(self):
         root = self.compile(
-            ["rdl_testcases/parameters.rdl"],
+            ["rdl_src/parameters.rdl"],
             "amap2"
         )
 
@@ -93,7 +93,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_nested(self):
         root = self.compile(
-            ["rdl_testcases/parameters.rdl"],
+            ["rdl_src/parameters.rdl"],
             "nested"
         )
         f1 = root.find_by_path("nested.rf_inst.r_inst1.f")
@@ -112,7 +112,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_elab_defaults(self):
         root = self.compile(
-            ["rdl_testcases/parameters.rdl"],
+            ["rdl_src/parameters.rdl"],
             "elab_params",
             parameters={}
         )
@@ -131,7 +131,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_elab_override(self):
         root = self.compile(
-            ["rdl_testcases/parameters.rdl"],
+            ["rdl_src/parameters.rdl"],
             "elab_params",
             parameters={
                 "STR":"python!",
@@ -156,7 +156,7 @@ class TestParameters(RDLSourceTestCase):
     def test_elab_override_via_eval(self):
         rdlc = RDLCompiler()
         root = self.compile(
-            ["rdl_testcases/parameters.rdl"],
+            ["rdl_src/parameters.rdl"],
             "elab_params",
             parameters={
                 "STR": rdlc.eval('"python!"'),
@@ -180,7 +180,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_param_scope(self):
         root = self.compile(
-            ["rdl_testcases/parameters.rdl"],
+            ["rdl_src/parameters.rdl"],
             "param_scope"
         )
         ffX = root.find_by_path("param_scope.rfX.rf3.rf2.rr.ff")

@@ -1,0 +1,23 @@
+addrmap top {
+    reg {
+        field {
+            sw=rw; hw=w;
+            we;
+        } good1 = 0;
+
+        field {
+            sw=rw; hw=w;
+            wel;
+        } good2 = 0;
+
+        field {
+            sw=r; hw=na;
+            we;
+        } bad1 = 0;
+
+        field {
+            sw=r; hw=na;
+            wel;
+        } bad2 = 0;
+    } r1;
+};

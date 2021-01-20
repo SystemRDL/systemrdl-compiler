@@ -5,8 +5,8 @@ from parameterized import parameterized_class
 from unittest_utils import RDLSourceTestCase
 
 @parameterized_class([
-   { "src": "rdl_testcases/preprocessor.rdl"},
-   { "src": "rdl_testcases/preprocessor_CRLF.rdl"},
+   { "src": "rdl_src/preprocessor.rdl"},
+   { "src": "rdl_src/preprocessor_CRLF.rdl"},
 ])
 class TestPreprocessor(RDLSourceTestCase):
 

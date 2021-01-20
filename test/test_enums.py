@@ -5,7 +5,7 @@ class TestEnums(RDLSourceTestCase):
 
     def test_enums(self):
         root = self.compile(
-            ["rdl_testcases/enums.rdl"],
+            ["rdl_src/enums.rdl"],
             "enum_test1"
         )
 

@@ -5,7 +5,7 @@ class TestExternal(RDLSourceTestCase):
 
     def test_basic(self):
         root = self.compile(
-            ["rdl_testcases/internal_external.rdl"],
+            ["rdl_src/internal_external.rdl"],
             "extern_test"
         )
 
@@ -36,7 +36,7 @@ class TestExternal(RDLSourceTestCase):
 
     def test_regfile(self):
         root = self.compile(
-            ["rdl_testcases/internal_external.rdl"],
+            ["rdl_src/internal_external.rdl"],
             "extern_test"
         )
 
@@ -62,7 +62,7 @@ class TestExternal(RDLSourceTestCase):
 
     def test_nested_regfile(self):
         root = self.compile(
-            ["rdl_testcases/internal_external.rdl"],
+            ["rdl_src/internal_external.rdl"],
             "extern_test"
         )
 

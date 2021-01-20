@@ -6,7 +6,7 @@ class TestStructs(RDLSourceTestCase):
 
     def test_structs(self):
         root = self.compile(
-            ["rdl_testcases/structs.rdl"],
+            ["rdl_src/structs.rdl"],
             "struct_test"
         )
 
@@ -75,7 +75,7 @@ class TestStructs(RDLSourceTestCase):
 
     def test_struct_compositions(self):
         root = self.compile(
-            ["rdl_testcases/struct_compositions.rdl"],
+            ["rdl_src/struct_compositions.rdl"],
             "top"
         )
 

@@ -6,7 +6,7 @@ class TestUDP(RDLSourceTestCase):
 
     def test_15_2_2_ex1(self):
         root = self.compile(
-            ["rdl_testcases/udp_15.2.2_ex1.rdl"],
+            ["rdl_src/udp_15.2.2_ex1.rdl"],
             "foo"
         )
 
@@ -35,7 +35,7 @@ class TestUDP(RDLSourceTestCase):
 
     def test_15_2_2_ex2(self):
         root = self.compile(
-            ["rdl_testcases/udp_15.2.2_ex2.rdl"],
+            ["rdl_src/udp_15.2.2_ex2.rdl"],
             "top"
         )
 
@@ -47,7 +47,7 @@ class TestUDP(RDLSourceTestCase):
         this_dir = os.path.dirname(os.path.realpath(__file__))
         rdlc = RDLCompiler()
         rdlc.define_udp("int_udp", int, default=123)
-        rdlc.compile_file(os.path.join(this_dir, "rdl_testcases/udp_builtin.rdl"))
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_builtin.rdl"))
         root = rdlc.elaborate("top")
 
         top    = root.find_by_path("top")
@@ -63,7 +63,7 @@ class TestUDP(RDLSourceTestCase):
         this_dir = os.path.dirname(os.path.realpath(__file__))
         rdlc = RDLCompiler()
         rdlc.define_udp("int_udp", int, default=123)
-        rdlc.compile_file(os.path.join(this_dir, "rdl_testcases/udp_15.2.2_ex1.rdl"))
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_15.2.2_ex1.rdl"))
         rdlc.elaborate("foo")
 
         self.assertEqual(

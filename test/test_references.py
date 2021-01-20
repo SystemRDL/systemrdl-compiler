@@ -5,7 +5,7 @@ class TestReferences(RDLSourceTestCase):
 
     def test_bad_traversal(self):
         root = self.compile(
-            ["rdl_testcases/references_direct_lhs.rdl"],
+            ["rdl_src/references_direct_lhs.rdl"],
             "top"
         )
 
@@ -26,7 +26,7 @@ class TestReferences(RDLSourceTestCase):
 
     def test_traversal(self):
         root = self.compile(
-            ["rdl_testcases/references_direct_lhs.rdl"],
+            ["rdl_src/references_direct_lhs.rdl"],
             "top"
         )
 
@@ -39,7 +39,7 @@ class TestReferences(RDLSourceTestCase):
 
     def test_direct_lhs_refs(self):
         root = self.compile(
-            ["rdl_testcases/references_direct_lhs.rdl"],
+            ["rdl_src/references_direct_lhs.rdl"],
             "top"
         )
 
@@ -126,7 +126,7 @@ class TestReferences(RDLSourceTestCase):
 
     def test_dynamic_lhs_refs(self):
         root = self.compile(
-            ["rdl_testcases/references_dynamic_lhs.rdl"],
+            ["rdl_src/references_dynamic_lhs.rdl"],
             "top"
         )
 
@@ -222,7 +222,7 @@ class TestReferences(RDLSourceTestCase):
 
     def test_default_lhs_refs(self):
         root = self.compile(
-            ["rdl_testcases/references_default_lhs.rdl"],
+            ["rdl_src/references_default_lhs.rdl"],
             "top"
         )
 
@@ -324,7 +324,7 @@ class TestReferences(RDLSourceTestCase):
 
     def test_signal_dpa(self):
         root = self.compile(
-            ["rdl_testcases/signal_scope.rdl"],
+            ["rdl_src/signal_scope.rdl"],
             "top"
         )
 

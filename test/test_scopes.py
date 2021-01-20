@@ -5,7 +5,7 @@ class TestScopes(RDLSourceTestCase):
 
     def test_scopes(self):
         root = self.compile(
-            ["rdl_testcases/scopes.rdl"],
+            ["rdl_src/scopes.rdl"],
             "scope_test"
         )
 
@@ -52,7 +52,7 @@ class TestScopes(RDLSourceTestCase):
 
     def test_struct_scopes(self):
         root = self.compile(
-            ["rdl_testcases/structs.rdl"],
+            ["rdl_src/structs.rdl"],
             "struct_test"
         )
 

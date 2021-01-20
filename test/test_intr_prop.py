@@ -6,7 +6,7 @@ class TestIntr(RDLSourceTestCase):
 
     def test_intr_prop_mod(self):
         top = self.compile(
-            ["rdl_testcases/intr_prop_mod.rdl"],
+            ["rdl_src/intr_prop_mod.rdl"],
             "intr_prop_mod_test"
         )
 
@@ -41,7 +41,7 @@ class TestIntr(RDLSourceTestCase):
 
     def test_intr_example(self):
         top = self.compile(
-            ["rdl_testcases/intr_prop.rdl"],
+            ["rdl_src/intr_prop.rdl"],
             "int_map_m"
         )
 
