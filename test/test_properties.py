@@ -9,13 +9,15 @@ class TestProperties(RDLSourceTestCase):
             "donttest_top"
         )
 
-        self.assertTrue(root.find_by_path("donttest_top.r1.f1").get_property('donttest'))
-        self.assertTrue(root.find_by_path("donttest_top.r1.f2").get_property('donttest'))
-        self.assertFalse(root.find_by_path("donttest_top.r1.f3").get_property('donttest'))
-        self.assertFalse(root.find_by_path("donttest_top.r2").get_property('donttest'))
-        self.assertTrue(root.find_by_path("donttest_top.r3").get_property('donttest'))
-        self.assertTrue(root.find_by_path("donttest_top.r4").get_property('donttest'))
-        self.assertFalse(root.find_by_path("donttest_top.r5").get_property('donttest'))
+        self.assertIs(root.find_by_path("donttest_top.r1.f1").get_property('donttest'), 1)
+        self.assertIs(root.find_by_path("donttest_top.r1.f2").get_property('donttest'), True)
+        self.assertIs(root.find_by_path("donttest_top.r1.f3").get_property('donttest'), False)
+        self.assertIs(root.find_by_path("donttest_top.r1.f4").get_property('donttest'), 1)
+        self.assertIs(root.find_by_path("donttest_top.r1.f5").get_property('donttest'), True)
+        self.assertIs(root.find_by_path("donttest_top.r2").get_property('donttest'), False)
+        self.assertIs(root.find_by_path("donttest_top.r3").get_property('donttest'), True)
+        self.assertIs(root.find_by_path("donttest_top.r4").get_property('donttest'), True)
+        self.assertIs(root.find_by_path("donttest_top.r5").get_property('donttest'), False)
 
     def test_dontcompare(self):
         root = self.compile(
@@ -23,10 +25,12 @@ class TestProperties(RDLSourceTestCase):
             "dontcompare_top"
         )
 
-        self.assertTrue(root.find_by_path("dontcompare_top.r1.f1").get_property('dontcompare'))
-        self.assertTrue(root.find_by_path("dontcompare_top.r1.f2").get_property('dontcompare'))
-        self.assertFalse(root.find_by_path("dontcompare_top.r1.f3").get_property('dontcompare'))
-        self.assertFalse(root.find_by_path("dontcompare_top.r2").get_property('dontcompare'))
-        self.assertTrue(root.find_by_path("dontcompare_top.r3").get_property('dontcompare'))
-        self.assertTrue(root.find_by_path("dontcompare_top.r4").get_property('dontcompare'))
-        self.assertFalse(root.find_by_path("dontcompare_top.r5").get_property('dontcompare'))
+        self.assertIs(root.find_by_path("dontcompare_top.r1.f1").get_property('dontcompare'), 1)
+        self.assertIs(root.find_by_path("dontcompare_top.r1.f2").get_property('dontcompare'), True)
+        self.assertIs(root.find_by_path("dontcompare_top.r1.f3").get_property('dontcompare'), False)
+        self.assertIs(root.find_by_path("dontcompare_top.r1.f4").get_property('dontcompare'), 1)
+        self.assertIs(root.find_by_path("dontcompare_top.r1.f5").get_property('dontcompare'), True)
+        self.assertIs(root.find_by_path("dontcompare_top.r2").get_property('dontcompare'), False)
+        self.assertIs(root.find_by_path("dontcompare_top.r3").get_property('dontcompare'), True)
+        self.assertIs(root.find_by_path("dontcompare_top.r4").get_property('dontcompare'), True)
+        self.assertIs(root.find_by_path("dontcompare_top.r5").get_property('dontcompare'), False)

@@ -10,6 +10,12 @@ addrmap donttest_top {
         field {
             donttest = false;
         } f3;
+        field {
+            donttest = 1;
+        } f4[4];
+        field {
+            donttest = true;
+        } f5[4];
     };
 
     reg_t r1;
@@ -35,6 +41,12 @@ addrmap dontcompare_top {
         field {
             dontcompare = false;
         } f3;
+        field {
+            dontcompare = 1;
+        } f4[4];
+        field {
+            dontcompare = true;
+        } f5[4];
     };
 
     reg_t r1;

@@ -34,8 +34,8 @@ class TestIntLiterals(RDLSourceTestCase):
         self.assertEqual((int, 987654), self.eval_RDL_expr("(987_654)"))
 
     def test_bool(self):
-        self.assertEqual((int, 1), self.eval_RDL_expr("(true)"))
-        self.assertEqual((int, 0), self.eval_RDL_expr("(false)"))
+        self.assertEqual((bool, True), self.eval_RDL_expr("(true)"))
+        self.assertEqual((bool, False), self.eval_RDL_expr("(false)"))
 
 #===============================================================================
 class TestStrLiteral(RDLSourceTestCase):
@@ -73,7 +73,7 @@ class TestConcatenate(RDLSourceTestCase):
         self.assertEqual((int, 0xABCD), self.eval_RDL_expr("{8'hAB, 8'hCD}"))
         self.assertEqual((int, 0xAB0000000000000000), self.eval_RDL_expr("{8'hAB, 0}"))
         self.assertEqual((int, 0xFF), self.eval_RDL_expr("{1'b1, 7'h7F}"))
-        self.assertEqual((int, 0xFF), self.eval_RDL_expr("{true, 7'h7F}"))
+        self.assertEqual((int, 0xFF), self.eval_RDL_expr("{longint'(true), 7'h7F}"))
 
     def test_str(self):
         self.assertEqual((str, ''), self.eval_RDL_expr('{""}'))
@@ -120,8 +120,15 @@ class TestConcatenate(RDLSourceTestCase):
         with self.subTest('width_cast'):
             self.assertEqual((int, 0xABC), self.eval_RDL_expr("{8'hAB, (4)'(16'hC)}"))
 
+        with self.subTest('int_cast'):
+            self.assertEqual((int, 0x10000000000000000), self.eval_RDL_expr("{longint'(true), longint'(false)}"))
+
+        with self.subTest('bit_cast'):
+            self.assertEqual((int, 0x2), self.eval_RDL_expr("{bit'(true), bit'(false)}"))
+
         with self.subTest('bool_cast'):
             self.assertEqual((int, 0x3), self.eval_RDL_expr("{boolean'(16'hC), boolean'(16'hC)}"))
+
 
 #===============================================================================
 class TestReplicate(RDLSourceTestCase):

@@ -81,19 +81,24 @@ class PropertyRule:
             # Value is already evaluated
             assign_type = type(value)
 
-        # Check if value's type is compatible
+        # First check if the value's type is already directly compatible
         for valid_type in self.valid_types:
-            if expressions.is_castable(assign_type, valid_type):
-                if isinstance(value, expressions.Expr):
-                    # Found a type-compatible match. (first match is best match)
-                    # Wrap the expression with an explicit assignment cast
-                    value = expressions.AssignmentCast(self.env, src_ref, value, valid_type)
+            if assign_type == valid_type:
                 break
         else:
-            self.env.msg.fatal(
-                "Incompatible assignment to property '%s'" % self.get_name(),
-                src_ref
-            )
+            # otherwise, cast to the first compatible type
+            for valid_type in self.valid_types:
+                if expressions.is_castable(assign_type, valid_type):
+                    if isinstance(value, expressions.Expr):
+                        # Found a type-compatible match. (first match is best match)
+                        # Wrap the expression with an explicit assignment cast
+                        value = expressions.AssignmentCast(self.env, src_ref, value, valid_type)
+                    break
+            else:
+                self.env.msg.fatal(
+                    "Incompatible assignment to property '%s'" % self.get_name(),
+                    src_ref
+                )
 
         # Store the property
         comp_def.properties[self.get_name()] = value
@@ -226,6 +231,16 @@ class Prop_dontcompare(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "O"
 
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
+        super().assign_value(comp_def, value, src_ref)
+
+        # int type only makes sense if assigned to a field (since it is a bitmask)
+        # If assigned to any other components, exclusively cast it to a boolean
+        if not isinstance(comp_def, comp.Field):
+            value = comp_def.properties[self.get_name()]
+            value = expressions.AssignmentCast(self.env, src_ref, value, bool)
+            comp_def.properties[self.get_name()] = value
+
     def validate(self, node: m_node.Node, value: Any) -> None:
         donttest = node.get_property("donttest")
 
@@ -297,6 +312,16 @@ class Prop_donttest(PropertyRule):
     default = False
     dyn_assign_allowed = True
     mutex_group = "O"
+
+    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
+        super().assign_value(comp_def, value, src_ref)
+
+        # int type only makes sense if assigned to a field (since it is a bitmask)
+        # If assigned to any other components, exclusively cast it to a boolean
+        if not isinstance(comp_def, comp.Field):
+            value = comp_def.properties[self.get_name()]
+            value = expressions.AssignmentCast(self.env, src_ref, value, bool)
+            comp_def.properties[self.get_name()] = value
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         if isinstance(node, m_node.FieldNode):

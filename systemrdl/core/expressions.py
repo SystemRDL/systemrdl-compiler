@@ -76,6 +76,21 @@ class Expr:
 #-------------------------------------------------------------------------------
 # Literals
 
+class BoolLiteral(Expr):
+    def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, val: bool):
+        super().__init__(env, src_ref)
+        self.val = val
+
+    def predict_type(self) -> Type[bool]:
+        return bool
+
+    def get_min_eval_width(self) -> int:
+        return 1
+
+    def get_value(self, eval_width: Optional[int]=None) -> bool:
+        return self.val
+
+
 class IntLiteral(Expr):
     def __init__(self, env: 'RDLEnvironment', src_ref: OSourceRef, val: int, width: int=64):
         super().__init__(env, src_ref)

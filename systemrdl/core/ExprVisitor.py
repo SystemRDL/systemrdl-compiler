@@ -130,9 +130,9 @@ class ExprVisitor(BaseVisitor):
     # Visit a parse tree produced by SystemRDLParser#boolean_literal.
     def visitBoolean_literal(self, ctx: SystemRDLParser.Boolean_literalContext):
         if ctx.val.type == SystemRDLParser.TRUE_kw:
-            return e.IntLiteral(self.compiler.env, src_ref_from_antlr(ctx.val), 1, 1)
+            return e.BoolLiteral(self.compiler.env, src_ref_from_antlr(ctx.val), True)
         else:
-            return e.IntLiteral(self.compiler.env, src_ref_from_antlr(ctx.val), 0, 1)
+            return e.BoolLiteral(self.compiler.env, src_ref_from_antlr(ctx.val), False)
 
     #---------------------------------------------------------------------------
     # Built-in RDL Enumeration literals
