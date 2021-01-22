@@ -22,5 +22,11 @@ class TestEnums(RDLSourceTestCase):
         self.assertEqual(f_four.get_property("reset"), 5)
         self.assertEqual(f_five.get_property("reset"), 6)
 
-        self.assertEqual(f_default.get_property("encode").five.rdl_name, "five's name")
+        self.assertEqual(f_default.get_property("encode").five.rdl_name, "five's [b]name[/b]")
         self.assertEqual(f_default.get_property("encode").five.rdl_desc, "this is five")
+
+        self.assertIsNone(f_default.get_property("encode").four.get_html_name())
+        self.assertIsNone(f_default.get_property("encode").four.get_html_desc())
+
+        self.assertEqual(f_default.get_property("encode").five.get_html_name(), "five's <b>name</b>")
+        self.assertEqual(f_default.get_property("encode").five.get_html_desc(), "<p>this is five</p>")

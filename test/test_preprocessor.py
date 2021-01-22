@@ -13,7 +13,8 @@ class TestPreprocessor(RDLSourceTestCase):
     def test_preprocessor(self):
         root = self.compile(
             [self.src],
-            "top"
+            "top",
+            incl_search_paths=["rdl_src/incdir"]
         )
 
         reg1 = root.find_by_path("top.reg1")
@@ -38,7 +39,8 @@ class TestPreprocessor(RDLSourceTestCase):
     def test_src_ref_translation(self):
         root = self.compile(
             [self.src],
-            "top"
+            "top",
+            incl_search_paths=["rdl_src/incdir"]
         )
 
         with self.subTest("top def"):

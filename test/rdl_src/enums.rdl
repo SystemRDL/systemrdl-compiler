@@ -6,7 +6,7 @@ addrmap enum_test1 {
         three = 3 {};
         four {};
         five {
-            name = "five's name";
+            name = "five's [b]name[/b]";
             desc = "this is five";
         };
     };

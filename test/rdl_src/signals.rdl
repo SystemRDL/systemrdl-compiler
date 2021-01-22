@@ -1,0 +1,9 @@
+addrmap top {
+    signal {
+        signalwidth = 8;
+    } s1;
+
+    reg {
+        field {} f1;
+    } r1;
+};

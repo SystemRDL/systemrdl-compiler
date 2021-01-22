@@ -276,22 +276,16 @@ class StructuralPlacementListener(walker.RDLListener):
         if node.inst.width is None:
             signalwidth = node.get_property('signalwidth')
 
-            if (node.inst.lsb is not None) and (node.inst.msb is not None):
-                width = abs(node.inst.msb - node.inst.lsb) + 1
-
-                node.inst.width = width
-            elif signalwidth is not None:
+            if signalwidth is not None:
                 node.inst.width = signalwidth
             else:
                 node.inst.width = 1
 
-        if (node.inst.lsb is None) or (node.inst.msb is None):
-            # Range instance style was not used. Deduce msb/lsb and high/low
-            # Assume [width-1:0] style
-            node.inst.lsb = 0
-            node.inst.msb = node.inst.width - 1
-            node.inst.low = 0
-            node.inst.high = node.inst.width - 1
+        # Signals do not allow lsb/msb notation. Fill in values
+        node.inst.lsb = 0
+        node.inst.msb = node.inst.width - 1
+        node.inst.low = 0
+        node.inst.high = node.inst.width - 1
 
         # Test field width again
         signalwidth = node.get_property('signalwidth')
