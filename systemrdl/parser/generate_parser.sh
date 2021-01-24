@@ -18,4 +18,4 @@ generate(
 EOF
 
 # Create stub file for mypy
-stubgen  SystemRDLParser.py -o .
+stubgen  SystemRDLParser.py -o ../../

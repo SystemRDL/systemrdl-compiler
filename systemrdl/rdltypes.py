@@ -278,7 +278,7 @@ class UserEnum(enum.Enum):
 
 
     def __int__(self) -> int:
-        return self.value
+        return self.value # type: ignore
 
     def __bool__(self) -> bool:
         return bool(self.value)

@@ -99,7 +99,7 @@ class ComponentVisitor(BaseVisitor):
         comp_def.parent_scope = self.component
 
         if ctx.component_insts() is not None:
-            if isinstance(self, RootVisitor) and isinstance(comp_def, comp.Addrmap): # type: ignore
+            if isinstance(self, RootVisitor) and isinstance(comp_def, comp.Addrmap):
                 self.msg.warning(
                     "Non-standard instantiation of an addrmap in root namespace will be ignored",
                     src_ref_from_antlr(ctx.component_insts().component_inst(0).ID())
