@@ -1096,8 +1096,6 @@ class Prop_hwclr(PropertyRule):
     def validate(self, node: m_node.Node, value: Any) -> None:
         self._validate_ref_width_is_1(node, "hwclr", value)
 
-    # FIXME: validate ref is 1-bit wide. other validation? (ok if not hw writable)
-
 class Prop_hwset(PropertyRule):
     bindable_to = {comp.Field}
     valid_types = (bool, comp.Signal, comp.Field)
@@ -1107,8 +1105,6 @@ class Prop_hwset(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         self._validate_ref_width_is_1(node, "hwset", value)
-
-    # FIXME: validate ref is 1-bit wide. other validation? (ok if not hw writable)
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwenable(PropertyRule):
