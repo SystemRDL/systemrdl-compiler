@@ -1088,25 +1088,27 @@ class Prop_fieldwidth(PropertyRule):
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwclr(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool,) # FIXME: Accept signals & fields
+    valid_types = (bool, comp.Signal, comp.Field)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        self._validate_ref_width_is_1(node, "hwclr", value)
+
     # FIXME: validate ref is 1-bit wide. other validation? (ok if not hw writable)
-    # needs to implement storage
-    # Fix implements_storage / is_volatile implementation to allow refs
 
 class Prop_hwset(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool,) # FIXME: Accept signals & fields
+    valid_types = (bool, comp.Signal, comp.Field)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        self._validate_ref_width_is_1(node, "hwset", value)
+
     # FIXME: validate ref is 1-bit wide. other validation? (ok if not hw writable)
-    # needs to implement storage
-    # Fix implements_storage / is_volatile implementation to allow refs
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwenable(PropertyRule):
