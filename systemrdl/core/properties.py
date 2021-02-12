@@ -988,21 +988,29 @@ class Prop_singlepulse(PropertyRule):
 
 class Prop_we(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool,)
+    valid_types = (bool, comp.Signal, comp.Field)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        if value and (node.get_property('hw') not in (rdltypes.AccessType.rw, rdltypes.AccessType.w)):
+        self._validate_ref_width_is_1(node, "we", value)
+
+        if isinstance(value, comp.VectorComponent):
+            uses_we = True
+        else:
+            # value is boolean
+            uses_we = value
+
+        if uses_we and (node.get_property('hw') not in (rdltypes.AccessType.rw, rdltypes.AccessType.w)):
             self.env.msg.error(
-                "Property 'we' is 'true' on field '%s', but the field is not writable by hardware"
+                "Field '%s' sets property 'we', but the field's 'hw' property indicates is not writable by hardware"
                 % (node.inst_name),
                 node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
-        if value and not node.implements_storage:
+        if uses_we and not node.implements_storage:
             self.env.msg.error(
                 "Use of 'we' property on field '%s' that does not implement storage does not make sense"
                 % (node.inst_name),
@@ -1011,21 +1019,29 @@ class Prop_we(PropertyRule):
 
 class Prop_wel(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool,)
+    valid_types = (bool, comp.Signal, comp.Field)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        if value and (node.get_property('hw') not in (rdltypes.AccessType.rw, rdltypes.AccessType.w)):
+        self._validate_ref_width_is_1(node, "we", value)
+
+        if isinstance(value, comp.VectorComponent):
+            uses_we = True
+        else:
+            # value is boolean
+            uses_we = value
+
+        if uses_we and (node.get_property('hw') not in (rdltypes.AccessType.rw, rdltypes.AccessType.w)):
             self.env.msg.error(
-                "Property 'wel' is 'true' on field '%s', but the field is not writable by hardware"
+                "Field '%s' sets property 'wel', but the field's 'hw' property indicates is not writable by hardware"
                 % (node.inst_name),
                 node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
             )
 
-        if value and not node.implements_storage:
+        if uses_we and not node.implements_storage:
             self.env.msg.error(
                 "Use of 'wel' property on field '%s' that does not implement storage does not make sense"
                 % (node.inst_name),
@@ -1072,17 +1088,25 @@ class Prop_fieldwidth(PropertyRule):
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwclr(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool,)
+    valid_types = (bool,) # FIXME: Accept signals & fields
     default = False
     dyn_assign_allowed = True
     mutex_group = None
 
+    # FIXME: validate ref is 1-bit wide. other validation? (ok if not hw writable)
+    # needs to implement storage
+    # Fix implements_storage / is_volatile implementation to allow refs
+
 class Prop_hwset(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool,)
+    valid_types = (bool,) # FIXME: Accept signals & fields
     default = False
     dyn_assign_allowed = True
     mutex_group = None
+
+    # FIXME: validate ref is 1-bit wide. other validation? (ok if not hw writable)
+    # needs to implement storage
+    # Fix implements_storage / is_volatile implementation to allow refs
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwenable(PropertyRule):

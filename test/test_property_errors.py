@@ -28,7 +28,7 @@ class TestErrors(RDLSourceTestCase):
     def test_we_wel_errors(self):
         self.assertRDLCompileError(
             ["rdl_err_src/err_we_wel.rdl"], None,
-            r"Property 'we' is 'true' on field 'bad1', but the field is not writable by hardware"
+            r"Field 'bad1' sets property 'we', but the field's 'hw' property indicates is not writable by hardware"
         )
 
         self.assertRDLCompileError(
@@ -38,7 +38,7 @@ class TestErrors(RDLSourceTestCase):
 
         self.assertRDLCompileError(
             ["rdl_err_src/err_we_wel.rdl"], None,
-            r"Property 'wel' is 'true' on field 'bad2', but the field is not writable by hardware"
+            r"Field 'bad2' sets property 'wel', but the field's 'hw' property indicates is not writable by hardware"
         )
 
         self.assertRDLCompileError(
