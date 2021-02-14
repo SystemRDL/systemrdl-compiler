@@ -360,6 +360,7 @@ both of these control signals, however their runtime precedence is ambiguous.
 Consider the following:
 
 .. code-block:: systemrdl
+
     signal {} set_me;
     signal {} clear_me;
 
