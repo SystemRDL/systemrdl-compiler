@@ -15,7 +15,7 @@ Defining a schema
 
 Before we start, we need to define a schema for our custom JSON output. Since
 there isn't really a "standard" JSON schema available, we'll make up our own
-simple one. For this example, it will be very limited:
+simple one. For the sake of this example, it will be very limited:
 
 * Each SystemRDL component type will be represented as its own JSON object.
 * The type of the object is represented by a "type" string.

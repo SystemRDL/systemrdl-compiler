@@ -2,10 +2,54 @@
 Traversing the Register Model
 =============================
 
+Using Iterators
+---------------
+
+Sometimes it is necessary to have more fine-grain control of how the register
+model is explored. The :meth:`Node.children() <systemrdl.node.Node.children>`
+method provides an iterator that can be used to manually traverse the tree.
+
+.. code-block:: python
+
+    top_node = root_node.get_child_by_name("top")
+
+    for child in top_node.children(unroll=True):
+        print(child.get_path())
+
+The above outputs the following:
+
+.. code-block:: none
+
+    top.A[0]
+    top.A[1]
+    top.A[2]
+    top.A[3]
+
+
+The Node API also provides the :meth:`Node.descendants() <systemrdl.node.Node.descendants>`
+recursive iterator.
+
+.. code-block:: python
+
+    top_node = root_node.get_child_by_name("top")
+
+    for child in top_node.descendants():
+        print(child.get_path())
+
+The above outputs the following:
+
+.. code-block:: none
+
+    top.A
+    top.A.f1
+    top.A.f2
+
+
+
 Using the Walker/Listener
 -------------------------
 
-The easiest way to traverse a compiled register model is using a register-tree
+One easy way to fully traverse a compiled register model is using a register-tree
 listener interface, triggered by a :class:`~systemrdl.RDLWalker`.
 
 The listener interface is a collection of callback methods contained in a class
@@ -101,28 +145,6 @@ enabled:
     Exiting register top.A[3]
     Exiting addrmap top
 
-Using Iterators
----------------
-
-Sometimes it is necessary to have more fine-grain control of how the register
-model is explored. The :meth:`Node.children() <systemrdl.node.Node.children>`
-method provides an iterator that can be used to manually traverse the tree.
-
-.. code-block:: python
-
-    top_node = root_node.get_child_by_name("top")
-
-    for child in top_node.children(unroll=True):
-        print(child.get_path())
-
-The above outputs the following:
-
-.. code-block:: none
-
-    top.A[0]
-    top.A[1]
-    top.A[2]
-    top.A[3]
 
 
 Other Methods
