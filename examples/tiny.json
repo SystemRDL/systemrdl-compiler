@@ -1,0 +1,30 @@
+{
+    "type": "addrmap",
+    "inst_name": "tiny",
+    "addr_offset": 0,
+    "children": [
+        {
+            "type": "reg",
+            "inst_name": "r1",
+            "addr_offset": 0,
+            "children": [
+                {
+                    "type": "field",
+                    "inst_name": "f1",
+                    "lsb": 0,
+                    "msb": 7,
+                    "reset": 123,
+                    "sw_access": "rw"
+                },
+                {
+                    "type": "field",
+                    "inst_name": "f2",
+                    "lsb": 8,
+                    "msb": 15,
+                    "reset": null,
+                    "sw_access": "r"
+                }
+            ]
+        }
+    ]
+}

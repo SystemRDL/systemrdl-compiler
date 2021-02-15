@@ -58,7 +58,13 @@ Links
    model_structure
    model_traversal
    properties
-   examples
+
+.. toctree::
+   :hidden:
+   :caption: Examples
+
+   examples/print_hierarchy
+   examples/json_exporter
 
 .. toctree::
    :hidden:

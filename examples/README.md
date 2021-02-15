@@ -1,3 +1,3 @@
 # Examples
 
-For a walk-through of these examples, see the [SystemRDL Compiler Documentation](https://systemrdl-compiler.readthedocs.io/en/latest/examples.html)
+For a walk-through of these examples, see the [SystemRDL Compiler Documentation](https://systemrdl-compiler.readthedocs.io)
