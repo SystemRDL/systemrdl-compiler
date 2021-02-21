@@ -1,3 +1,5 @@
+.. _example_json-exporter:
+
 Building a JSON exporter
 ========================
 
@@ -5,8 +7,7 @@ This example walks through how to export a compiled SystemRDL register model int
 a simple JSON data object.
 
 The full example code can be found in the ``systemrdl-compiler`` repository at:
-``examples/json_exporter.py``
-
+``examples/export_json.py``
 
 
 
@@ -56,13 +57,14 @@ addrmap or regfile
 A note on register model traversal
 ----------------------------------
 
-In the previous example, we used the :class:`~systemrdl.RDLWalker` & :class:`~systemrdl.RDLListener`.
+In the :ref:`previous example <example_print-hierarchy>`, we used the
+:class:`~systemrdl.RDLWalker` & :class:`~systemrdl.RDLListener`.
 This let us automatically traverse the design, and trigger callbacks. This is an
 easy way to traverse the design, but only in situations where keeping track of
 the register model's herarchical context is not needed.
 
 For a JSON exporter we want to convert each node in the hierarchy and keep
-track of parent/child relationships. Doing so with the walker/visitor method
+track of parent/child relationships. Doing so with the walker/listener method
 would be cumbersome, so instead we will explicitly visit child nodes using the
 :meth:`Node.children() <systemrdl.node.Node.children>` method.
 
@@ -73,7 +75,7 @@ Walkthrough
 
 Python has an excellent `JSON serializer in its standard library <https://docs.python.org/3/library/json.html>`_.
 This means that all we need to do is distill the information from the register
-model into primitive datatypes that convert well to JSON (python dictionaries & lists).
+model into primitive datatypes that convert well to JSON (python dictionaries & lists). [#f1]_
 
 
 
@@ -86,7 +88,7 @@ Each component type will have a function that converts the corresponding
 The function to convert a :class:`~systemrdl.node.FieldNode` is pretty straightforward:
 
 .. literalinclude:: ../../examples/export_json.py
-    :lines: 12-20
+    :lines: 10-18
 
 
 Next, we write the function to convert a :class:`~systemrdl.node.RegNode`. Remember
@@ -96,7 +98,7 @@ compiler's message handler to emit a message to the user, as well as a reference
 to the offending location in the RDL source file:
 
 .. literalinclude:: ../../examples/export_json.py
-    :lines: 23-30
+    :lines: 21-28
 
 After validating the register is not an array, we can continue and distill the
 :class:`~systemrdl.node.RegNode` into a Python dictionary. Note how this calls
@@ -104,7 +106,7 @@ the :meth:`~systemrdl.node.Node.fields()` method to fetch all fields of this
 register.
 
 .. literalinclude:: ../../examples/export_json.py
-    :lines: 32-44
+    :lines: 30-42
 
 Next, we create a common function to convert both :class:`~systemrdl.node.AddrmapNode`
 and :class:`~systemrdl.node.RegfileNode` objects.
@@ -116,36 +118,38 @@ and :class:`~systemrdl.node.RegfileNode` objects.
   use ``isinstance`` again to call the appropriate conversion function.
 
 .. literalinclude:: ../../examples/export_json.py
-    :lines: 47-74
+    :lines: 45-72
 
 
 
 Dumping JSON
 ^^^^^^^^^^^^
 
-Finally, we need a top-level function that starts the conversion process at the top-level,
+Finally, we need a function that starts the conversion process at the top-level,
 and then serializes the resulting tree of Python dictionaries/lists into proper JSON.
 
 .. literalinclude:: ../../examples/export_json.py
-    :lines: 77-83
+    :lines: 75-81
 
 
 
 Bringing it all together
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now thast we have all our utility functions defined, we can put it all together.
+Now that we have all our utility functions defined, we can put it all together.
 
 First, compile and elaborate input files provided from the command line, as was
 done in the previous example:
 
 .. literalinclude:: ../../examples/export_json.py
-    :lines: 88-95
+    :lines: 86-96
+    :dedent: 4
 
 Finally, call the top-level conversion function which writes out the JSON file:
 
 .. literalinclude:: ../../examples/export_json.py
-    :lines: 97
+    :lines: 98-99
+    :dedent: 4
 
 
 
@@ -160,3 +164,11 @@ Given the input file ``tiny.rdl``:
 converting to JSON produces the following:
 
 .. literalinclude:: ../../examples/tiny.json
+
+
+.. [#f1] Python's JSON library also lets you create your `own custom encoder <https://docs.python.org/3/library/json.html#json.JSONEncoder>`_.
+    This is an alternative way to accomplish JSON serialization where you enhance
+    the JSON encoder itself so that it understands how to convert SystemRDL objects directly.
+
+    To keep things simple, this example sticks to the basic Python datatypes
+    that the native JSON encoder supports by default.

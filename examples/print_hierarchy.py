@@ -1,30 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
-import os
-
-from systemrdl import RDLCompiler, RDLListener, RDLWalker, RDLCompileError
+from systemrdl import RDLListener
 from systemrdl.node import FieldNode
-
-# Collect input files from the command line arguments
-input_files = sys.argv[1:]
-
-
-# Create an instance of the compiler
-rdlc = RDLCompiler()
-
-
-try:
-    # Compile all the files provided
-    for input_file in input_files:
-        rdlc.compile_file(input_file)
-
-    # Elaborate the design
-    root = rdlc.elaborate()
-except RDLCompileError:
-    # A compilation error occurred. Exit with error code
-    sys.exit(1)
-
 
 # Define a listener that will print out the register model hierarchy
 class MyModelPrintingListener(RDLListener):
@@ -46,8 +23,30 @@ class MyModelPrintingListener(RDLListener):
         if not isinstance(node, FieldNode):
             self.indent -= 1
 
+if __name__ == "__main__":
+    import sys
+    import os
 
-# Traverse the register model!
-walker = RDLWalker(unroll=True)
-listener = MyModelPrintingListener()
-walker.walk(root, listener)
+    from systemrdl import RDLCompiler, RDLCompileError, RDLWalker
+
+    # Collect input files from the command line arguments
+    input_files = sys.argv[1:]
+
+    # Create an instance of the compiler
+    rdlc = RDLCompiler()
+
+    try:
+        # Compile all the files provided
+        for input_file in input_files:
+            rdlc.compile_file(input_file)
+
+        # Elaborate the design
+        root = rdlc.elaborate()
+    except RDLCompileError:
+        # A compilation error occurred. Exit with error code
+        sys.exit(1)
+
+    # Traverse the register model!
+    walker = RDLWalker(unroll=True)
+    listener = MyModelPrintingListener()
+    walker.walk(root, listener)

@@ -65,6 +65,7 @@ Links
 
    examples/print_hierarchy
    examples/json_exporter
+   examples/json_importer
 
 .. toctree::
    :hidden:
@@ -76,6 +77,7 @@ Links
    api/component
    api/types
    api/messages
+   api/importer
 
 .. toctree::
    :hidden:

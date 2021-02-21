@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 from typing import Union
-import sys
-import os
 import json
 
 from systemrdl import RDLCompiler, RDLCompileError
@@ -84,14 +82,18 @@ def convert_to_json(rdlc: RDLCompiler, obj: node.RootNode, path: str):
 
 #-------------------------------------------------------------------------------
 
-# Compile and elaborate files provided from the command line
-input_files = sys.argv[1:]
-rdlc = RDLCompiler()
-try:
-    for input_file in input_files:
-        rdlc.compile_file(input_file)
-    root = rdlc.elaborate()
-except RDLCompileError:
-    sys.exit(1)
+if __name__ == "__main__":
+    import sys
 
-convert_to_json(rdlc, root, "out.json")
+    # Compile and elaborate files provided from the command line
+    input_files = sys.argv[1:]
+    rdlc = RDLCompiler()
+    try:
+        for input_file in input_files:
+            rdlc.compile_file(input_file)
+        root = rdlc.elaborate()
+    except RDLCompileError:
+        sys.exit(1)
+
+    # Dump the register model to a JSON file
+    convert_to_json(rdlc, root, "out.json")
