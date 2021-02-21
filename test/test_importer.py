@@ -16,6 +16,7 @@ class MyImporter(RDLImporter):
         self.add_child(my_rf, reg1)
 
         my_field_t = self.create_field_definition("my_field_t")
+        self.assign_property(my_field_t, "name", "my superb field")
         f1 = self.instantiate_field(my_field_t, "f1", 0, 8)
         self.add_child(reg1, f1)
         f2 = self.instantiate_field(my_field_t, "f2", 16, 8)
@@ -103,6 +104,3 @@ class TestImporter(unittest.TestCase):
         ]
 
         self.assertEqual(nodes, expected_nodes)
-
-TI = TestImporter()
-TI.test_importer()
