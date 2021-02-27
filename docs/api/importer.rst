@@ -8,12 +8,14 @@ own register model tree from an external source. For a more detailed walkthrough
 see the :ref:`example_json-importer` tutorial.
 
 .. autoclass:: systemrdl.importer.RDLImporter
+    :members: compiler, msg, default_src_ref
 
     .. automethod:: systemrdl.importer.RDLImporter.import_file
     .. automethod:: systemrdl.importer.RDLImporter.add_child
     .. automethod:: systemrdl.importer.RDLImporter.assign_property
     .. automethod:: systemrdl.importer.RDLImporter.register_root_component
     .. automethod:: systemrdl.importer.RDLImporter.lookup_root_component
+
 
 Create Definitions
 ------------------
@@ -30,6 +32,7 @@ can therefore only be instantiated once.
 .. automethod:: systemrdl.importer.RDLImporter.create_regfile_definition
 .. automethod:: systemrdl.importer.RDLImporter.create_addrmap_definition
 .. automethod:: systemrdl.importer.RDLImporter.create_mem_definition
+
 
 Instantiate Definitions
 -----------------------

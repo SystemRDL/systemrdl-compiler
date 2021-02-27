@@ -122,8 +122,8 @@ and :class:`~systemrdl.node.RegfileNode` objects.
 
 
 
-Dumping JSON
-^^^^^^^^^^^^
+Dumping to JSON
+^^^^^^^^^^^^^^^
 
 Finally, we need a function that starts the conversion process at the top-level,
 and then serializes the resulting tree of Python dictionaries/lists into proper JSON.

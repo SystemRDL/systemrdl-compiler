@@ -20,8 +20,17 @@ class RDLImporter:
         compiler: :class:`RDLCompiler`
             Reference to compiler instance where the import is being performed.
         """
+
+        #: Reference to the current compiler instance
         self.compiler = compiler
+
+        #: Reference to the compiler message handler
         self.msg = compiler.env.msg
+
+        #: Source reference used by default when not specified in importer
+        #: model construction methods
+        #: By default, this simply points to the file currently being imported,
+        #: without any line offset information
         self.default_src_ref = None # type: SourceRefBase
 
     def import_file(self, path: str) -> None:
