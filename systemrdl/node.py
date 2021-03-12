@@ -1094,7 +1094,7 @@ class MemNode(AddressableNode):
 
     @property
     def size(self) -> int:
-        entry_size = self.get_property('memwidth') // 8
+        entry_size = helpers.roundup_pow2(self.get_property('memwidth')) // 8
         num_entries = self.get_property('mementries')
         return entry_size * num_entries
 
