@@ -501,9 +501,27 @@ class Node:
         hier_separator: str
             Override the hierarchy separator
         array_suffix: str
-            Override how array suffixes are represented when the index is known
+            Override how array suffixes are represented when the index is known.
+
+            The suffix is processed using
+            `string.format() <https://docs.python.org/3/library/string.html#string.Formatter.format>`_
+            with the following available kwargs:
+
+            * ``index``: The current array index
+            * ``dim``: The number of elements in the array dimension
+
         empty_array_suffix: str
-            Override how array suffixes are represented when the index is not known
+            Override how array suffixes are represented when the index is not known.
+
+            The suffix is processed using
+            `string.format() <https://docs.python.org/3/library/string.html#string.Formatter.format>`_
+            with the following available kwargs:
+
+            * ``dim``: The number of elements in the array dimension
+
+
+        .. versionchanged:: 1.17
+            Added ``dim`` kwarg to suffix formatting.
         """
         segs = self.get_path_segments(array_suffix, empty_array_suffix)
         return hier_separator.join(segs)
@@ -699,12 +717,14 @@ class AddressableNode(Node):
 
         if self.is_array:
             if self.current_idx is None:
-                # Index is not known. append empty array suffixes
-                return path_segment + empty_array_suffix * len(self.array_dimensions)
+                # Index is not known.
+                for dim in self.array_dimensions:
+                    path_segment += empty_array_suffix.format(dim=dim)
+                return path_segment
             else:
                 # Index list is known
-                for idx in self.current_idx:
-                    path_segment += array_suffix.format(index=idx)
+                for idx, dim in zip(self.current_idx, self.array_dimensions):
+                    path_segment += array_suffix.format(index=idx, dim=dim)
                 return path_segment
         else:
             return path_segment
