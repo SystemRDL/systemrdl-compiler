@@ -1025,6 +1025,26 @@ class FieldNode(VectorNode):
                         rdltypes.AccessType.r)
 
     @property
+    def is_hw_writable(self) -> bool:
+        """
+        Field is writable by software
+        """
+        hw = self.get_property('hw')
+
+        return hw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
+                        rdltypes.AccessType.w, rdltypes.AccessType.w1)
+
+    @property
+    def is_hw_readable(self) -> bool:
+        """
+        Field is readable by software
+        """
+        hw = self.get_property('hw')
+
+        return hw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
+                        rdltypes.AccessType.r)
+
+    @property
     def implements_storage(self) -> bool:
         """
         True if combination of field access properties imply that the field
