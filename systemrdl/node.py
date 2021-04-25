@@ -1027,7 +1027,7 @@ class FieldNode(VectorNode):
     @property
     def is_hw_writable(self) -> bool:
         """
-        Field is writable by software
+        Field is writable by hardware
         """
         hw = self.get_property('hw')
 
@@ -1037,7 +1037,7 @@ class FieldNode(VectorNode):
     @property
     def is_hw_readable(self) -> bool:
         """
-        Field is readable by software
+        Field is readable by hardware
         """
         hw = self.get_property('hw')
 
