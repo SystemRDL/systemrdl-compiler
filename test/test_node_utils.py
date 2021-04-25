@@ -384,6 +384,14 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertFalse(f5.is_sw_writable)
         self.assertFalse(f6.is_sw_writable)
 
+        self.assertFalse(f1.is_hw_writable)
+        self.assertTrue(f2.is_hw_writable)
+        self.assertTrue(f3.is_hw_writable)
+
+        self.assertTrue(f1.is_hw_readable)
+        self.assertFalse(f2.is_hw_readable)
+        self.assertTrue(f3.is_hw_readable)
+
         self.assertTrue(r1.has_sw_writable)
         self.assertTrue(r1.has_sw_readable)
 
