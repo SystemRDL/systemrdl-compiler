@@ -77,7 +77,9 @@ class RDLCompiler:
         if kwargs:
             raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
 
+        #: Reference to the compiler's :class:`~systemrdl.messages.MessageHandler` object
         self.msg = self.env.msg
+
         self.namespace = NamespaceRegistry(self.env) # type: NamespaceRegistry
         self.visitor = RootVisitor(self)
         self.root = self.visitor.component # type: comp.Root # type: ignore

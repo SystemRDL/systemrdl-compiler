@@ -73,10 +73,10 @@ class Component:
         # Properties applied to this component
         self.properties = {} # type: Dict[str, Any]
 
-        # Source references for each explicit property assignment (if available)
+        #: Source references for each explicit property assignment (if available)
         self.property_src_ref = {} # type: Dict[str, SourceRefBase]
 
-        # Source Ref for the component definition
+        #: Source reference for the component definition
         self.def_src_ref = None # type: Optional[SourceRefBase]
 
         #------------------------------
@@ -97,7 +97,7 @@ class Component:
         #: True if instance type is external. False if internal.
         self.external = None # type: bool
 
-        # Source Ref for the component instantiation.
+        #: Source reference for the component instantiation.
         self.inst_src_ref = None # type: Optional[SourceRefBase]
 
         #------------------------------

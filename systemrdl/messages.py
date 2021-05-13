@@ -172,6 +172,8 @@ class MessageHandler:
     def __init__(self, printer: MessagePrinter, min_verbosity: Severity=Severity.WARNING):
         self.printer = printer
         self.min_verbosity = min_verbosity
+
+        #: Set to True if an error message was ever emitted
         self.had_error = False
 
     def message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
@@ -196,12 +198,48 @@ class MessageHandler:
         self.message(Severity.INFO, text)
 
     def warning(self, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
+        """
+        Print a warning message.
+
+        Parameters
+        ----------
+        text: str
+            Message text
+        src_ref: SourceRefBase
+            Optional source reference object to provide message context
+        """
         self.message(Severity.WARNING, text, src_ref)
 
     def error(self, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
+        """
+        Print an error message.
+        Sets ``had_error`` to True.
+
+        Parameters
+        ----------
+        text: str
+            Message text
+        src_ref: SourceRefBase
+            Optional source reference object to provide message context
+        """
         self.message(Severity.ERROR, text, src_ref)
 
     def fatal(self, text: str, src_ref: Optional[SourceRefBase]=None) -> 'NoReturn': # type: ignore
+        """
+        Print a fatal message.
+
+        Parameters
+        ----------
+        text: str
+            Message text
+        src_ref: SourceRefBase
+            Optional source reference object to provide message context
+
+        Raises
+        ------
+        RDLCompileError
+            Always raises this exception
+        """
         self.message(Severity.FATAL, text, src_ref)
 
 
