@@ -1115,6 +1115,26 @@ class RegNode(AddressableNode):
                 return True
         return False
 
+    @property
+    def has_hw_writable(self) -> bool:
+        """
+        Register contains one or more present fields writable by hardware
+        """
+        for field in self.fields():
+            if field.is_hw_writable:
+                return True
+        return False
+
+    @property
+    def has_hw_readable(self) -> bool:
+        """
+        Register contains one or more present fields readable by hardware
+        """
+        for field in self.fields():
+            if field.is_hw_readable:
+                return True
+        return False
+
 #===============================================================================
 class RegfileNode(AddressableNode):
 
