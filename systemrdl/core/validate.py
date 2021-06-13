@@ -3,12 +3,11 @@ from typing import TYPE_CHECKING, List
 from .helpers import is_pow2, roundup_pow2, roundup_to
 from .. import walker
 from .. import rdltypes
-from ..node import Node, AddressableNode
+from ..node import Node, AddressableNode, SignalNode
 from ..node import AddrmapNode, RegfileNode, MemNode, RegNode, FieldNode
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
-    from typing import Dict
 
 #===============================================================================
 # Validation Listeners
@@ -61,6 +60,10 @@ class ValidateListener(walker.RDLListener):
                     ):
                         overlap_allowed = True
 
+                # Bridge addrmaps allow overlapping children
+                if isinstance(node.parent, AddrmapNode) and node.parent.get_property('bridge'):
+                    overlap_allowed = True
+
                 if not overlap_allowed:
                     self.msg.error(
                         "Instance '%s' at offset +0x%X:0x%X overlaps with '%s' at offset +0x%X:0x%X"
@@ -103,6 +106,33 @@ class ValidateListener(walker.RDLListener):
                     self.env.chk_strict_self_align,
                     "Address offset +0x%x of instance '%s' is not a power of 2 multiple of its size 0x%x"
                     % (node.raw_address_offset, node.inst_name, node.size),
+                    node.inst.inst_src_ref
+                )
+
+
+    def enter_Addrmap(self, node: AddrmapNode) -> None:
+        if node.get_property("bridge"):
+            # This is a 'bridge addrmap'
+            # Verify that:
+            #  - Child components are only other addrmaps (signals are ok too)
+            #  - has at least 2 child addrmaps
+            n_child_addrmaps = 0
+            for child in node.children():
+                if isinstance(child, AddrmapNode):
+                    n_child_addrmaps += 1
+                elif isinstance(child, SignalNode):
+                    pass
+                else:
+                    self.msg.error(
+                        "Addrmap '%s' is a bridge which can only contain other addrmaps. Contains a child instance '%s' which is a %s"
+                        % (node.inst_name, child.inst_name, type(child.inst).__name__.lower()),
+                        child.inst.inst_src_ref
+                    )
+
+            if n_child_addrmaps < 2:
+                self.msg.error(
+                    "Addrmap '%s' is a bridge and shall contain 2 or more sub-addrmaps"
+                    % node.inst_name,
                     node.inst.inst_src_ref
                 )
 

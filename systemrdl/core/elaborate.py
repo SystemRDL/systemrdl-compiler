@@ -398,7 +398,8 @@ class StructuralPlacementListener(walker.RDLListener):
 
 
     def exit_Addrmap(self, node: AddrmapNode) -> None:
-        self.resolve_addresses(node)
+        is_bridge = node.get_property('bridge')
+        self.resolve_addresses(node, is_bridge)
 
         self.msb0_mode_stack.pop()
         self.addressing_mode_stack.pop()
@@ -419,7 +420,7 @@ class StructuralPlacementListener(walker.RDLListener):
                 )
 
 
-    def resolve_addresses(self, node: AddressableNode) -> None:
+    def resolve_addresses(self, node: AddressableNode, is_bridge: bool = False) -> None:
         """
         Resolve addresses of children of Addrmap and Regfile components
         """
@@ -483,7 +484,7 @@ class StructuralPlacementListener(walker.RDLListener):
 
             # Calculate resulting address offset
             alignment = max(prop_alignment, alloc_alignment, mode_alignment)
-            if prev_node is None:
+            if (prev_node is None) or is_bridge:
                 next_offset = 0
             else:
                 next_offset = prev_node.raw_address_offset + prev_node.total_size

@@ -1,0 +1,44 @@
+addrmap some_bridge { // Define a Bridge Device
+    desc="overlapping address maps with both shared register space and
+    orthogonal register space";
+    bridge; // This tells the compiler the top level map contains other maps
+
+    reg status {// Define at least 1 register for the bridge
+        shared;
+        // Shared property tells compiler this register
+        // will be shared by multiple addrmaps
+        field {
+            hw=rw;
+            sw=r;
+        } stat1 = 1'b0;
+    };
+
+    reg some_axi_reg {
+        field {
+            desc="credits on the AXI interface";
+        } credits[4] = 4'h7;
+    };
+
+    reg some_ahb_reg {
+        field {
+            desc="credits on the AHB Interface";
+        } credits[8] = 8'b00000011;
+    };
+
+    addrmap {
+        littleendian;
+        some_ahb_reg ahb_credits; // Implies addr = 0
+        status ahb_stat @0x20; // explicitly at address=20
+        ahb_stat.stat1->desc = "bar"; // Overload the registers property in
+                                      // this instance
+    } ahb;
+
+    addrmap { // Define the Map for the AXI Side of the bridge
+        bigendian; // This map is big endian
+        some_axi_reg axi_credits; // Implies addr = 0
+        status axi_stat @0x40; // explicitly at address=40
+        axi_stat.stat1->desc = "foo"; // Overload the registers property
+                                      // in this instance
+    } axi;
+
+};

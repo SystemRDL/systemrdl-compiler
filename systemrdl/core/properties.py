@@ -1583,6 +1583,16 @@ class Prop_bridge(PropertyRule):
     dyn_assign_allowed = False
     mutex_group = None
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        # 13.5: Bridge can only be applied to the root address map
+        if value:
+            # is bridge
+            if (node.parent is not None) and not isinstance(node.parent, m_node.RootNode):
+                self.env.msg.error(
+                    "The 'bridge' property can only be applied to the root address map.",
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+
 #===============================================================================
 # User-defined property
 #===============================================================================

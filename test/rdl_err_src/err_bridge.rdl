@@ -1,0 +1,21 @@
+`include "../rdl_src/bridge.rdl"
+
+addrmap illegal_wrapper {
+    some_bridge br;
+};
+
+addrmap not_enough_addrmaps {
+    bridge;
+    addrmap {
+        reg {
+            field {} x;
+        } y;
+    } foo;
+};
+
+addrmap illegal_children {
+    bridge;
+    reg {
+        field {} x;
+    } y;
+};
