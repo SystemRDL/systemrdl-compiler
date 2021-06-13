@@ -107,7 +107,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install -U mypy
+          python -m pip install -U mypy types-Markdown
 
       - name: Type Check
         run: |
