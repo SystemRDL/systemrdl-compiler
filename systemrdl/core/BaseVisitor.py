@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from ..compiler import RDLCompiler
     from antlr4.Token import CommonToken
     from antlr4 import ParserRuleContext
-    from .namespace import TypeNSEntry
     from typing import Union, Type
 
 class BaseVisitor(SystemRDLVisitor):

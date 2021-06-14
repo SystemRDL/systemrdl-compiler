@@ -1,8 +1,6 @@
 import re
 from typing import TYPE_CHECKING, Optional
 
-import markdown
-
 from . import helpers
 from ..node import Node, AddressableNode
 
@@ -226,6 +224,8 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
     #---------------------------------------------------------------------------
     if is_desc:
         if md is None:
+            # Lazy import markdown
+            import markdown # pylint: disable=import-outside-toplevel
             md = markdown.Markdown()
         text_out = md.reset().convert(text_out)
 

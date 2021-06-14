@@ -16,7 +16,6 @@ from .source_ref import SourceRefBase, src_ref_from_antlr, SegmentedSourceRef
 from .source_ref import DetailedFileSourceRef, FileSourceRef
 
 if TYPE_CHECKING:
-    from .preprocessor.segment_map import SegmentMap
     from typing import NoReturn
 
 # Colorama needs to be initialized to properly work in Windows

@@ -17,7 +17,6 @@ from .. import component as comp
 from .. import rdltypes
 
 if TYPE_CHECKING:
-    from .namespace import TypeNSEntry
     from typing import Type, Union
     from ..compiler import RDLCompiler
     from antlr4.Token import CommonToken
