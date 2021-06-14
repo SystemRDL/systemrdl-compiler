@@ -24,8 +24,7 @@ However, in the example:
 
 **Resolution:**
 
-The use-case shown in the example seems reasonable.
-Rule 10.6.1.c seems unnecessary. Waiving checks for it.
+None. Example is invalid and violates rule 10.6.1.c.
 
 
 

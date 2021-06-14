@@ -1460,6 +1460,16 @@ class Prop_accesswidth(PropertyRule):
         """
         return node.get_property('regwidth')
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        # 10.6.1-c: The value of the accesswidth property shall not exceed the
+        # value of the regwidth property
+        if value > node.get_property('regwidth'):
+            self.env.msg.error(
+                "Register '%s' has accesswidth of %d which exceeds its regwidth of %d"
+                % (node.inst_name, value, node.get_property('regwidth')),
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
+
 class Prop_shared(PropertyRule):
     bindable_to = {comp.Reg}
     valid_types = (bool,)

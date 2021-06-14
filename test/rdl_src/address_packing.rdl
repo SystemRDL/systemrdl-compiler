@@ -13,18 +13,6 @@ addrmap example_5_1_2_2_2_ex1 {
                                         // Address 0x14 - Element 2
 };
 
-
-addrmap example_5_1_2_2_2_ex2 {
-    default accesswidth=64;
-    addressing=compact;
-    reg { field {} a; } a;              // Address 0
-    reg { regwidth=64; field {} a; } b; // Address 8
-    reg { field {} a; } c[20];          // Address 0x10 - Element 0
-                                        // Address 0x14 - Element 1
-                                        // Address 0x18 - Element 2
-};
-
-
 addrmap example_5_1_2_2_2_ex3 {
     addressing = regalign;
     reg { field {} a; } a;              // Address 0

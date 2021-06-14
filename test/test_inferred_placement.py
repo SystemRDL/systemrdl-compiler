@@ -248,37 +248,6 @@ class TestAddressingModes(RDLSourceTestCase):
                 reg = top.find_by_path("example_5_1_2_2_2_ex1.c[%d]" % i)
                 self.assertEqual(reg.absolute_address, 0x0C + i * 4)
 
-    def test_example_5_1_2_2_2_ex2(self):
-        top = self.compile(
-            ["rdl_src/address_packing.rdl"],
-            "example_5_1_2_2_2_ex2"
-        )
-
-        with self.subTest("reg a"):
-            reg = top.find_by_path("example_5_1_2_2_2_ex2.a")
-            self.assertEqual(reg.raw_address_offset, 0)
-            self.assertEqual(reg.absolute_address, 0)
-            self.assertEqual(reg.size, 4)
-
-        with self.subTest("reg b"):
-            reg = top.find_by_path("example_5_1_2_2_2_ex2.b")
-            self.assertEqual(reg.raw_address_offset, 8)
-            self.assertEqual(reg.absolute_address, 8)
-            self.assertEqual(reg.size, 8)
-
-        with self.subTest("reg c"):
-            reg = top.find_by_path("example_5_1_2_2_2_ex2.c")
-            self.assertEqual(reg.raw_address_offset, 0x10)
-            self.assertEqual(reg.is_array, True)
-            self.assertEqual(reg.array_dimensions, [20])
-            self.assertEqual(reg.array_stride, 4)
-            self.assertEqual(reg.size, 4)
-            self.assertEqual(reg.total_size, 20*4)
-
-            for i in range(20):
-                reg = top.find_by_path("example_5_1_2_2_2_ex2.c[%d]" % i)
-                self.assertEqual(reg.absolute_address, 0x10 + i * 4)
-
     def test_example_5_1_2_2_2_ex3(self):
         top = self.compile(
             ["rdl_src/address_packing.rdl"],
