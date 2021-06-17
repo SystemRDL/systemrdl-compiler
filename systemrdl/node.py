@@ -198,6 +198,12 @@ class Node:
         for child in self.children(skip_not_present=skip_not_present):
             if isinstance(child, SignalNode):
                 yield child
+            else:
+                # Optimization.
+                # children are sorted so signals are always first.
+                # If encountered a non-signal, no reason to continue iterating
+                break
+
 
 
     def fields(self, skip_not_present: bool=True) -> Iterator['FieldNode']:
@@ -684,6 +690,25 @@ class Node:
         .. versionadded:: 1.9
         """
         return self.inst.external
+
+    @property
+    def cpuif_reset(self) -> 'Optional[SignalNode]':
+        """
+        Returns a reference to the nearest cpuif_reset signal in the enclosing
+        hierarchy.
+
+        Is None if no cpuif_reset signal was found.
+
+        .. versionadded:: 1.19
+        """
+        current_node = self
+        while current_node is not None:
+            for signal in current_node.signals():
+                if signal.get_property('cpuif_reset'):
+                    return signal
+            current_node = current_node.parent
+
+        return None
 
 
     def __eq__(self, other: object) -> bool:

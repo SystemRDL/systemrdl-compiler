@@ -26,6 +26,11 @@ class ValidateListener(walker.RDLListener):
         # Same concept as the field check buffer, but is also a stack
         self.addr_check_buffer_stack = [[]] # type: List[List[AddressableNode]]
 
+        # Keep track of whether a given hierarchy has a reset signal.
+        # Signals can exist in Root, so pre-load with one stack entry
+        self.has_cpuif_reset_stack = [False] # type: List[bool]
+        self.has_field_reset_stack = [False] # type: List[bool]
+
 
     def enter_Component(self, node: Node) -> None:
         # Validate all properties that were applied to the component
@@ -37,6 +42,36 @@ class ValidateListener(walker.RDLListener):
 
             prop_rule = self.env.property_rules.lookup_property(prop_name)
             prop_rule.validate(node, prop_value)
+
+        if not isinstance(node, SignalNode):
+            self.has_cpuif_reset_stack.append(False)
+            self.has_field_reset_stack.append(False)
+
+
+    def enter_Signal(self, node: SignalNode) -> None:
+        if node.get_property('cpuif_reset'):
+            # 8.2.1-f: cpuif_reset property can only be set true for one
+            # instantiated signal within a lexical scope.
+            # (spec authors repeately misuse the word 'lexical', they mean hierarchical)
+            if self.has_cpuif_reset_stack[-1]:
+                self.msg.error(
+                    "Only one 'cpuif_reset' signal is allowed per hierarchy. Signal '%s' is redundant."
+                    % (node.inst_name),
+                    node.inst.inst_src_ref
+                )
+            self.has_cpuif_reset_stack[-1] = True
+
+        if node.get_property('field_reset'):
+            # 8.2.1-g: field_reset property can only be set true for one
+            # instantiated signal within a lexical scope.
+            # (spec authors repeately misuse the word 'lexical', they mean hierarchical)
+            if self.has_field_reset_stack[-1]:
+                self.msg.error(
+                    "Only one 'field_reset' signal is allowed per hierarchy. Signal '%s' is redundant."
+                    % (node.inst_name),
+                    node.inst.inst_src_ref
+                )
+            self.has_field_reset_stack[-1] = True
 
 
     def enter_AddressableComponent(self, node: AddressableNode) -> None:
@@ -367,3 +402,9 @@ class ValidateListener(walker.RDLListener):
     def exit_AddressableComponent(self, node: AddressableNode) -> None:
         self.addr_check_buffer_stack.pop()
         self.addr_check_buffer_stack[-1].append(node)
+
+
+    def exit_Component(self, node: Node) -> None:
+        if not isinstance(node, SignalNode):
+            self.has_cpuif_reset_stack.pop()
+            self.has_field_reset_stack.pop()

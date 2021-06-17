@@ -1,0 +1,26 @@
+default sw=rw;
+default hw=r;
+
+
+addrmap field_resets {
+    reg {
+        signal {field_reset;} reset_a;
+        field {} A = 0;
+        signal {field_reset;} reset_b;
+    } z;
+};
+
+
+addrmap cpuif_resets {
+    reg {
+        signal {cpuif_reset;} reset_x;
+        field {} A = 0;
+        signal {cpuif_reset;} reset_y;
+    } z;
+};
+
+
+signal {field_reset;} freset_root1;
+signal {field_reset;} freset_root2;
+signal {cpuif_reset;} creset_root1;
+signal {cpuif_reset;} creset_root2;

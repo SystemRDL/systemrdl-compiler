@@ -614,6 +614,20 @@ class Prop_resetsignal(PropertyRule):
     def validate(self, node: m_node.Node, value: Any) -> None:
         self._validate_ref_width_is_1(node, "resetsignal", value)
 
+    def get_default(self, node: m_node.Node) -> Optional[m_node.SignalNode]:
+        """
+        If no field reset signal was explicitly assigned, search for signals in
+        the enclosing hierarchy with field_reset=True
+        """
+        current_node = node
+        while current_node is not None:
+            for signal in current_node.signals():
+                if signal.get_property('field_reset'):
+                    return signal
+            current_node = current_node.parent
+
+        return None
+
 #-------------------------------------------------------------------------------
 # Software access properties
 #-------------------------------------------------------------------------------

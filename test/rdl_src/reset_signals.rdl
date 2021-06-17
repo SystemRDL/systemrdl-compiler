@@ -1,0 +1,47 @@
+default sw=rw;
+default hw=r;
+
+addrmap field_resets {
+    signal {} reset_x;
+
+    regfile {
+        signal {field_reset;} reset_y;
+        reg {
+            signal {field_reset;} reset_z;
+
+            field {} A = 0; // implied reset_z
+            field {resetsignal = reset_x;} B = 0;
+            field {resetsignal = reset_y;} C = 0;
+        } x;
+
+        reg {
+            field {} A = 0; // implied reset_y
+            field {resetsignal = reset_x;} B = 0;
+        } y;
+    } rf;
+
+    reg {
+        field {} A = 0; // No implied resetsignal
+        field {resetsignal = reset_x;} B = 0;
+    } z;
+};
+
+
+addrmap cpuif_resets {
+    regfile {
+        signal {cpuif_reset;} reset_x;
+        reg {
+            signal {cpuif_reset;} reset_y;
+
+            field {} A = 0;
+        } x;
+
+        reg {
+            field {} A = 0;
+        } y;
+    } rf;
+
+    reg {
+        field {} A = 0; // No implied resetsignal
+    } z;
+};
