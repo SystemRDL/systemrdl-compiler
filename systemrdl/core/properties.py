@@ -8,8 +8,11 @@ from . import expressions
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from typing import TypeVar
 
-def get_all_subclasses(cls: type) -> List[type]:
+    T = TypeVar('T')
+
+def get_all_subclasses(cls: Type['T']) -> List[Type['T']]:
     return cls.__subclasses__() + [
         g for s in cls.__subclasses__()
         for g in get_all_subclasses(s)
@@ -39,8 +42,12 @@ class PropertyRule:
         self.env = env
 
     #---------------------------------------------------------------------------
+    @classmethod
+    def get_name_cls(cls) -> str:
+        return cls.__name__.replace("Prop_", "")
+
     def get_name(self) -> str:
-        return type(self).__name__.replace("Prop_", "")
+        return self.get_name_cls()
 
     #---------------------------------------------------------------------------
     def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
@@ -99,6 +106,13 @@ class PropertyRule:
                     "Incompatible assignment to property '%s'" % self.get_name(),
                     src_ref
                 )
+
+        # If the property belongs to a mutex group, wipe out any of its
+        # counterpart properties
+        if self.mutex_group is not None:
+            for prop_name in MUTEX_PROP_GROUPS[self.mutex_group]:
+                if prop_name in comp_def.properties:
+                    del comp_def.properties[prop_name]
 
         # Store the property
         comp_def.properties[self.get_name()] = value
@@ -165,16 +179,6 @@ class PropertyRule:
 class PropertyRuleBoolPair(PropertyRule):
     # Property name of the equivalent opposite
     opposite_property = ""
-
-
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
-        """
-        Side effect: Ensure assignment of the opposite is cleared since it is being
-        overridden
-        """
-        super().assign_value(comp_def, value, src_ref)
-        if self.opposite_property in comp_def.properties:
-            del comp_def.properties[self.opposite_property]
 
     def get_default(self, node: m_node.Node) -> bool:
         """
@@ -643,16 +647,6 @@ class Prop_rclr(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "P"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
-        """
-        Overrides other related properties
-        """
-        super().assign_value(comp_def, value, src_ref)
-        if "rset" in comp_def.properties:
-            del comp_def.properties["rset"]
-        if "onread" in comp_def.properties:
-            del comp_def.properties["onread"]
-
     def get_default(self, node: m_node.Node) -> bool:
         """
         If not explicitly set, check if onread sets the equivalent
@@ -673,16 +667,6 @@ class Prop_rset(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "P"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
-        """
-        Overrides other related properties
-        """
-        super().assign_value(comp_def, value, src_ref)
-        if "rclr" in comp_def.properties:
-            del comp_def.properties["rclr"]
-        if "onread" in comp_def.properties:
-            del comp_def.properties["onread"]
-
     def get_default(self, node: m_node.Node) -> bool:
         """
         If not explicitly set, check if onread sets the equivalent
@@ -702,16 +686,6 @@ class Prop_onread(PropertyRule):
     default = None
     dyn_assign_allowed = True
     mutex_group = "P"
-
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
-        """
-        Overrides other related properties
-        """
-        super().assign_value(comp_def, value, src_ref)
-        if "rclr" in comp_def.properties:
-            del comp_def.properties["rclr"]
-        if "rset" in comp_def.properties:
-            del comp_def.properties["rset"]
 
     def get_default(self, node: m_node.Node) -> Optional[rdltypes.OnReadType]:
         """
@@ -754,16 +728,6 @@ class Prop_woclr(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "B"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
-        """
-        Overrides other related properties
-        """
-        super().assign_value(comp_def, value, src_ref)
-        if "woset" in comp_def.properties:
-            del comp_def.properties["woset"]
-        if "onwrite" in comp_def.properties:
-            del comp_def.properties["onwrite"]
-
     def get_default(self, node: m_node.Node) -> bool:
         """
         If not explicitly set, check if onwrite sets the equivalent
@@ -784,16 +748,6 @@ class Prop_woset(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "B"
 
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
-        """
-        Overrides other related properties
-        """
-        super().assign_value(comp_def, value, src_ref)
-        if "woclr" in comp_def.properties:
-            del comp_def.properties["woclr"]
-        if "onwrite" in comp_def.properties:
-            del comp_def.properties["onwrite"]
-
     def get_default(self, node: m_node.Node) -> bool:
         """
         If not explicitly set, check if onread sets the equivalent
@@ -813,16 +767,6 @@ class Prop_onwrite(PropertyRule):
     default = None
     dyn_assign_allowed = True
     mutex_group = "B"
-
-    def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
-        """
-        Overrides other related properties
-        """
-        super().assign_value(comp_def, value, src_ref)
-        if "woclr" in comp_def.properties:
-            del comp_def.properties["woclr"]
-        if "woset" in comp_def.properties:
-            del comp_def.properties["woset"]
 
     def get_default(self, node: m_node.Node) -> Optional[rdltypes.OnWriteType]:
         """
@@ -1329,7 +1273,8 @@ class Prop_intr_type(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = None
 
-    def get_name(self) -> str:
+    @classmethod
+    def get_name_cls(cls) -> str:
         # Interrupt modifier type is a "special" hidden property
         # Intentinally override the property name to something that is impossible
         # to define in RDL and collide with
@@ -1831,7 +1776,7 @@ class PropertyRuleBook:
         self.rdl_prop_refs = {} # type: Dict[str, Type[rdltypes.PropertyReference]]
         for prop_ref in get_all_subclasses(rdltypes.PropertyReference):
             if prop_ref.__name__.startswith("PropRef_"):
-                prop_name = prop_ref.get_name() # type: ignore
+                prop_name = prop_ref.get_name()
                 self.rdl_prop_refs[prop_name] = prop_ref
 
     def lookup_property(self, prop_name: str) -> Optional[PropertyRule]:
@@ -1862,3 +1807,13 @@ class PropertyRuleBook:
             )
 
         self.user_properties[udp.name] = udp
+
+
+# Dictionary of mutex group names --> set of property names that belong to the mutex
+MUTEX_PROP_GROUPS = {} # type: Dict[str, Set[str]]
+for prop_cls in get_all_subclasses(PropertyRule):
+    if prop_cls.__name__.startswith("Prop_"):
+        if prop_cls.mutex_group is not None:
+            if prop_cls.mutex_group not in MUTEX_PROP_GROUPS:
+                MUTEX_PROP_GROUPS[prop_cls.mutex_group] = set()
+            MUTEX_PROP_GROUPS[prop_cls.mutex_group].add(prop_cls.get_name_cls())
