@@ -3,7 +3,6 @@ import itertools
 from copy import deepcopy
 from collections import deque
 from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Callable, Dict, Union
-import warnings
 
 from . import component as comp
 from . import rdltypes
@@ -78,36 +77,6 @@ class Node:
             return SignalNode(inst, env, parent)
         else:
             raise RuntimeError
-
-
-    @classmethod
-    def add_derived_property(cls, getter_function: Callable, name: Optional[str]=None) -> None:
-        """
-        Register a user-defined derived property
-
-        Parameters
-        ----------
-        getter_function : function
-            Function that fetches the result of the user-defined derived property
-        name : str
-            Derived property name
-            If unassigned, will default to the function's name
-
-        .. deprecated:: 1.15
-            Use of this function is not recommended since it encourages the bad
-            practice of modifying the SystemRDL API at runtime. Instead, it is
-            recommended that any extended property derivations be done in a
-            separate function outside of the Node interface.
-
-            In future revisions, use of this function will emit a warning, and will
-            eventually be removed entirely.
-        """
-        warnings.warn("deprecated", DeprecationWarning)
-
-        if name is None:
-            name = getter_function.__name__
-        mp = property(fget=getter_function)
-        setattr(cls, name, mp)
 
 
     def children(self, unroll: bool=False, skip_not_present: bool=True) -> Iterator['Node']:
