@@ -557,11 +557,11 @@ class LateElabListener(walker.RDLListener):
 
             # Augment based on paramter overrides as per 5.1.1.4
             if node.inst.original_def is not None:
-                for i in range(len(node.inst.parameters)):
+                for i, inst_parameter in enumerate(node.inst.parameters):
                     orig_param_value = node.inst.original_def.parameters[i].get_value()
-                    new_param_value = node.inst.parameters[i].get_value()
+                    new_param_value = inst_parameter.get_value()
                     if new_param_value != orig_param_value:
-                        extra_type_name_segments.append(node.inst.parameters[i].get_normalized_parameter())
+                        extra_type_name_segments.append(inst_parameter.get_normalized_parameter())
 
             # Further augment type name as per extended type generation from DPAs
             if self.env.use_extended_type_name_gen:

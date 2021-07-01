@@ -39,6 +39,35 @@ class TestErrors(RDLSourceTestCase):
             r"Instance array 'rf_array' has address stride 0x1, but the element size is 0x100"
         )
 
+    def test_bad_addr_allocators(self):
+        with self.subTest("addr"):
+            self.assertRDLCompileError(
+                ["rdl_err_src/err_allocators1.rdl"],
+                None,
+                r"Unexpected address allocation operator for non-addressable instance"
+            )
+
+        with self.subTest("stride"):
+            self.assertRDLCompileError(
+                ["rdl_err_src/err_allocators2.rdl"],
+                None,
+                r"Unexpected address allocation operator for non-addressable instance"
+            )
+
+        with self.subTest("align"):
+            self.assertRDLCompileError(
+                ["rdl_err_src/err_allocators3.rdl"],
+                None,
+                r"Unexpected address allocation operator for non-addressable instance"
+            )
+
+    def test_bad_mem_child(self):
+        self.assertRDLCompileError(
+            ["rdl_err_src/err_mem_defs.rdl"],
+            None,
+            r"Definitions of 'addrmap' components not allowed inside a mem definition"
+        )
+
 
 class TestUserErrors(RDLSourceTestCase):
     def setUp(self):

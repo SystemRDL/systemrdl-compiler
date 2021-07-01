@@ -2,7 +2,7 @@ import re
 import itertools
 from copy import deepcopy
 from collections import deque
-from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Callable, Dict
+from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Callable, Dict, Union
 import warnings
 
 from . import component as comp
@@ -822,11 +822,11 @@ class AddressableNode(Node):
             # Is flattened like this:
             #   idx = I0*S1*S2 + I1*S2 + I2
             idx = 0
-            for i in range(len(self.current_idx)):
+            for i, current_idx in enumerate(self.current_idx):
                 sz = 1
-                for j in range(i+1, len(self.array_dimensions)):
+                for j in range(i + 1, len(self.array_dimensions)):
                     sz *= self.array_dimensions[j]
-                idx += sz * self.current_idx[i]
+                idx += sz * current_idx
 
             offset = self.raw_address_offset + idx * self.array_stride
 
@@ -1185,16 +1185,13 @@ class MemNode(AddressableNode):
         return entry_size * num_entries
 
 #===============================================================================
-def get_group_node_size(node: AddressableNode) -> int:
+def get_group_node_size(node: Union[AddrmapNode, RegfileNode]) -> int:
     """
     Shared getter for AddrmapNode and RegfileNode's "size" property
     """
-    # After structural placement, children are sorted
-    if(not node.inst.children
-        or (not isinstance(node.inst.children[-1], comp.AddressableComponent))
-    ):
-        # No addressable child exists.
-        return 0
+    # addrmap/regfile is guaranteed to have an addressable child.
+    assert node.inst.children
+    assert isinstance(node.inst.children[-1], comp.AddressableComponent)
 
     # Current node's size is based on last child
     last_child_node = Node._factory(node.inst.children[-1], node.env, node)

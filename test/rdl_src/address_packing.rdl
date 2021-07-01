@@ -88,4 +88,7 @@ addrmap hier {
         mementries=256;
         some_reg x[256];
     } z_mem;
+
+    some_reg hidden;
+    hidden->ispresent = false;
 }; // @0, size=740

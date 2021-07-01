@@ -1,4 +1,5 @@
 from unittest_utils import RDLSourceTestCase
+from systemrdl.rdltypes import PrecedenceType
 
 class TestNodeUtils(RDLSourceTestCase):
 
@@ -169,6 +170,29 @@ class TestNodeUtils(RDLSourceTestCase):
                     'hier.z_mem.x[]',
                     'hier.z_mem',
                     'hier',
+                ]
+            )
+
+        with self.subTest("children"):
+            children = [child.inst_name for child in top.top.children()]
+            self.assertEqual(
+                children,
+                [
+                    'x',
+                    'y',
+                    'z_mem',
+                ]
+            )
+
+        with self.subTest("hidden children"):
+            children = [child.inst_name for child in top.top.children(skip_not_present=False)]
+            self.assertEqual(
+                children,
+                [
+                    'x',
+                    'y',
+                    'z_mem',
+                    'hidden',
                 ]
             )
 
@@ -363,6 +387,9 @@ class TestNodeUtils(RDLSourceTestCase):
         f4 = root.find_by_path("top.r1.f4")
         f5 = root.find_by_path("top.r1.f5")
         f6 = root.find_by_path("top.r1.f6")
+        f7 = root.find_by_path("top.r1.f7")
+        f8 = root.find_by_path("top.r1.f8")
+        f9 = root.find_by_path("top.r1.f9")
 
         r1 = root.find_by_path("top.r1")
         r2 = root.find_by_path("top.r2")
@@ -376,6 +403,9 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertTrue(f4.implements_storage)
         self.assertTrue(f5.implements_storage)
         self.assertTrue(f6.implements_storage)
+        self.assertTrue(f7.implements_storage)
+        self.assertTrue(f8.implements_storage)
+        self.assertTrue(f9.implements_storage)
 
         self.assertTrue(f1.is_sw_writable)
         self.assertFalse(f2.is_sw_writable)
@@ -383,20 +413,45 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertTrue(f4.is_sw_writable)
         self.assertFalse(f5.is_sw_writable)
         self.assertFalse(f6.is_sw_writable)
+        self.assertTrue(f7.is_sw_writable)
+        self.assertTrue(f8.is_sw_writable)
+        self.assertTrue(f9.is_sw_writable)
 
         self.assertFalse(f1.is_hw_writable)
         self.assertTrue(f2.is_hw_writable)
         self.assertTrue(f3.is_hw_writable)
+        self.assertFalse(f4.is_hw_writable)
+        self.assertFalse(f5.is_hw_writable)
+        self.assertFalse(f6.is_hw_writable)
+        self.assertTrue(f7.is_hw_writable)
+        self.assertTrue(f8.is_hw_writable)
+        self.assertTrue(f9.is_hw_writable)
 
         self.assertTrue(f1.is_hw_readable)
         self.assertFalse(f2.is_hw_readable)
         self.assertTrue(f3.is_hw_readable)
+        self.assertTrue(f4.is_hw_readable)
+        self.assertTrue(f5.is_hw_readable)
+        self.assertTrue(f6.is_hw_readable)
+        self.assertTrue(f7.is_hw_readable)
+        self.assertTrue(f8.is_hw_readable)
+        self.assertTrue(f9.is_hw_readable)
 
         self.assertTrue(r1.has_sw_writable)
         self.assertTrue(r1.has_sw_readable)
+        self.assertTrue(r1.has_hw_writable)
+        self.assertTrue(r1.has_hw_readable)
 
         self.assertFalse(r2.has_sw_writable)
         self.assertTrue(r2.has_sw_readable)
+        self.assertTrue(r2.has_hw_writable)
+        self.assertFalse(r2.has_hw_readable)
 
         self.assertTrue(r3.has_sw_writable)
         self.assertFalse(r3.has_sw_readable)
+        self.assertFalse(r3.has_hw_writable)
+        self.assertTrue(r3.has_hw_readable)
+
+        self.assertEqual(f7.get_property('precedence'), PrecedenceType.hw)
+        self.assertEqual(f8.get_property('precedence'), PrecedenceType.sw)
+        self.assertEqual(f9.get_property('precedence'), PrecedenceType.sw)

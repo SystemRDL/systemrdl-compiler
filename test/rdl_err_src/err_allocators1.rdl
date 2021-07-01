@@ -1,0 +1,4 @@
+
+reg foo {
+    field {} f1 @ 0;
+};

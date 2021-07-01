@@ -24,6 +24,20 @@ addrmap top {
             sw=r;hw=r;
             hwclr;
         } f6 = 1;
+        field {
+            sw=rw;hw=rw;
+            we;
+            precedence = hw;
+        } f7 = 0;
+        field {
+            sw=rw;hw=rw;
+            precedence = sw;
+            we;
+        } f8 = 0;
+        field {
+            sw=rw;hw=rw;
+            we;
+        } f9 = 0;
     } r1;
 
     reg {
