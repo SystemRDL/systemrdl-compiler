@@ -2,7 +2,7 @@ import re
 import itertools
 from copy import deepcopy
 from collections import deque
-from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Callable, Dict, Union
+from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Dict, Union
 
 from . import component as comp
 from . import rdltypes
