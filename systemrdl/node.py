@@ -79,6 +79,30 @@ class Node:
             raise RuntimeError
 
 
+    def unrolled(self) -> Iterator['Node']:
+        """
+        Returns an iterator that provides unrolled nodes for this instance
+
+        Yields
+        ------
+        :class:`~Node`
+            Unrolled array dimensions
+
+        .. versionadded:: 1.20.0
+        """
+        cls = type(self)
+        if isinstance(self, AddressableNode) and self.is_array: # pylint: disable=no-member
+            # Is an array. Yield a Node object for each instance
+            range_list = [range(n) for n in self.array_dimensions] # pylint: disable=no-member
+            for idxs in itertools.product(*range_list):
+                N = cls(self.inst, self.env, self.parent)
+                N.current_idx = idxs # type: ignore
+                yield N
+        else:
+            # not an array. Nothing to unroll
+            yield cls(self.inst, self.env, self.parent)
+
+
     def children(self, unroll: bool=False, skip_not_present: bool=True) -> Iterator['Node']:
         """
         Returns an iterator that provides nodes for all immediate children of

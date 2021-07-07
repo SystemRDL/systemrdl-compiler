@@ -174,25 +174,78 @@ class TestNodeUtils(RDLSourceTestCase):
             )
 
         with self.subTest("children"):
-            children = [child.inst_name for child in top.top.children()]
+            children = [child.get_path() for child in top.top.children()]
             self.assertEqual(
                 children,
                 [
-                    'x',
-                    'y',
-                    'z_mem',
+                    'hier.x',
+                    'hier.y[]',
+                    'hier.z_mem',
+                ]
+            )
+
+        with self.subTest("unrolled children"):
+            children = [child.get_path() for child in top.top.children(unroll=True)]
+            self.assertEqual(
+                children,
+                [
+                    'hier.x',
+                    'hier.y[0]',
+                    'hier.y[1]',
+                    'hier.y[2]',
+                    'hier.y[3]',
+                    'hier.z_mem',
                 ]
             )
 
         with self.subTest("hidden children"):
-            children = [child.inst_name for child in top.top.children(skip_not_present=False)]
+            children = [child.get_path() for child in top.top.children(skip_not_present=False)]
             self.assertEqual(
                 children,
                 [
-                    'x',
-                    'y',
-                    'z_mem',
-                    'hidden',
+                    'hier.x',
+                    'hier.y[]',
+                    'hier.z_mem',
+                    'hier.hidden',
+                ]
+            )
+
+        with self.subTest("unrolled child"):
+            children = [child.get_path() for child in top.top.find_by_path("y").unrolled()]
+            self.assertEqual(
+                children,
+                [
+                    'hier.y[0]',
+                    'hier.y[1]',
+                    'hier.y[2]',
+                    'hier.y[3]',
+                ]
+            )
+
+            children = [child.get_path() for child in top.top.find_by_path("x").unrolled()]
+            self.assertEqual(
+                children,
+                [
+                    'hier.x',
+                ]
+            )
+
+            children = [child.get_path() for child in top.top.find_by_path("x.c").unrolled()]
+            self.assertEqual(
+                children,
+                [
+                    'hier.x.c[0][0]',
+                    'hier.x.c[0][1]',
+                    'hier.x.c[0][2]',
+                    'hier.x.c[0][3]',
+                    'hier.x.c[1][0]',
+                    'hier.x.c[1][1]',
+                    'hier.x.c[1][2]',
+                    'hier.x.c[1][3]',
+                    'hier.x.c[2][0]',
+                    'hier.x.c[2][1]',
+                    'hier.x.c[2][2]',
+                    'hier.x.c[2][3]',
                 ]
             )
 
