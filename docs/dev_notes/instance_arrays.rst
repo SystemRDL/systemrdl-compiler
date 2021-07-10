@@ -29,8 +29,8 @@ If the component is not instantiated as an array, it uses the same class,
 array_dimensions is set to None.
 
 
-No support for non-homogeneous arrays
--------------------------------------
+No support for heterogeneous arrays
+-----------------------------------
 
 RDL spec allows parameters to be overridden via a dynamic property assignment.
 One feature described is the ability to modify a subset of an array of
@@ -59,10 +59,10 @@ For example:
 
 Not only would this add a bunch of complexities to encoding this construct in a
 register model, but it also would make downstream outputs a nightmare.
-Having a non-homogeneous array of something would require all kinds of nonsense
+Having a heterogeneous array of something would require all kinds of nonsense
 tricks to be done in model outputs (C headers, Verilog RTL).
 
-A non-homogeneous array would also end up being pretty conceptually confusing
+A heterogeneous array would also end up being pretty conceptually confusing
 to the end-user. It would be fundamentally better for the designer to simply
 break something up into separate sets of instances that have different
 behaviors.

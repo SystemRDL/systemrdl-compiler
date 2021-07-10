@@ -30,8 +30,8 @@ SystemRDL ``constraint`` blocks are not implemented yet.
 
 
 
-No support for non-homogeneous arrays
--------------------------------------
+No support for heterogeneous arrays
+-----------------------------------
 
 RDL spec allows parameters to be overridden via a dynamic property assignment.
 One feature described is the ability to modify a subset of an array of
