@@ -12,6 +12,7 @@ For each issue, I include the resolved interpretation that is used in this
 project.
 
 
+
 Semantic rule 10.6.1.c is violated in 5.1.2.2.2-Example 2
 ---------------------------------------------------------
 Rule 10.6.1.c states that ``accesswidth`` cannot be greater than ``regwidth``.
@@ -138,6 +139,7 @@ Also, the example in F.4 shows the paragraph tag used as expected - as a pair.
 Implement paragraph tag as an open/close pair.
 
 
+
 .. _dev_notes-errata-rdlfc_desc:
 
 Existence of the RDLFormatCode ``[desc]`` tag seems misguided
@@ -223,8 +225,91 @@ Do not implement an ```if`` preprocessor directive.
 
 
 
-Likely typo in semantic rule 11.2-f
+Inconsistent definition of the ``ref`` type keyword
+---------------------------------------------------
+
+In section 6.1, Table 7's denotes that the ``ref`` keyword is allowed to be used in
+both "parameter or struct member type names". This is in direct conflict with
+what the formal grammar in Annex B defines:
+
+.. code-block:: text
+    :emphasize-lines: 1,2
+
+    struct_type ::= data_type | component_type
+    param_def_elem ::= data_type id [ array_type ] [ = constant_expression ]
+    component_type ::= component_primary_type | signal
+    component_primary_type ::= addrmap | regfile | reg | field | mem
+
+According to the grammar, parameters are not allowed to use component references.
+This is further corroborated in clause 5.1.1.2-e that explicitly forbids it.
+Similarly, the grammar definition forbids structs from using the ``ref`` keyword
+but allows specific component type keywords to be used instead.
+
+The only place where the ``ref`` keyword is allowed to be used is in a User
+Defined Property (UDP) definition.
+
+**Resolution:**
+
+Ignore the implication in Table 7 that the ``ref`` keyword can be used in parameters
+or structs. Other areas in the specifiation forbid it more directly.
+
+
+
+--------------------------------------------------------------------------------
+
+Misc compilation issues in examples
 -----------------------------------
+Some very minor typos found while attempting to compile several code snippet examples.
+These issues do not have any significant effect on the interpretation of the
+language.
+
+
+
+5.1.2.5, Examples 1,2, and 3
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+All three examples fail to create an instance of ``regfile example`` inside
+the ``top`` addrmap component. This results in an empty component definition
+which violates the rule described in 13.3-b.
+
+
+
+6.3.2.4, Examples 1 and 2
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Numerous uses of "bool". Keyword should be "boolean" as required by the grammar.
+
+
+
+9.8.1, Example 1
+^^^^^^^^^^^^^^^^
+Illegal integer literal ``4'3``.
+
+
+
+14.2.3
+^^^^^^
+Field ``f2`` uses enumeration literals that are missing their ``color::`` prefix.
+
+
+
+15.2.2, Example 1
+^^^^^^^^^^^^^^^^^
+Missing semicolon in ``some_num_p`` after ``regfile``.
+
+
+
+15.2.2, Example 2
+^^^^^^^^^^^^^^^^^
+Enumeration literals are missing their ``myEncoding::`` prefix.
+
+
+
+--------------------------------------------------------------------------------
+
+Other typos in the spec
+-----------------------
+
+Typo in semantic rule 11.2-f
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     Virtual registers, **register files**, and fields shall have the same
     software access (sw property value) as the parent memory.
@@ -234,8 +319,8 @@ as per 11.1-b-1-ii.
 
 
 
-Likely typo in type name generation BNF snippet 5.1.1.4-c
----------------------------------------------------------
+Typo in type name generation BNF snippet 5.1.1.4-c
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 BNF-style description implies parentheses are part of the generated type name
 but the text in the same section only mentions underscore delimiters.
@@ -244,43 +329,9 @@ Assuming the red parentheses are to be ignored.
 
 --------------------------------------------------------------------------------
 
-Misc compilation issues in examples
------------------------------------
-Some very minor typos found while compiling several code snippet examples.
-These issues do not have any significant effect on the interpretation of the
-language.
-
-5.1.2.5, Examples 1,2, and 3
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-All three examples fail to create an instance of ``regfile example`` inside
-the ``top`` addrmap component. This results in an empty component definition
-which violates the rule described in 13.3-b.
-
-6.3.2.4, Examples 1 and 2
-^^^^^^^^^^^^^^^^^^^^^^^^^
-Numerous uses of "bool" instead of "boolean" keyword as described by grammar.
-
-9.8.1, Example 1
-^^^^^^^^^^^^^^^^
-Illegal integer literal ``4'3``.
-
-14.2.3
-^^^^^^
-Field ``f2`` uses enumeration literals that are missing their ``color::`` prefix.
-
-15.2.2, Example 1
-^^^^^^^^^^^^^^^^^
-Missing semicolon in ``some_num_p`` after ``regfile``.
-
-15.2.2, Example 2
-^^^^^^^^^^^^^^^^^
-Enumeration literals are missing their ``myEncoding::`` prefix.
-
-
---------------------------------------------------------------------------------
-
 Open Questions
 --------------
+
 
 
 User-defined property's "type" attribute can not be "signal"?
@@ -325,9 +376,9 @@ See :ref:`multifile_compilation` notes for more details.
 Interaction of Verilog-style ``include`` with Perl tags needs clarification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Interaction between ``include`` directives and Perl-style preprocessor context
-needs clarification. Using a strict interpretation of the spec would result in
-surprising behavior that does not seem intentional.
+Interaction between ``include`` directives and Perl-style preprocessor variable
+scope needs clarification. Using a strict interpretation of the spec would result in
+surprising behavior that does not seem desireable.
 
 See :ref:`dev_notes-include_preprocessor` implementation notes for more
 details.
@@ -349,6 +400,8 @@ provided my own extended interpretation of how dynamic property assignments
 should affect a component's generated type name.
 
 See :ref:`dpa_type_generation` notes for more details.
+
+
 
 Precedence of ``hwclr`` and ``hwset`` at runtime
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -393,6 +446,7 @@ of that signal/field determines whether the current field is writable by softwar
 
 If either property is set to a boolean ``true``, then an input signal is inferred,
 which controls software's ability to write the field.
+
 
 
 Property "Ref Targets"
