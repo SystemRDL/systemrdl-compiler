@@ -2,7 +2,7 @@
 #
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Path setup --------------------------------------------------------------
 
@@ -17,19 +17,10 @@ sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
-base_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..")
-with open(os.path.join(base_dir, "systemrdl", "__about__.py")) as f:
-    v_dict = {}
-    exec(f.read(), v_dict)
-    rdl_version = v_dict['__version__']
-    rdl_version_short = ".".join(rdl_version.split('.')[:2])
 
 project = 'SystemRDL Compiler'
 copyright = '%d, Alex Mykyta' % datetime.datetime.now().year
 author = 'Alex Mykyta'
-
-# The full version, including alpha/beta/rc tags
-release = rdl_version
 
 
 # -- General configuration ---------------------------------------------------
