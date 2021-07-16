@@ -551,6 +551,14 @@ class PropertyReference:
         #: property is being referenced.
         self.node = None # type: Node
 
+    def __repr__(self) -> str:
+        return "<%s %s->%s at 0x%x>" % (
+            self.__class__.__qualname__,
+            self.node.get_path(),
+            self.name,
+            id(self)
+        )
+
     @property
     def name(self) -> str:
         """
