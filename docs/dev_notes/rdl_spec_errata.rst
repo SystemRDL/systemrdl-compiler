@@ -217,7 +217,7 @@ Verilog does not have an ```if`` preprocessor directive
 -------------------------------------------------------
 In 16.2.1 - Table 32, the SystemRDL spec references an ```if`` preprocessor
 directive. Nowhere in SystemVerilog IEEE Std 1800-2012 is this defined, nor
-does the RDL spec does not offer an explanation for its semantics.
+does the RDL spec offer an explanation for its semantics.
 
 **Resolution:**
 
