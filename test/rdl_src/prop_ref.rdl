@@ -1,0 +1,78 @@
+
+addrmap prop_value_ref {
+    reg {
+        default sw=rw;
+        default hw=r;
+        field {} a = 0;
+        field {} b;
+        b->next = a->reset;
+    }y;
+};
+
+addrmap err_missing_reset {
+    reg {
+        default sw=rw;
+        default hw=r;
+        field {} a;
+        field {} b;
+        b->next = a->reset; // a's reset was never set
+    }y;
+};
+
+addrmap err_circular_ref {
+    reg {
+        default sw=rw;
+        default hw=r;
+        field {} a;
+        field {} b;
+        a->next = b->next;
+        b->next = a->next;
+    }y;
+};
+
+addrmap inferred_vector {
+    reg {
+        default sw=rw;
+        default hw=r;
+        field {
+            sw=rw; hw=w; we;
+        } a;
+        field {} b;
+        field {} c;
+        b->next = a->we;
+        c->next = a->wel;
+    }y;
+};
+
+addrmap err_no_inferred {
+    reg {
+        default sw=rw;
+        default hw=r;
+        field {} a;
+        field {} b;
+        b->next = a->we;
+    }y;
+};
+
+addrmap err_not_a_counter {
+    reg {
+        default sw=rw;
+        default hw=r;
+        field {} a;
+        field {} b;
+        b->next = a->incr;
+    }y;
+};
+
+addrmap err_no_counter_threshold {
+    reg {
+        default sw=rw;
+        default hw=r;
+        field {
+            counter;
+        } a;
+        field {} b;
+        field {} c;
+        b->next = a->incrthreshold;
+    }y;
+};

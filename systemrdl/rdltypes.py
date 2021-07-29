@@ -559,6 +559,18 @@ class PropertyReference:
             id(self)
         )
 
+    def __eq__(self, other: object) -> bool:
+        """
+        Property reference equality checks determine whether the other object
+        represents the same reference (node represents the same position in the
+        register model's hierarchy and the property referenced is the same)
+        """
+        if not isinstance(other, PropertyReference):
+            return NotImplemented
+        if self.name != other.name:
+            return False
+        return self.node.get_path() == other.node.get_path()
+
     @property
     def name(self) -> str:
         """
