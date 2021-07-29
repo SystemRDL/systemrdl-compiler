@@ -367,6 +367,13 @@ class StructuralPlacementListener(walker.RDLListener):
                         inst.lsb = prev_inst.msb - 1
 
                     inst.msb = inst.lsb - inst.width + 1
+
+                    if inst.msb < 0:
+                        node.env.msg.fatal(
+                            "Field '%s' of width %d infers bit range [%d:%d] which extends below bit 0"
+                            % (inst.inst_name, inst.width, inst.msb, inst.lsb),
+                            inst.inst_src_ref
+                        )
                 else:
                     # In lsb0 mode. Pack from bit 0 first
                     # lsb == low
