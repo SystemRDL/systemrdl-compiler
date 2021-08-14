@@ -8,7 +8,7 @@ from .value_normalization import normalize
 from .. import component as comp
 from .. import walker
 from .. import rdltypes
-from ..node import AddressableNode, VectorNode, FieldNode, RegNode, RegfileNode
+from ..node import AddressableNode, RootNode, VectorNode, FieldNode, RegNode, RegfileNode
 from ..node import AddrmapNode, MemNode, SignalNode, Node
 
 if TYPE_CHECKING:
@@ -520,6 +520,13 @@ class LateElabListener(walker.RDLListener):
         self.env = env
         self.coerce_external_to = None # type: Optional[bool]
         self.coerce_end_regfile = None # type: Optional[Node]
+
+
+    def enter_Component(self, node: Node) -> None:
+        # if parent is not present, children inherit it too
+        if node.parent is not None and not isinstance(node.parent, RootNode):
+            if not node.parent.get_property('ispresent'):
+                node.inst.properties['ispresent'] = False
 
 
     def enter_Field(self, node: FieldNode) -> None:
