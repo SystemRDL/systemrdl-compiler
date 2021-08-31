@@ -10,6 +10,7 @@ from .verilog_preprocessor import get_illegal_trailing_text_pos
 from ..source_ref import DirectSourceRef, FileSourceRef
 
 if TYPE_CHECKING:
+    from typing import Set
     from ..compiler import RDLEnvironment
 
 class PerlPreprocessor:
@@ -22,6 +23,8 @@ class PerlPreprocessor:
 
         with open(path, 'r', newline='', encoding='utf_8') as f:
             self.text = f.read()
+
+        self.included_files = set() # type: Set[str]
 
     #---------------------------------------------------------------------------
     def preprocess(self) -> Tuple[str, segment_map.SegmentMap]:
@@ -230,11 +233,14 @@ class PerlPreprocessor:
                 # create a reference that captures the location where the include occurred
                 incl_ref = segment_map.IncludeRef(start, end, self.path, self.incl_ref)
 
+
                 # Recurse and extract perl segments from included file
                 incl_file_pp = PerlPreprocessor(self.env, incl_path, self.search_paths, incl_ref)
                 incl_tokens = incl_file_pp.tokenize()
                 incl_pl_segments, incl_has_pl_tags = incl_file_pp.get_perl_segments(incl_tokens)
 
+                self.included_files.add(incl_path)
+                self.included_files.update(incl_file_pp.included_files)
                 pl_segments.extend(incl_pl_segments)
                 has_perl_tags = has_perl_tags or incl_has_pl_tags
 

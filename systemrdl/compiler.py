@@ -1,4 +1,4 @@
-from typing import Set, Type, Any, List, Dict, Optional
+from typing import Set, Type, Any, List, Dict, Optional, Iterable
 
 from antlr4 import InputStream
 
@@ -18,6 +18,27 @@ from . import walker
 from .node import RootNode
 from . import preprocessor
 from . import rdltypes
+
+
+class FileInfo:
+    def __init__(self, preprocessed_text: str, included_files: Iterable[str]) -> None:
+        self._pp_text = preprocessed_text
+        self._incl_files = included_files
+
+    @property
+    def preprocessed_text(self) -> str:
+        """
+        Resolved text after Perl and Verilog preprocessing
+        """
+        return self._pp_text
+
+    @property
+    def included_files(self) -> Iterable[str]:
+        """
+        Iterable of paths that were included while preprocessing this file.
+        """
+        return self._incl_files
+
 
 class RDLCompiler:
 
@@ -84,6 +105,7 @@ class RDLCompiler:
         self.visitor = RootVisitor(self)
         self.root = self.visitor.component # type: comp.Root # type: ignore
 
+
     def define_udp(self, name, valid_type, valid_components=None, default=None):
         # type: (str, List[Any], Optional[Set[Type[comp.Component]]], Any) -> None
         """
@@ -142,7 +164,46 @@ class RDLCompiler:
         return list(self.env.property_rules.user_properties.keys())
 
 
-    def compile_file(self, path: str, incl_search_paths: Optional[List[str]]=None) -> None:
+    def preprocess_file(self, path: str, incl_search_paths: Optional[List[str]]=None) -> FileInfo:
+        """
+        Preprocess a single file without compiling it.
+
+        Parameters
+        ----------
+        path:str
+            Path to an RDL source file
+
+        incl_search_paths:list
+            List of additional paths to search to resolve includes.
+            If unset, defaults to an empty list.
+
+            Relative include paths are resolved in the following order:
+
+            1. Search each path specified in ``incl_search_paths``.
+            2. Path relative to the source file performing the include.
+
+        Raises
+        ------
+        RDLCompileError
+            If any fatal preprocessing error is encountered.
+
+        Returns
+        -------
+        :class:`FileInfo`
+            File info object
+
+
+        .. versionadded:: 1.20
+        """
+        if incl_search_paths is None:
+            incl_search_paths = []
+
+        input_stream, included_files = preprocessor.preprocess_file(self.env, path, incl_search_paths)
+
+        return FileInfo(input_stream.strdata, included_files)
+
+
+    def compile_file(self, path: str, incl_search_paths: Optional[List[str]]=None) -> FileInfo:
         """
         Parse & compile a single file and append it to RDLCompiler's root
         namespace.
@@ -168,12 +229,21 @@ class RDLCompiler:
         ------
         RDLCompileError
             If any fatal compile error is encountered.
+
+        Returns
+        -------
+        :class:`FileInfo`
+            File info object
+
+
+        .. versionchanged:: 1.20
+            Returns a :class:`FileInfo` object instead of ``None``
         """
 
         if incl_search_paths is None:
             incl_search_paths = []
 
-        input_stream = preprocessor.preprocess_file(self.env, path, incl_search_paths)
+        input_stream, included_files = preprocessor.preprocess_file(self.env, path, incl_search_paths)
 
         # Run Antlr parser on input
         parsed_tree = sa_systemrdl.parse(
@@ -194,6 +264,9 @@ class RDLCompiler:
 
         if self.msg.had_error:
             self.msg.fatal("Compile aborted due to previous errors")
+
+        return FileInfo(input_stream.strdata, included_files)
+
 
     def elaborate(self, top_def_name: Optional[str]=None, inst_name: Optional[str]=None, parameters: Optional[Dict[str, rdltypes.RDLValue]]=None) -> RootNode:
         """
