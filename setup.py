@@ -4,7 +4,7 @@ import platform
 import fnmatch
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
 # Replace relative image path with github-hosted one
@@ -13,7 +13,7 @@ long_description = long_description.replace(
     "https://raw.githubusercontent.com/SystemRDL/systemrdl-compiler/master/docs/img/overview.svg?sanitize=true"
 )
 
-with open(os.path.join("systemrdl", "__about__.py")) as f:
+with open(os.path.join("systemrdl", "__about__.py"), encoding='utf-8') as f:
     v_dict = {}
     exec(f.read(), v_dict)
     rdl_version = v_dict['__version__']

@@ -8,7 +8,7 @@ Evaluation Phases
 Parse phase
 ^^^^^^^^^^^
 
-* Using Antlr visitor, construct tree of Expr classes that represent the
+* Using Antlr visitor, construct tree of ASTNode classes that represent the
   computation.
 * Literals:
 
@@ -40,18 +40,18 @@ Parse phase
 No semantic/type checking is done. Only checking that is done is that any
 references actually refer to something that is in the current namespace.
 
-Visitor returns the resulting Expr class as the result.
+Visitor returns the resulting ASTNode class as the result.
 
 
 Parse-exit phase
 ^^^^^^^^^^^^^^^^
 
 * After an expression tree is constructed, the top-level visitor will return
-  the top-level Expr object
-* Whatever is using this Expr (an RDL property assignment) should check that
+  the top-level ASTNode object
+* Whatever is using this ASTNode (an RDL property assignment) should check that
   the resulting type is compatible with the assignment (or whether it can be
   cast)
-* Wrap the top-level Expr in the desired AssignmentCast expr operation
+* Wrap the top-level ASTNode in the desired AssignmentCast expr operation
 
     * This is different from a regular cast. All it does is:
 
@@ -61,7 +61,7 @@ Parse-exit phase
 
 * Run ".predict_type()"
 
-    * This is a function of Expr that recurses down and validates that all
+    * This is a function of ASTNode that recurses down and validates that all
       types are compatible.
 
     * If any errors exist, an error is thrown.
@@ -113,11 +113,11 @@ A "region" is the set of operations where resulting bit-width is ambiguous:
 Implementation
 ^^^^^^^^^^^^^^
 
-Construct Expr class tree as usual
+Construct ASTNode class tree as usual
 
-Each Expr has:
+Each ASTNode has:
 
-Expr.get_min_eval_width()
+ASTNode.get_min_eval_width()
     * literals return their declared size
     * unary reductions return 1
     * size casts return the fixed size
@@ -127,7 +127,7 @@ Expr.get_min_eval_width()
       It is up to the caller to know the type of the expression result
       and only call this if width resolution is needed
 
-Expr.get_value(eval_width=None)
+ASTNode.get_value(eval_width=None)
     * Recursively calls all operands and computes expression's result
     * If eval_width is unset:
 

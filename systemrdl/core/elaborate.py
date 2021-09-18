@@ -1,7 +1,7 @@
 import hashlib
 from typing import TYPE_CHECKING, List, Optional
 
-from .expressions import Expr
+from ..ast import ASTNode
 from .helpers import is_pow2, roundup_pow2, roundup_to
 from .value_normalization import normalize
 
@@ -38,17 +38,17 @@ class ElabExpressionsListener(walker.RDLListener):
     def enter_Component(self, node: Node) -> None:
         # Evaluate component properties
         for prop_name, prop_value in node.inst.properties.items():
-            if isinstance(prop_value, Expr):
+            if isinstance(prop_value, ASTNode):
                 node.inst.properties[prop_name] = prop_value.get_value()
 
 
     def enter_AddressableComponent(self, node: AddressableNode) -> None:
         assert isinstance(node.inst, comp.AddressableComponent)
         # Evaluate instance object expressions
-        if isinstance(node.inst.addr_offset, Expr):
+        if isinstance(node.inst.addr_offset, ASTNode):
             node.inst.addr_offset = node.inst.addr_offset.get_value()
 
-        if isinstance(node.inst.addr_align, Expr):
+        if isinstance(node.inst.addr_align, ASTNode):
             node.inst.addr_align = node.inst.addr_align.get_value()
             if node.inst.addr_align == 0:
                 self.msg.fatal(
@@ -58,7 +58,7 @@ class ElabExpressionsListener(walker.RDLListener):
 
         if node.inst.array_dimensions:
             for i, dim in enumerate(node.inst.array_dimensions):
-                if isinstance(dim, Expr):
+                if isinstance(dim, ASTNode):
                     node.inst.array_dimensions[i] = dim.get_value()
                     if node.inst.array_dimensions[i] == 0:
                         self.msg.fatal(
@@ -66,7 +66,7 @@ class ElabExpressionsListener(walker.RDLListener):
                             node.inst.inst_src_ref
                         )
 
-        if isinstance(node.inst.array_stride, Expr):
+        if isinstance(node.inst.array_stride, ASTNode):
             node.inst.array_stride = node.inst.array_stride.get_value()
             if node.inst.array_stride == 0:
                 self.msg.fatal(
@@ -78,7 +78,7 @@ class ElabExpressionsListener(walker.RDLListener):
     def enter_VectorComponent(self, node: VectorNode) -> None:
         assert isinstance(node.inst, comp.VectorComponent)
         # Evaluate instance object expressions
-        if isinstance(node.inst.width, Expr):
+        if isinstance(node.inst.width, ASTNode):
             node.inst.width = node.inst.width.get_value()
             if node.inst.width == 0:
                 self.msg.fatal(
@@ -86,10 +86,10 @@ class ElabExpressionsListener(walker.RDLListener):
                     node.inst.inst_src_ref
                 )
 
-        if isinstance(node.inst.msb, Expr):
+        if isinstance(node.inst.msb, ASTNode):
             node.inst.msb = node.inst.msb.get_value()
 
-        if isinstance(node.inst.lsb, Expr):
+        if isinstance(node.inst.lsb, ASTNode):
             node.inst.lsb = node.inst.lsb.get_value()
 
 

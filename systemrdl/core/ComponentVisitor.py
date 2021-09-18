@@ -10,8 +10,8 @@ from .StructVisitor import StructVisitor
 from .UDPVisitor import UDPVisitor
 from .parameter import Parameter
 from .helpers import get_ID_text
-from . import expressions
 
+from .. import ast
 from ..source_ref import src_ref_from_antlr, SourceRefBase
 from .. import component as comp
 from .. import rdltypes
@@ -266,7 +266,7 @@ class ComponentVisitor(BaseVisitor):
             self.visit(inst_ctx)
 
 
-    def assign_inst_parameters(self, comp_inst: comp.Component, param_assigns: Dict[str, Tuple[expressions.Expr, SourceRefBase]]) -> None:
+    def assign_inst_parameters(self, comp_inst: comp.Component, param_assigns: Dict[str, Tuple[ast.ASTNode, SourceRefBase]]) -> None:
         for param_name, (assign_expr, src_ref) in param_assigns.items():
             # Lookup corresponding parameter in component
             for comp_param in comp_inst.parameters:
@@ -281,7 +281,7 @@ class ComponentVisitor(BaseVisitor):
                 )
 
             # Override the parameter's value
-            assign_expr = expressions.AssignmentCast(
+            assign_expr = ast.AssignmentCast(
                 self.compiler.env,
                 src_ref,
                 assign_expr,
@@ -332,7 +332,7 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.external = None
 
 
-    def get_instance_assignment(self, ctx: 'ParserRuleContext') -> expressions.Expr:
+    def get_instance_assignment(self, ctx: 'ParserRuleContext') -> ast.ASTNode:
         """
         Gets the integer expression in any of the four instance assignment
         operators ('=' '@' '+=' '%=')
@@ -342,7 +342,7 @@ class ComponentVisitor(BaseVisitor):
 
         visitor = ExprVisitor(self.compiler)
         expr = visitor.visit(ctx.expr())
-        expr = expressions.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.op), expr, int)
+        expr = ast.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.op), expr, int)
         expr.predict_type()
         return expr
 
@@ -519,7 +519,7 @@ class ComponentVisitor(BaseVisitor):
         if ctx.expr() is not None:
             visitor = ExprVisitor(self.compiler)
             default_expr = visitor.visit(ctx.expr())
-            default_expr = expressions.AssignmentCast(
+            default_expr = ast.AssignmentCast(
                 self.compiler.env,
                 src_ref_from_antlr(ctx.ID()),
                 default_expr,
@@ -537,7 +537,7 @@ class ComponentVisitor(BaseVisitor):
 
         return param
 
-    def visitParam_inst(self, ctx: SystemRDLParser.Param_instContext) -> Dict[str, Tuple[expressions.Expr, SourceRefBase]]:
+    def visitParam_inst(self, ctx: SystemRDLParser.Param_instContext) -> Dict[str, Tuple[ast.ASTNode, SourceRefBase]]:
         param_assigns = {}
         for assignment in ctx.getTypedRuleContexts(SystemRDLParser.Param_assignmentContext):
             param_name, assign_expr = self.visit(assignment)
@@ -553,7 +553,7 @@ class ComponentVisitor(BaseVisitor):
             param_assigns[param_name] = (assign_expr, src_ref)
         return param_assigns
 
-    def visitParam_assignment(self, ctx: SystemRDLParser.Param_assignmentContext) -> Tuple[str, expressions.Expr]:
+    def visitParam_assignment(self, ctx: SystemRDLParser.Param_assignmentContext) -> Tuple[str, ast.ASTNode]:
         param_name = get_ID_text(ctx.ID())
 
         visitor = ExprVisitor(self.compiler)
@@ -679,7 +679,7 @@ class ComponentVisitor(BaseVisitor):
 
         return name_token
 
-    def visitNormal_prop_assign(self, ctx: SystemRDLParser.Normal_prop_assignContext) -> Tuple[SourceRefBase, str, Optional[expressions.Expr]]:
+    def visitNormal_prop_assign(self, ctx: SystemRDLParser.Normal_prop_assignContext) -> Tuple[SourceRefBase, str, Optional[ast.ASTNode]]:
 
         # Get property string
         if ctx.prop_keyword() is not None:
@@ -830,22 +830,22 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Array and Range suffixes
     #---------------------------------------------------------------------------
-    def visitRange_suffix(self, ctx: SystemRDLParser.Range_suffixContext) -> Tuple[expressions.Expr, expressions.Expr]:
+    def visitRange_suffix(self, ctx: SystemRDLParser.Range_suffixContext) -> Tuple[ast.ASTNode, ast.ASTNode]:
         visitor = ExprVisitor(self.compiler)
         expr1 = visitor.visit(ctx.expr(0))
-        expr1 = expressions.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.expr(0)), expr1, int)
+        expr1 = ast.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.expr(0)), expr1, int)
         expr1.predict_type()
 
         expr2 = visitor.visit(ctx.expr(1))
-        expr2 = expressions.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.expr(1)), expr2, int)
+        expr2 = ast.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.expr(1)), expr2, int)
         expr2.predict_type()
 
         return expr1, expr2
 
-    def visitArray_suffix(self, ctx: SystemRDLParser.Array_suffixContext) -> expressions.Expr:
+    def visitArray_suffix(self, ctx: SystemRDLParser.Array_suffixContext) -> ast.ASTNode:
         visitor = ExprVisitor(self.compiler)
         expr = visitor.visit(ctx.expr())
-        expr = expressions.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.expr()), expr, int)
+        expr = ast.AssignmentCast(self.compiler.env, src_ref_from_antlr(ctx.expr()), expr, int)
         expr.predict_type()
         return expr
 

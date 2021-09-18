@@ -12,7 +12,7 @@ from .core.namespace import NamespaceRegistry
 from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
 from .core.elaborate import StructuralPlacementListener
 from .core.validate import ValidateListener
-from .core import expressions as expr
+from . import ast
 from . import component as comp
 from . import walker
 from .node import RootNode
@@ -361,8 +361,8 @@ class RDLCompiler:
             else:
                 raise ValueError("Parameter '%s' is not available for override" % param_name)
 
-            literal_expr = expr.ExternalLiteral(self.env, value)
-            assign_expr = expr.AssignmentCast(self.env, None, literal_expr, parameter.param_type)
+            literal_expr = ast.ExternalLiteral(self.env, value)
+            assign_expr = ast.AssignmentCast(self.env, None, literal_expr, parameter.param_type)
             assign_type = assign_expr.predict_type()
             if assign_type is None:
                 raise TypeError("Incorrect type for parameter '%s'" % param_name)

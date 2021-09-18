@@ -6,8 +6,9 @@ from ..parser.SystemRDLParser import SystemRDLParser
 from .BaseVisitor import BaseVisitor
 from .ExprVisitor import ExprVisitor
 from .helpers import get_ID_text
-from . import expressions, helpers
+from . import helpers
 
+from ..ast import AssignmentCast
 from ..source_ref import src_ref_from_antlr
 from .. import rdltypes
 
@@ -48,7 +49,7 @@ class EnumVisitor(BaseVisitor):
 
                 visitor = ExprVisitor(self.compiler)
                 expr = visitor.visit(value_expr_ctx)
-                expr = expressions.AssignmentCast(self.compiler.env, value_expr_ctx, expr, int)
+                expr = AssignmentCast(self.compiler.env, value_expr_ctx, expr, int)
                 expr.predict_type()
 
                 # OK to immediately evaluate the expression since there is no way that it
@@ -122,7 +123,7 @@ class EnumVisitor(BaseVisitor):
 
         visitor = ExprVisitor(self.compiler)
         prop_expr = visitor.visit(ctx.expr())
-        prop_expr = expressions.AssignmentCast(self.compiler.env, ctx.expr(), prop_expr, str)
+        prop_expr = AssignmentCast(self.compiler.env, ctx.expr(), prop_expr, str)
         prop_expr.predict_type()
 
         # OK to immediately evaluate the expression since there is no way that it

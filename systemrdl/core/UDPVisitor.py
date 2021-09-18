@@ -7,7 +7,7 @@ from .ExprVisitor import ExprVisitor
 from .helpers import get_ID_text
 
 from . import properties
-from . import expressions
+from .. import ast
 
 from ..source_ref import src_ref_from_antlr
 from .. import component as comp
@@ -70,11 +70,11 @@ class UDPVisitor(BaseVisitor):
             # 15.1.1-e: The default value shall be assignment compatible with
             # the property type
             for valid_type in self._valid_types:
-                if expressions.is_castable(expr_type, valid_type):
-                    if isinstance(expr, expressions.Expr):
+                if ast.is_castable(expr_type, valid_type):
+                    if isinstance(expr, ast.ASTNode):
                         # Found a type-compatible match. (first match is best match)
                         # Wrap the expression with an explicit assignment cast
-                        expr = expressions.AssignmentCast(
+                        expr = ast.AssignmentCast(
                             self.compiler.env, src_ref_from_antlr(expr_ctx),
                             expr, valid_type
                         )

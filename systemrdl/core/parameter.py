@@ -5,10 +5,10 @@ from .value_normalization import normalize
 
 if TYPE_CHECKING:
     from .. import rdltypes
-    from .expressions import Expr
+    from ..ast import ASTNode
 
 class Parameter:
-    def __init__(self, param_type: 'rdltypes.PreElabRDLType', name: str, default_expr: Optional['Expr']=None):
+    def __init__(self, param_type: 'rdltypes.PreElabRDLType', name: str, default_expr: Optional['ASTNode']=None):
         self.name = name
         self.param_type = param_type
 

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
     from .. import rdltypes
-    from .expressions import Expr
+    from ..ast import ASTNode
 
 if sys.version_info >= (3,5,4):
     TypeNSRef = Union[comp.Component, Type['rdltypes.UserEnum'], Type['rdltypes.UserStruct']]
@@ -24,7 +24,7 @@ ElementNSRef = Union[comp.Component, Parameter]
 ElementNSEntry = Tuple[ElementNSRef, comp.Component]
 ElementNSScope = Dict[str, ElementNSEntry]
 
-DefaultNSRef = Union['Expr', bool, 'rdltypes.InterruptType']
+DefaultNSRef = Union['ASTNode', bool, 'rdltypes.InterruptType']
 DefaultNSEntry = Tuple['SourceRefBase', DefaultNSRef]
 DefaultNSScope = Dict[str, DefaultNSEntry]
 

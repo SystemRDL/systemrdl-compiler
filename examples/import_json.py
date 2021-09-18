@@ -12,7 +12,7 @@ class JSONImporter(RDLImporter):
         super().import_file(path)
 
         # Load the JSON from a file and convert it to primitive Python objects
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             json_obj = json.load(f)
 
         # Make sure top level object is an addrmap type

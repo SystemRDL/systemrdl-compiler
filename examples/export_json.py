@@ -77,7 +77,7 @@ def convert_to_json(rdlc: RDLCompiler, obj: node.RootNode, path: str):
     json_obj = convert_addrmap_or_regfile(rdlc, obj.top)
 
     # Write to a JSON file
-    with open(path, "w") as f:
+    with open(path, "w", encoding='utf-8') as f:
         json.dump(json_obj, f, indent=4)
 
 #-------------------------------------------------------------------------------

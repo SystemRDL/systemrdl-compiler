@@ -49,7 +49,7 @@ This object contains the following:
   earlier.
 * List of hierarchical path segments (ref_elements)
   Each segment consists of an identifier token, and a list of array
-  suffix Expr
+  suffix ASTNode
 
 As usual, after an expression tree is built, predict_type() is called.
 For InstRef expression nodes, the following is performed:

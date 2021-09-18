@@ -3,7 +3,7 @@ from typing import Any, Set, Type, Iterable, TYPE_CHECKING, Optional, Dict, List
 from .. import component as comp
 from .. import node as m_node
 from .. import rdltypes
-from . import expressions
+from .. import ast
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
@@ -76,9 +76,9 @@ class PropertyRule:
 
         # unpack true type of value
         # Contents of value can be:
-        #   - An expression (instance of an Expr subclass)
+        #   - An expression (instance of an ASTNode subclass)
         #   - Direct assignment of a type-compatible value
-        if isinstance(value, expressions.Expr):
+        if isinstance(value, ast.ASTNode):
             # Predict expected type after value would get evaluated
             assign_type = value.predict_type()
         elif rdltypes.is_user_enum(value):
@@ -96,11 +96,11 @@ class PropertyRule:
         else:
             # otherwise, cast to the first compatible type
             for valid_type in self.valid_types:
-                if expressions.is_castable(assign_type, valid_type):
-                    if isinstance(value, expressions.Expr):
+                if ast.is_castable(assign_type, valid_type):
+                    if isinstance(value, ast.ASTNode):
                         # Found a type-compatible match. (first match is best match)
                         # Wrap the expression with an explicit assignment cast
-                        value = expressions.AssignmentCast(self.env, src_ref, value, valid_type)
+                        value = ast.AssignmentCast(self.env, src_ref, value, valid_type)
                     break
             else:
                 self.env.msg.fatal(
@@ -323,7 +323,7 @@ class Prop_dontcompare(PropertyRule):
         # If assigned to any other components, exclusively cast it to a boolean
         if not isinstance(comp_def, comp.Field):
             value = comp_def.properties[self.get_name()]
-            value = expressions.AssignmentCast(self.env, src_ref, value, bool)
+            value = ast.AssignmentCast(self.env, src_ref, value, bool)
             comp_def.properties[self.get_name()] = value
 
     def validate(self, node: m_node.Node, value: Any) -> None:
@@ -404,7 +404,7 @@ class Prop_donttest(PropertyRule):
         # If assigned to any other components, exclusively cast it to a boolean
         if not isinstance(comp_def, comp.Field):
             value = comp_def.properties[self.get_name()]
-            value = expressions.AssignmentCast(self.env, src_ref, value, bool)
+            value = ast.AssignmentCast(self.env, src_ref, value, bool)
             comp_def.properties[self.get_name()] = value
 
     def validate(self, node: m_node.Node, value: Any) -> None:
