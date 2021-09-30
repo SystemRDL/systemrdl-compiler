@@ -621,7 +621,7 @@ class Prop_reset(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        if type(value) == int:
+        if isinstance(value, int):
             # 9.5.1-c: The reset value cannot be larger than can fit in the field
             if value >= (1 << node.width):
                 self.env.msg.error(

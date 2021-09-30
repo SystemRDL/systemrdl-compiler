@@ -10,13 +10,13 @@ def normalize(value: Any, owner_node: Optional[node.Node]=None) -> str:
     normalization.
     """
     # Determine what type is being flattened
-    if type(value) == int:
-        return normalize_scalar(value)
-    elif type(value) == bool:
+    if isinstance(value, bool):
         return normalize_boolean(value)
-    elif type(value) == str:
+    elif isinstance(value, int):
+        return normalize_scalar(value)
+    elif isinstance(value, str):
         return normalize_string(value)
-    elif type(value) == list:
+    elif isinstance(value, list):
         return normalize_array(value)
     elif isinstance(value, (rdltypes.BuiltinEnum, rdltypes.UserEnum)):
         return normalize_enum(value)

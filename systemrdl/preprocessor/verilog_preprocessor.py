@@ -714,7 +714,7 @@ class Macro:
                 segments.append(contents[seg_start_idx:m.start()])
                 seg_start_idx = m.end()
                 segments.append('\\"')
-            elif m.lastgroup == "tp" or m.lastgroup == "slbc":
+            elif m.lastgroup in ("tp", "slbc"):
                 # discard
                 segments.append(contents[seg_start_idx:m.start()])
                 seg_start_idx = m.end()
