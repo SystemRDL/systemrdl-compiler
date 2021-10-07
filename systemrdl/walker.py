@@ -96,7 +96,7 @@ class RDLWalker:
         self.skip_not_present = skip_not_present
 
 
-    def walk(self, node: Node, *listeners: RDLListener) -> None:
+    def walk(self, node: Node, *listeners: RDLListener, skip_top: bool=False) -> None:
         """
         Initiates the walker to traverse the current ``node`` and its children.
         Calls the corresponding callback for each of the ``listeners`` provided in
@@ -112,15 +112,25 @@ class RDLWalker:
             One or more :class:`~RDLListener` that are invoked during
             node traversal.
             Listener callbacks are executed in the same order as provided.
+
+        skip_top : bool
+            Skip callbacks for the top node specified by ``node``
+
+
+        .. versionchanged:: 1.21
+            Added ``skip_top`` option.
         """
 
+        if not skip_top:
+            for listener in listeners:
+                self.do_enter(node, listener)
 
-        for listener in listeners:
-            self.do_enter(node, listener)
         for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
             self.walk(child, *listeners)
-        for listener in listeners:
-            self.do_exit(node, listener)
+
+        if not skip_top:
+            for listener in listeners:
+                self.do_exit(node, listener)
 
 
     def do_enter(self, node: Node, listener: RDLListener) -> None:
