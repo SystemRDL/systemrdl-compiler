@@ -73,10 +73,10 @@ class Component:
         # Properties applied to this component
         self.properties = {} # type: Dict[str, Any]
 
-        #: Source references for each explicit property assignment (if available)
+        #: :ref:`api_src_ref` for each explicit property assignment (if available)
         self.property_src_ref = {} # type: Dict[str, SourceRefBase]
 
-        #: Source reference for the component definition
+        #: :ref:`api_src_ref` for the component definition
         self.def_src_ref = None # type: Optional[SourceRefBase]
 
         #------------------------------
@@ -97,7 +97,7 @@ class Component:
         #: True if instance type is external. False if internal.
         self.external = None # type: bool
 
-        #: Source reference for the component instantiation.
+        #: :ref:`api_src_ref` for the component instantiation.
         self.inst_src_ref = None # type: Optional[SourceRefBase]
 
         #------------------------------

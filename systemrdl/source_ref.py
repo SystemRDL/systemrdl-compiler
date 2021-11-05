@@ -30,6 +30,8 @@ class FileSourceRef(SourceRefBase):
     """
     Simple file source reference that is only capable of providing the path to
     the originating file.
+
+    Some register model importers may only be able to provide limited source context.
     """
     def __init__(self, path: str):
         super().__init__()

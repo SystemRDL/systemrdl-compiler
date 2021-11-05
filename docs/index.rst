@@ -77,6 +77,7 @@ Links
    api/component
    api/types
    api/messages
+   api/source_ref
    api/importer
 
 .. toctree::
