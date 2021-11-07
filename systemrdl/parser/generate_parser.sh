@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
-antlr4="java -Xmx500M -cp /usr/local/lib/antlr-4.9-complete.jar org.antlr.v4.Tool"
+antlr4="java -Xmx500M -cp /usr/local/lib/antlr-4.9.3-complete.jar org.antlr.v4.Tool"
 
 # Generate Python target
 $antlr4 -Dlanguage=Python3 -visitor -no-listener SystemRDL.g4

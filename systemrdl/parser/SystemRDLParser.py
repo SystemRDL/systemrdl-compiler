@@ -1,4 +1,4 @@
-# Generated from SystemRDL.g4 by ANTLR 4.9
+# Generated from SystemRDL.g4 by ANTLR 4.9.3
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -700,7 +700,7 @@ class SystemRDLParser ( Parser ):
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.9")
+        self.checkVersion("4.9.3")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
@@ -708,6 +708,7 @@ class SystemRDLParser ( Parser ):
 
 
     class RootContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -766,6 +767,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Root_elemContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -882,6 +884,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1005,6 +1008,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Explicit_component_instContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1074,6 +1078,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_inst_aliasContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1117,6 +1122,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_named_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1180,6 +1186,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_anon_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1225,6 +1232,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_bodyContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1282,6 +1290,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_body_elemContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1388,6 +1397,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_instsContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1455,6 +1465,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_instContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1575,6 +1586,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Field_inst_resetContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1620,6 +1632,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Inst_addr_fixedContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1665,6 +1678,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Inst_addr_strideContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1710,6 +1724,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Inst_addr_alignContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1755,6 +1770,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_inst_typeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1804,6 +1820,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_typeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1860,6 +1877,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Component_type_primaryContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1918,6 +1936,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Param_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1979,6 +1998,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Param_def_elemContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -2053,6 +2073,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Param_instContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -2114,6 +2135,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Param_assignmentContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -2164,6 +2186,7 @@ class SystemRDLParser ( Parser ):
 
 
     class ExprContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -2578,6 +2601,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Expr_primaryContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -2704,6 +2728,7 @@ class SystemRDLParser ( Parser ):
 
 
     class ConcatenateContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -2763,6 +2788,7 @@ class SystemRDLParser ( Parser ):
 
 
     class ReplicateContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -2812,6 +2838,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Paren_exprContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -2855,6 +2882,7 @@ class SystemRDLParser ( Parser ):
 
 
     class CastContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -2973,6 +3001,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Cast_width_exprContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3029,6 +3058,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Range_suffixContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3079,6 +3109,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Array_suffixContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3122,6 +3153,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Array_type_suffixContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3160,6 +3192,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Data_typeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3232,6 +3265,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Basic_data_typeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3320,6 +3354,7 @@ class SystemRDLParser ( Parser ):
 
 
     class LiteralContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3439,6 +3474,7 @@ class SystemRDLParser ( Parser ):
 
 
     class NumberContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3542,6 +3578,7 @@ class SystemRDLParser ( Parser ):
 
 
     class String_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3580,6 +3617,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Boolean_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3629,6 +3667,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Array_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3707,6 +3746,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Struct_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3773,6 +3813,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Struct_kvContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3819,6 +3860,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Enum_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3864,6 +3906,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Accesstype_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3928,6 +3971,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Onreadtype_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -3980,6 +4024,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Onwritetype_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4050,6 +4095,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Addressingtype_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4102,6 +4148,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Precedencetype_literalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4151,6 +4198,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Instance_refContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4206,6 +4254,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Instance_ref_elementContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4262,6 +4311,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Prop_refContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4324,6 +4374,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Local_property_assignmentContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4418,6 +4469,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Dynamic_property_assignmentContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4486,6 +4538,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Normal_prop_assignContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4558,6 +4611,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Encode_prop_assignContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4606,6 +4660,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Prop_mod_assignContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4650,6 +4705,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Prop_assignment_rhsContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4706,6 +4762,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Prop_keywordContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4767,6 +4824,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Prop_modContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4825,6 +4883,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Udp_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4894,6 +4953,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Udp_attrContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -4968,6 +5028,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Udp_typeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5030,6 +5091,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Udp_data_typeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5105,6 +5167,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Udp_usageContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5176,6 +5239,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Udp_comp_typeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5242,6 +5306,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Udp_defaultContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5291,6 +5356,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Udp_constraintContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5339,6 +5405,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Enum_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5408,6 +5475,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Enum_entryContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5493,6 +5561,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Enum_prop_assignContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5542,6 +5611,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Struct_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5635,6 +5705,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Struct_elemContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5692,6 +5763,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Struct_typeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5748,6 +5820,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constraint_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5819,6 +5892,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constraint_named_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5868,6 +5942,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constraint_anon_defContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5912,6 +5987,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constraint_bodyContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -5969,6 +6045,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constraint_body_elemContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -6045,6 +6122,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constraint_instsContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -6099,6 +6177,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constr_relationalContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -6171,6 +6250,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constr_prop_assignContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -6220,6 +6300,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constr_inside_valuesContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -6290,6 +6371,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constr_inside_enumContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -6339,6 +6421,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constr_lhsContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -6394,6 +6477,7 @@ class SystemRDLParser ( Parser ):
 
 
     class Constr_inside_valueContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
