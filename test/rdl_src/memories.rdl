@@ -1,0 +1,39 @@
+addrmap memories {
+
+    external mem {
+        mementries = 2;
+        memwidth = 32;
+        sw = w;
+    } mem_2_32_w;
+
+    external mem {
+        mementries = 2;
+        memwidth = 32;
+        sw = r;
+    } mem_2_32_r;
+
+    external mem {
+        mementries = 2;
+        memwidth = 32;
+        sw = rw;
+    } mem_2_32_rw;
+
+    external mem {
+        mementries = 5;
+        memwidth = 64;
+        sw = w;
+    } mem_5_64_w;
+
+    external mem {
+        mementries = 5;
+        memwidth = 64;
+        sw = r;
+    } mem_5_64_r;
+
+    external mem {
+        mementries = 5;
+        memwidth = 64;
+        sw = rw;
+    } mem_5_64_rw;
+
+};
