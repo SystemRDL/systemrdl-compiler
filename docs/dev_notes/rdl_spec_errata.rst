@@ -490,7 +490,7 @@ AND-reduction of the field's value at *runtime*.
 
     field {
         sw=rw; hw=r;
-    } my_anded_field;
+    } my_anded_field[8:8];
     my_anded_field->next = my_field->anded;
 
 A Verilog code generator may output something similar to this:
@@ -503,7 +503,7 @@ A Verilog code generator may output something similar to this:
     logic my_anded_field;
     always_ff @(posedge clk) begin
         if(my_anded_field_swwe) begin
-            my_anded_field <= cpuif_bus[0];
+            my_anded_field <= cpuif_bus[8];
         end else begin
             my_anded_field <= &(my_field);
         end

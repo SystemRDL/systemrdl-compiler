@@ -50,6 +50,7 @@ jobs:
           pytest --cov=systemrdl --cov-append
 
       - name: Coveralls
+        if: ${{ matrix.python-version != 3.5 }} # coveralls no longer works well on 3.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
