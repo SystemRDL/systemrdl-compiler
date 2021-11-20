@@ -1177,6 +1177,26 @@ class MemNode(AddressableNode):
         num_entries = self.get_property('mementries')
         return entry_size * num_entries
 
+    @property
+    def is_sw_writable(self) -> bool:
+        """
+        Memory is writable by software
+        """
+        sw = self.get_property('sw')
+
+        return sw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
+                        rdltypes.AccessType.w, rdltypes.AccessType.w1)
+
+    @property
+    def is_sw_readable(self) -> bool:
+        """
+        Memory is readable by software
+        """
+        sw = self.get_property('sw')
+
+        return sw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
+                        rdltypes.AccessType.r)
+
 #===============================================================================
 def get_group_node_size(node: Union[AddrmapNode, RegfileNode]) -> int:
     """
