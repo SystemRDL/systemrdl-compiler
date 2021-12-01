@@ -4,10 +4,10 @@ property ref_prop {
 };
 
 
-signal {} glbl_sig;
+signal {activehigh;} glbl_sig;
 
 reg my_reg {
-    signal {} sig;
+    signal {activehigh;} sig;
 
     field {
         resetsignal = glbl_sig;
@@ -26,4 +26,3 @@ addrmap top {
 
     ref_prop = reg2[1].x;
 };
-

@@ -2,6 +2,7 @@
 addrmap top {
     signal {
         name = "default";
+        activehigh;
     } my_signal;
 
     reg my_reg_t {

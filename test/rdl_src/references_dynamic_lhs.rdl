@@ -4,12 +4,12 @@ property ref_prop {
     type = ref;
 };
 
-signal {} glbl_sig;
+signal {activehigh;} glbl_sig;
 
 reg my_reg {
     field {} x;
     field {} y;
-    signal {} sig;
+    signal {activehigh;} sig;
 
     x->ref_prop = y;
     y->ref_prop = x;

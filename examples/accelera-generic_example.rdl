@@ -32,8 +32,9 @@
 //  modifications; this notice must be included on any copy.
 //
 signal gen_reset_signal_type {                             // Define a generic reset signal type
-   name="Generic Reset Signal";
-   desc="This is a generic reset signal used to reset";
+  name="Generic Reset Signal";
+  desc="This is a generic reset signal used to reset";
+  activehigh;
 };
 
 gen_reset_signal_type generic_reset;                       // Instance the Generic Reset Signal

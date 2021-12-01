@@ -507,6 +507,16 @@ class Prop_cpuif_reset(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = None
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        if value is True:
+            if not node.get_property("activehigh") and not node.get_property("activelow"):
+                self.env.msg.error(
+                    "Signal '%s' sets the 'cpuif_reset' property but does not specify whether it is activehigh/activelow"
+                    % (node.inst_name),
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+
+
 
 class Prop_field_reset(PropertyRule):
     """
@@ -519,6 +529,15 @@ class Prop_field_reset(PropertyRule):
     default = False
     dyn_assign_allowed = True
     mutex_group = None
+
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        if value is True:
+            if not node.get_property("activehigh") and not node.get_property("activelow"):
+                self.env.msg.error(
+                    "Signal '%s' sets the 'field_reset' property but does not specify whether it is activehigh/activelow"
+                    % (node.inst_name),
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
 
 
 class Prop_activelow(PropertyRule):
@@ -661,8 +680,16 @@ class Prop_resetsignal(PropertyRule):
     mutex_group = None
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(value, m_node.SignalNode)
         self._validate_ref_width_is_1(node, value)
         self._validate_ref_is_present(node, value)
+
+        if not value.get_property("activehigh") and not value.get_property("activelow"):
+            self.env.msg.error(
+                "Signal '%s' referenced in 'resetsignal' does not specify whether it is activehigh/activelow"
+                % (value.inst_name),
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
 
     def get_default(self, node: m_node.Node) -> Optional[m_node.SignalNode]:
         """

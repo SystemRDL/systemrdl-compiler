@@ -2,12 +2,12 @@ default sw=rw;
 default hw=r;
 
 addrmap field_resets {
-    signal {} reset_x;
+    signal {activehigh;} reset_x;
 
     regfile {
-        signal {field_reset;} reset_y;
+        signal {field_reset; activehigh;} reset_y;
         reg {
-            signal {field_reset;} reset_z;
+            signal {field_reset; activelow;} reset_z;
 
             field {} A = 0; // implied reset_z
             field {resetsignal = reset_x;} B = 0;
@@ -29,9 +29,9 @@ addrmap field_resets {
 
 addrmap cpuif_resets {
     regfile {
-        signal {cpuif_reset;} reset_x;
+        signal {cpuif_reset; activehigh;} reset_x;
         reg {
-            signal {cpuif_reset;} reset_y;
+            signal {cpuif_reset; activehigh;} reset_y;
 
             field {} A = 0;
         } x;
