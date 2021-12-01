@@ -1876,14 +1876,14 @@ class PropRef_decr(CounterPropRef):
     """
     allowed_inst_type = comp.Field
 
-class PropRef_decsaturate(CounterPropRef):
+class PropRef_decrsaturate(CounterPropRef):
     """
     referencing the counter’s saturate output, which is a single bit value
     indicating whether the saturation has occurred
     """
     allowed_inst_type = comp.Field
 
-class PropRef_decthreshold(CounterThresholdPropRef):
+class PropRef_decrthreshold(CounterThresholdPropRef):
     """
     Referencing the counter’s threshold output, which is a single bit value
     indicating whether the threshold has been crossed
