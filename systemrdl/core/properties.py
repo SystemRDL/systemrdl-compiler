@@ -702,6 +702,15 @@ class Prop_rclr(PropertyRule):
         else:
             return self.default
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        if value is True and not node.is_sw_readable:
+            self.env.msg.error(
+                "Field '%s' sets the 'rclr' property but does not have software read access"
+                % (node.inst_name),
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
+
 
 class Prop_rset(PropertyRule):
     """
@@ -722,6 +731,15 @@ class Prop_rset(PropertyRule):
             return True
         else:
             return self.default
+
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        if value is True and not node.is_sw_readable:
+            self.env.msg.error(
+                "Field '%s' sets the 'rset' property but does not have software read access"
+                % (node.inst_name),
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
 
 
 class Prop_onread(PropertyRule):
@@ -785,6 +803,15 @@ class Prop_woclr(PropertyRule):
         else:
             return self.default
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        if value is True and not node.is_sw_writable:
+            self.env.msg.error(
+                "Field '%s' sets the 'woclr' property but does not have software write access"
+                % (node.inst_name),
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
+
 
 class Prop_woset(PropertyRule):
     """
@@ -805,6 +832,15 @@ class Prop_woset(PropertyRule):
             return True
         else:
             return self.default
+
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
+        if value is True and not node.is_sw_writable:
+            self.env.msg.error(
+                "Field '%s' sets the 'woset' property but does not have software write access"
+                % (node.inst_name),
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
 
 
 class Prop_onwrite(PropertyRule):

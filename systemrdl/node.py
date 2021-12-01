@@ -1181,6 +1181,8 @@ class MemNode(AddressableNode):
     def is_sw_writable(self) -> bool:
         """
         Memory is writable by software
+
+        .. versionadded:: 1.21
         """
         sw = self.get_property('sw')
 
@@ -1191,6 +1193,8 @@ class MemNode(AddressableNode):
     def is_sw_readable(self) -> bool:
         """
         Memory is readable by software
+
+        .. versionadded:: 1.21
         """
         sw = self.get_property('sw')
 

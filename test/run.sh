@@ -38,12 +38,11 @@ coverage html -i -d $this_dir/htmlcov
 
 # Also run examples in order to make sure output is up-to-date
 $this_dir/../examples/print_hierarchy.py $this_dir/../examples/atxmega_spi.rdl > $this_dir/../docs/examples/print_hierarchy_spi.stdout
-
 $this_dir/../examples/export_json.py $this_dir/../examples/tiny.rdl
 mv $this_dir/out.json $this_dir/../examples/tiny.json
 
 # Run lint
-pylint --rcfile $this_dir/pylint.rc systemrdl | tee $this_dir/lint.rpt
+pylint --rcfile $this_dir/pylint.rc systemrdl
 
 # Run static type checking
 mypy $this_dir/../systemrdl
