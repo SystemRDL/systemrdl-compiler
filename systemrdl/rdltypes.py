@@ -588,6 +588,18 @@ class PropertyReference:
     def _validate(self) -> None:
         pass
 
+    @property
+    def width(self) -> Optional[int]:
+        """
+        Get the equivalent width of the property reference.
+
+        Returns None if reference doesn't have a specifically defined width
+
+        .. versionadded:: 1.21
+        """
+        raise NotImplementedError
+
+
 #===============================================================================
 class ArrayPlaceholder():
     """

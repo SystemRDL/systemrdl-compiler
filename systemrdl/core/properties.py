@@ -158,6 +158,17 @@ class PropertyRule:
                     ),
                     node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
+        elif isinstance(value, rdltypes.PropertyReference) and value.width is not None:
+            if node.width != value.width:
+                self.env.msg.error(
+                    "%s '%s' references property '%s->%s' but they are not the same width (%d != %d)"
+                    % (
+                        type(node.inst).__name__.lower(), node.inst_name,
+                        value.node.inst_name, value.name,
+                        node.width, value.width
+                    ),
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
 
 
     def _validate_ref_width_is_1(self, node: m_node.Node, value: Any) -> None:
@@ -172,6 +183,16 @@ class PropertyRule:
                     % (
                         type(node.inst).__name__.lower(), node.inst_name,
                         type(value.inst).__name__.lower(), value.inst_name
+                    ),
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+        elif isinstance(value, rdltypes.PropertyReference) and value.width is not None:
+            if value.width != 1:
+                self.env.msg.error(
+                    "%s '%s' references property '%s->%s' but it's width is not 1"
+                    % (
+                        type(node.inst).__name__.lower(), node.inst_name,
+                        value.node.inst_name, value.name,
                     ),
                     node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
@@ -633,7 +654,7 @@ class Prop_reset(PropertyRule):
     (9.5)
     """
     bindable_to = {comp.Field}
-    valid_types = (int, comp.Field, comp.Signal,)
+    valid_types = (int, comp.Field, comp.Signal, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = None
@@ -656,7 +677,7 @@ class Prop_reset(PropertyRule):
                     % (node.inst_name),
                     node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
-        elif isinstance(value, m_node.SignalNode):
+        elif isinstance(value, (m_node.SignalNode, rdltypes.PropertyReference)):
             pass
         else:
             raise RuntimeError
@@ -949,7 +970,7 @@ class Prop_swwe(PropertyRule):
     (9.6)
     """
     bindable_to = {comp.Field}
-    valid_types = (bool, comp.Signal, comp.Field,)
+    valid_types = (bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "R"
@@ -967,7 +988,7 @@ class Prop_swwel(PropertyRule):
     (9.6)
     """
     bindable_to = {comp.Field}
-    valid_types = (bool, comp.Signal, comp.Field,)
+    valid_types = (bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "R"
@@ -1065,7 +1086,7 @@ class Prop_singlepulse(PropertyRule):
 
 class Prop_we(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool, comp.Signal, comp.Field)
+    valid_types = (bool, comp.Signal, comp.Field,  rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
@@ -1098,7 +1119,7 @@ class Prop_we(PropertyRule):
 
 class Prop_wel(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool, comp.Signal, comp.Field)
+    valid_types = (bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
@@ -1170,7 +1191,7 @@ class Prop_fieldwidth(PropertyRule):
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwclr(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool, comp.Signal, comp.Field)
+    valid_types = (bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -1182,7 +1203,7 @@ class Prop_hwclr(PropertyRule):
 
 class Prop_hwset(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool, comp.Signal, comp.Field)
+    valid_types = (bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -1194,7 +1215,7 @@ class Prop_hwset(PropertyRule):
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Prop_hwenable(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (comp.Field, comp.Signal,)
+    valid_types = (comp.Field, comp.Signal, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
@@ -1207,7 +1228,7 @@ class Prop_hwenable(PropertyRule):
 
 class Prop_hwmask(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (comp.Field, comp.Signal,)
+    valid_types = (comp.Field, comp.Signal, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "D"
@@ -1235,7 +1256,7 @@ class Prop_threshold(PropertyRule):
     alias of incrthreshold.
     """
     bindable_to = {comp.Field}
-    valid_types = (int, bool, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -1258,7 +1279,7 @@ class Prop_saturate(PropertyRule):
     alias of incrsaturate.
     """
     bindable_to = {comp.Field}
-    valid_types = (int, bool, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -1278,7 +1299,7 @@ class Prop_saturate(PropertyRule):
 
 class Prop_incrthreshold(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (int, bool, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrthreshold alias"
@@ -1298,7 +1319,7 @@ class Prop_incrthreshold(PropertyRule):
 
 class Prop_incrsaturate(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (int, bool, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "incrsaturate alias"
@@ -1347,7 +1368,7 @@ class Prop_incr(PropertyRule):
 
 class Prop_incrvalue(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (int, comp.Signal, comp.Field,)
+    valid_types = (int, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "F"
@@ -1368,7 +1389,7 @@ class Prop_incrwidth(PropertyRule):
 
 class Prop_decrvalue(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (int, comp.Signal, comp.Field,)
+    valid_types = (int, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "G"
@@ -1402,7 +1423,7 @@ class Prop_decrwidth(PropertyRule):
 
 class Prop_decrsaturate(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (int, bool, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -1415,7 +1436,7 @@ class Prop_decrsaturate(PropertyRule):
 
 class Prop_decrthreshold(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (int, bool, comp.Signal, comp.Field,)
+    valid_types = (int, bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = None
@@ -1467,7 +1488,7 @@ class Prop_enable(PropertyRule):
 
 class Prop_mask(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (comp.Field, comp.Signal,)
+    valid_types = (comp.Field, comp.Signal, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
@@ -1480,7 +1501,7 @@ class Prop_mask(PropertyRule):
 
 class Prop_haltenable(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (comp.Field, comp.Signal,)
+    valid_types = (comp.Field, comp.Signal, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"
@@ -1493,7 +1514,7 @@ class Prop_haltenable(PropertyRule):
 
 class Prop_haltmask(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (comp.Field, comp.Signal,)
+    valid_types = (comp.Field, comp.Signal, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "K"
@@ -1880,11 +1901,23 @@ class RealOrInferredVectorReference(PropertyValueReference):
 class PropRef_anded(rdltypes.PropertyReference):
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_ored(rdltypes.PropertyReference):
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_xored(rdltypes.PropertyReference):
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        return 1
 
 #-------------------------------------------------------------------------------
 # Counter
@@ -1916,12 +1949,25 @@ class PropRef_incr(CounterPropRef):
     """
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_incrsaturate(CounterPropRef):
     """
     referencing the counter’s saturate output, which is a single bit value
     indicating whether the saturation has occurred
     """
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
+class PropRef_saturate(PropRef_incrsaturate):
+    """
+    alias of incrsaturate.
+    """
 
 class PropRef_incrthreshold(CounterThresholdPropRef):
     """
@@ -1930,14 +1976,33 @@ class PropRef_incrthreshold(CounterThresholdPropRef):
     """
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
+class PropRef_threshold(PropRef_incrthreshold):
+    """
+    alias of incrthreshold
+    """
+
 class PropRef_incrvalue(PropertyValueReference):
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        # Does not correspond to the field's width.
+        # not always knowable
+        return None
 
 class PropRef_decr(CounterPropRef):
     """
     References the decrement event signal
     """
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        return 1
 
 class PropRef_decrsaturate(CounterPropRef):
     """
@@ -1946,6 +2011,10 @@ class PropRef_decrsaturate(CounterPropRef):
     """
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_decrthreshold(CounterThresholdPropRef):
     """
     Referencing the counter’s threshold output, which is a single bit value
@@ -1953,8 +2022,18 @@ class PropRef_decrthreshold(CounterThresholdPropRef):
     """
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_decrvalue(PropertyValueReference):
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        # Does not correspond to the field's width.
+        # not always knowable
+        return None
 
 class PropRef_overflow(CounterPropRef):
     """
@@ -1962,21 +2041,19 @@ class PropRef_overflow(CounterPropRef):
     """
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_underflow(CounterPropRef):
     """
     asserted when counter underflows or wraps.
     """
     allowed_inst_type = comp.Field
 
-class PropRef_threshold(PropRef_incrthreshold):
-    """
-    alias of incrthreshold
-    """
-
-class PropRef_saturate(PropRef_incrsaturate):
-    """
-    alias of incrsaturate.
-    """
+    @property
+    def width(self) -> Optional[int]:
+        return 1
 
 #-------------------------------------------------------------------------------
 # Access
@@ -1984,16 +2061,32 @@ class PropRef_saturate(PropRef_incrsaturate):
 class PropRef_swacc(rdltypes.PropertyReference):
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_swmod(rdltypes.PropertyReference):
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        return 1
 
 class PropRef_swwe(RealOrInferredVectorReference):
     allowed_inst_type = comp.Field
     complementary_prop = "swwel"
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_swwel(RealOrInferredVectorReference):
     allowed_inst_type = comp.Field
     complementary_prop = "swwe"
+
+    @property
+    def width(self) -> Optional[int]:
+        return 1
 
 #-------------------------------------------------------------------------------
 # HW Signals
@@ -2002,15 +2095,31 @@ class PropRef_we(RealOrInferredVectorReference):
     allowed_inst_type = comp.Field
     complementary_prop = "wel"
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_wel(RealOrInferredVectorReference):
     allowed_inst_type = comp.Field
     complementary_prop = "we"
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_hwset(RealOrInferredVectorReference):
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_hwclr(RealOrInferredVectorReference):
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        return 1
 
 #-------------------------------------------------------------------------------
 # Interrupts
@@ -2032,8 +2141,9 @@ class PropRef_intr(rdltypes.PropertyReference):
                 self.src_ref
             )
 
-class PropRef_enable(PropertyValueReference):
-    allowed_inst_type = comp.Field
+    @property
+    def width(self) -> Optional[int]:
+        return 1
 
 class PropRef_halt(rdltypes.PropertyReference):
     """
@@ -2053,30 +2163,81 @@ class PropRef_halt(rdltypes.PropertyReference):
                 self.src_ref
             )
 
+    @property
+    def width(self) -> Optional[int]:
+        return 1
+
 class PropRef_haltenable(PropertyValueReference):
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        assert isinstance(self.node, m_node.FieldNode)
+        return self.node.width
 
 class PropRef_haltmask(PropertyValueReference):
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        assert isinstance(self.node, m_node.FieldNode)
+        return self.node.width
+
+class PropRef_enable(PropertyValueReference):
+    allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        assert isinstance(self.node, m_node.FieldNode)
+        return self.node.width
+
 class PropRef_mask(PropertyValueReference):
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        assert isinstance(self.node, m_node.FieldNode)
+        return self.node.width
 
 #-------------------------------------------------------------------------------
 class PropRef_hwenable(PropertyValueReference):
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        assert isinstance(self.node, m_node.FieldNode)
+        return self.node.width
+
 class PropRef_hwmask(PropertyValueReference):
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        assert isinstance(self.node, m_node.FieldNode)
+        return self.node.width
 
 class PropRef_next(PropertyValueReference):
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        assert isinstance(self.node, m_node.FieldNode)
+        return self.node.width
+
 class PropRef_reset(PropertyValueReference):
     allowed_inst_type = comp.Field
 
+    @property
+    def width(self) -> Optional[int]:
+        assert isinstance(self.node, m_node.FieldNode)
+        return self.node.width
+
 class PropRef_resetsignal(PropertyValueReference):
     allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        return 1
 
 #===============================================================================
 # Property Rulebook
