@@ -224,6 +224,36 @@ class PropertyRule:
                     node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
 
+    def _validate_width_eq_or_smaller(self, node: m_node.VectorNode, value: Any) -> None:
+        """
+        Helper function to check that if value is a vector-like reference,
+        that it's width is equal or smaller than the node's width
+
+        Used for 9.8.1: The increment/decrement value shall be equal to or
+        smaller than the field’s width.
+        """
+        if isinstance(value, int):
+            if node.width < value.bit_length():
+                self.env.msg.error(
+                    "A counter's %s cannot refrence a value wider than the counter itself."
+                    % (self.get_name()),
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+        elif isinstance(value, m_node.VectorNode):
+            if node.width < value.width:
+                self.env.msg.error(
+                    "A counter's %s cannot refrence a value wider than the counter itself."
+                    % (self.get_name()),
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+        elif isinstance(value, rdltypes.PropertyReference) and value.width is not None:
+            if node.width < value.width:
+                self.env.msg.error(
+                    "A counter's %s cannot refrence a value wider than the counter itself."
+                    % (self.get_name()),
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+
 
 #===============================================================================
 class PropertyRuleBoolPair(PropertyRule):
@@ -1375,7 +1405,7 @@ class Prop_incrvalue(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        self._validate_ref_width(node, value)
+        self._validate_width_eq_or_smaller(node, value)
         self._validate_ref_is_present(node, value)
 
 
@@ -1396,7 +1426,7 @@ class Prop_decrvalue(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        self._validate_ref_width(node, value)
+        self._validate_width_eq_or_smaller(node, value)
         self._validate_ref_is_present(node, value)
 
 
