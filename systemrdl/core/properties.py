@@ -1281,7 +1281,18 @@ class Prop_counter(PropertyRule):
     mutex_group = "E"
 
 
-class Prop_threshold(PropertyRule):
+class CounterProperty(PropertyRule):
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        # If using this property, validate that the field was marked as a counter
+        if not node.get_property('counter'):
+            self.env.msg.error(
+                "Field '%s' uses property '%s' which is reserved for counter fields, but the field is not marked as a counter"
+                % (node.inst_name, self.get_name()),
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
+
+
+class Prop_threshold(CounterProperty):
     """
     alias of incrthreshold.
     """
@@ -1299,12 +1310,13 @@ class Prop_threshold(PropertyRule):
         comp_def.properties['incrthreshold'] = comp_def.properties['threshold']
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
 
-class Prop_saturate(PropertyRule):
+class Prop_saturate(CounterProperty):
     """
     alias of incrsaturate.
     """
@@ -1322,12 +1334,13 @@ class Prop_saturate(PropertyRule):
         comp_def.properties['incrsaturate'] = comp_def.properties['saturate']
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
 
-class Prop_incrthreshold(PropertyRule):
+class Prop_incrthreshold(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
@@ -1342,12 +1355,13 @@ class Prop_incrthreshold(PropertyRule):
         comp_def.properties['threshold'] = comp_def.properties['incrthreshold']
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
 
-class Prop_incrsaturate(PropertyRule):
+class Prop_incrsaturate(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
@@ -1362,12 +1376,13 @@ class Prop_incrsaturate(PropertyRule):
         comp_def.properties['saturate'] = comp_def.properties['incrsaturate']
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
 
-class Prop_overflow(PropertyRule):
+class Prop_overflow(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
@@ -1375,7 +1390,7 @@ class Prop_overflow(PropertyRule):
     mutex_group = None
 
 
-class Prop_underflow(PropertyRule):
+class Prop_underflow(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (bool,)
     default = False
@@ -1383,7 +1398,7 @@ class Prop_underflow(PropertyRule):
     mutex_group = None
 
 
-class Prop_incr(PropertyRule):
+class Prop_incr(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
@@ -1391,12 +1406,13 @@ class Prop_incr(PropertyRule):
     mutex_group = None
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width_is_1(node, value)
         self._validate_ref_is_present(node, value)
 
 
-class Prop_incrvalue(PropertyRule):
+class Prop_incrvalue(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (int, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
@@ -1404,12 +1420,21 @@ class Prop_incrvalue(PropertyRule):
     mutex_group = "F"
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_width_eq_or_smaller(node, value)
         self._validate_ref_is_present(node, value)
 
+    def get_default(self, node: m_node.Node) -> Any:
+        assert isinstance(node, m_node.FieldNode)
+        if node.is_up_counter and node.get_property('incrwidth') is None:
+            # Is counter, but no alternatives to increment value were specified.
+            return 1
 
-class Prop_incrwidth(PropertyRule):
+        return None
+
+
+class Prop_incrwidth(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (int,)
     default = None
@@ -1417,7 +1442,7 @@ class Prop_incrwidth(PropertyRule):
     mutex_group = "F"
 
 
-class Prop_decrvalue(PropertyRule):
+class Prop_decrvalue(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (int, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
@@ -1425,12 +1450,21 @@ class Prop_decrvalue(PropertyRule):
     mutex_group = "G"
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_width_eq_or_smaller(node, value)
         self._validate_ref_is_present(node, value)
 
+    def get_default(self, node: m_node.Node) -> Any:
+        assert isinstance(node, m_node.FieldNode)
+        if node.is_down_counter and node.get_property('decrwidth') is None:
+            # Is counter, but no alternatives to decrement value were specified.
+            return 1
 
-class Prop_decr(PropertyRule):
+        return None
+
+
+class Prop_decr(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = None
@@ -1438,12 +1472,13 @@ class Prop_decr(PropertyRule):
     mutex_group = None
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width_is_1(node, value)
         self._validate_ref_is_present(node, value)
 
 
-class Prop_decrwidth(PropertyRule):
+class Prop_decrwidth(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (int,)
     default = None
@@ -1451,7 +1486,7 @@ class Prop_decrwidth(PropertyRule):
     mutex_group = "G"
 
 
-class Prop_decrsaturate(PropertyRule):
+class Prop_decrsaturate(CounterProperty):
     bindable_to = {comp.Field}
     valid_types = (int, bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
@@ -1459,6 +1494,7 @@ class Prop_decrsaturate(PropertyRule):
     mutex_group = None
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
@@ -1472,6 +1508,7 @@ class Prop_decrthreshold(PropertyRule):
     mutex_group = None
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
         assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)

@@ -1096,6 +1096,54 @@ class FieldNode(VectorNode):
 
         return False
 
+    @property
+    def is_up_counter(self) -> bool:
+        """
+        Denotes whether this field is a counter and the property assignments imply
+        it has up-counting functionality.
+
+        .. versionadded:: 1.21
+        """
+        if not self.get_property('counter'):
+            # Not a counter!
+            return False
+
+        for prop_name in self.list_properties():
+            if (
+                prop_name.startswith("incr")
+                or (prop_name == "overflow")
+                or (prop_name == "saturate")
+                or (prop_name == "threshold")
+            ):
+                return True
+
+        # No up-counter properties were set
+        if self.is_down_counter:
+            # Is explicitly a down-counter, so not an up-counter
+            return False
+
+        # No up/down properties were set. Assume up-counter
+        return True
+
+
+    @property
+    def is_down_counter(self) -> bool:
+        """
+        Denotes whether this field is a counter and the property assignments imply
+        it has down-counting functionality.
+
+        .. versionadded:: 1.21
+        """
+        if not self.get_property('counter'):
+            # Not a counter!
+            return False
+
+        for prop_name in self.list_properties():
+            if prop_name.startswith("decr") or (prop_name == "underflow"):
+                return True
+
+        return False
+
 #===============================================================================
 class RegNode(AddressableNode):
 

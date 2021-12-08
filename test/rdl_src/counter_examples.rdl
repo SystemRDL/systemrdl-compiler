@@ -100,9 +100,9 @@ reg example_9_8_2_e3 {
 };
 
 addrmap wrapper {
-    example_9_8_1_e1 a;
-    example_9_8_1_e2 b;
-    example_9_8_2_e1 c;
-    example_9_8_2_e2 d;
-    example_9_8_2_e3 e;
+    example_9_8_1_e1 example_9_8_1_e1;
+    example_9_8_1_e2 example_9_8_1_e2;
+    example_9_8_2_e1 example_9_8_2_e1;
+    example_9_8_2_e2 example_9_8_2_e2;
+    example_9_8_2_e3 example_9_8_2_e3;
 };

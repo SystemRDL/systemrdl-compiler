@@ -11,10 +11,13 @@ language specification.
 For each issue, I include the resolved interpretation that is used in this
 project.
 
+--------------------------------------------------------------------------------
 
+Inconsistencies & Contradictions
+--------------------------------
 
 Semantic rule 10.6.1.c is violated in 5.1.2.2.2-Example 2
----------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Rule 10.6.1.c states that ``accesswidth`` cannot be greater than ``regwidth``.
 
 However, in the example:
@@ -30,7 +33,7 @@ None. Example is invalid and violates rule 10.6.1.c.
 
 
 Grammar does not allow empty array literals
--------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The grammar in appendix B.10 shows that an array literal's
 ``array_literal_body`` requires at one or more instances of a
 ``constant_expression``
@@ -55,9 +58,9 @@ Grammar is implemented to allow this.
 
 
 Invalid SystemRDL 2.0 in Table E1
----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In Annex E, Table E1, many of the cells in the "SystemRDL 2.0" column show
-what appears to be incorrect usage of the "onread" and "onwrite" side-effect
+what appears to be incorrect usage of the ``onread`` and ``onwrite`` side-effect
 properties.
 
 The table shows assignments of invalid rhs keywords such as:
@@ -86,7 +89,7 @@ Invalid entries appear to be redundant anyways.
 
 
 Constraint example uses struct datatype in an undocumented way
---------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In 14.2.3, the example declares a struct data type called "RGB".
 Immediately after, the struct is apparently "instantiated" as if it is a
 component.
@@ -126,7 +129,7 @@ It will be assumed that the example does NOT include a struct declaration for
 
 
 RDLFormatCode paragraph tag listed as a single tag?
----------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In annex F.2, the ``[p]`` paragraph tag is listed as a "single-tag" construct.
 Since all the other tags seem to closely mirror HTML tags, this seems
 out-of-place. The description from the phpBB site makes more sense since it
@@ -142,8 +145,8 @@ Implement paragraph tag as an open/close pair.
 
 .. _dev_notes-errata-rdlfc_desc:
 
-Existence of the RDLFormatCode ``[desc]`` tag seems misguided
--------------------------------------------------------------
+Existence of the RDLFormatCode ``[desc]`` tag is inappropriate
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 I fail to understand why the ``[desc]`` tag exists and how it could possibly be
 useful.
 
@@ -160,8 +163,8 @@ Not implementing the ``[desc]`` tag.
 
 
 
-Use of RDLFormatCode tags in ``name`` property seems inappropriate
-------------------------------------------------------------------
+Use of RDLFormatCode tags in ``name`` property is inappropriate
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Use of block formatting tags in a component's ``name`` property
 seems out of scope from what the property's intent is.
 
@@ -173,7 +176,7 @@ structural formatting tags such as ``[p]`` and ``[list]``.
 
 
 Definition of the ``hdl_path_slice`` property is shortsighted
--------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 14.1.2 Example 2 shows how multiple entries in an hdl_path_slice would be used:
 
 * A field ``f2`` is declared with bit-range [5:3]
@@ -214,7 +217,7 @@ in situations where its value is completely unambiguous.
 
 
 Verilog does not have an ```if`` preprocessor directive
--------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In 16.2.1 - Table 32, the SystemRDL spec references an ```if`` preprocessor
 directive. Nowhere in SystemVerilog IEEE Std 1800-2012 is this defined, nor
 does the RDL spec offer an explanation for its semantics.
@@ -226,7 +229,7 @@ Do not implement an ```if`` preprocessor directive.
 
 
 Inconsistent definition of the ``ref`` type keyword
----------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In section 6.1, Table 7's denotes that the ``ref`` keyword is allowed to be used in
 both "parameter or struct member type names". This is in direct conflict with
@@ -251,14 +254,13 @@ Defined Property (UDP) definition.
 **Resolution:**
 
 Ignore the implication in Table 7 that the ``ref`` keyword can be used in parameters
-or structs. Other areas in the specifiation forbid it more directly.
-
+or structs. Other areas in the specification forbid it more directly.
 
 
 --------------------------------------------------------------------------------
 
-Misc compilation issues in examples
------------------------------------
+Compilation issues in examples
+------------------------------
 Some very minor typos found while attempting to compile several code snippet examples.
 These issues do not have any significant effect on the interpretation of the
 language.
@@ -305,8 +307,8 @@ Enumeration literals are missing their ``myEncoding::`` prefix.
 
 --------------------------------------------------------------------------------
 
-Other typos in the spec
------------------------
+Typos in the spec
+-----------------
 
 Typo in semantic rule 11.2-f
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -331,7 +333,8 @@ Assuming the red parentheses are to be ignored.
 
 Open Questions
 --------------
-
+Topics where the SystemRDL spec leaves too much ambiguity and further
+clarification would have been beneficial.
 
 
 User-defined property's "type" attribute can not be "signal"?
@@ -433,6 +436,10 @@ any RTL generators should clearly state the precedence used.
 
 Clarifications
 --------------
+Areas of the specification that are not ambiguous, but could have been more
+explicitly described to the reader. Often requires *very* careful interpretation
+across separate chapters to come to an accurate understanding of the author's intent.
+
 
 Interpretation of ``swwe`` and ``swwel`` properties
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -453,7 +460,7 @@ Property "Ref Targets"
 ^^^^^^^^^^^^^^^^^^^^^^
 
 In Annex G, the specification vaguely suggests that some properties can be
-referenced in the righthand side of assignment expressions. Only through
+referenced in the right-hand side of assignment expressions. Only through
 detailed reading of examples and some property semantics is it possible to infer
 how these work.
 
@@ -478,7 +485,7 @@ A Verilog code generator may output something similar to this:
     assign my_field__anded = &(my_field);
 
 
-If the ``anded`` property is referenced in the righthand side of an assignment
+If the ``anded`` property is referenced in the right-hand side of an assignment
 expression (aka a "ref target"), then the assigned property receives the
 AND-reduction of the field's value at *runtime*.
 
@@ -511,3 +518,46 @@ A Verilog code generator may output something similar to this:
 
 The spec really ought to have a brief section explaining this in more explicit
 detail.
+
+
+Determining counter direction
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Section 9.8.1 describes that it is possible to create three types of counters:
+
+    A SystemRDL compiler shall imply the nature of a counter as a up counter,
+    a down counter, or an up/down counter by the properties specified for
+    that counter field.
+
+Unfortunately none of the semantics in section 9.8 explicitly describe *how* one
+determines the type of counter. Only after examining the examples in detail is
+it possible to infer how a counter's directionality is determined.
+
+Up-counter properties:
+    * incrvalue
+    * incrwidth
+    * incr
+    * incrsaturate/saturate
+    * incrthreshold/threshold
+    * overflow
+
+Down-counter properties:
+    * decrvalue
+    * decrwidth
+    * decr
+    * decrsaturate
+    * decrthreshold
+    * underflow
+
+* If a counter field specifies at least one of the **Up-counter properties**
+  properties, it is implied to be an up-counter
+* If a counter field specifies at least one of the **Down-counter properties**
+  properties, it is implied to be a down-counter
+* If a counter field specifies at least one property of both groups, it is
+  implied to be an up/down counter.
+* If a counter field does not assign any additional counter properties, it is
+  implied to be an up-counter.
+
+To assist users in this interpretation, the following helper properties have been added:
+
+* :data:`FieldNode.is_up_counter <systemrdl.node.FieldNode.is_up_counter>`
+* :data:`FieldNode.is_down_counter <systemrdl.node.FieldNode.is_down_counter>`
