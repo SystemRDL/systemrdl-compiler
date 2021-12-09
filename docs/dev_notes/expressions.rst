@@ -138,7 +138,7 @@ ASTNode.get_value(eval_width=None)
     * If eval_width is irrelevant (ex. comparison operator)
 
         * ignore the eval_width parameter if it was passed in.
-        * dont bother resolving anything. Nothing to do here.
+        * don't bother resolving anything. Nothing to do here.
 
     * Get operand values
 

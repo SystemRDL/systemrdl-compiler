@@ -66,7 +66,7 @@ LHS assignments can be:
 * numeric
 * reference to a signal instance
 * reference to a "virtual signal" property
-* Reference to any other component types? I dont think so?
+* Reference to any other component types? I don't think so?
 
 RHS references can be:
 
@@ -76,7 +76,7 @@ RHS references can be:
       column.
     * It looks like RHS reference to copy a component property's value is NOT a
       thing. In fact, it hardly has anything to do with the property that bears
-      its name. Instead, it looks like its refrence implies a "virtual signal"
+      its name. Instead, it looks like its reference implies a "virtual signal"
       that has its own dynamic behavior based on the component's state.
 
 Misc rules

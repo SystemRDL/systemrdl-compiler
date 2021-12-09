@@ -150,7 +150,15 @@ enabled:
 Other Methods
 -------------
 
-Node objects provide several other mechanisms to traverse the register model,
-such as :meth:`Node.get_child_by_name() <systemrdl.node.Node.get_child_by_name>`
-or :meth:`Node.find_by_path() <systemrdl.node.Node.find_by_path>`.
+Node objects provide several other mechanisms to traverse the register model.
+This is not an exhaustive list, but highlights some of the more commonly used ones.
 See the class reference for more details.
+
+Iterators
+    * :meth:`systemrdl.node.Node.children()`
+    * :meth:`systemrdl.node.Node.descendants()`
+    * :meth:`systemrdl.node.Node.unrolled()`
+
+Explicit navigation
+    * :meth:`systemrdl.node.Node.get_child_by_name()`
+    * :meth:`systemrdl.node.Node.find_by_path()`

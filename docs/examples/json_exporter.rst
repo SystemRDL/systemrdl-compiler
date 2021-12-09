@@ -20,7 +20,7 @@ simple one. For the sake of this example, it will be very limited:
 
 * Each SystemRDL component type will be represented as its own JSON object.
 * The type of the object is represented by a "type" string.
-* ``addrmap`` and ``regfile`` components will be treated interchangably.
+* ``addrmap`` and ``regfile`` components will be treated interchangeably.
 * Arrays will not be supported.
 * Only the field's "reset" and "sw" properties are encoded. All other properties will be ignored.
 
@@ -61,7 +61,7 @@ In the :ref:`previous example <example_print-hierarchy>`, we used the
 :class:`~systemrdl.RDLWalker` & :class:`~systemrdl.RDLListener`.
 This let us automatically traverse the design, and trigger callbacks. This is an
 easy way to traverse the design, but only in situations where keeping track of
-the register model's herarchical context is not needed.
+the register model's hierarchical context is not needed.
 
 For a JSON exporter we want to convert each node in the hierarchy and keep
 track of parent/child relationships. Doing so with the walker/listener method

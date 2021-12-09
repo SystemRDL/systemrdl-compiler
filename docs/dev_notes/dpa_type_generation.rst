@@ -95,13 +95,13 @@ described in 5.1.1.4-c. This section defines additional normalization rules for
 these types.
 
 Instance reference
-    An instance reference is normalized by deriving the relative hierarchcial
-    path from the current instance to the refrenced instance. The normalized
+    An instance reference is normalized by deriving the relative hierarchical
+    path from the current instance to the referenced instance. The normalized
     value is the first eight characters of the md5 of the path.
 
     Hierarchy separators shall use ``.``, and parent references use ``^``.
 
-    For example, the hierarchcial path from component ``foo.bar.baz`` to
+    For example, the hierarchical path from component ``foo.bar.baz`` to
     ``foo.abc.def`` is represented by the string ``^.^.abc.def``
 
     The resulting 8-characters of md5 are: b0698608
