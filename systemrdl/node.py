@@ -1094,6 +1094,10 @@ class FieldNode(VectorNode):
             # Not in spec, but these imply that a storage element exists
             return True
 
+        if self.get_property('counter'):
+            # All counters implicitly implement storage
+            return True
+
         return False
 
     @property

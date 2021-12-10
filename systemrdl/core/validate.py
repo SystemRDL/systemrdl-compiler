@@ -226,7 +226,7 @@ class ValidateListener(walker.RDLListener):
             self.msg.error(
                 "Field '%s' hw access property value of %s is meaningless"
                 % (node.inst_name, this_f_hw.name),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get('hw', node.inst.inst_src_ref)
             )
 
         # 9.4.1-Table 12: Check for bad sw/hw combinations
@@ -242,23 +242,14 @@ class ValidateListener(walker.RDLListener):
                 % (node.inst_name),
                 node.inst.inst_src_ref
             )
-        elif (this_f_sw == rdltypes.AccessType.na) and (this_f_hw == rdltypes.AccessType.w):
-            self.msg.error(
-                "Field '%s' access property combination results in an unloaded net: sw=na; hw=w;"
-                % (node.inst_name),
-                node.inst.inst_src_ref
-            )
-        elif (this_f_sw == rdltypes.AccessType.na) and (this_f_hw == rdltypes.AccessType.na):
-            self.msg.error(
-                "Field '%s' access property combination results in a nonexistent net: sw=na; hw=na;"
-                % (node.inst_name),
-                node.inst.inst_src_ref
-            )
         elif this_f_sw == rdltypes.AccessType.na:
             self.msg.error(
-                "Field '%s' sw access property value of na results in undefined behavior."
+                "Field '%s' sw access property is 'na' ... a field defined in a SOFTWARE "
+                "register map ... is not accessable by software ... whats the point? "
+                "What does it mean? What does anything mean? Am I just a machine "
+                "in a Python interpreter? Or can I dream dreams? So many questions..."
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst.property_src_ref.get('sw', node.inst.inst_src_ref)
             )
 
         # 10.1-d: Two field instances shall not occupy overlapping bit positions
