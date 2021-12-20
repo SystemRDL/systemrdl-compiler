@@ -113,4 +113,4 @@ class TestMiscExamples(RDLSourceTestCase):
         top = root.top
         a = top.find_by_path("reg1.a")
         mysig = top.find_by_path("mySig")
-        self.assertEqual(a.get_property("reset"), mysig)
+        self.assertEqual(a.get_property('reset'), mysig)

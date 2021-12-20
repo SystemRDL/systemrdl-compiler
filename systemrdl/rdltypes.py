@@ -138,7 +138,7 @@ class InterruptType(BuiltinEnum):
 
     .. code-block:: python
 
-        intr_type = my_field_node.get_property("intr type")
+        intr_type = my_field_node.get_property('intr type')
 
     """
     #: Interrupt when asserted and maintained
@@ -322,7 +322,7 @@ class UserStruct:
 
     .. code-block:: python
 
-        prop = node.get_property("my_struct_prop")
+        prop = node.get_property('my_struct_prop')
 
         foo = prop.foo
         bar = getattr(prop, "bar")
@@ -535,7 +535,7 @@ class PropertyReference:
         fieldX = my_reg.get_child_by_name("fieldX")
         fieldY = my_reg.get_child_by_name("fieldY")
 
-        next_prop = fieldX.get_property("next")
+        next_prop = fieldX.get_property('next')
         print(next_prop.node == fieldY) # prints: True
         print(next_prop.name) # prints: "intr"
 

@@ -613,7 +613,7 @@ class Node:
         .. versionchanged:: 1.6
             Added ``markdown_inst`` option.
         """
-        desc_str = self.get_property("desc")
+        desc_str = self.get_property('desc')
         if desc_str is None:
             return None
         return rdlformatcode.rdlfc_to_html(desc_str, self, md=markdown_inst)
@@ -634,7 +634,7 @@ class Node:
 
         .. versionadded:: 1.8
         """
-        name_str = self.get_property("name", default=None)
+        name_str = self.get_property('name', default=None)
         if name_str is None:
             return None
         return rdlformatcode.rdlfc_to_html(name_str, self, is_desc=False)
@@ -1217,7 +1217,7 @@ class RegNode(AddressableNode):
         .. versionadded:: 1.22
         """
         for field in self.fields():
-            if field.get_property("intr"):
+            if field.get_property('intr'):
                 return True
         return False
 

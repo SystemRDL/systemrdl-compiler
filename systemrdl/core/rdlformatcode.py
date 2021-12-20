@@ -205,7 +205,7 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
                 text_segs.append(m.group(0))
         elif m.lastgroup == 'name':
             if node is not None:
-                text_segs.append(node.get_property("name"))
+                text_segs.append(node.get_property('name'))
             else:
                 text_segs.append(m.group(0))
         elif m.lastgroup == 'instname':

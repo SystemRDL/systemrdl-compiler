@@ -215,15 +215,15 @@ class StructuralPlacementListener(walker.RDLListener):
 
 
     def enter_Addrmap(self, node: AddrmapNode) -> None:
-        self.msb0_mode_stack.append(node.get_property("msb0"))
-        self.addressing_mode_stack.append(node.get_property("addressing"))
-        self.alignment_stack.append(node.get_property("alignment"))
+        self.msb0_mode_stack.append(node.get_property('msb0'))
+        self.addressing_mode_stack.append(node.get_property('addressing'))
+        self.alignment_stack.append(node.get_property('alignment'))
 
 
     def enter_Regfile(self, node: RegfileNode) -> None:
         # Regfile can override the current alignment, but does not block
         # the propagation of a parent's setting if left undefined
-        alignment = node.get_property("alignment")
+        alignment = node.get_property('alignment')
         if alignment is None:
             # not set. Propagate from parent
             alignment = self.alignment_stack[-1]

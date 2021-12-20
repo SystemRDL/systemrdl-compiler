@@ -146,7 +146,7 @@ class ValidateListener(walker.RDLListener):
 
 
     def enter_Addrmap(self, node: AddrmapNode) -> None:
-        if node.get_property("bridge"):
+        if node.get_property('bridge'):
             # This is a 'bridge addrmap'
             # Verify that:
             #  - Child components are only other addrmaps (signals are ok too)
@@ -177,11 +177,11 @@ class ValidateListener(walker.RDLListener):
 
         if node.is_array and self.env.chk_sparse_reg_stride:
             assert node.array_stride is not None
-            if node.array_stride > (node.get_property("regwidth") // 8):
+            if node.array_stride > (node.get_property('regwidth') // 8):
                 self.msg.message(
                     self.env.chk_sparse_reg_stride,
                     "Address stride (+= %d) of register array '%s' is not equal to it's width (regwidth/8 = %d)"
-                    % (node.array_stride, node.inst_name, (node.get_property("regwidth") // 8)),
+                    % (node.array_stride, node.inst_name, (node.get_property('regwidth') // 8)),
                     node.inst.inst_src_ref
                 )
 
@@ -218,8 +218,8 @@ class ValidateListener(walker.RDLListener):
 
         this_f_hw = node.get_property('hw')
         this_f_sw = node.get_property('sw')
-        parent_accesswidth = node.parent.get_property("accesswidth")
-        parent_regwidth = node.parent.get_property("regwidth")
+        parent_accesswidth = node.parent.get_property('accesswidth')
+        parent_regwidth = node.parent.get_property('regwidth')
 
         # hw property values of w1 or rw1 don't make sense
         if this_f_hw in (rdltypes.AccessType.w1, rdltypes.AccessType.rw1):
@@ -304,7 +304,7 @@ class ValidateListener(walker.RDLListener):
         # software-modifiable by any means, including rclr, rset, ruser
         if ((parent_accesswidth < parent_regwidth)
                 and (node.lsb // parent_accesswidth) != (node.msb // parent_accesswidth)
-                and (node.is_sw_writable or node.get_property("onread") is not None)):
+                and (node.is_sw_writable or node.get_property('onread') is not None)):
             # Field spans across sub-words
             self.msg.error(
                 "Software-modifiable field '%s' shall not span multiple software-accessible subwords."
@@ -315,7 +315,7 @@ class ValidateListener(walker.RDLListener):
         # Optional warning if a field is missing a reset assignment
         if node.env.chk_missing_reset:
             # Implements storage but was never assigned a reset
-            if node.implements_storage and (node.get_property("reset") is None):
+            if node.implements_storage and (node.get_property('reset') is None):
                 node.env.msg.message(
                     node.env.chk_missing_reset,
                     "Field '%s' implements storage but is missing a reset value. Initial state is undefined"
@@ -327,7 +327,7 @@ class ValidateListener(walker.RDLListener):
             # but the user never specified its value, so its readback value is
             # ambiguous.
             if (
-                not node.implements_storage and node.is_sw_readable and (node.get_property("reset") is None)
+                not node.implements_storage and node.is_sw_readable and (node.get_property('reset') is None)
                 and (node.get_property('hw') in {rdltypes.AccessType.na, rdltypes.AccessType.r})
             ):
                 node.env.msg.message(

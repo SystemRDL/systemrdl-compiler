@@ -145,10 +145,10 @@ class TestPreprocessor(RDLSourceTestCase):
         with self.subTest("Misc maros"):
             self.assertIsNotNone(root.find_by_path("top.abcd1234"))
 
-            desc = root.find_by_path("top").get_property("desc")
+            desc = root.find_by_path("top").get_property('desc')
             self.assertEqual(desc, "left side: \"right side\"")
 
-            name = root.find_by_path("top").get_property("name")
+            name = root.find_by_path("top").get_property('name')
             self.assertEqual(name, "b + 1 + 42 + a")
 
         with self.subTest("conditional undef"):

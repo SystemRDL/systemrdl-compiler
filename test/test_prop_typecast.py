@@ -15,8 +15,8 @@ class TestIntr(RDLSourceTestCase):
         f3 = top.find_by_path("enum_cast.r1.f3")
         f4 = top.find_by_path("enum_cast.r1.f4")
 
-        self.assertEqual(f1.get_property("reset"), 3)
-        self.assertEqual(f1.get_property("we"), True)
-        self.assertEqual(f2.get_property("we"), True)
-        self.assertEqual(f3.get_property("we"), False)
-        self.assertEqual(f4.get_property("we"), False)
+        self.assertEqual(f1.get_property('reset'), 3)
+        self.assertEqual(f1.get_property('we'), True)
+        self.assertEqual(f2.get_property('we'), True)
+        self.assertEqual(f3.get_property('we'), False)
+        self.assertEqual(f4.get_property('we'), False)

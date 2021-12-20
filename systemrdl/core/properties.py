@@ -327,7 +327,7 @@ class Prop_dontcompare(PropertyRule):
             comp_def.properties[self.get_name()] = value
 
     def validate(self, node: m_node.Node, value: Any) -> None:
-        donttest = node.get_property("donttest")
+        donttest = node.get_property('donttest')
 
         if isinstance(node, m_node.FieldNode):
             # 5.2.2.1-a: If value is a bit mask, the mask shall have the same width
@@ -560,7 +560,7 @@ class Prop_cpuif_reset(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         if value is True:
-            if not node.get_property("activehigh") and not node.get_property("activelow"):
+            if not node.get_property('activehigh') and not node.get_property('activelow'):
                 self.env.msg.error(
                     "Signal '%s' sets the 'cpuif_reset' property but does not specify whether it is activehigh/activelow"
                     % (node.inst_name),
@@ -583,7 +583,7 @@ class Prop_field_reset(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         if value is True:
-            if not node.get_property("activehigh") and not node.get_property("activelow"):
+            if not node.get_property('activehigh') and not node.get_property('activelow'):
                 self.env.msg.error(
                     "Signal '%s' sets the 'field_reset' property but does not specify whether it is activehigh/activelow"
                     % (node.inst_name),
@@ -743,7 +743,7 @@ class Prop_resetsignal(PropertyRule):
         self._validate_ref_width_is_1(node, value)
         self._validate_ref_is_present(node, value)
 
-        if not value.get_property("activehigh") and not value.get_property("activelow"):
+        if not value.get_property('activehigh') and not value.get_property('activelow'):
             self.env.msg.error(
                 "Signal '%s' referenced in 'resetsignal' does not specify whether it is activehigh/activelow"
                 % (value.inst_name),
@@ -1999,7 +1999,7 @@ class PropRef_xored(rdltypes.PropertyReference):
 #-------------------------------------------------------------------------------
 class CounterPropRef(rdltypes.PropertyReference):
     def _validate(self) -> None:
-        if not self.node.get_property("counter"):
+        if not self.node.get_property('counter'):
             self.env.msg.error(
                 "Reference to property '%s' is illegal because '%s' is not a counter"
                 % (self.name, self.node.inst_name),
@@ -2208,7 +2208,7 @@ class PropRef_intr(rdltypes.PropertyReference):
     def _validate(self) -> None:
         # validate reg contains at least one field that is intr
         for field in self.node.fields():
-            if field.get_property("intr"):
+            if field.get_property('intr'):
                 break
         else:
             self.env.msg.error(
@@ -2230,7 +2230,7 @@ class PropRef_halt(rdltypes.PropertyReference):
         # 10.8.1-c: shall only be present if haltmask or haltenable is
         # specified on at least one field in the register.
         for field in self.node.fields():
-            if field.get_property("haltenable") or field.get_property("haltmask"):
+            if field.get_property('haltenable') or field.get_property('haltmask'):
                 break
         else:
             self.env.msg.error(
