@@ -677,6 +677,14 @@ class Prop_next(PropertyRule):
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
+        # Field shall be hardware writable
+        # Example in 17.2.8 makes a passing comment that suggests this is a requirement.
+        if not node.is_hw_writable:
+            self.env.msg.error(
+                "Use of the 'next' property requires the field to be hardware-writable.",
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
+
 
 class Prop_reset(PropertyRule):
     """

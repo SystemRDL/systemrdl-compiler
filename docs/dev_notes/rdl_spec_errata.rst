@@ -561,3 +561,50 @@ To assist users in this interpretation, the following helper properties have bee
 
 * :data:`FieldNode.is_up_counter <systemrdl.node.FieldNode.is_up_counter>`
 * :data:`FieldNode.is_down_counter <systemrdl.node.FieldNode.is_down_counter>`
+
+
+Field's 'next' Property
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Section 9.5 describes a field's ``next`` property as a mechanism to access the
+D-input of the field's flip-flop. If taken too literally, it is easy to
+misinterpret this as a *direct* connection to the FF's D-pin that unconditionally
+overrides the field's next value. After careful reading of several examples in
+other sections (9.9 - Interrupt Properties), it becomes clear that the ``next``
+property should really be interpreted as a general hardware input signal to the
+field's logic. Assignment of this property effectively replaces the inferred
+input signal to the field.
+
+Some examples:
+    ``hw=rw; we;``
+        * Implies a hardware input signal for the field's next value as well as a write-enable.
+        * The field's next value is only sampled if the write-enable is asserted.
+
+    ``hw=rw; we; next = some_reference;``
+        * Same as the previous case, but the next value input signal is no longer inferred.
+        * Instead, the field's next value is from the reference provided.
+        * As before, the next value is only loaded if the associated write-enable signal
+          is asserted.
+
+    ``hw=rw; level intr; stickybit;``
+        * Implies a hardware input signal that controls assertion of the interrupt field bits.
+        * A '1' in any bit position of the value input sets the corresponding bit in the
+          field's storage element.
+
+    ``hw=rw; level intr; stickybit; next = some_reference;``
+        * Same as the previous example, except the inferred hardware input signal is
+          replaced by an explicit reference.
+        * Field's behavior is still the same. The referenced value controls setting
+          of sticky bits in the field.
+
+
+In addition to the above, a passing comment in the example in 17.2.8 appears to imply that
+use of the ``next`` property requires the field to be writable by hardware:
+
+.. code-block:: systemrdl
+
+    default hw = w; // w needed since dyn assign below implies interconnect to hw
+                    // global_int.global_int->next = master_int->intr;
+
+Unfortunately the text does not provide this detail in any of the semantics.
+Fortunately it is still consistent with the interpretation clarified here.

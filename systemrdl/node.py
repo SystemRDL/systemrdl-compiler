@@ -1017,7 +1017,6 @@ class FieldNode(VectorNode):
             (hw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
                     rdltypes.AccessType.w, rdltypes.AccessType.w1))
             or self.get_property('counter')
-            or (self.get_property('next') is not None)
             or self.get_property('hwset')
             or self.get_property('hwclr')
         )
@@ -1067,6 +1066,10 @@ class FieldNode(VectorNode):
         """
         True if combination of field access properties imply that the field
         implements a storage element.
+
+
+        .. versionchanged:: 1.22
+            Counter fields always implement storage, regardless of sw/hw access.
         """
 
         # 9.4.1, Table 12
