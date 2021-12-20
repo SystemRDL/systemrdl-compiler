@@ -1208,6 +1208,19 @@ class RegNode(AddressableNode):
                 return True
         return False
 
+    @property
+    def is_interrupt_reg(self) -> bool:
+        """
+        Register contains one or more interrupt fields.
+
+
+        .. versionadded:: 1.22
+        """
+        for field in self.fields():
+            if field.get_property("intr"):
+                return True
+        return False
+
 #===============================================================================
 class RegfileNode(AddressableNode):
 
