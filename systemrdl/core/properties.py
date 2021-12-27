@@ -1131,7 +1131,7 @@ class Prop_singlepulse(PropertyRule):
 
 class Prop_we(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (bool, comp.Signal, comp.Field,  rdltypes.PropertyReference,)
+    valid_types = (bool, comp.Signal, comp.Field, rdltypes.PropertyReference,)
     default = False
     dyn_assign_allowed = True
     mutex_group = "C"
@@ -1637,6 +1637,25 @@ class Prop_sticky(PropertyRule):
                     node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
 
+            # Use of we/wel qualifier conflicts with sticky property
+            if node.get_property('we'):
+                self.env.msg.error(
+                    "Use of a hardware write-enable on field '%s' does not make "
+                    "sense because it is defined as 'sticky'. Sticky fields already "
+                    "define their own hardware write-enable behavior."
+                    % (node.inst_name),
+                    node.inst.property_src_ref.get('we', node.inst.inst_src_ref)
+                )
+            if node.get_property('wel'):
+                self.env.msg.error(
+                    "Use of a hardware write-enable on field '%s' does not make "
+                    "sense because it is defined as 'sticky'. Sticky fields already "
+                    "define their own hardware write-enable behavior."
+                    % (node.inst_name),
+                    node.inst.property_src_ref.get('wel', node.inst.inst_src_ref)
+                )
+
+
 
 class Prop_stickybit(PropertyRule):
     bindable_to = {comp.Field}
@@ -1659,6 +1678,26 @@ class Prop_stickybit(PropertyRule):
                 return True
         else:
             return False
+
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        if value is True:
+            # Use of we/wel qualifier conflicts with stickybit property
+            if node.get_property('we'):
+                self.env.msg.error(
+                    "Use of a hardware write-enable on field '%s' does not make "
+                    "sense because it is defined as 'stickybit'. Stickybit fields already "
+                    "define their own hardware write-enable behavior."
+                    % (node.inst_name),
+                    node.inst.property_src_ref.get('we', node.inst.inst_src_ref)
+                )
+            if node.get_property('wel'):
+                self.env.msg.error(
+                    "Use of a hardware write-enable on field '%s' does not make "
+                    "sense because it is defined as 'stickybit'. Stickybit fields already "
+                    "define their own hardware write-enable behavior."
+                    % (node.inst_name),
+                    node.inst.property_src_ref.get('wel', node.inst.inst_src_ref)
+                )
 
 
 #-------------------------------------------------------------------------------
