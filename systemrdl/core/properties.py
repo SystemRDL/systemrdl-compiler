@@ -1620,6 +1620,23 @@ class Prop_sticky(PropertyRule):
     dyn_assign_allowed = True
     mutex_group = "I"
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        if value is True:
+            # 'sticky' property doesnt quite make sense for edge-senstive interrupts
+            intr_type = node.get_property('intr type')
+            if intr_type in {
+                rdltypes.InterruptType.posedge,
+                rdltypes.InterruptType.negedge,
+                rdltypes.InterruptType.bothedge,
+            }:
+                self.env.msg.error(
+                    "Whole-field stickiness only makes sense in level-senstive interrupts, "
+                    "but this field is defined as '%s intr'. "
+                    "Did you mean to use the 'stickybit' property instead of 'sticky'?"
+                    % intr_type.name,
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+
 
 class Prop_stickybit(PropertyRule):
     bindable_to = {comp.Field}
