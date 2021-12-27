@@ -132,7 +132,8 @@ class InterruptType(BuiltinEnum):
             negedge intr;
         };
 
-    The modifier is stored in the internal "intr type" property. (note the intentional space in the name)
+    The modifier is stored in the internal "intr type" property. (note the
+    intentional space in the name)
 
     It can be fetched the same way as other properties:
 
@@ -140,6 +141,12 @@ class InterruptType(BuiltinEnum):
 
         intr_type = my_field_node.get_property('intr type')
 
+
+    .. note::
+
+        The ``nonsticky`` interrupt type is intentionally omitted from this
+        enumeration since it is not really a distinct interrupt type. Its use in
+        SystemRDL implies an assignemnt of ``stickybit = false``.
     """
     #: Interrupt when asserted and maintained
     level = ()

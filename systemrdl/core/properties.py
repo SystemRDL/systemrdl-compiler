@@ -265,6 +265,7 @@ class PropertyRuleBoolPair(PropertyRule):
         If not explicitly set, check if the opposite was set first before returning
         default
         """
+        # Check for explicit assignment to avoid infinite loop via get_default()
         if self.opposite_property in node.inst.properties:
             return not node.inst.properties[self.opposite_property]
         else:
@@ -783,6 +784,7 @@ class Prop_rclr(PropertyRule):
         """
         If not explicitly set, check if onread sets the equivalent
         """
+        # Check for explicit assignment to avoid infinite loop via get_default()
         if node.inst.properties.get("onread", None) == rdltypes.OnReadType.rclr:
             return True
         else:
@@ -813,6 +815,7 @@ class Prop_rset(PropertyRule):
         """
         If not explicitly set, check if onread sets the equivalent
         """
+        # Check for explicit assignment to avoid infinite loop via get_default()
         if node.inst.properties.get("onread", None) == rdltypes.OnReadType.rset:
             return True
         else:
@@ -843,6 +846,7 @@ class Prop_onread(PropertyRule):
         """
         If not explicitly set, check if rset or rclr imply the value
         """
+        # Check for explicit assignment to avoid infinite loop via get_default()
         if node.inst.properties.get("rset", False):
             return rdltypes.OnReadType.rset
         elif node.inst.properties.get("rclr", False):
@@ -884,6 +888,7 @@ class Prop_woclr(PropertyRule):
         """
         If not explicitly set, check if onwrite sets the equivalent
         """
+        # Check for explicit assignment to avoid infinite loop via get_default()
         if node.inst.properties.get("onwrite", None) == rdltypes.OnWriteType.woclr:
             return True
         else:
@@ -912,8 +917,9 @@ class Prop_woset(PropertyRule):
 
     def get_default(self, node: m_node.Node) -> bool:
         """
-        If not explicitly set, check if onread sets the equivalent
+        If not explicitly set, check if onwrite sets the equivalent
         """
+        # Check for explicit assignment to avoid infinite loop via get_default()
         if node.inst.properties.get("onwrite", None) == rdltypes.OnWriteType.woset:
             return True
         else:
@@ -944,6 +950,7 @@ class Prop_onwrite(PropertyRule):
         """
         If not explicitly set, check if woset or woclr imply the value
         """
+        # Check for explicit assignment to avoid infinite loop via get_default()
         if node.inst.properties.get("woset", False):
             return rdltypes.OnWriteType.woset
         elif node.inst.properties.get("woclr", False):
@@ -1536,7 +1543,7 @@ class Prop_intr(PropertyRule):
 class Prop_intr_type(PropertyRule):
     bindable_to = {comp.Field}
     valid_types = (rdltypes.InterruptType,)
-    default = rdltypes.InterruptType.level
+    default = None
     dyn_assign_allowed = True
     mutex_group = None
 
@@ -1546,6 +1553,12 @@ class Prop_intr_type(PropertyRule):
         # Intentinally override the property name to something that is impossible
         # to define in RDL and collide with: contains a space!
         return "intr type"
+
+    def get_default(self, node: m_node.Node) -> Any:
+        if node.get_property('intr'):
+            # If unspecified, interrupt fields are level-sensitive by default
+            return rdltypes.InterruptType.level
+        return None
 
 
 class Prop_enable(PropertyRule):
@@ -1619,11 +1632,14 @@ class Prop_stickybit(PropertyRule):
         """
         Unless specified otherwise, intr fields are implicitly stickybit
         """
-        if node.inst.properties.get("intr", False):
-            # Interrupt is set!
-            # Default is implicitly stickybit, unless the mutually-exclusive
-            # sticky property was set instead
-            return not node.inst.properties.get("sticky", False)
+        if node.get_property('intr'):
+            # Field is an interrupt
+            if node.get_property('sticky'):
+                # ... and it was defined as multibit sticky. Not stickybit
+                return False
+            else:
+                # By default, implies stickybit
+                return True
         else:
             return False
 
