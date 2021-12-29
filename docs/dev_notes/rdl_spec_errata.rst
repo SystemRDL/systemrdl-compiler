@@ -311,7 +311,9 @@ Typos in the spec
 -----------------
 
 Typo in semantic rule 11.2-f
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. pull-quote::
 
     Virtual registers, **register files**, and fields shall have the same
     software access (sw property value) as the parent memory.
@@ -328,6 +330,37 @@ BNF-style description implies parentheses are part of the generated type name
 but the text in the same section only mentions underscore delimiters.
 Assuming the red parentheses are to be ignored.
 
+
+Description of ``haltenable`` and ``haltmask`` is incorrect
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Text in section 9.9, Table 21 is inconsistent for ``haltenable`` and
+``haltmask`` properties.
+
+.. pull-quote::
+
+    haltenable
+        Defines a halt enable (the inverse of haltmask); i.e., which bits in an
+        interrupt field **are set to de-assert** the halt out.
+
+    haltmask
+        Defines a halt mask (the inverse of haltenable); i.e., which bits in an
+        interrupt field **are set to assert** the halt out.
+
+The above phrasing is misleading and can confuse the reader into thinking that
+these properties have a different effect on halt compared to their sister
+properties for the intr output.
+The above highlighted segments should be changed to "are used to assert" and
+"are not used to assert" to match how the existing ``enable`` & ``mask``
+properties are described.
+
+This would make the semantics of these consistent with the rest of the spec's
+description of how the halt mechanism works:
+
+* Comment in example 17.2.7 confirms that 'halt' is basically the same as the
+  'intr' output, just that it can be used as an alternate priority level.
+* The pseudocode just prior to the example in 9.9 also confirms that the
+  ``haltenable`` and ``haltmask`` properties are similar in interpretation to
+  ``enable`` and ``mask``.
 
 --------------------------------------------------------------------------------
 
@@ -608,3 +641,108 @@ use of the ``next`` property requires the field to be writable by hardware:
 
 Unfortunately the text does not provide this detail in any of the semantics.
 Fortunately it is still consistent with the interpretation clarified here.
+
+
+Interpretation of ``nonsticky intr``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Table 20 enumerates ``nonsticky`` as one of the interrupt types, however the spec
+also describes that it can be combined this with other interrupt types. This
+implies that a ``nonsticky`` interrupt is not a distinct interrupt type in
+itself, but rather a modifier.
+
+The simplest interpretation of the ``nonsticky`` modifier is that its use is
+equivalent to setting the ``stickybit`` property to false.
+
+For example, this:
+
+.. code-block:: systemrdl
+
+    nonsticky intr;
+
+is equivalent to:
+
+.. code-block:: systemrdl
+
+    intr; // Mark field as an interrupt
+    level intr; // Interrupts are level-sensitive by default
+    stickybit = false; // but do not imply stickiness
+
+
+The spec also ought to go into more explicit detail on how the field's interrupt
+state is updated for the various combinations of interrupt types.
+
+level intr; nonsticky intr;
+    Non-sticky level-sensitive interrupt. The field's value directly mirrors the
+    interrupt input without any latching:
+
+    .. code-block:: verilog
+
+        field_value <= next;
+
+posedge intr; nonsticky intr;
+    Asserts interrupt synchronously on a 0->1 input transition. Since the field
+    is nonsticky, the interrupt only asserts for a single cycle:
+
+    .. code-block:: verilog
+
+        field_value <= ~next_r & next;
+
+negedge intr; nonsticky intr;
+    Asserts interrupt synchronously on a 1->0 input transition. Since the field
+    is nonsticky, the interrupt only asserts for a single cycle:
+
+    .. code-block:: verilog
+
+        field_value <= next_r & ~next;
+
+bothedge intr; nonsticky intr;
+    Asserts interrupt synchronously on any input transition. Since the field
+    is nonsticky, the interrupt only asserts for a single cycle:
+
+    .. code-block:: verilog
+
+        field_value <= next_r ^ next;
+
+
+
+Behavior of ``sticky`` fields
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+A field that uses the ``stickybit`` property has latching behavior that is
+self-evident. Each bit latches individually and can be implemented using a
+bitwise OR operation:
+
+.. code-block:: verilog
+
+    field_value <= field_value | next;
+
+Unfortunately for multi-bit fields that use the ``sticky`` property, the spec
+does not go into very much detail into *how* this type of field latches an
+incoming value.
+
+The spec only provides the following context:
+
+* Multi-bit 'sticky' fields are intended as a mechanism to 'latch' a value
+* A single-bit 'sticky' field shall collapse into the same behavior as a 'stickybit' field.
+
+The simplest interpretation that accomplishes the above is as follows:
+
+* The 'sticky' field latches its value when its current value is zero and its 'next' input signal becomes non-zero.
+* The latched value remains unchanged, regardless of the state of the field's 'next' input signal.
+* The field can only latch a new value if its state is explicitly cleared back to zero by a software action.
+
+This latching behavior can be implemented simply as follows:
+
+.. code-block:: verilog
+
+    if((field_value == '0) && (field_input != '0))
+        field_value <= field_input;
+
+This interpretation implies that sticky multi-bit interrupts that are edge-sensitive
+are meaningless. A field defined as follows would be contradictory:
+
+.. code-block:: systemrdl
+
+    field {
+        negedge intr;
+        sticky;
+    } bad_field[8];
