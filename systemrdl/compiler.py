@@ -420,7 +420,7 @@ class RDLCompiler:
 
         .. versionadded:: 1.8
         """
-        # Create local message handler that suppresses the usual ouput
+        # Create local message handler that suppresses the usual output
         # to stderr.
         # Instead raises ValueError on any error
         msg_printer = messages.MessageExceptionRaiser()

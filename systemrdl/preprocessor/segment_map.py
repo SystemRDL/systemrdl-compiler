@@ -84,9 +84,9 @@ class SegmentMap:
     def get_selection(self, start: int, end: int) -> Tuple[int, int, str]:
         """
         Given post-processed start/end character offsets, derives the coordinates
-        witin the original source file.
+        within the original source file.
 
-        If the selection spans two files, the end coordiante is discarded and is
+        If the selection spans two files, the end coordinate is discarded and is
         instead pinned to the start coordinate
         """
         start, path = self.translate_offset(start, round_up=False)

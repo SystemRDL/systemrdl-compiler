@@ -127,12 +127,12 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
                 is_first_bullet.append(True)
                 list_end_tag.append('</ol>')
             else:
-                # Bad type. re-emit erronous list tag
+                # Bad type. re-emit erroneous list tag
                 text_segs.append(m.group(0))
 
         elif m.lastgroup == 'bullet':
             if len(is_first_bullet) == 0: #pylint: disable=len-as-condition
-                # Not inside a list tag. Re-emit erronous tag
+                # Not inside a list tag. Re-emit erroneous tag
                 text_segs.append("\\[\\*\\]")
             else:
                 if not is_first_bullet[-1]:
@@ -142,7 +142,7 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
 
         elif m.lastgroup == 'xlist':
             if len(list_end_tag) == 0: #pylint: disable=len-as-condition
-                # Not inside a list tag. Re-emit erronous tag
+                # Not inside a list tag. Re-emit erroneous tag
                 text_segs.append(m.group(0))
             else:
                 if not is_first_bullet[-1]:

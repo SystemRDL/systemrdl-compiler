@@ -733,7 +733,7 @@ class Macro:
     def render_macro(self, parent_vpp: VerilogPreprocessor, argv: list, src_ref: SourceRefBase) -> str:
         if len(argv) != len(self.args):
             parent_vpp.env.msg.fatal(
-                "Macro expansion reguires %d arguments. Got %d instead"
+                "Macro expansion requires %d arguments. Got %d instead"
                 % (len(self.args), len(argv)),
                 src_ref
             )

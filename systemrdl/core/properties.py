@@ -235,21 +235,21 @@ class PropertyRule:
         if isinstance(value, int):
             if node.width < value.bit_length():
                 self.env.msg.error(
-                    "A counter's %s cannot refrence a value wider than the counter itself."
+                    "A counter's %s cannot reference a value wider than the counter itself."
                     % (self.get_name()),
                     node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
         elif isinstance(value, m_node.VectorNode):
             if node.width < value.width:
                 self.env.msg.error(
-                    "A counter's %s cannot refrence a value wider than the counter itself."
+                    "A counter's %s cannot reference a value wider than the counter itself."
                     % (self.get_name()),
                     node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
         elif isinstance(value, rdltypes.PropertyReference) and value.width is not None:
             if node.width < value.width:
                 self.env.msg.error(
-                    "A counter's %s cannot refrence a value wider than the counter itself."
+                    "A counter's %s cannot reference a value wider than the counter itself."
                     % (self.get_name()),
                     node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
@@ -1550,7 +1550,7 @@ class Prop_intr_type(PropertyRule):
     @classmethod
     def get_name_cls(cls) -> str:
         # Interrupt modifier type is a "special" hidden property
-        # Intentinally override the property name to something that is impossible
+        # Intentionally override the property name to something that is impossible
         # to define in RDL and collide with: contains a space!
         return "intr type"
 

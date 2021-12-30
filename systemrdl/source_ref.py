@@ -186,7 +186,7 @@ class SegmentedSourceRef(DirectSourceRef):
 
 #-------------------------------------------------------------------------------
 def src_ref_from_antlr(antlr_ref: Union[CommonToken, TerminalNodeImpl, ParserRuleContext]) -> 'SourceRefBase':
-    # Normalize to pair of CmmonToken objects
+    # Normalize to pair of CommonToken objects
     if isinstance(antlr_ref, CommonToken):
         token = antlr_ref
         end_token = None

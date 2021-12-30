@@ -146,7 +146,7 @@ class InterruptType(BuiltinEnum):
 
         The ``nonsticky`` interrupt type is intentionally omitted from this
         enumeration since it is not really a distinct interrupt type. Its use in
-        SystemRDL implies an assignemnt of ``stickybit = false``.
+        SystemRDL implies an assignment of ``stickybit = false``.
     """
     #: Interrupt when asserted and maintained
     level = ()

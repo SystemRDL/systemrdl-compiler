@@ -569,7 +569,7 @@ class LateElabListener(walker.RDLListener):
         if node.inst.type_name is not None:
             extra_type_name_segments = []
 
-            # Augment based on paramter overrides as per 5.1.1.4
+            # Augment based on parameter overrides as per 5.1.1.4
             if node.inst.original_def is not None:
                 for i, inst_parameter in enumerate(node.inst.parameters):
                     orig_param_value = node.inst.original_def.parameters[i].get_value()

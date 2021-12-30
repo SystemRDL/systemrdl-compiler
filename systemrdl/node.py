@@ -1069,7 +1069,8 @@ class FieldNode(VectorNode):
 
 
         .. versionchanged:: 1.22
-            Counter fields always implement storage, regardless of sw/hw access.
+            Counter, interrupt, stickybit, and sticky fields always implement
+            storage, regardless of sw/hw access.
         """
 
         # 9.4.1, Table 12
@@ -1099,6 +1100,14 @@ class FieldNode(VectorNode):
 
         if self.get_property('counter'):
             # All counters implicitly implement storage
+            return True
+
+        if self.get_property('intr'):
+            # All interrupt fields implicitly implement storage
+            return True
+
+        if self.get_property('stickybit') or self.get_property('sticky'):
+            # All sticky fields implicitly implement storage
             return True
 
         return False
