@@ -5,13 +5,14 @@ set -e
 this_dir="$( cd "$(dirname "$0")" ; pwd -P )"
 
 exists () {
-  type "$1" >/dev/null 2>/dev/null
+    type "$1" >/dev/null 2>/dev/null
 }
 
 # If ccache is installed, use that to cache C++ compilation to speed up re-runs
-if exists ccache; then
-    export CC="ccache gcc"
-fi
+#if exists ccache; then
+#    export CC="ccache gcc"
+#    export CXX="ccache g++"
+#fi
 
 # Initialize venv
 venv_bin=$this_dir/.venv/bin
