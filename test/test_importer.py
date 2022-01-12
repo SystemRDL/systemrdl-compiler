@@ -130,11 +130,11 @@ class TestImporter(unittest.TestCase):
     def test_illegal_inst_name_import_raises_error(self):
         rdlc = RDLCompiler()
         i = InstNameErrorTestcaseImporter(rdlc)
-        with self.assertRaisesRegex(ValueError, "Instance name has invalid characters: reg1.some_signal"):
+        with self.assertRaisesRegex(ValueError, "Instance name has invalid characters: 'reg1.some_signal'"):
             i.import_file("asdf")
 
     def test_illegal_type_name_import_raises_error(self):
         rdlc = RDLCompiler()
         i = TypeNameErrorTestcaseImporter(rdlc)
-        with self.assertRaisesRegex(ValueError, "Type name has invalid characters: illegal.type.name"):
+        with self.assertRaisesRegex(ValueError, "Type name has invalid characters: 'illegal.type.name'"):
             i.import_file("asdf")
