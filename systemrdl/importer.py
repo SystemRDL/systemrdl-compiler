@@ -50,7 +50,7 @@ class RDLImporter:
     # ------------------------ create_xxx_definition() -------------------------
     def _create_definition(self, cls: "Type[ComponentClass]", type_name: Optional[str] = None, src_ref: Optional[SourceRefBase] = None) -> "ComponentClass":
         if (type_name is not None) and not re.fullmatch(r"\w+", type_name):
-            raise ValueError("Type name has invalid characters")
+            raise ValueError(f"Type name has invalid characters: {type_name!r}")
         C = cls()
         C.type_name = type_name
         C.def_src_ref = src_ref or self.default_src_ref
@@ -134,7 +134,7 @@ class RDLImporter:
         if comp_def.is_instance:
             raise ValueError("Component is already instantiated")
         if not re.fullmatch(r"\w+", inst_name):
-            raise ValueError("Instance name has invalid characters")
+            raise ValueError(f"Instance name has invalid characters: {inst_name!r}")
 
         if comp_def.type_name is None:
             # anonymous definition. No need to copy since it can only be used once

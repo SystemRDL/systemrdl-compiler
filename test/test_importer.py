@@ -64,6 +64,28 @@ class MyImporter(RDLImporter):
         )
 
 
+class InstNameErrorTestcaseImporter(RDLImporter):
+    def import_file(self, path: str) -> None:
+        super().import_file(path)
+
+        my_rf = self.create_regfile_definition("error_testcases")
+        self.register_root_component(my_rf)
+
+        # Creates a register instance with an illegal name.
+        reg1 = self.instantiate_reg(self.create_reg_definition(),
+                                    "reg1.some_signal", 0)
+        self.add_child(my_rf, reg1)
+
+class TypeNameErrorTestcaseImporter(RDLImporter):
+
+    def import_file(self, path: str) -> None:
+        super().import_file(path)
+
+        my_rf = self.create_regfile_definition("error_testcases")
+        self.register_root_component(my_rf)
+
+        # Creates a register instance with an illegal name.
+        reg_t = self.create_reg_definition("illegal.type.name")
 
 class TestImporter(unittest.TestCase):
     def test_importer(self):
@@ -104,3 +126,15 @@ class TestImporter(unittest.TestCase):
         ]
 
         self.assertEqual(nodes, expected_nodes)
+
+    def test_illegal_inst_name_import_raises_error(self):
+        rdlc = RDLCompiler()
+        i = InstNameErrorTestcaseImporter(rdlc)
+        with self.assertRaisesRegex(ValueError, "Instance name has invalid characters: 'reg1.some_signal'"):
+            i.import_file("asdf")
+
+    def test_illegal_type_name_import_raises_error(self):
+        rdlc = RDLCompiler()
+        i = TypeNameErrorTestcaseImporter(rdlc)
+        with self.assertRaisesRegex(ValueError, "Type name has invalid characters: 'illegal.type.name'"):
+            i.import_file("asdf")
