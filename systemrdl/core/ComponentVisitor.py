@@ -904,6 +904,15 @@ class RootVisitor(ComponentVisitor):
         self.visitChildren(ctx)
         self.apply_dynamic_properties()
 
+    def visitLocal_property_assignment(self, ctx: SystemRDLParser.Local_property_assignmentContext) -> None:
+        # The only local assignments allowed in Root are default assignments
+        if ctx.DEFAULT_kw() is None:
+            self.msg.error(
+                "Illegal property assignment in root namespace",
+                src_ref_from_antlr(ctx)
+            )
+        super().visitLocal_property_assignment(ctx)
+
 
     def define_component(self, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: str, param_defs: List[Parameter]) -> comp.Component:
         comp_def = super().define_component(body, type_token, def_name, param_defs)
