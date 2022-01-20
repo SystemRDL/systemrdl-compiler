@@ -1642,7 +1642,7 @@ class Prop_sticky(PropertyRule):
                 self.env.msg.error(
                     "Use of a hardware write-enable on field '%s' does not make "
                     "sense because it is defined as 'sticky'. Sticky fields already "
-                    "define their own hardware write-enable behavior."
+                    "implicitly control their hardware write-enable behavior based on the input value."
                     % (node.inst_name),
                     node.inst.property_src_ref.get('we', node.inst.inst_src_ref)
                 )
@@ -1650,7 +1650,7 @@ class Prop_sticky(PropertyRule):
                 self.env.msg.error(
                     "Use of a hardware write-enable on field '%s' does not make "
                     "sense because it is defined as 'sticky'. Sticky fields already "
-                    "define their own hardware write-enable behavior."
+                    "implicitly control their hardware write-enable behavior based on the input value."
                     % (node.inst_name),
                     node.inst.property_src_ref.get('wel', node.inst.inst_src_ref)
                 )
@@ -1686,7 +1686,7 @@ class Prop_stickybit(PropertyRule):
                 self.env.msg.error(
                     "Use of a hardware write-enable on field '%s' does not make "
                     "sense because it is defined as 'stickybit'. Stickybit fields already "
-                    "define their own hardware write-enable behavior."
+                    "implicitly control their hardware write-enable behavior based on the input value."
                     % (node.inst_name),
                     node.inst.property_src_ref.get('we', node.inst.inst_src_ref)
                 )
@@ -1694,7 +1694,7 @@ class Prop_stickybit(PropertyRule):
                 self.env.msg.error(
                     "Use of a hardware write-enable on field '%s' does not make "
                     "sense because it is defined as 'stickybit'. Stickybit fields already "
-                    "define their own hardware write-enable behavior."
+                    "implicitly control their hardware write-enable behavior based on the input value."
                     % (node.inst_name),
                     node.inst.property_src_ref.get('wel', node.inst.inst_src_ref)
                 )

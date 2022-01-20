@@ -1220,13 +1220,28 @@ class RegNode(AddressableNode):
     @property
     def is_interrupt_reg(self) -> bool:
         """
-        Register contains one or more interrupt fields.
+        Register contains one or more interrupt fields and therefore produces an
+        interrupt output signal.
 
 
         .. versionadded:: 1.22
         """
         for field in self.fields():
             if field.get_property('intr'):
+                return True
+        return False
+
+    @property
+    def is_halt_reg(self) -> bool:
+        """
+        Register contains one or more interrupt fields that use ``haltenable``
+        or ``haltmask`` and therefore produces a halt output signal.
+
+
+        .. versionadded:: 1.22
+        """
+        for field in self.fields():
+            if field.get_property('haltenable') or field.get_property('haltmask'):
                 return True
         return False
 
