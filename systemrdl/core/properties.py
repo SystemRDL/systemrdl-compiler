@@ -1404,6 +1404,16 @@ class Prop_overflow(CounterProperty):
     dyn_assign_allowed = True
     mutex_group = None
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
+
+        if node.get_property('incrsaturate') is not False:
+            self.env.msg.error(
+                "Use of 'overflow' property is meaningless. Counter sets the "
+                "'incrsaturate' property which makes it unable to overflow",
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
+
 
 class Prop_underflow(CounterProperty):
     bindable_to = {comp.Field}
@@ -1411,6 +1421,16 @@ class Prop_underflow(CounterProperty):
     default = False
     dyn_assign_allowed = True
     mutex_group = None
+
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
+
+        if node.get_property('decrsaturate') is not False:
+            self.env.msg.error(
+                "Use of 'underflow' property is meaningless. Counter sets the "
+                "'decrsaturate' property which makes it unable to underflow",
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
 
 
 class Prop_incr(CounterProperty):
@@ -1456,6 +1476,17 @@ class Prop_incrwidth(CounterProperty):
     dyn_assign_allowed = True
     mutex_group = "F"
 
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
+        assert isinstance(node, m_node.FieldNode)
+
+        if not 1 <= value <= node.width:
+            self.env.msg.error(
+                "A counter's 'incrwidth' must be between 1 and the counter's width (%d)"
+                % node.width,
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
+
 
 class Prop_decrvalue(CounterProperty):
     bindable_to = {comp.Field}
@@ -1499,6 +1530,17 @@ class Prop_decrwidth(CounterProperty):
     default = None
     dyn_assign_allowed = True
     mutex_group = "G"
+
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
+        assert isinstance(node, m_node.FieldNode)
+
+        if not 1 <= value <= node.width:
+            self.env.msg.error(
+                "A counter's 'decrwidth' must be between 1 and the counter's width (%d)"
+                % node.width,
+                node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+            )
 
 
 class Prop_decrsaturate(CounterProperty):
@@ -1573,6 +1615,13 @@ class Prop_enable(PropertyRule):
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
+        if value:
+            if not node.get_property('intr'):
+                self.env.msg.error(
+                    "The 'enable' property can only be used on interrupt fields.",
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+
 
 class Prop_mask(PropertyRule):
     bindable_to = {comp.Field}
@@ -1585,6 +1634,13 @@ class Prop_mask(PropertyRule):
         assert isinstance(node, m_node.FieldNode)
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
+
+        if value:
+            if not node.get_property('intr'):
+                self.env.msg.error(
+                    "The 'mask' property can only be used on interrupt fields.",
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
 
 
 class Prop_haltenable(PropertyRule):
@@ -1599,6 +1655,13 @@ class Prop_haltenable(PropertyRule):
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
+        if value:
+            if not node.get_property('intr'):
+                self.env.msg.error(
+                    "The 'haltenable' property can only be used on interrupt fields.",
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+
 
 class Prop_haltmask(PropertyRule):
     bindable_to = {comp.Field}
@@ -1612,6 +1675,13 @@ class Prop_haltmask(PropertyRule):
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
+        if value:
+            if not node.get_property('intr'):
+                self.env.msg.error(
+                    "The 'haltmask' property can only be used on interrupt fields.",
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+
 
 class Prop_sticky(PropertyRule):
     bindable_to = {comp.Field}
@@ -1621,6 +1691,7 @@ class Prop_sticky(PropertyRule):
     mutex_group = "I"
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         if value is True:
             # 'sticky' property doesnt quite make sense for edge-senstive interrupts
             intr_type = node.get_property('intr type')
@@ -1655,6 +1726,13 @@ class Prop_sticky(PropertyRule):
                     node.inst.property_src_ref.get('wel', node.inst.inst_src_ref)
                 )
 
+            if not node.is_hw_writable:
+                self.env.msg.error(
+                    "Sticky fields shall be hardware-writable",
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+                )
+
+
 
 
 class Prop_stickybit(PropertyRule):
@@ -1680,6 +1758,7 @@ class Prop_stickybit(PropertyRule):
             return False
 
     def validate(self, node: m_node.Node, value: Any) -> None:
+        assert isinstance(node, m_node.FieldNode)
         if value is True:
             # Use of we/wel qualifier conflicts with stickybit property
             if node.get_property('we'):
@@ -1697,6 +1776,12 @@ class Prop_stickybit(PropertyRule):
                     "implicitly control their hardware write-enable behavior based on the input value."
                     % (node.inst_name),
                     node.inst.property_src_ref.get('wel', node.inst.inst_src_ref)
+                )
+
+            if not node.is_hw_writable:
+                self.env.msg.error(
+                    "Stickybit fields shall be hardware-writable",
+                    node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
                 )
 
 
@@ -2192,6 +2277,17 @@ class PropRef_overflow(CounterPropRef):
     def width(self) -> Optional[int]:
         return 1
 
+    def _validate(self) -> None:
+        super()._validate()
+
+        if self.node.get_property('incrsaturate') is not False:
+            self.env.msg.error(
+                "Reference to property '%s' is illegal because the target field will never overflow"
+                % self.name,
+                self.src_ref
+            )
+
+
 class PropRef_underflow(CounterPropRef):
     """
     asserted when counter underflows or wraps.
@@ -2201,6 +2297,16 @@ class PropRef_underflow(CounterPropRef):
     @property
     def width(self) -> Optional[int]:
         return 1
+
+    def _validate(self) -> None:
+        super()._validate()
+
+        if self.node.get_property('decrsaturate') is not False:
+            self.env.msg.error(
+                "Reference to property '%s' is illegal because the target field will never underflow"
+                % self.name,
+                self.src_ref
+            )
 
 #-------------------------------------------------------------------------------
 # Access
