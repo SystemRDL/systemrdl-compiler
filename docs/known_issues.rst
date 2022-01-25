@@ -5,22 +5,6 @@ Known Issues & Limitations
 This page lists anything from the SystemRDL 2.0 spec that the
 ``systemrdl-compiler`` does not support yet.
 
-Limitations are listed roughly in order of priority, where the first items are
-likely to be fixed the soonest.
-
-
-Semantic Checking is Incomplete
--------------------------------
-
-The SystemRDL spec implies hundreds of rules & semantics that need to be
-enforced. Many of them are implicitly enforced by the language's syntax.
-However, most others require additional post-compile checking in order to
-validate.
-
-Adding these semantic checks is an ongoing effort. I am keeping track of which
-checks are implemented here:
-:download:`semantic_checks.ods<dev_notes/semantic_checks.ods>`
-
 
 
 Constraints

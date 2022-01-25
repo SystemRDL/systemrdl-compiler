@@ -14,11 +14,57 @@ value will be returned. When using the ``get_property()`` interface, any
 instance references are converted to their
 representative :class:`~systemrdl.node.Node` objects.
 
+
+Implied Property Values
+-----------------------
+The SystemRDL language describes numerous properties. Many of them are very
+closely interrelated. Even if not explicitly assigned, some of these may inherit
+an implied value based on other properties.
+
+For example:
+
+.. code-block:: systemrdl
+
+    field my_field {
+        sw=rw;
+        rclr;
+    };
+
+The above example describes a field that is cleared when software reads it.
+Although not explicitly set, if you were to do the following query:
+``my_field.get_property('onread')``, it would return the value
+:attr:`~systemrdl.rdltypes.OnReadType.rclr`, as if the user assigned it as follows:
+
+.. code-block:: systemrdl
+
+    field my_field {
+        sw=rw;
+        onread = rclr;
+    };
+
+Other properties that may infer a value: (This is not an exhaustive list!)
+
+* If not explicitly set, ``resetsignal`` may return a signal marked with
+  ``field_reset`` in the enclosing hierarchy.
+* ``rclr`` and ``rset`` can be implied from ``onread`` and vice-versa.
+* ``woclr`` ``woset`` can be implied from ``onwrite`` and vice-versa.
+* ``incrvalue`` and ``decrvalue`` may infer a value of 1 for counters that do
+  not specify otherwise.
+* ``stickybit`` is true for interrupt fields unless specified otherwise.
+* ``accesswidth`` defaults to the width of the register.
+* Boolean property pairs that imply the opposites of each-other:
+
+    * ``sync`` and ``async``
+    * ``bigendian`` and ``littleendian``
+    * ``msb0`` and ``lsb0``
+
+
+
 Derived Properties
 ------------------
 
 The ``systemrdl-compiler`` provides additional derived properties that intend
-to simplify interpretation of the compiled register model. These derived
+to further simplify interpretation of the compiled register model. These derived
 properties may query multiple characteristics to determine their value.
 
 Some examples:
