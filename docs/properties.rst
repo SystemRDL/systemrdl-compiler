@@ -19,7 +19,9 @@ Implied Property Values
 -----------------------
 The SystemRDL language describes numerous properties. Many of them are very
 closely interrelated. Even if not explicitly assigned, some of these may inherit
-an implied value based on other properties.
+an implied value based on other properties. In order to simplify the designer's
+job of interpreting user input, the SystemRDL compiler's :meth:`Node.get_property() <systemrdl.node.Node.get_property>`
+method will automatically return these implied default values.
 
 For example:
 
@@ -33,7 +35,7 @@ For example:
 The above example describes a field that is cleared when software reads it.
 Although not explicitly set, if you were to do the following query:
 ``my_field.get_property('onread')``, it would return the value
-:attr:`~systemrdl.rdltypes.OnReadType.rclr`, as if the user assigned it as follows:
+:attr:`OnReadType.rclr <systemrdl.rdltypes.OnReadType.rclr>`, as if the user assigned it as follows:
 
 .. code-block:: systemrdl
 
@@ -42,16 +44,21 @@ Although not explicitly set, if you were to do the following query:
         onread = rclr;
     };
 
-Other properties that may infer a value: (This is not an exhaustive list!)
+
+Other properties that may infer a value
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(This is not an exhaustive list!)
 
 * If not explicitly set, ``resetsignal`` may return a signal marked with
   ``field_reset`` in the enclosing hierarchy.
 * ``rclr`` and ``rset`` can be implied from ``onread`` and vice-versa.
-* ``woclr`` ``woset`` can be implied from ``onwrite`` and vice-versa.
+* ``woclr`` and ``woset`` can be implied from ``onwrite`` and vice-versa.
 * ``incrvalue`` and ``decrvalue`` may infer a value of 1 for counters that do
   not specify otherwise.
 * ``stickybit`` is true for interrupt fields unless specified otherwise.
 * ``accesswidth`` defaults to the width of the register.
+* ``fieldwidth`` and ``signalwidth`` will inherit from their field/signal
+  instance widths respectively.
 * Boolean property pairs that imply the opposites of each-other:
 
     * ``sync`` and ``async``
