@@ -1,65 +1,88 @@
+from typing import Optional
+from enum import IntEnum
 
 from .node import AddressableNode, VectorNode, FieldNode, RegNode, RegfileNode
 from .node import AddrmapNode, MemNode, SignalNode
 from .node import RootNode, Node
 
-#===============================================================================
+
+class WalkerAction(IntEnum):
+
+    #: Continue walking the register model
+    Continue = 0
+
+    #: Walker will continue calling listener methods for this component, but
+    #: will not recurse into this node's children.
+    SkipDescendants = 1
+
+    #: Stop the walker immediately. No more listener methods will be called.
+    StopNow = 2
+
+
 class RDLListener:
     """
-    Base class for user-defined RDL traversal listeners
+    Base class for user-defined RDL traversal listeners.
+
+    From each callback, optionally return a :class:`WalkerAction` to
+    control how the walker should continue model traversal.
+    Returning ``None`` is equivalent to :attr:`WalkerAction.Continue`.
+
+
+    .. versionchanged:: 1.23
+        Added optional WalkerAction return value
     """
-    def enter_Component(self, node: Node) -> None:
+    def enter_Component(self, node: Node) -> Optional[WalkerAction]:
         pass
 
-    def exit_Component(self, node: Node) -> None:
+    def exit_Component(self, node: Node) -> Optional[WalkerAction]:
         pass
 
-    def enter_AddressableComponent(self, node: AddressableNode) -> None:
+    def enter_AddressableComponent(self, node: AddressableNode) -> Optional[WalkerAction]:
         pass
 
-    def exit_AddressableComponent(self, node: AddressableNode) -> None:
+    def exit_AddressableComponent(self, node: AddressableNode) -> Optional[WalkerAction]:
         pass
 
-    def enter_VectorComponent(self, node: VectorNode) -> None:
+    def enter_VectorComponent(self, node: VectorNode) -> Optional[WalkerAction]:
         pass
 
-    def exit_VectorComponent(self, node: VectorNode) -> None:
+    def exit_VectorComponent(self, node: VectorNode) -> Optional[WalkerAction]:
         pass
 
-    def enter_Addrmap(self, node: AddrmapNode) -> None:
+    def enter_Addrmap(self, node: AddrmapNode) -> Optional[WalkerAction]:
         pass
 
-    def exit_Addrmap(self, node: AddrmapNode) -> None:
+    def exit_Addrmap(self, node: AddrmapNode) -> Optional[WalkerAction]:
         pass
 
-    def enter_Regfile(self, node: RegfileNode) -> None:
+    def enter_Regfile(self, node: RegfileNode) -> Optional[WalkerAction]:
         pass
 
-    def exit_Regfile(self, node: RegfileNode) -> None:
+    def exit_Regfile(self, node: RegfileNode) -> Optional[WalkerAction]:
         pass
 
-    def enter_Mem(self, node: MemNode) -> None:
+    def enter_Mem(self, node: MemNode) -> Optional[WalkerAction]:
         pass
 
-    def exit_Mem(self, node: MemNode) -> None:
+    def exit_Mem(self, node: MemNode) -> Optional[WalkerAction]:
         pass
 
-    def enter_Reg(self, node: RegNode) -> None:
+    def enter_Reg(self, node: RegNode) -> Optional[WalkerAction]:
         pass
 
-    def exit_Reg(self, node: RegNode) -> None:
+    def exit_Reg(self, node: RegNode) -> Optional[WalkerAction]:
         pass
 
-    def enter_Field(self, node: FieldNode) -> None:
+    def enter_Field(self, node: FieldNode) -> Optional[WalkerAction]:
         pass
 
-    def exit_Field(self, node: FieldNode) -> None:
+    def exit_Field(self, node: FieldNode) -> Optional[WalkerAction]:
         pass
 
-    def enter_Signal(self, node: SignalNode) -> None:
+    def enter_Signal(self, node: SignalNode) -> Optional[WalkerAction]:
         pass
 
-    def exit_Signal(self, node: SignalNode) -> None:
+    def exit_Signal(self, node: SignalNode) -> Optional[WalkerAction]:
         pass
 
 #===============================================================================
@@ -94,6 +117,7 @@ class RDLWalker:
         """
         self.unroll = unroll
         self.skip_not_present = skip_not_present
+        self.current_action = WalkerAction.Continue
 
 
     def walk(self, node: Node, *listeners: RDLListener, skip_top: bool=False) -> None:
@@ -123,60 +147,96 @@ class RDLWalker:
 
         if not skip_top:
             for listener in listeners:
-                self.do_enter(node, listener)
+                self.current_action = self.do_enter(node, listener)
+                if self.current_action == WalkerAction.StopNow:
+                    return
 
-        for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
-            self.walk(child, *listeners)
+        if self.current_action == WalkerAction.SkipDescendants:
+            # skip recursion into children, then reset action
+            self.current_action = WalkerAction.Continue
+        else:
+            for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
+                self.walk(child, *listeners)
+                if self.current_action == WalkerAction.StopNow:
+                    return
 
         if not skip_top:
             for listener in listeners:
-                self.do_exit(node, listener)
+                self.current_action = self.do_exit(node, listener)
+                if self.current_action == WalkerAction.StopNow:
+                    return
 
 
-    def do_enter(self, node: Node, listener: RDLListener) -> None:
-
-        # Skip RootNode since it isn't really a component
-        if not isinstance(node, RootNode):
-            listener.enter_Component(node)
-
-        if isinstance(node, AddressableNode):
-            listener.enter_AddressableComponent(node)
-        elif isinstance(node, VectorNode):
-            listener.enter_VectorComponent(node)
-
-        if isinstance(node, FieldNode):
-            listener.enter_Field(node)
-        elif isinstance(node, RegNode):
-            listener.enter_Reg(node)
-        elif isinstance(node, RegfileNode):
-            listener.enter_Regfile(node)
-        elif isinstance(node, AddrmapNode):
-            listener.enter_Addrmap(node)
-        elif isinstance(node, MemNode):
-            listener.enter_Mem(node)
-        elif isinstance(node, SignalNode):
-            listener.enter_Signal(node)
-
-
-    def do_exit(self, node: Node, listener: RDLListener) -> None:
-        if isinstance(node, FieldNode):
-            listener.exit_Field(node)
-        elif isinstance(node, RegNode):
-            listener.exit_Reg(node)
-        elif isinstance(node, RegfileNode):
-            listener.exit_Regfile(node)
-        elif isinstance(node, AddrmapNode):
-            listener.exit_Addrmap(node)
-        elif isinstance(node, MemNode):
-            listener.exit_Mem(node)
-        elif isinstance(node, SignalNode):
-            listener.exit_Signal(node)
-
-        if isinstance(node, AddressableNode):
-            listener.exit_AddressableComponent(node)
-        elif isinstance(node, VectorNode):
-            listener.exit_VectorComponent(node)
+    def do_enter(self, node: Node, listener: RDLListener) -> WalkerAction:
+        action = WalkerAction.Continue
+        new_action = WalkerAction.Continue
 
         # Skip RootNode since it isn't really a component
         if not isinstance(node, RootNode):
-            listener.exit_Component(node)
+            action = listener.enter_Component(node) or WalkerAction.Continue
+
+        if action == WalkerAction.StopNow:
+            return action
+
+        if isinstance(node, AddressableNode):
+            new_action = listener.enter_AddressableComponent(node) or WalkerAction.Continue
+        elif isinstance(node, VectorNode):
+            new_action = listener.enter_VectorComponent(node) or WalkerAction.Continue
+
+        action = max(new_action, action)
+        if action == WalkerAction.StopNow:
+            return action
+
+        if isinstance(node, FieldNode):
+            new_action = listener.enter_Field(node) or WalkerAction.Continue
+        elif isinstance(node, RegNode):
+            new_action = listener.enter_Reg(node) or WalkerAction.Continue
+        elif isinstance(node, RegfileNode):
+            new_action = listener.enter_Regfile(node) or WalkerAction.Continue
+        elif isinstance(node, AddrmapNode):
+            new_action = listener.enter_Addrmap(node) or WalkerAction.Continue
+        elif isinstance(node, MemNode):
+            new_action = listener.enter_Mem(node) or WalkerAction.Continue
+        elif isinstance(node, SignalNode):
+            new_action = listener.enter_Signal(node) or WalkerAction.Continue
+
+        action = max(new_action, action)
+
+        return action
+
+
+    def do_exit(self, node: Node, listener: RDLListener) -> WalkerAction:
+        action = WalkerAction.Continue
+        new_action = WalkerAction.Continue
+
+        if isinstance(node, FieldNode):
+            action = listener.exit_Field(node) or WalkerAction.Continue
+        elif isinstance(node, RegNode):
+            action = listener.exit_Reg(node) or WalkerAction.Continue
+        elif isinstance(node, RegfileNode):
+            action = listener.exit_Regfile(node) or WalkerAction.Continue
+        elif isinstance(node, AddrmapNode):
+            action = listener.exit_Addrmap(node) or WalkerAction.Continue
+        elif isinstance(node, MemNode):
+            action = listener.exit_Mem(node) or WalkerAction.Continue
+        elif isinstance(node, SignalNode):
+            action = listener.exit_Signal(node) or WalkerAction.Continue
+
+        if action == WalkerAction.StopNow:
+            return action
+
+        if isinstance(node, AddressableNode):
+            new_action = listener.exit_AddressableComponent(node) or WalkerAction.Continue
+        elif isinstance(node, VectorNode):
+            new_action = listener.exit_VectorComponent(node) or WalkerAction.Continue
+
+        action = max(new_action, action)
+        if action == WalkerAction.StopNow:
+            return action
+
+        # Skip RootNode since it isn't really a component
+        if not isinstance(node, RootNode):
+            new_action = listener.exit_Component(node) or WalkerAction.Continue
+
+        action = max(new_action, action)
+        return action

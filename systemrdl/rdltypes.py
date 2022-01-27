@@ -39,13 +39,18 @@ else:
     PreElabRDLType = Any # type: ignore
 
 #===============================================================================
-class BuiltinEnum(enum.Enum):
-    # backport equivalent py3.6 support for auto enumeration
-    def __new__(cls) -> 'BuiltinEnum':
+class AutoNoValueEnum(enum.Enum):
+    def __new__(cls) -> 'AutoNoValueEnum':
         value = len(cls.__members__) + 1
         obj = object.__new__(cls)
         obj._value_ = value
         return obj
+
+    def __repr__(self) -> str:
+        return '<%s.%s>' % (self.__class__.__name__, self.name)
+
+class BuiltinEnum(AutoNoValueEnum):
+    pass
 
 #===============================================================================
 class AccessType(BuiltinEnum):

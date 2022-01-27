@@ -12,3 +12,7 @@ Listener
 .. autoclass:: systemrdl.RDLListener
     :members:
     :undoc-members:
+
+
+.. autoclass:: systemrdl.WalkerAction
+    :members:
