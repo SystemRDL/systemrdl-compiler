@@ -21,7 +21,7 @@ Walkthrough
 Start by creating a JSON importer class extended from :class:`~systemrdl.importer.RDLImporter`.
 
 .. literalinclude:: ../../examples/import_json.py
-    :lines: 4, 7-8
+    :lines: 5, 8-9
 
 Just like the :ref:`JSON exporter example <example_json-exporter>`, we will
 define a function that converts each component type.
@@ -121,7 +121,7 @@ formats.
 Here we detect the file type based on its extension:
 
 .. literalinclude:: ../../examples/import_json.py
-    :lines: 191-211
+    :lines: 191-213
     :emphasize-lines: 3,14
     :dedent: 4
 
