@@ -554,6 +554,12 @@ class LateElabListener(walker.RDLListener):
         if self.coerce_external_to is not None:
             # Is nested inside regfile that is coercing to a particular inst type
             node.inst.external = self.coerce_external_to
+        elif node.inst.external is None:
+            assert isinstance(node.inst, comp.Reg)
+            if node.inst.is_alias:
+                node.inst.external = node.inst.alias_primary_inst.external
+            else:
+                node.inst.external = False
 
 
     def exit_Regfile(self, node: RegfileNode) -> None:

@@ -317,9 +317,14 @@ class ComponentVisitor(BaseVisitor):
                     src_ref_from_antlr(inst_type)
                 )
         elif isinstance(comp_inst, comp.Reg):
-            comp_inst.external = False
-            if (inst_type is not None) and (inst_type.type == SystemRDLParser.EXTERNAL_kw):
-                comp_inst.external = True
+            if inst_type is not None:
+                if inst_type.type == SystemRDLParser.EXTERNAL_kw:
+                    comp_inst.external = True
+                elif inst_type.type == SystemRDLParser.INTERNAL_kw:
+                    comp_inst.external = False
+            else:
+                # Leave as None. Elaborate step will resolve later.
+                comp_inst.external = None
 
         elif isinstance(comp_inst, comp.Regfile):
             if inst_type is not None:
