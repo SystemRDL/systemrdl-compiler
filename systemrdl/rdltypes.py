@@ -72,6 +72,51 @@ class AccessType(BuiltinEnum):
     #: Write-only. After a reset occurs, can only be written once.
     w1 = ()
 
+    def __add__(self, other: Any) -> 'AccessType':
+        """
+        Add operator combines AccessTypes into the more permissive superset of
+        the two addends.
+
+        For example: ``r + w --> rw``
+
+
+        .. versionadded:: 1.23
+        """
+        if not isinstance(other, AccessType):
+            raise TypeError("unsupported addend types: %s + %s" % (repr(self), repr(other)))
+
+        pair = {other, self}
+
+        # addends are the same. No change
+        if len(pair) == 1:
+            return self
+
+        # rw superscedes all others
+        if AccessType.rw in pair:
+            return AccessType.rw
+
+        # na is supersceded by all others
+        if self == AccessType.na:
+            return other
+        if other == AccessType.na:
+            return self
+
+        if pair == {AccessType.r, AccessType.w}:
+            return AccessType.rw
+        if pair == {AccessType.r, AccessType.rw1}:
+            return AccessType.rw1
+        if pair == {AccessType.r, AccessType.w1}:
+            return AccessType.rw1
+        if pair == {AccessType.w, AccessType.rw1}:
+            return AccessType.rw
+        if pair == {AccessType.w, AccessType.w1}:
+            return AccessType.w
+        if pair == {AccessType.rw1, AccessType.w1}:
+            return AccessType.rw1
+
+        # unreachable
+        raise RuntimeError
+
 class OnReadType(BuiltinEnum):
     #: Cleared on read
     rclr = ()

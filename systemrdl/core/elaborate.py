@@ -521,6 +521,8 @@ class LateElabListener(walker.RDLListener):
         self.coerce_external_to = None # type: Optional[bool]
         self.coerce_end_regfile = None # type: Optional[Node]
 
+        self.node_needs_revisit = [] # type: List[Node]
+
 
     def enter_Component(self, node: Node) -> None:
         # if parent is not present, children inherit it too
@@ -551,15 +553,28 @@ class LateElabListener(walker.RDLListener):
 
 
     def enter_Reg(self, node: RegNode) -> None:
+        assert isinstance(node.inst, comp.Reg)
+
         if self.coerce_external_to is not None:
             # Is nested inside regfile that is coercing to a particular inst type
             node.inst.external = self.coerce_external_to
         elif node.inst.external is None:
-            assert isinstance(node.inst, comp.Reg)
             if node.inst.is_alias:
-                node.inst.external = node.inst.alias_primary_inst.external
+                # inherit internal/external instance type from alias primary
+                assert isinstance(node.inst.alias_primary_inst, comp.Reg)
+                if node.inst.alias_primary_inst.external is not None:
+                    node.inst.external = node.inst.alias_primary_inst.external
+                else:
+                    # Elaborate did not resolve the primary reg yet and it is still unspecified.
+                    # re-visit this reg later
+                    self.node_needs_revisit.append(node)
             else:
                 node.inst.external = False
+
+        # Register aliases with their primary register
+        if node.inst.is_alias:
+            assert isinstance(node.inst.alias_primary_inst, comp.Reg)
+            node.inst.alias_primary_inst._alias_names.append(node.inst_name)
 
 
     def exit_Regfile(self, node: RegfileNode) -> None:
@@ -611,3 +626,34 @@ class LateElabListener(walker.RDLListener):
 
             if extra_type_name_segments:
                 node.inst.type_name += "_" + "_".join(extra_type_name_segments)
+
+
+#-------------------------------------------------------------------------------
+class LateElabRevisitor:
+    """
+    In rare situations, some nodes need to be re-visited one last time in order
+    to complete elaboration.
+
+    Rather than re-traversing the entire register model, these are set aside and are
+    re-visited here.
+    """
+
+    def __init__(self, revisit_nodes: List[Node]) -> None:
+        for node in revisit_nodes:
+            if isinstance(node, RegNode):
+                self.revisit_reg(node)
+            else:
+                raise RuntimeError
+
+    def revisit_reg(self, node: RegNode) -> None:
+
+        # Resolve alias register's instance type if it was not possible to do so earlier.
+        # By now, its primary would have been resolved.
+        if node.inst.external is None:
+            assert isinstance(node.inst, comp.Reg)
+            if node.inst.is_alias:
+                assert isinstance(node.inst.alias_primary_inst, comp.Reg)
+                if node.inst.alias_primary_inst.external is not None:
+                    node.inst.external = node.inst.alias_primary_inst.external
+                else:
+                    raise RuntimeError

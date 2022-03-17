@@ -318,6 +318,12 @@ class Reg(AddressableComponent):
         #:
         #: .. versionadded:: 1.7
         self.is_msb0_order = False # type: bool
+
+        # List of register inst names that are aliases of this primary
+        # Due to limitations in RDL grammar, these can only be siblings in the hierarchy
+        # so names are unambiguous
+        self._alias_names = [] # type: List[str]
+
         #------------------------------
         # Alias Register
         #------------------------------
@@ -326,7 +332,7 @@ class Reg(AddressableComponent):
 
         #: Reference to primary register :class:`~systemrdl.component.Component`
         #: instance
-        self.alias_primary_inst = None # type: Optional[Component]
+        self.alias_primary_inst = None # type: Optional[Reg]
 
 class Regfile(AddressableComponent):
     pass

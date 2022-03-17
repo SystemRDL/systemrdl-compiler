@@ -21,7 +21,7 @@ source $this_dir/.venv/bin/activate
 
 # Install test dependencies
 pip install -U pip setuptools wheel
-pip install pytest pytest-cov coverage pylint mypy parameterized types-Markdown
+pip install pytest pytest-cov coverage pylint mypy parameterized types-Markdown pytest-parallel
 
 # Install dut
 export SYSTEMRDL_REQUIRE_BINARY_BUILD=1
@@ -30,9 +30,9 @@ python $this_dir/../setup.py install
 cd $this_dir
 
 # Run unit tests while collecting coverage
-pytest --cov=systemrdl
+pytest --cov=systemrdl --workers auto
 export SYSTEMRDL_DISABLE_ACCELERATOR=1
-pytest --cov=systemrdl --cov-append
+pytest --workers auto
 
 # Generate coverage report
 coverage html -i -d $this_dir/htmlcov

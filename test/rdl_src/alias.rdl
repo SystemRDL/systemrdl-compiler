@@ -1,0 +1,42 @@
+addrmap alias_basics {
+    reg my_reg_t {
+        field {} x = 0;
+        field {} y = 0;
+    };
+    reg my_alt_reg_t {
+        field {} x = 0;
+    };
+
+    my_reg_t primary @ 0x04;
+    alias primary my_reg_t alias1 @ 0x00;
+    alias primary my_reg_t alias2 @ 0x08;
+    alias primary my_alt_reg_t alias3 @ 0x0C;
+
+    external my_reg_t ext_primary @ 0x14;
+    alias ext_primary my_reg_t ext_alias1 @ 0x10;
+    alias ext_primary my_reg_t ext_alias2 @ 0x18;
+    external alias ext_primary my_reg_t ext_alias3 @ 0x1C;
+
+
+    my_reg_t primary_array[2] @ 0x20 += 4;
+    alias primary_array my_reg_t alias_array[2] @ 0x30 += 4;
+};
+
+
+addrmap mixed_access {
+    reg my_reg_t {
+        field {
+            hw=r;
+            sw=r;
+        } x = 0;
+    };
+
+    my_reg_t r1;
+    my_reg_t r2;
+    r2.x->sw=w;
+
+    my_reg_t primary;
+
+    alias primary my_reg_t alias1;
+    alias1.x->sw=w;
+};

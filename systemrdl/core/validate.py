@@ -200,6 +200,113 @@ class ValidateListener(walker.RDLListener):
                     node.inst.inst_src_ref
                 )
 
+        # Validate alias register
+        if node.is_alias:
+            primary_reg = node.alias_primary
+
+            # 5.3.1-j: If an alias is present, then the primary must also be present
+            if node.get_property('ispresent') and not primary_reg.get_property('ispresent'):
+                self.msg.error(
+                    "Register '%s' is an alias of register '%s' which is not present (ispresent=false)"
+                    % (node.inst_name, primary_reg.inst_name),
+                    node.inst.inst_src_ref
+                )
+
+            # 10.5.1-f: The alias register shall have the same width as the primary register.
+            if node.get_property('regwidth') != primary_reg.get_property('regwidth'):
+                self.msg.error(
+                    "Primary register shall have the same regwidth as the alias register.",
+                    node.inst.inst_src_ref
+                )
+
+            if primary_reg.is_alias:
+                self.msg.error(
+                    "Primary register of an alias cannot also be an alias",
+                    node.inst.inst_src_ref
+                )
+
+            # 10.5.1-f: Instance type shall be the same (internal/external)
+            if primary_reg.external != node.external:
+                self.msg.error(
+                    "Instance types of alias register and its primary mismatch. "
+                    "Both shall be either internal or external.",
+                    node.inst.inst_src_ref
+                )
+
+            if primary_reg.is_array and not node.is_array :
+                self.msg.error(
+                    "Single alias register references a primary register array. "
+                    "It is ambiguous which array element is actually the primary register.",
+                    node.inst.inst_src_ref
+                )
+
+            if primary_reg.is_array and node.is_array:
+                if primary_reg.array_dimensions != node.array_dimensions:
+                    self.msg.error(
+                        "Array of alias registers references an array of registers as its primary, "
+                        "but the array dimensions do not match.",
+                        node.inst.inst_src_ref
+                    )
+
+            for field in node.fields():
+                # 10.5.1-b: Make sure the primary also has this field
+                primary_field = primary_reg.get_child_by_name(field.inst_name)
+                if not isinstance(primary_field, FieldNode):
+                    self.msg.error(
+                        "Alias register '%s' contains field '%s' that does not exist in the primary register."
+                        % (node.inst_name, field.inst_name),
+                        field.inst.inst_src_ref
+                    )
+
+                    # Cannot validate this field any further
+                    continue
+
+                # 5.3.1-j: If an alias is present, then the primary must also be present
+                if field.get_property('ispresent') and not primary_field.get_property('ispresent'):
+                    self.msg.error(
+                        "Field '%s' is an alias of register '%s' which is not present (ispresent=false)"
+                        % (field.inst_name, primary_field.inst_name),
+                        field.inst.inst_src_ref
+                    )
+
+                # 10.5.1-b: Validate field is the same width and bit position
+                if (primary_field.lsb != field.lsb) or (primary_field.width != field.width):
+                    self.msg.error(
+                        "Alias field and its primary shall have the same position and size",
+                        field.inst.inst_src_ref
+                    )
+
+                # 10.5.1-e: Only the following SystemRDL properties may be
+                # different in an alias: desc, name, onread, onwrite, rclr, rset,
+                # sw, woclr, woset, and any user-defined properties.
+
+                ignore_props = {
+                    'desc', 'name', 'onread', 'onwrite', 'rclr', 'rset', 'sw', 'woclr', 'woset'
+                }
+                primary_props = set(primary_field.list_properties(include_udp=False)) - ignore_props
+                alias_props = set(field.list_properties(include_udp=False)) - ignore_props
+
+                xor_props = primary_props ^ alias_props
+                if xor_props:
+                    # differing set of props were assigned!
+                    self.msg.error(
+                        "Alias field '%s' is incompatible with its primary '%s'. The following properties differ: %s"
+                        % (field.inst_name, primary_field.inst_name, ", ".join(xor_props)),
+                        field.inst.inst_src_ref
+                    )
+                    continue
+
+                # same set of properties assigned. Now compare their values
+                for prop_name in alias_props:
+                    if field.get_property(prop_name) != primary_field.get_property(prop_name):
+                        self.msg.error(
+                            "Alias field '%s' is incompatible with its primary '%s'. Values of property '%s' differ"
+                            % (field.inst_name, primary_field.inst_name, prop_name),
+                            field.inst.inst_src_ref
+                        )
+                        # no sense in going further
+                        break
+
 
     def exit_Reg(self, node: RegNode) -> None:
         # 10.1-c: At least one field shall be instantiated within a register

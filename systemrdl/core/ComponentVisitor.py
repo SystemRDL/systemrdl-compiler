@@ -58,7 +58,7 @@ class ComponentVisitor(BaseVisitor):
         self._tmp_comp_def = None # type: comp.Component
         self._tmp_comp_inst = None # type: comp.Component
         self._tmp_inst_type = None # type: CommonToken
-        self._tmp_alias_primary_inst = None # type: Optional[comp.Component]
+        self._tmp_alias_primary_inst = None # type: Optional[comp.Reg]
 
     #---------------------------------------------------------------------------
     # Component Definitions

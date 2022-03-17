@@ -5,6 +5,7 @@
 **/*.so
 **/.venv
 **/.coverage
+**/.coverage.*
 **/*.rpt
 **/htmlcov
 **/*.so

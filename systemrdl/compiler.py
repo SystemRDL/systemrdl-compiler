@@ -10,7 +10,7 @@ from .core.ExprVisitor import ExprVisitor
 from .core.properties import PropertyRuleBook, BuiltinUserProperty
 from .core.namespace import NamespaceRegistry
 from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
-from .core.elaborate import StructuralPlacementListener
+from .core.elaborate import StructuralPlacementListener, LateElabRevisitor
 from .core.validate import ValidateListener
 from . import ast
 from . import component as comp
@@ -382,12 +382,16 @@ class RDLCompiler:
         )
 
         # Resolve address and field placement
+        late_elab_listener = LateElabListener(self.msg, self.env)
         walker.RDLWalker(skip_not_present=False).walk(
             root_node,
             PrePlacementValidateListener(self.msg),
             StructuralPlacementListener(self.msg),
-            LateElabListener(self.msg, self.env)
+            late_elab_listener
         )
+
+        # re-visit nodes a 2nd time as-needed to complete elaboration
+        LateElabRevisitor(late_elab_listener.node_needs_revisit)
 
         # Validate design
         # Only need to validate nodes that are present

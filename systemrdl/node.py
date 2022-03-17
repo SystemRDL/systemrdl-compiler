@@ -1,6 +1,6 @@
 import re
 import itertools
-from copy import deepcopy
+from copy import deepcopy, copy
 from collections import deque
 from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Dict, Union
 
@@ -1071,11 +1071,29 @@ class FieldNode(VectorNode):
         .. versionchanged:: 1.22
             Counter, interrupt, stickybit, and sticky fields always implement
             storage, regardless of sw/hw access.
-        """
 
-        # 9.4.1, Table 12
+        .. versionchanged:: 1.23
+            Alias fields never implement storage.
+            A primary field may inherit a storage element depending on the access
+            modes of aliases that augment access to it.
+        """
+        if self.is_alias:
+            # A field that is an alias never implements storage.
+            # Storage element, if any, resides in the alias's primary.
+            return False
+
         sw = self.get_property('sw')
         hw = self.get_property('hw')
+        onread = self.get_property('onread')
+
+        # Aliases of a primary may have additive access modes that imply
+        # that the primary actually implements storage.
+        # accumulate access modes
+        for alias_field in self.aliases():
+            sw += alias_field.get_property('sw')
+            onread = onread or alias_field.get_property('onread')
+
+        # 9.4.1, Table 12
         if sw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1):
             # Software can read and write, implying a storage element
             return True
@@ -1087,7 +1105,6 @@ class FieldNode(VectorNode):
             return True
 
 
-        onread = self.get_property('onread')
         if onread is not None:
             # 9.6.1-c: Onread side-effects imply storage regardless of whether
             # or not the field is writable by sw
@@ -1159,6 +1176,80 @@ class FieldNode(VectorNode):
                 return True
 
         return False
+
+
+    @property
+    def is_alias(self) -> bool:
+        """
+        Indicates whether this field is an alias
+        (is contained inside an alias register)
+
+
+        .. versionadded:: 1.23
+        """
+        assert isinstance(self.parent, RegNode)
+        return self.parent.is_alias
+
+
+    @property
+    def alias_primary(self) -> 'FieldNode':
+        """
+        Returns the FieldNode that is associated with this alias's primary register.
+
+        Raises ValueError if this field is not an alias
+
+
+        .. versionadded:: 1.23
+        """
+        if not self.is_alias:
+            raise ValueError("Field is not an alias")
+
+        assert isinstance(self.parent, RegNode)
+        primary_reg = self.parent.alias_primary
+        primary_field = primary_reg.get_child_by_name(self.inst_name)
+        assert isinstance(primary_field, FieldNode)
+        return primary_field
+
+
+    @property
+    def has_aliases(self) -> bool:
+        """
+        Returns True if this field has aliases
+
+
+        .. versionadded:: 1.23
+        """
+        for _ in self.aliases():
+            return True
+        return False
+
+
+    def aliases(self, skip_not_present: bool = True) -> Iterator['FieldNode']:
+        """
+        Returns an iterator of all the fields that are aliases of this primary field
+
+        Parameters
+        ----------
+        skip_not_present : bool
+            If True, skips aliases whose 'ispresent' property is set to False
+
+
+        .. versionadded:: 1.23
+        """
+        assert isinstance(self.parent, RegNode)
+        for alias_reg in self.parent.aliases(skip_not_present=skip_not_present):
+            alias_field = alias_reg.get_child_by_name(self.inst_name)
+
+            if not isinstance(alias_field, FieldNode):
+                # not found in this alias
+                continue
+
+            if skip_not_present and not alias_field.get_property('ispresent'):
+                continue
+
+            yield alias_field
+
+
 
 #===============================================================================
 class RegNode(AddressableNode):
@@ -1244,6 +1335,93 @@ class RegNode(AddressableNode):
             if field.get_property('haltenable') or field.get_property('haltmask'):
                 return True
         return False
+
+
+    @property
+    def is_alias(self) -> bool:
+        """
+        Indicates whether this register is an alias.
+
+
+        .. versionadded:: 1.23
+        """
+        assert isinstance(self.inst, comp.Reg)
+        return self.inst.is_alias
+
+
+    @property
+    def alias_primary(self) -> 'RegNode':
+        """
+        Returns the RegNode of this alias's primary register.
+
+        Raises ValueError if this register is not an alias
+
+
+        .. versionadded:: 1.23
+        """
+        if not self.is_alias:
+            raise ValueError("Register is not an alias")
+
+        # Limitations in grammar make it so that an alias primary can only be
+        # referenced by a single ID token. This means the primary cannot be a
+        # hierarchical path, or anything else fancy. This implicitly guarantees
+        # that the alias primary is a sibling in the hierarchy.
+        # Simply look up the sibling by-name.
+        assert isinstance(self.inst, comp.Reg)
+        name = self.inst.alias_primary_inst.inst_name
+        primary_reg = self.parent.get_child_by_name(name)
+        assert isinstance(primary_reg, RegNode)
+
+        if self.is_array and primary_reg.is_array:
+            # Both are arrays.
+            # Mirror the current index onto the primary that is returned
+            primary_reg.current_idx = copy(self.current_idx)
+
+        return primary_reg
+
+
+    @property
+    def has_aliases(self) -> bool:
+        """
+        Returns True if this register has aliases
+
+
+        .. versionadded:: 1.23
+        """
+        assert isinstance(self.inst, comp.Reg)
+        return bool(self.inst._alias_names)
+
+
+    def aliases(self, skip_not_present: bool = True) -> Iterator['RegNode']:
+        """
+        Returns an iterator of all the registers that are aliases of this primary register
+
+        Parameters
+        ----------
+        skip_not_present : bool
+            If True, skips aliases whose 'ispresent' property is set to False
+
+
+        .. versionadded:: 1.23
+        """
+        assert isinstance(self.inst, comp.Reg)
+
+        for reg_name in self.inst._alias_names:
+            alias_reg = self.parent.get_child_by_name(reg_name)
+            assert isinstance(alias_reg, RegNode)
+
+            if skip_not_present and not alias_reg.get_property('ispresent'):
+                continue
+
+            if self.is_array and alias_reg.is_array:
+                # Both are arrays.
+                # Mirror the current index onto the alias that is returned
+                alias_reg.current_idx = copy(self.current_idx)
+
+            yield alias_reg
+
+
+
 
 #===============================================================================
 class RegfileNode(AddressableNode):

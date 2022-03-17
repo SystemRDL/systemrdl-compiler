@@ -1,0 +1,39 @@
+from systemrdl.rdltypes import AccessType
+
+def test_accesstype_adding():
+    assert AccessType.na + AccessType.na == AccessType.na
+    assert AccessType.na + AccessType.rw == AccessType.rw
+    assert AccessType.na + AccessType.r == AccessType.r
+    assert AccessType.na + AccessType.w == AccessType.w
+    assert AccessType.na + AccessType.rw1 == AccessType.rw1
+    assert AccessType.na + AccessType.w1 == AccessType.w1
+    assert AccessType.rw + AccessType.na == AccessType.rw
+    assert AccessType.rw + AccessType.rw == AccessType.rw
+    assert AccessType.rw + AccessType.r == AccessType.rw
+    assert AccessType.rw + AccessType.w == AccessType.rw
+    assert AccessType.rw + AccessType.rw1 == AccessType.rw
+    assert AccessType.rw + AccessType.w1 == AccessType.rw
+    assert AccessType.r + AccessType.na == AccessType.r
+    assert AccessType.r + AccessType.rw == AccessType.rw
+    assert AccessType.r + AccessType.r == AccessType.r
+    assert AccessType.r + AccessType.w == AccessType.rw
+    assert AccessType.r + AccessType.rw1 == AccessType.rw1
+    assert AccessType.r + AccessType.w1 == AccessType.rw1
+    assert AccessType.w + AccessType.na == AccessType.w
+    assert AccessType.w + AccessType.rw == AccessType.rw
+    assert AccessType.w + AccessType.r == AccessType.rw
+    assert AccessType.w + AccessType.w == AccessType.w
+    assert AccessType.w + AccessType.rw1 == AccessType.rw
+    assert AccessType.w + AccessType.w1 == AccessType.w
+    assert AccessType.rw1 + AccessType.na == AccessType.rw1
+    assert AccessType.rw1 + AccessType.rw == AccessType.rw
+    assert AccessType.rw1 + AccessType.r == AccessType.rw1
+    assert AccessType.rw1 + AccessType.w == AccessType.rw
+    assert AccessType.rw1 + AccessType.rw1 == AccessType.rw1
+    assert AccessType.rw1 + AccessType.w1 == AccessType.rw1
+    assert AccessType.w1 + AccessType.na == AccessType.w1
+    assert AccessType.w1 + AccessType.rw == AccessType.rw
+    assert AccessType.w1 + AccessType.r == AccessType.rw1
+    assert AccessType.w1 + AccessType.w == AccessType.w
+    assert AccessType.w1 + AccessType.rw1 == AccessType.rw1
+    assert AccessType.w1 + AccessType.w1 == AccessType.w1
