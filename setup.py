@@ -65,7 +65,7 @@ def run_setup(with_binary):
         include_package_data=True,
         ext_modules=ext_modules,
         cmdclass={"build_ext": ve_build_ext},
-        python_requires='>=3.5.2',
+        python_requires='>=3.6.0',
         install_requires=[
             "antlr4-python3-runtime >= 4.10, < 4.11",
             "colorama",
@@ -75,7 +75,6 @@ def run_setup(with_binary):
             "Development Status :: 5 - Production/Stable",
             "Programming Language :: Python",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.5",
             "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
