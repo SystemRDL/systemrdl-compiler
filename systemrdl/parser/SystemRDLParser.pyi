@@ -1,4 +1,5 @@
 from antlr4 import *
+from io import StringIO as StringIO
 from typing import Any, TextIO
 
 def serializedATN(): ...

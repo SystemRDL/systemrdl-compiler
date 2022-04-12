@@ -10,12 +10,12 @@ From: https://github.com/antlr/antlr4/blob/master/doc/getting-started.md
 Download antlr4::
 
     cd /usr/local/lib
-    sudo curl -O https://www.antlr.org/download/antlr-4.9.3-complete.jar
+    sudo curl -O https://www.antlr.org/download/antlr-4.10-complete.jar
 
 Add some convenience aliases to ``.bash_aliases``::
 
-    export CLASSPATH=".:/usr/local/lib/antlr-4.9.3-complete.jar:$CLASSPATH"
-    alias antlr4='java -Xmx500M -cp "/usr/local/lib/antlr-4.9.3-complete.jar:$CLASSPATH" org.antlr.v4.Tool'
+    export CLASSPATH=".:/usr/local/lib/antlr-4.10-complete.jar:$CLASSPATH"
+    alias antlr4='java -Xmx500M -cp "/usr/local/lib/antlr-4.10-complete.jar:$CLASSPATH" org.antlr.v4.Tool'
     alias grun='java org.antlr.v4.gui.TestRig'
 
 Extra alias used in py3antlr4book examples::
@@ -37,6 +37,7 @@ Upgrading the Antlr version
 
     * Extract zip
     * Update: ``<zip file>/runtime/src`` to ``systemrdl/parser/ext/antlr4-cpp-runtime``
+    * Fix permissions: ``find systemrdl/parser/ext/antlr4-cpp-runtime -type f -print0 | xargs -0 chmod -x
 
 * Update ``systemrdl/parser/generate_parser.sh`` to point to the latest antlr jar
 * Run ``systemrdl/parser/generate_parser.sh``
