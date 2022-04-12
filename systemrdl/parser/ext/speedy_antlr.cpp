@@ -168,7 +168,7 @@ PyObject* Translator::convert_ctx(
         } else if (antlrcpp::is<antlr4::ParserRuleContext *>(ctx->children[i])) {
             child_ref = static_cast<void*>(ctx->children[i]);
             try {
-                py_child = visitor->visit(ctx->children[i]).as<PyObject *>();
+                py_child = std::any_cast<PyObject *>(visitor->visit(ctx->children[i]));
             } catch(PythonException &e) {
                 Py_XDECREF(py_ctx);
                 Py_XDECREF(py_children);
