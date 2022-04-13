@@ -29,7 +29,7 @@ def run_setup(with_binary):
     if with_binary:
 
         extra_compile_args = {
-            'windows': ['/DANTLR4CPP_STATIC', '/Zc:__cplusplus'],
+            'windows': ['/DANTLR4CPP_STATIC', '/Zc:__cplusplus', '/std:c++17'],
             'linux': ['-std=c++17'],
             'darwin': ['-std=c++17'],
             'cygwin': ['-std=c++17'],
