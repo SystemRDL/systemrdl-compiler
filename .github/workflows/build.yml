@@ -145,8 +145,6 @@ jobs:
           # Signal setup.py to fail if binary build fails
           SYSTEMRDL_REQUIRE_BINARY_BUILD: ~
           MACOSX_DEPLOYMENT_TARGET: "10.14"
-        run: |
-          python -m cibuildwheel --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v2
         with:
