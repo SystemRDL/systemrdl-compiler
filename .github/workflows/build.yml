@@ -13,6 +13,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version:
           - 3.6
@@ -124,6 +125,7 @@ jobs:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-18.04
@@ -133,16 +135,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-python@v2
-        name: Install Python
-        with:
-          python-version: 3.8
-
-      - name: Install cibuildwheel
-        run: |
-          python -m pip install cibuildwheel==2.4.0
-
       - name: Build wheels
+        uses: pypa/cibuildwheel@v2.4.0
         env:
           # Only build CPython 3.x targets
           CIBW_BUILD: "cp3*"
