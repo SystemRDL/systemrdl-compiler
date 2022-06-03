@@ -30,9 +30,9 @@ python $this_dir/../setup.py install
 cd $this_dir
 
 # Run unit tests while collecting coverage
-pytest --cov=systemrdl --workers auto
+pytest --cov=systemrdl
 export SYSTEMRDL_DISABLE_ACCELERATOR=1
-pytest --workers auto
+pytest
 
 # Generate coverage report
 coverage html -i -d $this_dir/htmlcov

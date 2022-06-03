@@ -92,7 +92,6 @@ disable=
 
         # Noise / Don't care
         no-else-return,
-        no-self-use,
         unused-variable,
         invalid-name,
         missing-docstring,

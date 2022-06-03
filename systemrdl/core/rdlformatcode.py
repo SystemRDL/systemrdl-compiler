@@ -158,15 +158,9 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
         elif m.lastgroup == 'br':
             text_segs.append("<br>")
         elif m.lastgroup == 'lb':
-            if is_desc:
-                text_segs.append("\\[")
-            else:
-                text_segs.append("[")
+            text_segs.append("[")
         elif m.lastgroup == 'rb':
-            if is_desc:
-                text_segs.append("\\]")
-            else:
-                text_segs.append("]")
+            text_segs.append("]")
         elif m.lastgroup == 'p':
             text_segs.append("\n\n<p>")
         elif m.lastgroup == 'xp':
