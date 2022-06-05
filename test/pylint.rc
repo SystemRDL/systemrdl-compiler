@@ -98,6 +98,7 @@ disable=
         abstract-method,
         protected-access,
         duplicate-code,
+        cyclic-import,
 
         # Can't do until py35 support is dropped
         consider-using-f-string
