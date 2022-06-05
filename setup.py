@@ -10,7 +10,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
 # Replace relative image path with github-hosted one
 long_description = long_description.replace(
     "docs/img/overview.svg",
-    "https://raw.githubusercontent.com/SystemRDL/systemrdl-compiler/master/docs/img/overview.svg?sanitize=true"
+    "https://raw.githubusercontent.com/SystemRDL/systemrdl-compiler/main/docs/img/overview.svg?sanitize=true"
 )
 
 with open(os.path.join("systemrdl", "__about__.py"), encoding='utf-8') as f:
