@@ -14,7 +14,7 @@ from speedy_antlr_tool import generate
 generate(
     py_parser_path="SystemRDLParser.py",
     cpp_output_dir="ext",
-    entry_rule_names=["root", "expr"],
+    entry_rule_names=["root", "eval_expr_root"],
 )
 EOF
 

@@ -21,6 +21,8 @@ public:
    */
     virtual antlrcpp::Any visitRoot(SystemRDLParser::RootContext *context) = 0;
 
+    virtual antlrcpp::Any visitEval_expr_root(SystemRDLParser::Eval_expr_rootContext *context) = 0;
+
     virtual antlrcpp::Any visitRoot_elem(SystemRDLParser::Root_elemContext *context) = 0;
 
     virtual antlrcpp::Any visitComponent_def(SystemRDLParser::Component_defContext *context) = 0;

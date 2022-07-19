@@ -19,6 +19,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual antlrcpp::Any visitEval_expr_root(SystemRDLParser::Eval_expr_rootContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual antlrcpp::Any visitRoot_elem(SystemRDLParser::Root_elemContext *ctx) override {
     return visitChildren(ctx);
   }

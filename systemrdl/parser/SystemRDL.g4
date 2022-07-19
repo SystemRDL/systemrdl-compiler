@@ -2,6 +2,8 @@ grammar SystemRDL;
 
 root: (root_elem ';')* EOF;
 
+eval_expr_root: expr EOF;
+
 root_elem : component_def
           | enum_def
           | udp_def

@@ -1,10 +1,9 @@
 import unittest
-import sys
 import os
 import logging
 import re
 
-from antlr4 import InputStream, CommonTokenStream
+from antlr4 import InputStream
 from systemrdl import RDLCompiler
 from systemrdl.parser import sa_systemrdl
 from systemrdl.core.ExprVisitor import ExprVisitor
@@ -50,7 +49,7 @@ class RDLSourceTestCase(unittest.TestCase):
 
         tree = sa_systemrdl.parse(
             input_stream,
-            "expr",
+            "eval_expr_root",
             RdlSaErrorListener(rdlc.msg)
         )
 

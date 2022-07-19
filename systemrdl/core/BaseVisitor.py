@@ -102,3 +102,6 @@ class BaseVisitor(SystemRDLVisitor):
 
     def visitUdp_comp_type(self, ctx: SystemRDLParser.Udp_comp_typeContext) -> Any:
         return self.passthru_kw_token(ctx)
+
+    def visitEval_expr_root(self, ctx:SystemRDLParser.Eval_expr_rootContext) -> Any:
+        return self.visit(ctx.expr()) # type: ignore

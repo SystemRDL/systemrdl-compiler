@@ -1,3 +1,4 @@
+from systemrdl import RDLCompiler
 
 from unittest_utils import RDLSourceTestCase
 
@@ -680,3 +681,8 @@ class TestAdvanced(RDLSourceTestCase):
         self.assertEqual((int, 0x0008), self.eval_RDL_expr("(1'b1 << 3) + 8'b0"))
         self.assertEqual((int, 0x0000), self.eval_RDL_expr("(|(~(4'hF))) + 8'b0"))
         self.assertEqual((int, 0x00FF), self.eval_RDL_expr("(~(&(4'b1))) + 8'b0"))
+
+    def test_error(self):
+        with self.assertRaises(ValueError):
+            rdlc = RDLCompiler()
+            print("RES:", rdlc.eval("2abcd"))

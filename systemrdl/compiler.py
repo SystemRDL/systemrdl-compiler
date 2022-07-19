@@ -434,8 +434,8 @@ class RDLCompiler:
 
         parsed_tree = sa_systemrdl.parse(
             input_stream,
-            "expr",
-            messages.RdlSaErrorListener(self.msg)
+            "eval_expr_root",
+            messages.RdlSaErrorListener(msg_handler)
         )
 
         visitor = ExprVisitor(self)

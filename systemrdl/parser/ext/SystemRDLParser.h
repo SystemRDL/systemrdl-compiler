@@ -39,32 +39,32 @@ public:
   };
 
   enum {
-    RuleRoot = 0, RuleRoot_elem = 1, RuleComponent_def = 2, RuleExplicit_component_inst = 3, 
-    RuleComponent_inst_alias = 4, RuleComponent_named_def = 5, RuleComponent_anon_def = 6, 
-    RuleComponent_body = 7, RuleComponent_body_elem = 8, RuleComponent_insts = 9, 
-    RuleComponent_inst = 10, RuleField_inst_reset = 11, RuleInst_addr_fixed = 12, 
-    RuleInst_addr_stride = 13, RuleInst_addr_align = 14, RuleComponent_inst_type = 15, 
-    RuleComponent_type = 16, RuleComponent_type_primary = 17, RuleParam_def = 18, 
-    RuleParam_def_elem = 19, RuleParam_inst = 20, RuleParam_assignment = 21, 
-    RuleExpr = 22, RuleExpr_primary = 23, RuleConcatenate = 24, RuleReplicate = 25, 
-    RuleParen_expr = 26, RuleCast = 27, RuleCast_width_expr = 28, RuleRange_suffix = 29, 
-    RuleArray_suffix = 30, RuleArray_type_suffix = 31, RuleData_type = 32, 
-    RuleBasic_data_type = 33, RuleLiteral = 34, RuleNumber = 35, RuleString_literal = 36, 
-    RuleBoolean_literal = 37, RuleArray_literal = 38, RuleStruct_literal = 39, 
-    RuleStruct_kv = 40, RuleEnum_literal = 41, RuleAccesstype_literal = 42, 
-    RuleOnreadtype_literal = 43, RuleOnwritetype_literal = 44, RuleAddressingtype_literal = 45, 
-    RulePrecedencetype_literal = 46, RuleInstance_ref = 47, RuleInstance_ref_element = 48, 
-    RuleProp_ref = 49, RuleLocal_property_assignment = 50, RuleDynamic_property_assignment = 51, 
-    RuleNormal_prop_assign = 52, RuleEncode_prop_assign = 53, RuleProp_mod_assign = 54, 
-    RuleProp_assignment_rhs = 55, RuleProp_keyword = 56, RuleProp_mod = 57, 
-    RuleUdp_def = 58, RuleUdp_attr = 59, RuleUdp_type = 60, RuleUdp_data_type = 61, 
-    RuleUdp_usage = 62, RuleUdp_comp_type = 63, RuleUdp_default = 64, RuleUdp_constraint = 65, 
-    RuleEnum_def = 66, RuleEnum_entry = 67, RuleEnum_prop_assign = 68, RuleStruct_def = 69, 
-    RuleStruct_elem = 70, RuleStruct_type = 71, RuleConstraint_def = 72, 
-    RuleConstraint_named_def = 73, RuleConstraint_anon_def = 74, RuleConstraint_body = 75, 
-    RuleConstraint_body_elem = 76, RuleConstraint_insts = 77, RuleConstr_relational = 78, 
-    RuleConstr_prop_assign = 79, RuleConstr_inside_values = 80, RuleConstr_inside_enum = 81, 
-    RuleConstr_lhs = 82, RuleConstr_inside_value = 83
+    RuleRoot = 0, RuleEval_expr_root = 1, RuleRoot_elem = 2, RuleComponent_def = 3, 
+    RuleExplicit_component_inst = 4, RuleComponent_inst_alias = 5, RuleComponent_named_def = 6, 
+    RuleComponent_anon_def = 7, RuleComponent_body = 8, RuleComponent_body_elem = 9, 
+    RuleComponent_insts = 10, RuleComponent_inst = 11, RuleField_inst_reset = 12, 
+    RuleInst_addr_fixed = 13, RuleInst_addr_stride = 14, RuleInst_addr_align = 15, 
+    RuleComponent_inst_type = 16, RuleComponent_type = 17, RuleComponent_type_primary = 18, 
+    RuleParam_def = 19, RuleParam_def_elem = 20, RuleParam_inst = 21, RuleParam_assignment = 22, 
+    RuleExpr = 23, RuleExpr_primary = 24, RuleConcatenate = 25, RuleReplicate = 26, 
+    RuleParen_expr = 27, RuleCast = 28, RuleCast_width_expr = 29, RuleRange_suffix = 30, 
+    RuleArray_suffix = 31, RuleArray_type_suffix = 32, RuleData_type = 33, 
+    RuleBasic_data_type = 34, RuleLiteral = 35, RuleNumber = 36, RuleString_literal = 37, 
+    RuleBoolean_literal = 38, RuleArray_literal = 39, RuleStruct_literal = 40, 
+    RuleStruct_kv = 41, RuleEnum_literal = 42, RuleAccesstype_literal = 43, 
+    RuleOnreadtype_literal = 44, RuleOnwritetype_literal = 45, RuleAddressingtype_literal = 46, 
+    RulePrecedencetype_literal = 47, RuleInstance_ref = 48, RuleInstance_ref_element = 49, 
+    RuleProp_ref = 50, RuleLocal_property_assignment = 51, RuleDynamic_property_assignment = 52, 
+    RuleNormal_prop_assign = 53, RuleEncode_prop_assign = 54, RuleProp_mod_assign = 55, 
+    RuleProp_assignment_rhs = 56, RuleProp_keyword = 57, RuleProp_mod = 58, 
+    RuleUdp_def = 59, RuleUdp_attr = 60, RuleUdp_type = 61, RuleUdp_data_type = 62, 
+    RuleUdp_usage = 63, RuleUdp_comp_type = 64, RuleUdp_default = 65, RuleUdp_constraint = 66, 
+    RuleEnum_def = 67, RuleEnum_entry = 68, RuleEnum_prop_assign = 69, RuleStruct_def = 70, 
+    RuleStruct_elem = 71, RuleStruct_type = 72, RuleConstraint_def = 73, 
+    RuleConstraint_named_def = 74, RuleConstraint_anon_def = 75, RuleConstraint_body = 76, 
+    RuleConstraint_body_elem = 77, RuleConstraint_insts = 78, RuleConstr_relational = 79, 
+    RuleConstr_prop_assign = 80, RuleConstr_inside_values = 81, RuleConstr_inside_enum = 82, 
+    RuleConstr_lhs = 83, RuleConstr_inside_value = 84
   };
 
   explicit SystemRDLParser(antlr4::TokenStream *input);
@@ -78,6 +78,7 @@ public:
 
 
   class RootContext;
+  class Eval_expr_rootContext;
   class Root_elemContext;
   class Component_defContext;
   class Explicit_component_instContext;
@@ -176,6 +177,20 @@ public:
   };
 
   RootContext* root();
+
+  class  Eval_expr_rootContext : public antlr4::ParserRuleContext {
+  public:
+    Eval_expr_rootContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    ExprContext *expr();
+    antlr4::tree::TerminalNode *EOF();
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Eval_expr_rootContext* eval_expr_root();
 
   class  Root_elemContext : public antlr4::ParserRuleContext {
   public:

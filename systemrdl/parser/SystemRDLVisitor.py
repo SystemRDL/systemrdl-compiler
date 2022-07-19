@@ -14,6 +14,11 @@ class SystemRDLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SystemRDLParser#eval_expr_root.
+    def visitEval_expr_root(self, ctx:SystemRDLParser.Eval_expr_rootContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SystemRDLParser#root_elem.
     def visitRoot_elem(self, ctx:SystemRDLParser.Root_elemContext):
         return self.visitChildren(ctx)
