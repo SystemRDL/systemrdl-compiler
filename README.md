@@ -20,17 +20,8 @@ it should be far easier to write custom register space view generators.
 See the [SystemRDL Compiler Documentation](http://systemrdl-compiler.readthedocs.io) for more details
 
 ## Related Projects
-This is just the beginning! If you want to contribute, check out these other
-projects.
 
-### [PeakRDL-html](https://github.com/SystemRDL/PeakRDL-html)
-Generate dynamic register spec documentation.
-
-### [PeakRDL-ipxact](https://github.com/SystemRDL/PeakRDL-ipxact)
-Convert the SystemRDL register model to/from IP-XACT.
-
-### [PeakRDL-uvm](https://github.com/SystemRDL/PeakRDL-uvm)
-Create a UVM Register model.
+If you are looking for a complete SystemRDL command line tool, see the [PeakRDL project](https://peakrdl.readthedocs.io).
 
 ## License
 

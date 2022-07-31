@@ -685,4 +685,4 @@ class TestAdvanced(RDLSourceTestCase):
     def test_error(self):
         with self.assertRaises(ValueError):
             rdlc = RDLCompiler()
-            print("RES:", rdlc.eval("2abcd"))
+            rdlc.eval("2abcd")
