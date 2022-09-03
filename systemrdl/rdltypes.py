@@ -8,6 +8,7 @@ from typing import Union
 from .core import rdlformatcode
 from .node import AddressableNode, Node
 from . import component as comp
+from .core.simple_enum import SimpleEnum
 
 if TYPE_CHECKING:
     from markdown import Markdown
@@ -211,7 +212,7 @@ class InterruptType(BuiltinEnum):
     bothedge = ()
 
 #===============================================================================
-class UserEnum(enum.Enum):
+class UserEnum(SimpleEnum): # type: ignore
     """
     All user-defined enumerations are based on this class.
 
@@ -292,7 +293,7 @@ class UserEnum(enum.Enum):
 
     @classmethod
     def _set_parent_scope(cls, scope: comp.Component) -> None:
-        cls._parent_scope = scope # type: ignore
+        cls._parent_scope = scope
 
     @classmethod
     def get_parent_scope(cls) -> Optional[comp.Component]:

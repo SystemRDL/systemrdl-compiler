@@ -74,7 +74,7 @@ class EnumVisitor(BaseVisitor):
 
 
         # Create Enum type
-        enum_type = rdltypes.UserEnum(enum_name, entries) # type: Type[rdltypes.UserEnum] # type: ignore # pylint: disable=no-value-for-parameter
+        enum_type = rdltypes.UserEnum.create(enum_name, entries) # type: Type[rdltypes.UserEnum] # pylint: disable=no-value-for-parameter
 
         self.compiler.namespace.exit_scope()
         self.compiler.namespace.parent_parameters_visible = True # restore parameter behavior
