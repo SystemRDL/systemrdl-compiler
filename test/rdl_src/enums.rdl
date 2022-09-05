@@ -27,4 +27,30 @@ addrmap enum_test1 {
         my_field_t #(.FOO(my_enum::four)) f_four[4];
         my_field_t #(.FOO(my_enum::five)) f_five[4];
     } reg1;
+
+    // Make enum that uses names that are hostile to Python
+    enum __init__ {
+        mro;
+        __dict__;
+        _name_;
+        _value_;
+        _missing_;
+        _ignore_;
+        _order_;
+        _generate_next_value_;
+    };
+
+    reg {
+        field {
+            encode = __init__;
+        }
+        f0[3] = __init__::mro,
+        f1[3] = __init__::__dict__,
+        f2[3] = __init__::_name_,
+        f3[3] = __init__::_value_,
+        f4[3] = __init__::_missing_,
+        f5[3] = __init__::_ignore_,
+        f6[3] = __init__::_order_,
+        f7[3] = __init__::_generate_next_value_;
+    } reg2;
 };
