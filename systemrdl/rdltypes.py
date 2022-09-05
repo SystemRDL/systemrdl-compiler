@@ -212,12 +212,108 @@ class InterruptType(BuiltinEnum):
     bothedge = ()
 
 #===============================================================================
+class UserEnumMemberContainer:
+    """
+    Container class used only when defining a new UserEnum.
+    This shall only be used by importers.
+
+
+    .. versionadded:: 1.24
+    """
+    def __init__(self, name: str, value: int, rdl_name: Optional[str] = None, rdl_desc: Optional[str] = None) -> None:
+        self.name = name
+        self.value = value
+        self.rdl_name = rdl_name
+        self.rdl_desc = rdl_desc
+
+
 class UserEnum(SimpleEnum): # type: ignore
     """
     All user-defined enumerations are based on this class.
 
     UserEnum types can be identified using: :meth:`is_user_enum`
+
+
+    .. versionchanged:: 1.24
+        UserEnum is no longer extended from Python's standard library ``Enum``.
+        Instead, an internal enum implementation is used.
     """
+
+    @staticmethod
+    def define_new(name: str, members: List[UserEnumMemberContainer]) -> Type['UserEnum']:
+        """
+        Define a new UserEnum class
+
+        Parameters
+        ----------
+        name: str
+            Name of the enum type
+        members: UserEnumMemberContainer
+            List of enum members
+
+
+        .. versionadded:: 1.24
+        """
+
+        # Validate all member names and values are unique
+        names = [m.name for m in members]
+        values = [m.value for m in members]
+        if len(names) != len(set(names)):
+            raise ValueError("All members of an enum shall have unique names")
+        if len(values) != len(set(values)):
+            raise ValueError("All members of an enum shall have unique values")
+
+        # Re-pack into dict as required by the enum functional API
+        members_dict = OrderedDict()
+        for m in members:
+            members_dict[m.name] = (m.value, m.rdl_name, m.rdl_desc)
+
+        return UserEnum.create(name, members_dict)
+
+
+    @classmethod
+    def _set_parent_scope(cls, scope: comp.Component) -> None:
+        cls._parent_scope = scope
+
+    @classmethod
+    def get_parent_scope(cls) -> Optional[comp.Component]:
+        """
+        Returns reference to parent component that contains this type definition.
+        """
+        return getattr(cls, "_parent_scope", None)
+
+    @classmethod
+    def get_scope_path(cls, scope_separator: str="::") -> str:
+        """
+        Generate a string that represents this enum's declaration namespace
+        scope.
+
+        Parameters
+        ----------
+        scope_separator: str
+            Override the separator between namespace scopes
+        """
+        parent_scope = cls.get_parent_scope()
+        if parent_scope is None:
+            # Importer likely never set the scope
+            return ""
+        elif isinstance(parent_scope, comp.Root):
+            # Declaration was in root scope
+            return ""
+        else:
+            # Get parent definition's scope path
+            parent_path = parent_scope.get_scope_path(scope_separator)
+
+            # Extend it with its scope name
+            if parent_path:
+                return(
+                    parent_path
+                    + scope_separator
+                    + parent_scope._scope_name
+                )
+            else:
+                return parent_scope._scope_name
+
 
     def __init__(self, value: int, rdl_name: Optional[str], rdl_desc: Optional[str]):
         self._value_ = value
@@ -290,49 +386,6 @@ class UserEnum(SimpleEnum): # type: ignore
         if name_str is None:
             return None
         return rdlformatcode.rdlfc_to_html(name_str, is_desc=False)
-
-    @classmethod
-    def _set_parent_scope(cls, scope: comp.Component) -> None:
-        cls._parent_scope = scope
-
-    @classmethod
-    def get_parent_scope(cls) -> Optional[comp.Component]:
-        """
-        Returns reference to parent component that contains this type definition.
-        """
-        return getattr(cls, "_parent_scope", None)
-
-    @classmethod
-    def get_scope_path(cls, scope_separator: str="::") -> str:
-        """
-        Generate a string that represents this enum's declaration namespace
-        scope.
-
-        Parameters
-        ----------
-        scope_separator: str
-            Override the separator between namespace scopes
-        """
-        parent_scope = cls.get_parent_scope()
-        if parent_scope is None:
-            # Importer likely never set the scope
-            return ""
-        elif isinstance(parent_scope, comp.Root):
-            # Declaration was in root scope
-            return ""
-        else:
-            # Get parent definition's scope path
-            parent_path = parent_scope.get_scope_path(scope_separator)
-
-            # Extend it with its scope name
-            if parent_path:
-                return(
-                    parent_path
-                    + scope_separator
-                    + parent_scope._scope_name
-                )
-            else:
-                return parent_scope._scope_name
 
 
     def __int__(self) -> int:

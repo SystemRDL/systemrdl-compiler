@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from typing import List, TYPE_CHECKING, Tuple, Any, Optional
 
 from ..parser.SystemRDLParser import SystemRDLParser
@@ -31,18 +30,20 @@ class EnumVisitor(BaseVisitor):
 
         enum_name = get_ID_text(ctx.ID())
 
-        # Collect entries
+        # Collect members
         entry_values = [] # type: List[int]
-        entries = OrderedDict()
+        entry_names = [] # type: List[str]
+        members = [] # type: List[rdltypes.UserEnumMemberContainer]
         for enum_entry_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Enum_entryContext):
             name_token, value_expr_ctx, rdl_name, rdl_desc = self.visit(enum_entry_ctx)
 
             entry_name = get_ID_text(name_token)
-            if entry_name in entries:
+            if entry_name in entry_names:
                 self.msg.fatal(
                     "Entry '%s' has already been defined in this enum" % entry_name,
                     src_ref_from_antlr(name_token)
                 )
+            entry_names.append(entry_name)
 
             if value_expr_ctx is not None:
                 # explicit enumerator assignment
@@ -70,11 +71,16 @@ class EnumVisitor(BaseVisitor):
                 )
 
             entry_values.append(entry_value)
-            entries[entry_name] = (entry_value, rdl_name, rdl_desc)
+
+            members.append(
+                rdltypes.UserEnumMemberContainer(
+                    entry_name, entry_value, rdl_name, rdl_desc
+                )
+            )
 
 
         # Create Enum type
-        enum_type = rdltypes.UserEnum.create(enum_name, entries) # type: Type[rdltypes.UserEnum] # pylint: disable=no-value-for-parameter
+        enum_type = rdltypes.UserEnum.define_new(enum_name, members)
 
         self.compiler.namespace.exit_scope()
         self.compiler.namespace.parent_parameters_visible = True # restore parameter behavior
