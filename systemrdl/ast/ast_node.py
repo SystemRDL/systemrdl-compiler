@@ -1,11 +1,11 @@
 from copy import deepcopy
 from typing import TYPE_CHECKING, Optional, Any, Dict
 
-from .. import rdltypes
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from ..rdltypes.typing import PreElabRDLType
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -32,7 +32,7 @@ class ASTNode:
                 setattr(result, k, deepcopy(v, memo))
         return result
 
-    def predict_type(self) -> rdltypes.PreElabRDLType:
+    def predict_type(self) -> 'PreElabRDLType':
         """
         Returns the expected type of the result of the expression
         This function shall call any child expression's predict_type()

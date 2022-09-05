@@ -9,6 +9,7 @@ from .. import rdltypes
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from rdltypes.typing import PreElabRDLType, RDLValue
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -150,11 +151,11 @@ class ExternalLiteral(ASTNode):
     ASTNode wrapper for literal value that was not compiled from a source file.
     The value provided is not an expression, but the actual value.
     """
-    def __init__(self, env: 'RDLEnvironment', value: rdltypes.RDLValue):
+    def __init__(self, env: 'RDLEnvironment', value: 'RDLValue'):
         super().__init__(env, None)
         self.value = value
 
-    def predict_type(self) -> rdltypes.PreElabRDLType:
+    def predict_type(self) -> 'PreElabRDLType':
         return rdltypes.get_rdltype(self.value)
 
     def get_min_eval_width(self) -> int:
@@ -167,5 +168,5 @@ class ExternalLiteral(ASTNode):
         else:
             raise RuntimeError
 
-    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.RDLValue:
+    def get_value(self, eval_width: Optional[int]=None) -> 'RDLValue':
         return self.value

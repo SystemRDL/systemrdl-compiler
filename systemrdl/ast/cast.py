@@ -8,6 +8,7 @@ from .. import rdltypes
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from rdltypes.typing import PreElabRDLType
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -100,13 +101,13 @@ class BoolCast(ASTNode):
 # When getting value:
 #   Ensures that the expression result gets converted to the resulting type
 class AssignmentCast(ASTNode):
-    def __init__(self, env: 'RDLEnvironment', src_ref: 'OptionalSourceRef', v: ASTNode, dest_type: rdltypes.PreElabRDLType):
+    def __init__(self, env: 'RDLEnvironment', src_ref: 'OptionalSourceRef', v: ASTNode, dest_type: 'PreElabRDLType'):
         super().__init__(env, src_ref)
 
         self.v = v
         self.dest_type = dest_type
 
-    def predict_type(self) -> rdltypes.PreElabRDLType:
+    def predict_type(self) -> 'PreElabRDLType':
         op_type = self.v.predict_type()
 
         if not is_castable(op_type, self.dest_type):

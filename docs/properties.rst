@@ -35,7 +35,7 @@ For example:
 The above example describes a field that is cleared when software reads it.
 Although not explicitly set, if you were to do the following query:
 ``my_field.get_property('onread')``, it would return the value
-:attr:`OnReadType.rclr <systemrdl.rdltypes.OnReadType.rclr>`, as if the user assigned it as follows:
+:attr:`OnReadType.rclr <systemrdl.rdltypes.builtin_enums.OnReadType.rclr>`, as if the user assigned it as follows:
 
 .. code-block:: systemrdl
 

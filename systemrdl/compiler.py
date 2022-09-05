@@ -1,4 +1,4 @@
-from typing import Set, Type, Any, List, Dict, Optional, Iterable
+from typing import Set, Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING
 
 from antlr4 import InputStream
 
@@ -17,7 +17,9 @@ from . import component as comp
 from . import walker
 from .node import RootNode
 from . import preprocessor
-from . import rdltypes
+
+if TYPE_CHECKING:
+    from .rdltypes.typing import RDLValue
 
 
 class FileInfo:
@@ -268,7 +270,7 @@ class RDLCompiler:
         return FileInfo(input_stream.strdata, included_files)
 
 
-    def elaborate(self, top_def_name: Optional[str]=None, inst_name: Optional[str]=None, parameters: Optional[Dict[str, rdltypes.RDLValue]]=None) -> RootNode:
+    def elaborate(self, top_def_name: Optional[str]=None, inst_name: Optional[str]=None, parameters: Optional[Dict[str, 'RDLValue']]=None) -> RootNode:
         """
         Elaborates the design for the given top-level addrmap component.
 
@@ -403,7 +405,7 @@ class RDLCompiler:
         return root_node
 
 
-    def eval(self, expression: str) -> rdltypes.RDLValue:
+    def eval(self, expression: str) ->'RDLValue':
         """
         Evaluate an RDL expression string and return its compiled value.
         This function is provided as a helper to simplify overriding top-level

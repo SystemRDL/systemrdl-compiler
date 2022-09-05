@@ -1,6 +1,2 @@
-sphinx >= 3.0.0
 pygments-systemrdl
 git+https://github.com/amykyta3/sphinx_csv_filter.git
-
-# workaround for https://github.com/readthedocs/sphinx_rtd_theme/issues/1115
-docutils!=0.17,!=0.17.1

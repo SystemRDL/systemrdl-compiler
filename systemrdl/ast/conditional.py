@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING, Optional, Any
 
-from .. import rdltypes
 from .ast_node import ASTNode
 
 from .cast import is_castable
@@ -8,6 +7,7 @@ from .cast import is_castable
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from rdltypes.typing import PreElabRDLType
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -23,7 +23,7 @@ class Conditional(ASTNode):
         self.k = k
         self.is_numeric = None # type: bool
 
-    def predict_type(self) -> rdltypes.PreElabRDLType:
+    def predict_type(self) -> 'PreElabRDLType':
         t_i = self.i.predict_type()
         if not is_castable(t_i, bool):
             self.msg.fatal(

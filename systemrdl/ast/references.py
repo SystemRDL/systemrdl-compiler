@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..core.parameter import Parameter
     from ..source_ref import SourceRefBase
+    from rdltypes.typing import PreElabRDLType, RDLValue
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -19,7 +20,7 @@ class ParameterRef(ASTNode):
         super().__init__(env, src_ref)
         self.param = param
 
-    def predict_type(self) -> rdltypes.PreElabRDLType:
+    def predict_type(self) -> 'PreElabRDLType':
         return self.param.param_type
 
     def get_min_eval_width(self) -> int:
@@ -45,7 +46,7 @@ class ArrayIndex(ASTNode):
         self.array = array
         self.index = index
 
-    def predict_type(self) -> rdltypes.PreElabRDLType:
+    def predict_type(self) -> 'PreElabRDLType':
         if not is_castable(self.index.predict_type(), int):
             self.msg.fatal(
                 "Array index is not a compatible numeric type",
