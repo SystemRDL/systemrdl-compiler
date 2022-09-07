@@ -17,6 +17,11 @@ class UserStructMeta(type):
     during dynamic type pickling
     """
 
+    @property
+    def type_name(cls) -> str:
+        # (docstring is in rst)
+        return cls.__name__
+
 
 class UserStruct(metaclass=UserStructMeta):
     """
@@ -110,10 +115,13 @@ class UserStruct(metaclass=UserStructMeta):
     def __getattr__(self, name: str) -> Any:
         if name == "__setstate__":
             raise AttributeError(name)
+        if name == "type_name":
+            # getattr interferes with class property mechanism
+            return type(self).type_name
         if name in self._values:
             return self._values[name]
         else:
-            raise AttributeError("'%s' object has no attribute '%s'" % (type(self).__name__, name))
+            raise AttributeError("'%s' object has no attribute '%s'" % (self.type_name, name))
 
 
     @property

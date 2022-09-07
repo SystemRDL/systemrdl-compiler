@@ -94,6 +94,13 @@ Structures
 .. autoclass:: systemrdl.rdltypes.user_struct.UserStruct
     :members:
 
+    .. py:property:: type_name
+        :type: str
+
+        The type name of the struct as declared in RDL.
+
+        .. versionadded:: 1.24
+
 .. autofunction:: systemrdl.rdltypes.user_struct.is_user_struct
 
 --------------------------------------------------------------------------------
