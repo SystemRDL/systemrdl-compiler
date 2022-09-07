@@ -1,6 +1,7 @@
 from typing import Optional, Dict, Any, Type, TYPE_CHECKING
 from collections import OrderedDict
 import inspect
+import copyreg
 
 from .. import component as comp
 
@@ -9,7 +10,15 @@ if TYPE_CHECKING:
 
 UserStructMembers = Dict[str, 'PreElabRDLType']
 
-class UserStruct:
+
+class UserStructMeta(type):
+    """
+    Declare a metaclass for UserStruct so that it can be uniquely identified
+    during dynamic type pickling
+    """
+
+
+class UserStruct(metaclass=UserStructMeta):
     """
     All user-defined structs are based on this class.
 
@@ -48,6 +57,40 @@ class UserStruct:
     _is_abstract = True # type: bool
     _parent_scope = None # type: Optional[comp.Component]
 
+    @classmethod
+    def define_new(cls, name: str, members: UserStructMembers, is_abstract: bool=False, _parent_scope: Optional[comp.Component]=None) -> Type['UserStruct']:
+        """
+        Define a new struct type derived from the current type.
+
+        Parameters
+        ----------
+        name: str
+            Name of the struct type
+        members: {member_name : type}
+            Dictionary of struct member types.
+        is_abstract: bool
+            If set, marks the struct as abstract.
+        """
+
+        # Extend the base struct's members
+        m = OrderedDict(cls._members)
+        # Make sure derivation does not have any overlapping keys with its parent
+        if set(m.keys()) & set(members.keys()):
+            raise ValueError("'members' contains keys that overlap with parent")
+        m.update(members)
+
+        # Create the new class
+        classdict = {
+            '_members' : m,
+            '_is_abstract': is_abstract,
+            '_parent_scope': _parent_scope,
+        }
+        metaclass = cls.__class__
+        newcls = metaclass(name, (cls,), classdict) # type: ignore
+
+        return newcls
+
+
     def __init__(self, values: Dict[str, Any]):
         """
         Create an instance of the struct
@@ -63,34 +106,6 @@ class UserStruct:
 
         self._values = values
 
-    @classmethod
-    def define_new(cls, name: str, members: UserStructMembers, is_abstract: bool=False) -> Type['UserStruct']:
-        """
-        Define a new struct type derived from the current type.
-
-        Parameters
-        ----------
-        name: str
-            Name of the struct type
-        members: {member_name : type}
-            Dictionary of struct member types.
-        is_abstract: bool
-            If set, marks the struct as abstract.
-        """
-        m = OrderedDict(cls._members)
-
-        # Make sure derivation does not have any overlapping keys with its parent
-        if set(m.keys()) & set(members.keys()):
-            raise ValueError("'members' contains keys that overlap with parent")
-
-        m.update(members)
-
-        classdict = {
-            '_members' : m,
-            '_is_abstract': is_abstract,
-        }
-        newcls = type(name, (cls,), classdict)
-        return newcls
 
     def __getattr__(self, name: str) -> Any:
         if name == "__setstate__":
@@ -99,6 +114,18 @@ class UserStruct:
             return self._values[name]
         else:
             raise AttributeError("'%s' object has no attribute '%s'" % (type(self).__name__, name))
+
+
+    @property
+    def members(self) -> Dict[str, Any]:
+        """
+        Get a dictionary of struct members
+
+
+        .. versionadded:: 1.24
+        """
+        return self._values
+
 
     @classmethod
     def _set_parent_scope(cls, scope: comp.Component) -> None:
@@ -150,6 +177,27 @@ class UserStruct:
             id(self)
         )
 
+
+# Tell pickle how to reduce dynamically generated UserStruct classes
+def _reduce_user_struct(c: Type[UserStruct]) -> Any:
+    if c is UserStruct:
+        # Reached base class. Return string so pickle can look up the actual object
+        return 'UserStruct'
+
+    assert len(c.__bases__) == 1 # Only supporting single-inheritence
+    base_cls = c.__bases__[0] # type: Type[UserStruct]
+
+    # remove members that exist in base class
+    unique_members = c._members.copy()
+    for k in base_cls._members.keys():
+        del unique_members[k]
+
+    args = (c.__name__, unique_members, c._is_abstract, c._parent_scope)
+    return (base_cls.define_new, args)
+copyreg.pickle(UserStructMeta, _reduce_user_struct) # type: ignore
+
+
+# Utility functions
 def is_user_struct(t: Any) -> bool:
     """
     Test if type ``t`` is a :class:`~UserStruct`
