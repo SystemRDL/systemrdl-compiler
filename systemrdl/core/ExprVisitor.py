@@ -189,7 +189,7 @@ class ExprVisitor(BaseVisitor):
             )
 
         # Get it's value
-        if enum_entry_name not in enum_type.__members__:
+        if enum_entry_name not in enum_type.members:
             self.msg.fatal(
                 "'%s' is not a valid member of enum '%s'"
                 % (enum_entry_name, enum_type_name),

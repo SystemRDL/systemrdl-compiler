@@ -14,9 +14,15 @@ from .. import rdltypes
 if TYPE_CHECKING:
     from antlr4.Token import CommonToken
     from ..source_ref import SourceRefBase
+    from ..compiler import RDLCompiler
+    from .. import component as comp
     from typing import Type
 
 class EnumVisitor(BaseVisitor):
+
+    def __init__(self, compiler: 'RDLCompiler', parent_component: 'comp.Component') -> None:
+        super().__init__(compiler)
+        self.parent_component = parent_component
 
     def visitEnum_def(self, ctx):
         # type: (SystemRDLParser.Enum_defContext) -> Tuple[Type[rdltypes.UserEnum], str, SourceRefBase]
@@ -80,7 +86,7 @@ class EnumVisitor(BaseVisitor):
 
 
         # Create Enum type
-        enum_type = rdltypes.UserEnum.define_new(enum_name, members)
+        enum_type = rdltypes.UserEnum.define_new(enum_name, members, self.parent_component)
 
         self.compiler.namespace.exit_scope()
         self.compiler.namespace.parent_parameters_visible = True # restore parameter behavior

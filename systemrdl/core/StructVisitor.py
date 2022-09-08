@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from typing import TYPE_CHECKING
 
 from ..parser.SystemRDLParser import SystemRDLParser
 
@@ -9,7 +10,14 @@ from .. import component as comp
 from ..source_ref import src_ref_from_antlr
 from .. import rdltypes
 
+if TYPE_CHECKING:
+    from ..compiler import RDLCompiler
+
 class StructVisitor(BaseVisitor):
+
+    def __init__(self, compiler: 'RDLCompiler', parent_component: 'comp.Component') -> None:
+        super().__init__(compiler)
+        self.parent_component = parent_component
 
     def visitStruct_def(self, ctx: SystemRDLParser.Struct_defContext):
         self.compiler.namespace.enter_scope()
@@ -59,7 +67,7 @@ class StructVisitor(BaseVisitor):
 
 
         # Create Struct type
-        struct_type = base_type.define_new(struct_name, members, is_abstract)
+        struct_type = base_type.define_new(struct_name, members, is_abstract, self.parent_component)
 
         self.compiler.namespace.exit_scope()
         return struct_type, struct_name, src_ref_from_antlr(ctx.name)

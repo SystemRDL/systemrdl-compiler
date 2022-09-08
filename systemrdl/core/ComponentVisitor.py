@@ -878,18 +878,16 @@ class ComponentVisitor(BaseVisitor):
     # User-defined enum
     #---------------------------------------------------------------------------
     def visitEnum_def(self, ctx: SystemRDLParser.Enum_defContext) -> None:
-        visitor = EnumVisitor(self.compiler)
+        visitor = EnumVisitor(self.compiler, self.component)
         enum_type, name, src_ref = visitor.visit(ctx)
-        enum_type._set_parent_scope(self.component)
         self.compiler.namespace.register_type(name, enum_type, src_ref)
 
     #---------------------------------------------------------------------------
     # User-defined struct
     #---------------------------------------------------------------------------
     def visitStruct_def(self, ctx: SystemRDLParser.Struct_defContext) -> None:
-        visitor = StructVisitor(self.compiler)
+        visitor = StructVisitor(self.compiler, self.component)
         struct_type, name, src_ref = visitor.visit(ctx)
-        struct_type._set_parent_scope(self.component)
         self.compiler.namespace.register_type(name, struct_type, src_ref)
 
     #---------------------------------------------------------------------------

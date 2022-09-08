@@ -16,6 +16,39 @@ class UserStructMeta(type):
     Declare a metaclass for UserStruct so that it can be uniquely identified
     during dynamic type pickling
     """
+    _members = OrderedDict() # type: UserStructMembers
+    _is_abstract = True # type: bool
+    _parent_scope = None # type: Optional[comp.Component]
+
+    def define_new(cls, name: str, members: UserStructMembers, is_abstract: bool=False, _parent_scope: Optional[comp.Component]=None) -> Type['UserStruct']:
+        """
+        Define a new struct type derived from the current type.
+
+        Parameters
+        ----------
+        name: str
+            Name of the struct type
+        members: {member_name : type}
+            Dictionary of struct member types.
+        is_abstract: bool
+            If set, marks the struct as abstract.
+        """
+
+        # Extend the base struct's members
+        m = OrderedDict(cls._members)
+        # Make sure derivation does not have any overlapping keys with its parent
+        if set(m.keys()) & set(members.keys()):
+            raise ValueError("'members' contains keys that overlap with parent")
+        m.update(members)
+
+        # Create the new class
+        classdict = {
+            '_members' : m,
+            '_is_abstract': is_abstract,
+            '_parent_scope': _parent_scope,
+        }
+        metaclass = cls.__class__
+        return metaclass(name, (cls,), classdict) # type: ignore
 
     @property
     def type_name(cls) -> str:
@@ -58,44 +91,6 @@ class UserStruct(metaclass=UserStructMeta):
         member_names = prop._members.keys()
     """
 
-    _members = OrderedDict() # type: UserStructMembers
-    _is_abstract = True # type: bool
-    _parent_scope = None # type: Optional[comp.Component]
-
-    @classmethod
-    def define_new(cls, name: str, members: UserStructMembers, is_abstract: bool=False, _parent_scope: Optional[comp.Component]=None) -> Type['UserStruct']:
-        """
-        Define a new struct type derived from the current type.
-
-        Parameters
-        ----------
-        name: str
-            Name of the struct type
-        members: {member_name : type}
-            Dictionary of struct member types.
-        is_abstract: bool
-            If set, marks the struct as abstract.
-        """
-
-        # Extend the base struct's members
-        m = OrderedDict(cls._members)
-        # Make sure derivation does not have any overlapping keys with its parent
-        if set(m.keys()) & set(members.keys()):
-            raise ValueError("'members' contains keys that overlap with parent")
-        m.update(members)
-
-        # Create the new class
-        classdict = {
-            '_members' : m,
-            '_is_abstract': is_abstract,
-            '_parent_scope': _parent_scope,
-        }
-        metaclass = cls.__class__
-        newcls = metaclass(name, (cls,), classdict) # type: ignore
-
-        return newcls
-
-
     def __init__(self, values: Dict[str, Any]):
         """
         Create an instance of the struct
@@ -133,11 +128,6 @@ class UserStruct(metaclass=UserStructMeta):
         .. versionadded:: 1.24
         """
         return self._values
-
-
-    @classmethod
-    def _set_parent_scope(cls, scope: comp.Component) -> None:
-        cls._parent_scope = scope
 
     @classmethod
     def get_parent_scope(cls) -> Optional[comp.Component]:
@@ -200,7 +190,7 @@ def _reduce_user_struct(c: Type[UserStruct]) -> Any:
     for k in base_cls._members.keys():
         del unique_members[k]
 
-    args = (c.__name__, unique_members, c._is_abstract, c._parent_scope)
+    args = (c.type_name, unique_members, c._is_abstract, c._parent_scope)
     return (base_cls.define_new, args)
 copyreg.pickle(UserStructMeta, _reduce_user_struct) # type: ignore
 
