@@ -1,2 +1,3 @@
+sphinx >= 5.0.0
 pygments-systemrdl
 git+https://github.com/amykyta3/sphinx_csv_filter.git
