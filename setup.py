@@ -29,10 +29,10 @@ def run_setup(with_binary):
     if with_binary:
 
         extra_compile_args = {
-            'windows': ['/DANTLR4CPP_STATIC', '/Zc:__cplusplus'],
-            'linux': ['-std=c++11'],
-            'darwin': ['-std=c++11'],
-            'cygwin': ['-std=c++11'],
+            'windows': ['/DANTLR4CPP_STATIC', '/Zc:__cplusplus', '/std:c++17'],
+            'linux': ['-std=c++17'],
+            'darwin': ['-std=c++17'],
+            'cygwin': ['-std=c++17'],
         }
 
         # Define an Extension object that describes the Antlr accelerator
@@ -67,7 +67,7 @@ def run_setup(with_binary):
         cmdclass={"build_ext": ve_build_ext},
         python_requires='>=3.5.2',
         install_requires=[
-            "antlr4-python3-runtime >= 4.9, < 4.10",
+            "antlr4-python3-runtime >= 4.11, < 4.12",
             "colorama",
             "markdown",
         ],
@@ -144,8 +144,11 @@ class ve_build_ext(build_ext):
 is_jython = "java" in sys.platform
 is_pypy = hasattr(sys, "pypy_version_info")
 
-# Force using fallback if using an alternate interpreter
-using_fallback = is_jython or is_pypy
+# Antlr accelerator is no longer supported on older Python versions
+is_old_python = sys.version_info[0:2] <= (3, 5)
+
+# Force using fallback python parser under some conditions
+using_fallback = is_jython or is_pypy or is_old_python
 
 if not using_fallback:
     try:
