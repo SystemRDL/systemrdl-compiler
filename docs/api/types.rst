@@ -85,6 +85,27 @@ Enumerations
 .. autoclass:: systemrdl.rdltypes.user_enum.UserEnum
     :members:
 
+    .. automethod:: define_new
+
+    .. automethod:: get_parent_scope
+
+    .. automethod:: get_scope_path
+
+    .. py:property:: type_name
+        :type: str
+
+        The type name of the struct as declared in RDL.
+
+        .. versionadded:: 1.25
+
+    .. py:property:: members
+        :type: Dict[str, UserEnum]
+
+        Returns a mapping of member name->value.
+
+        .. versionadded:: 1.25
+
+
 .. autofunction:: systemrdl.rdltypes.user_enum.is_user_enum
 
 --------------------------------------------------------------------------------
@@ -93,6 +114,8 @@ Structures
 ----------
 .. autoclass:: systemrdl.rdltypes.user_struct.UserStruct
     :members:
+
+    .. automethod:: define_new
 
     .. py:property:: type_name
         :type: str

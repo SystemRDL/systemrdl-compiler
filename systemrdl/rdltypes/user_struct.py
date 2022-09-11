@@ -58,9 +58,9 @@ class UserStructMeta(type):
 
 class UserStruct(metaclass=UserStructMeta):
     """
-    All user-defined structs are based on this class.
-
-    UserStruct types can be identified using: :meth:`is_user_struct`
+    All user-defined struct types are extended from this class and can be
+    identified using ``issubclass(obj, UserStruct)``. Once assigned a value,
+    the class is constructed and is identified using ``isinstance(obj, UserStruct)``.
 
     Values of struct members are accessed as read-only object attributes.
 
@@ -84,11 +84,12 @@ class UserStruct(metaclass=UserStructMeta):
         foo = prop.foo
         bar = getattr(prop, "bar")
 
-    If necessary, a list of a UserStruct's member names can be accessed by:
+    Or UserStruct members names can be accessed as a mapping:
 
     .. code-block:: python
 
-        member_names = prop._members.keys()
+        for member_name, value in prop.members.items():
+            ...
     """
 
     def __init__(self, values: Dict[str, Any]):

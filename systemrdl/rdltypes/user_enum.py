@@ -162,7 +162,11 @@ class UserEnumMeta(type):
                 return parent_scope._scope_name
 
 class UserEnum(metaclass=UserEnumMeta):
-
+    """
+    All user-defined enum types are extended from this class and can be
+    identified using ``issubclass(obj, UserEnum)``. Enum members are instances
+    of this class and can be identified using ``isinstance(obj, UserEnum)``.
+    """
 
     def __init__(self, name: str, value: int, rdl_name: Optional[str], rdl_desc: Optional[str]) -> None:
         self._name = name
