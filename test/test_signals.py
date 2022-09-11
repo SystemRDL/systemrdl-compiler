@@ -8,6 +8,8 @@ class TestParameters(RDLSourceTestCase):
             "top"
         )
         self.assertEqual(root.find_by_path("top.s1").width, 8)
+        self.assertEqual(root.find_by_path("top.r1.s1").width, 6)
+        self.assertEqual(root.find_by_path("top.r1.f1.s1").width, 4)
 
     def test_field_resets(self):
         root = self.compile(

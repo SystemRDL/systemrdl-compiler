@@ -961,17 +961,31 @@ class FieldComponentVisitor(ComponentVisitor):
     comp_type = comp.Field
 
     def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
+        # Unpack instance def info from parent
+        comp_def = self._tmp_comp_def
+
         # 9.2-a: No other types of structural components shall be defined within a field component.
-        self.msg.fatal(
-            "Instantiation of components not allowed inside a field definition",
-            src_ref_from_antlr(ctx.component_inst(0).ID())
-        )
+        # 9.1: ... however, signal, enumeration (enum), and constraint components can be defined within a field component
+        # (and i assume this implies they can be instantiated, otherwise that would make no sense)
+        if not isinstance(comp_def, comp.Signal):
+            self.msg.fatal(
+                "Instantiation of '%s' components not allowed inside a reg definition"
+                % type(comp_def).__name__.lower(),
+                src_ref_from_antlr(ctx.component_inst(0).ID())
+            )
+        super().visitComponent_insts(ctx)
 
     def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
-        self.msg.fatal(
-            "Definitions of components not allowed inside a field definition",
-            src_ref_from_antlr(type_token)
-        )
+        comp_type = self._CompType_Map[type_token.type]
+
+        # 9.2-a: No other types of structural components shall be defined within a field component.
+        # 9.1: ... however, signal, enumeration (enum), and constraint components can be defined within a field component
+        if comp_type is not comp.Signal:
+            self.msg.fatal(
+                "Definitions of '%s' components not allowed inside a reg definition"
+                % comp_type.__name__.lower(),
+                src_ref_from_antlr(type_token)
+            )
 
 #===============================================================================
 # Reg Component visitor

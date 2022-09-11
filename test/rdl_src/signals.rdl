@@ -4,6 +4,13 @@ addrmap top {
     } s1;
 
     reg {
-        field {} f1;
+        signal {
+            signalwidth = 6;
+        } s1;
+        field {
+            signal {
+                signalwidth = 4;
+            } s1;
+        } f1;
     } r1;
 };
