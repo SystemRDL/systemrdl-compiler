@@ -1,6 +1,7 @@
 import os
 from unittest_utils import RDLSourceTestCase
 from systemrdl import RDLCompiler
+from systemrdl.messages import RDLCompileError
 
 class TestUDP(RDLSourceTestCase):
 
@@ -58,6 +59,15 @@ class TestUDP(RDLSourceTestCase):
         self.assertIs(reg1.get_property('int_udp'), 42)
         self.assertIs(field1.get_property('int_udp'), 123)
 
+    def test_builtin_udp_validate(self):
+        def my_validate(msg, node, value):
+            msg.error("hi")
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        rdlc = RDLCompiler()
+        rdlc.define_udp("int_udp", int, default=123, validate_func=my_validate)
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_builtin.rdl"))
+        with self.assertRaises(RDLCompileError):
+            rdlc.elaborate("top")
 
     def test_list_udps(self):
         this_dir = os.path.dirname(os.path.realpath(__file__))

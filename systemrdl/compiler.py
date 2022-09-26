@@ -1,4 +1,4 @@
-from typing import Set, Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING
+from typing import Set, Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING, Callable
 
 from antlr4 import InputStream
 
@@ -20,6 +20,7 @@ from . import preprocessor
 
 if TYPE_CHECKING:
     from .rdltypes.typing import RDLValue
+    from . import node as m_node
 
 
 class FileInfo:
@@ -108,8 +109,13 @@ class RDLCompiler:
         self.root = self.visitor.component # type: comp.Root # type: ignore
 
 
-    def define_udp(self, name, valid_type, valid_components=None, default=None):
-        # type: (str, List[Any], Optional[Set[Type[comp.Component]]], Any) -> None
+    def define_udp(
+            self, name: str, valid_type: List[Any],
+            valid_components: 'Optional[Set[Type[comp.Component]]]'=None,
+            default: Any=None,
+            constr_componentwidth: bool=False,
+            validate_func: Optional[Callable[[messages.MessageHandler, 'm_node.Node', Any], None]]=None
+        ) -> None:
         """
         Pre-define a user-defined property.
 
@@ -135,7 +141,34 @@ class RDLCompiler:
         default:
             Default if a value is not specified when the UDP is bound to a component.
             Value must be compatible with ``valid_type``
+        constr_componentwidth: bool
+            If set to True, enables a validation check that enforces that the
+            assigned value of the property shall not have a value of 1 for any
+            bit beyond the width of the field.
+        validate_func: function
+            Optional user-defined validation function. This function is called
+            after design elaboration on every assignment of the user defined property.
+            This provides a mechanism to further validate the value assigend to
+            the property.
 
+            The function prototype is as follows:
+
+            .. code-block:: python
+
+                def validate_func(msg: MessageHandler, node: Node, value: Any) -> None:
+                    pass
+
+
+            Upon calling the function, the value will have already been validated
+            that it matches the expected type.
+
+            If further user-defined validation fails, the function must call
+            ``msg.error`` to print the appropriate error text.
+            Doing so also marks the elaboration as invalid.
+
+
+        .. versionchanged:: 1.25
+            Added ``constr_componentwidth`` and ``validate_func`` options.
         """
         if valid_components is None:
             valid_components = {
@@ -151,7 +184,12 @@ class RDLCompiler:
         if name in self.env.property_rules.rdl_properties:
             raise ValueError("name '%s' conflicts with existing built-in RDL property")
 
-        udp = BuiltinUserProperty(self.env, name, valid_components, (valid_type,), default)
+        udp = BuiltinUserProperty(
+            self.env, name,
+            valid_components, (valid_type,),
+            default, constr_componentwidth,
+            validate_func
+        )
 
         self.env.property_rules.user_properties[udp.name] = udp
 

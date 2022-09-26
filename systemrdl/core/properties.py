@@ -1,4 +1,4 @@
-from typing import Any, Set, Type, Iterable, TYPE_CHECKING, Optional, Dict, List, Union
+from typing import Any, Set, Type, Iterable, TYPE_CHECKING, Optional, Dict, List, Union, Callable
 
 from .. import component as comp
 from .. import node as m_node
@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
     from typing import TypeVar
+    from ..messages import MessageHandler
 
     T = TypeVar('T')
 
@@ -2013,8 +2014,12 @@ class Prop_bridge(PropertyRule):
 #===============================================================================
 
 class UserProperty(PropertyRule):
-    def __init__(self, env, name, bindable_to, valid_types, default=None, constr_componentwidth=False):
-        # type: (RDLEnvironment, str, Set[Type[comp.Component]], Iterable[Any], Any, bool) -> None
+    def __init__(
+            self, env: 'RDLEnvironment', name: str, bindable_to: 'Set[Type[comp.Component]]',
+            valid_types: Iterable[Any], default: Any=None,
+            constr_componentwidth: bool=False,
+            validate_func: Optional[Callable[['MessageHandler', m_node.Node, Any], None]]=None
+        ) -> None:
         super().__init__(env)
 
         self.name = name
@@ -2022,6 +2027,7 @@ class UserProperty(PropertyRule):
         self.valid_types = valid_types
         self.default = default
         self.constr_componentwidth = constr_componentwidth
+        self.validate_func = validate_func
 
     def get_name(self) -> str:
         return self.name
@@ -2065,6 +2071,9 @@ class UserProperty(PropertyRule):
                     )
 
         self._validate_ref_is_present(node, value)
+
+        if self.validate_func:
+            self.validate_func(self.env.msg, node, value)
 
 
 class BuiltinUserProperty(UserProperty):
