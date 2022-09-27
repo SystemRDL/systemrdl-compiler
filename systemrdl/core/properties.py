@@ -3,7 +3,8 @@ from typing import Any, Set, Type, Iterable, TYPE_CHECKING, Optional, Dict, List
 from .. import component as comp
 from .. import node as m_node
 from .. import rdltypes
-from .. import ast
+from ..ast.ast_node import ASTNode
+from ..ast.cast import AssignmentCast, is_castable
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
@@ -79,7 +80,7 @@ class PropertyRule:
         # Contents of value can be:
         #   - An expression (instance of an ASTNode subclass)
         #   - Direct assignment of a type-compatible value
-        if isinstance(value, ast.ASTNode):
+        if isinstance(value, ASTNode):
             # Predict expected type after value would get evaluated
             assign_type = value.predict_type()
         elif rdltypes.is_user_enum(value):
@@ -97,11 +98,11 @@ class PropertyRule:
         else:
             # otherwise, cast to the first compatible type
             for valid_type in self.valid_types:
-                if ast.is_castable(assign_type, valid_type):
-                    if isinstance(value, ast.ASTNode):
+                if is_castable(assign_type, valid_type):
+                    if isinstance(value, ASTNode):
                         # Found a type-compatible match. (first match is best match)
                         # Wrap the expression with an explicit assignment cast
-                        value = ast.AssignmentCast(self.env, src_ref, value, valid_type)
+                        value = AssignmentCast(self.env, src_ref, value, valid_type)
                     break
             else:
                 self.env.msg.fatal(
@@ -296,7 +297,7 @@ class Prop_name(PropertyRule):
 
 class Prop_desc(PropertyRule):
     """
-    Describes the component’s purpose.
+    Describes the component's purpose.
     (5.2.1)
     """
     bindable_to = {comp.Addrmap, comp.Field, comp.Mem, comp.Reg, comp.Regfile, comp.Signal}
@@ -325,7 +326,7 @@ class Prop_dontcompare(PropertyRule):
         # If assigned to any other components, exclusively cast it to a boolean
         if not isinstance(comp_def, comp.Field):
             value = comp_def.properties[self.get_name()]
-            value = ast.AssignmentCast(self.env, src_ref, value, bool)
+            value = AssignmentCast(self.env, src_ref, value, bool)
             comp_def.properties[self.get_name()] = value
 
     def validate(self, node: m_node.Node, value: Any) -> None:
@@ -406,7 +407,7 @@ class Prop_donttest(PropertyRule):
         # If assigned to any other components, exclusively cast it to a boolean
         if not isinstance(comp_def, comp.Field):
             value = comp_def.properties[self.get_name()]
-            value = ast.AssignmentCast(self.env, src_ref, value, bool)
+            value = AssignmentCast(self.env, src_ref, value, bool)
             comp_def.properties[self.get_name()] = value
 
     def validate(self, node: m_node.Node, value: Any) -> None:
@@ -2082,6 +2083,22 @@ class BuiltinUserProperty(UserProperty):
     application.
     """
 
+    def __init__(
+            self, env: 'RDLEnvironment', name: str,
+            bindable_to: 'Set[Type[comp.Component]]', valid_types: Iterable[Any],
+            default: Any = None,
+            constr_componentwidth: bool = False,
+            validate_func: Optional[Callable[['MessageHandler', m_node.Node, Any], None]] = None,
+            soft: bool=False
+        ) -> None:
+        super().__init__(
+            env, name,
+            bindable_to, valid_types,
+            default, constr_componentwidth, validate_func
+        )
+
+        self.is_soft = soft
+
 #===============================================================================
 # Property References
 #===============================================================================
@@ -2524,11 +2541,15 @@ class PropertyRuleBook:
                 prop_name = prop_ref.get_name()
                 self.rdl_prop_refs[prop_name] = prop_ref
 
-    def lookup_property(self, prop_name: str) -> Optional[PropertyRule]:
+    def lookup_property(self, prop_name: str, include_soft_udp: bool=False) -> Optional[PropertyRule]:
         if prop_name in self.rdl_properties:
             return self.rdl_properties[prop_name]
         elif prop_name in self.user_properties:
-            return self.user_properties[prop_name]
+            udp = self.user_properties[prop_name]
+            if isinstance(udp, BuiltinUserProperty) and udp.is_soft and not include_soft_udp:
+                # Soft UDPs do not officially exist until they are explicitly defined
+                return None
+            return udp
         else:
             return None
 
@@ -2538,6 +2559,25 @@ class PropertyRuleBook:
 
     def register_udp(self, udp: UserProperty, src_ref: 'SourceRefBase') -> None:
         if udp.name in self.user_properties:
+
+            existing_udp = self.user_properties[udp.name]
+            if isinstance(existing_udp, BuiltinUserProperty) and existing_udp.is_soft:
+                # Existing UDP is soft. Check if incoming UDP is equivalent
+                if(
+                    existing_udp.bindable_to != udp.bindable_to
+                    or existing_udp.valid_types != udp.valid_types
+                    or existing_udp.default != udp.default
+                    or existing_udp.constr_componentwidth != udp.constr_componentwidth
+                ):
+                    self.env.msg.fatal(
+                        "The property definition for the feature extension '%s' differs from what this tool expects." % udp.name,
+                        src_ref
+                    )
+
+                # Now that the soft UDP has been explicitly defined by the user,
+                # unmark it as soft
+                existing_udp.is_soft = False
+                return
             self.env.msg.fatal(
                 "Multiple declarations of user-defined property '%s'"
                 % udp.name,

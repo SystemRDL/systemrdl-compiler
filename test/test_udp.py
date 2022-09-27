@@ -2,6 +2,9 @@ import os
 from unittest_utils import RDLSourceTestCase
 from systemrdl import RDLCompiler
 from systemrdl.messages import RDLCompileError
+from systemrdl import component as comp
+
+this_dir = os.path.dirname(os.path.realpath(__file__))
 
 class TestUDP(RDLSourceTestCase):
 
@@ -45,7 +48,6 @@ class TestUDP(RDLSourceTestCase):
         self.assertEqual(f.get_property('my_enc_prop').name, "alpha")
 
     def test_builtin_udp(self):
-        this_dir = os.path.dirname(os.path.realpath(__file__))
         rdlc = RDLCompiler()
         rdlc.define_udp("int_udp", int, default=123)
         rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_builtin.rdl"))
@@ -62,17 +64,49 @@ class TestUDP(RDLSourceTestCase):
     def test_builtin_udp_validate(self):
         def my_validate(msg, node, value):
             msg.error("hi")
-        this_dir = os.path.dirname(os.path.realpath(__file__))
         rdlc = RDLCompiler()
         rdlc.define_udp("int_udp", int, default=123, validate_func=my_validate)
         rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_builtin.rdl"))
         with self.assertRaises(RDLCompileError):
             rdlc.elaborate("top")
 
+    def test_soft_udp_undeclared(self):
+        rdlc = RDLCompiler()
+        rdlc.define_udp("int_udp", int, default=123, soft=True)
+        with self.assertRaises(RDLCompileError):
+            rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_builtin.rdl"))
+
+    def test_soft_udp_query(self):
+        rdlc = RDLCompiler()
+        rdlc.define_udp("int_udp", int, default=123, soft=True)
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_15.2.2_ex2.rdl"))
+        root = rdlc.elaborate("top")
+
+        f = root.find_by_path("top.regA.f")
+        self.assertIsNone(f.get_property('int_udp'))
+
+    def test_soft_udp_success(self):
+        rdlc = RDLCompiler()
+        rdlc.define_udp("a_map_p", str, {comp.Addrmap, comp.Regfile}, soft=True)
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_15.2.2_ex1.rdl"))
+        rdlc.elaborate("foo")
+
+    def test_soft_udp_conflict(self):
+        rdlc = RDLCompiler()
+        rdlc.define_udp("a_map_p", int, {comp.Addrmap, comp.Regfile}, soft=True)
+        with self.assertRaises(RDLCompileError):
+            rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_15.2.2_ex1.rdl"))
+
+    def test_soft_udp_dupe(self):
+        rdlc = RDLCompiler()
+        rdlc.define_udp("bool_udp", bool, {comp.Field}, soft=True)
+        with self.assertRaises(RDLCompileError):
+            rdlc.compile_file(os.path.join(this_dir, "rdl_err_src/err_duplicate_udp.rdl"))
+
     def test_list_udps(self):
-        this_dir = os.path.dirname(os.path.realpath(__file__))
         rdlc = RDLCompiler()
         rdlc.define_udp("int_udp", int, default=123)
+        rdlc.define_udp("int_udp_soft", int, default=123, soft=True)
         rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_15.2.2_ex1.rdl"))
         rdlc.elaborate("foo")
 

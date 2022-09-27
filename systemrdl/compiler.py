@@ -110,11 +110,12 @@ class RDLCompiler:
 
 
     def define_udp(
-            self, name: str, valid_type: List[Any],
+            self, name: str, valid_type: Any,
             valid_components: 'Optional[Set[Type[comp.Component]]]'=None,
             default: Any=None,
             constr_componentwidth: bool=False,
-            validate_func: Optional[Callable[[messages.MessageHandler, 'm_node.Node', Any], None]]=None
+            validate_func: Optional[Callable[[messages.MessageHandler, 'm_node.Node', Any], None]]=None,
+            soft: bool=False
         ) -> None:
         """
         Pre-define a user-defined property.
@@ -165,10 +166,20 @@ class RDLCompiler:
             If further user-defined validation fails, the function must call
             ``msg.error`` to print the appropriate error text.
             Doing so also marks the elaboration as invalid.
+        soft: bool
+            If true, pre-definition of the UDP is "soft". This is effectively a
+            way to reserve the UDP in
+
+            Soft UDPs operate as follows:
+
+            * The UDP is not available to be used until it is explicitly defined in the SystemRDL source.
+            * Upon definition, the user's declaration shall be equivalent to the pre-loaded definition.
+            * If the user source RDL never defines the UDP, calling ``node.get_property()``
+              on the UDP will not raise a KeyError exception. Rather, it will return None.
 
 
         .. versionchanged:: 1.25
-            Added ``constr_componentwidth`` and ``validate_func`` options.
+            Added ``constr_componentwidth``, ``validate_func``, and ``soft`` options.
         """
         if valid_components is None:
             valid_components = {
@@ -184,11 +195,14 @@ class RDLCompiler:
         if name in self.env.property_rules.rdl_properties:
             raise ValueError("name '%s' conflicts with existing built-in RDL property")
 
+        if constr_componentwidth and valid_type != int:
+            raise ValueError("'constr_componentwidth' can only be true if UDP is of integer type")
+
         udp = BuiltinUserProperty(
             self.env, name,
             valid_components, (valid_type,),
             default, constr_componentwidth,
-            validate_func
+            validate_func, soft
         )
 
         self.env.property_rules.user_properties[udp.name] = udp
@@ -201,7 +215,12 @@ class RDLCompiler:
 
         .. versionadded:: 1.12
         """
-        return list(self.env.property_rules.user_properties.keys())
+        udps = []
+        for udp_name, udp in self.env.property_rules.user_properties.items():
+            if isinstance(udp, BuiltinUserProperty) and udp.is_soft:
+                continue
+            udps.append(udp_name)
+        return udps
 
 
     def preprocess_file(self, path: str, incl_search_paths: Optional[List[str]]=None) -> FileInfo:

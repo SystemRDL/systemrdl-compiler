@@ -1,0 +1,16 @@
+
+property bool_udp {
+    type = boolean;
+    component = field;
+};
+
+property bool_udp {
+    type = boolean;
+    component = field;
+};
+
+addrmap top {
+    reg {
+        field {}foo;
+    }bar;
+};

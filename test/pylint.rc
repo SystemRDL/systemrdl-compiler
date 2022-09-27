@@ -88,6 +88,7 @@ disable=
         too-many-statements,
         too-many-instance-attributes,
         too-many-function-args,
+        too-many-arguments,
         line-too-long,
 
         # Noise / Don't care

@@ -373,6 +373,8 @@ class Node:
         LookupError
             If prop_name is invalid
         """
+        # Importing here to avoid a circular import
+        from .core.properties import BuiltinUserProperty # pylint: disable=import-outside-toplevel
 
         ovr_default = False
         default = None
@@ -403,7 +405,11 @@ class Node:
             return default
 
         # Otherwise, return its default value based on the property's rules
-        rule = self.env.property_rules.lookup_property(prop_name)
+        rule = self.env.property_rules.lookup_property(prop_name, include_soft_udp=True)
+
+        if isinstance(rule, BuiltinUserProperty) and rule.is_soft:
+            # has not been declared by the user yet. Gracefully return None
+            return None
 
         # Is it even a valid property or allowed for this component type?
         if rule is None:
@@ -435,6 +441,9 @@ class Node:
             Added ``include_native`` and ``include_udp`` options.
         """
 
+        # Importing here to avoid a circular import
+        from .core.properties import BuiltinUserProperty # pylint: disable=import-outside-toplevel
+
         if list_all:
             props = []
             if include_native:
@@ -443,6 +452,8 @@ class Node:
                         props.append(k)
             if include_udp:
                 for k, v in self.env.property_rules.user_properties.items():
+                    if isinstance(v, BuiltinUserProperty) and v.is_soft:
+                        continue
                     if type(self.inst) in v.bindable_to:
                         props.append(k)
             return props

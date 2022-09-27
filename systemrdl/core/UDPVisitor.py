@@ -14,7 +14,7 @@ from .. import component as comp
 from .. import rdltypes
 
 if TYPE_CHECKING:
-    from typing import Optional, Union, Any, Set
+    from typing import Optional, Union, Any, Set, Tuple
     from ..compiler import RDLCompiler
 
 class UDPVisitor(BaseVisitor):
@@ -23,7 +23,7 @@ class UDPVisitor(BaseVisitor):
 
         self._constr_componentwidth = None # type: Optional[bool]
         self._default = None # type: Any
-        self._valid_types = None # type: Optional[List[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, comp.Component]]]]
+        self._valid_types = None # type: Optional[Tuple[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, comp.Component]], ...]]
         self._bindable_to = None # type: Optional[Set[Type[comp.Component]]]
 
     def visitUdp_def(self, ctx: SystemRDLParser.Udp_defContext) -> None:
@@ -89,11 +89,15 @@ class UDPVisitor(BaseVisitor):
             # can depend on any post-elaborate references (parameters)
             self._default = expr.get_value()
 
+        constr_componentwidth = self._constr_componentwidth
+        if constr_componentwidth is None:
+            constr_componentwidth = False
+
         # Create and register the new property rule
         udp = properties.UserProperty(
             self.compiler.env, udp_name,
             self._bindable_to, self._valid_types, self._default,
-            self._constr_componentwidth
+            constr_componentwidth
         )
         self.compiler.env.property_rules.register_udp(udp, src_ref_from_antlr(ctx.ID()))
 
@@ -125,7 +129,7 @@ class UDPVisitor(BaseVisitor):
             for i, valid_type in enumerate(valid_types):
                 valid_types[i] = rdltypes.ArrayPlaceholder(valid_type) # type: ignore
 
-        self._valid_types = valid_types
+        self._valid_types = tuple(valid_types)
 
 
     _UDPUsage_Map = {
