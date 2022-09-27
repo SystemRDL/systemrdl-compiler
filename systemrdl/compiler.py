@@ -130,6 +130,11 @@ class RDLCompiler:
                 default = <default>
             };
 
+        .. important::
+            It is strongly recommended to declare any built-in UDPs using the ``soft=True`` option.
+            This will ensure all user-generated RDL remains compliant with the SystemRDL standard
+            by not assuming the pre-definition of tool-specific UDPs.
+
         Parameters
         ----------
         name: str
@@ -175,7 +180,7 @@ class RDLCompiler:
             * The UDP is not available to be used until it is explicitly defined in the SystemRDL source.
             * Upon definition, the user's declaration shall be equivalent to the pre-loaded definition.
             * If the user source RDL never defines the UDP, calling ``node.get_property()``
-              on the UDP will not raise a KeyError exception. Rather, it will return None.
+              on the UDP will gracefully return ``None`` instead of a ``LookupError`` exception.
 
 
         .. versionchanged:: 1.25
