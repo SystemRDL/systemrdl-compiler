@@ -131,9 +131,10 @@ class RDLCompiler:
             };
 
         .. important::
-            It is strongly recommended to declare any built-in UDPs using the ``soft=True`` option.
-            This will ensure all user-generated RDL remains compliant with the SystemRDL standard
-            by not assuming the pre-definition of tool-specific UDPs.
+            It is strongly recommended that any built-in UDPs should be declared
+            using the ``soft=True`` option. This will ensure all user-generated
+            RDL remains compliant with the SystemRDL standard by not assuming
+            the pre-definition of tool-specific UDPs.
 
         Parameters
         ----------
@@ -151,6 +152,7 @@ class RDLCompiler:
             If set to True, enables a validation check that enforces that the
             assigned value of the property shall not have a value of 1 for any
             bit beyond the width of the field.
+            This can only be used if ``valid_type`` is ``int``
         validate_func: function
             Optional user-defined validation function. This function is called
             after design elaboration on every assignment of the user defined property.
@@ -175,12 +177,13 @@ class RDLCompiler:
             If true, pre-definition of the UDP is "soft". This is effectively a
             way to reserve the UDP in
 
-            Soft UDPs operate as follows:
+            Soft UDPs behave as follows:
 
             * The UDP is not available to be used until it is explicitly defined in the SystemRDL source.
             * Upon definition, the user's declaration shall be equivalent to the pre-loaded definition.
-            * If the user source RDL never defines the UDP, calling ``node.get_property()``
-              on the UDP will gracefully return ``None`` instead of a ``LookupError`` exception.
+            * If the user's RDL source never defines the UDP, querying it via ``node.get_property()``
+              will gracefully return ``None`` instead of a ``LookupError`` exception.
+            * Once defined in RDL source, the UDP is no longer soft.
 
 
         .. versionchanged:: 1.25
