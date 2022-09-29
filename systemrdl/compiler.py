@@ -1,4 +1,5 @@
-from typing import Set, Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING, Callable
+from typing import Set, Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING
+import warnings as py_warnings
 
 from antlr4 import InputStream
 
@@ -20,7 +21,7 @@ from . import preprocessor
 
 if TYPE_CHECKING:
     from .rdltypes.typing import RDLValue
-    from . import node as m_node
+    from .udp import UDPDefinition
 
 
 class FileInfo:
@@ -112,83 +113,14 @@ class RDLCompiler:
     def define_udp(
             self, name: str, valid_type: Any,
             valid_components: 'Optional[Set[Type[comp.Component]]]'=None,
-            default: Any=None,
-            constr_componentwidth: bool=False,
-            validate_func: Optional[Callable[[messages.MessageHandler, 'm_node.Node', Any], None]]=None,
-            soft: bool=False
+            default: Any=None
         ) -> None:
-        """
-        Pre-define a user-defined property.
 
-        This is the equivalent to the following RDL:
+        py_warnings.warn(
+            "Use of RDLCompiler.define_udp() is deprecated. Use RDLCompiler.register_udp() instead.",
+            DeprecationWarning, stacklevel=2
+        )
 
-        .. code-block:: none
-
-            property <name> {
-                type = <valid_type>;
-                component = <valid_components>;
-                default = <default>
-            };
-
-        .. important::
-            It is strongly recommended that any built-in UDPs should be declared
-            using the ``soft=True`` option. This will ensure all user-generated
-            RDL remains compliant with the SystemRDL standard by not assuming
-            the pre-definition of tool-specific UDPs.
-
-        Parameters
-        ----------
-        name: str
-            Property name
-        valid_components: set
-            Set of :class:`~systemrdl.component.Component` types the UDP can be bound to.
-            If None, then UDP can be bound to all components.
-        valid_type: type
-            Assignment type that this UDP will enforce
-        default:
-            Default if a value is not specified when the UDP is bound to a component.
-            Value must be compatible with ``valid_type``
-        constr_componentwidth: bool
-            If set to True, enables a validation check that enforces that the
-            assigned value of the property shall not have a value of 1 for any
-            bit beyond the width of the field.
-            This can only be used if ``valid_type`` is ``int``
-        validate_func: function
-            Optional user-defined validation function. This function is called
-            after design elaboration on every assignment of the user defined property.
-            This provides a mechanism to further validate the value assigend to
-            the property.
-
-            The function prototype is as follows:
-
-            .. code-block:: python
-
-                def validate_func(msg: MessageHandler, node: Node, value: Any) -> None:
-                    pass
-
-
-            Upon calling the function, the value will have already been validated
-            that it matches the expected type.
-
-            If further user-defined validation fails, the function must call
-            ``msg.error`` to print the appropriate error text.
-            Doing so also marks the elaboration as invalid.
-        soft: bool
-            If true, pre-definition of the UDP is "soft". This is effectively a
-            way to reserve the UDP in
-
-            Soft UDPs behave as follows:
-
-            * The UDP is not available to be used until it is explicitly defined in the SystemRDL source.
-            * Upon definition, the user's declaration shall be equivalent to the pre-loaded definition.
-            * If the user's RDL source never defines the UDP, querying it via ``node.get_property()``
-              will gracefully return ``None`` instead of a ``LookupError`` exception.
-            * Once defined in RDL source, the UDP is no longer soft.
-
-
-        .. versionchanged:: 1.25
-            Added ``constr_componentwidth``, ``validate_func``, and ``soft`` options.
-        """
         if valid_components is None:
             valid_components = {
                 comp.Field,
@@ -203,18 +135,100 @@ class RDLCompiler:
         if name in self.env.property_rules.rdl_properties:
             raise ValueError("name '%s' conflicts with existing built-in RDL property")
 
-        if constr_componentwidth and valid_type != int:
-            raise ValueError("'constr_componentwidth' can only be true if UDP is of integer type")
-
         udp = BuiltinUserProperty(
             self.env, name,
             valid_components, (valid_type,),
-            default, constr_componentwidth,
-            validate_func, soft
+            default,
+            soft=False
         )
 
         self.env.property_rules.user_properties[udp.name] = udp
 
+    def register_udp(self, definition_cls: 'Type[UDPDefinition]', soft: bool=True) -> None:
+        """
+        Pre-register a User Defined Property into the compiler.
+
+        UDP semantics can be pre-loaded into the compiler namespace as a way to formalize
+        extensions to SystemRDL that your tool supports. Registration of a UDP is done as follows:
+
+        .. code-block:: python
+
+            from systemrdl.udp import UDPDefinition
+            from systemrdl.components import Field, Signal
+
+            # 1. Describe your UDP
+            class MyUDPDefinition(UDPDefinition):
+                name = "my_udp"
+                valid_components = {Field, Signal}
+                valid_type = int
+
+                # Optional callback that validates values assigned to 'my_udp'
+                def validate(self, node, value):
+                    if(value == 42):
+                        self.msg.error(
+                            "Value of 'my_udp' cannot be 42! That number is reserved for philosophical reasons",
+                            self.get_src_ref(node)
+                        )
+
+            # 2. Register it with your RDLCompiler instance
+            rdlc.register_udp(MyUDPDefinition)
+
+        The above definition is equivalent to the following SystemRDL:
+
+        .. code-block:: systemrdl
+
+            property my_udp {
+                type = longint unsigned;
+                component = field | signal;
+            };
+
+        By default, UDPs are registered as "soft" definitions. Soft UDPs behave as follows:
+
+            * The UDP is not available to be used until it is explicitly defined in the SystemRDL source.
+            * Upon definition, the user's declaration shall be equivalent to the pre-loaded definition.
+            * If the user's RDL source never defines the UDP, querying it via ``node.get_property()``
+              will gracefully return ``None`` instead of a ``LookupError`` exception.
+            * Once defined by the user in RDL source, the UDP is no longer soft.
+
+        The full details of the ``UDPDefinition`` class is as follows:
+
+        .. autoclass:: systemrdl.udp.UDPDefinition
+            :members:
+
+        Parameters
+        ----------
+        definition_cls: :class:`systemrdl.udp.UDPDefinition`
+            Reference to the container class that defines your new UDP.
+        soft: bool
+            Override to False to register the UDP as a hard definition.
+
+            .. important::
+                Registering hard UDPs not recommended since it encourages users to write
+                SystemRDL that uses UDP extensions that are not formally
+                declared in the RDL source. This bends the rules of the SystemRDL
+                specification and hurts the cross-vendor compatibility of your SystemRDL.
+
+                Using soft UDPs has the benefit of enforcing that the user
+                defines and uses UDPs correctly whilst not violating the official
+                SystemRDL language specification.
+
+
+        .. versionadded:: 1.25
+        """
+        udp_def = definition_cls(self.env)
+        if udp_def.name in self.env.property_rules.rdl_properties:
+            raise ValueError("UDP definition's name '%s' conflicts with existing built-in RDL property")
+        if udp_def.name in self.env.property_rules.user_properties:
+            raise ValueError("UDP '%s' has already been defined")
+
+        # Copy definition into internal UDP object & register it
+        udp = BuiltinUserProperty(
+            self.env, udp_def.name,
+            udp_def.valid_components, (udp_def.valid_type,),
+            udp_def.default_assignment, udp_def.constr_componentwidth,
+            udp_def.validate, soft
+        )
+        self.env.property_rules.user_properties[udp.name] = udp
 
     def list_udps(self) -> List[str]:
         """
