@@ -270,42 +270,63 @@ class RDLCompiler:
         return FileInfo(input_stream.strdata, included_files)
 
 
-    def compile_file(self, path: str, incl_search_paths: Optional[List[str]]=None) -> FileInfo:
+    def compile_file(self, path: str, incl_search_paths: Optional[List[str]]=None, prop_defaults: Optional[Tuple[str, any]]=None) -> FileInfo:
         """
-        Parse & compile a single file and append it to RDLCompiler's root
+        Parse & compile a single file and append it to RDLCompiler's root                                              
         namespace.
 
-        If any exceptions (:class:`~systemrdl.RDLCompileError` or other)
-        occur during compilation, then the RDLCompiler object should be discarded.
+        If any exceptions (:class:`~systemrdl.RDLCompileError` or other)                                               
+        occur during compilation, then the RDLCompiler object should be discarded.                                     
 
-        Parameters
-        ----------
+        Parameters                                                                                                     
+        ----------                                                                                                     
         path:str
-            Path to an RDL source file
+            Path to an RDL source file                                                                                 
 
-        incl_search_paths:list
-            List of additional paths to search to resolve includes.
+        incl_search_paths:list                                                                                         
+            List of additional paths to search to resolve includes.                                                    
             If unset, defaults to an empty list.
 
-            Relative include paths are resolved in the following order:
+            Relative include paths are resolved in the following order:                                                
 
-            1. Search each path specified in ``incl_search_paths``.
-            2. Path relative to the source file performing the include.
+            1. Search each path specified in ``incl_search_paths``.                                                    
+            2. Path relative to the source file performing the include.                                                
 
-        Raises
-        ------
-        RDLCompileError
-            If any fatal compile error is encountered.
+        prop_defaults:list
+            List of global property defaults to apply. Each iterm is
+            a tuple of property name and value (as a string)
 
-        Returns
-        -------
-        :class:`FileInfo`
-            File info object
+        Raises                                                                                                         
+        ------                                                                                                         
+        RDLCompileError                                                                                                
+            If any fatal compile error is encountered.                                                                 
 
+        Returns                                                                                                        
+        -------                                                                                                        
+        :class:`FileInfo`                                                                                              
+            File info object                                                                                           
 
-        .. versionchanged:: 1.20
-            Returns a :class:`FileInfo` object instead of ``None``
+                                                                                                                       
+        .. versionchanged:: 1.20                                                                                       
+            Returns a :class:`FileInfo` object instead of ``None``                                                     
         """
+
+        if prop_defaults:                                                                                              
+            for prop, val in prop_defaults:
+                # convert string values to bool, int or string                                                                            
+                if val.lower() == "true":
+                    val = True 
+                elif val.lower() == "false":                                                                           
+                    val = False
+                else:
+                    try:                                                                                               
+                        val = int(val, 0)                                                                              
+                    except e: 
+                        # assume it is a string at this point                                                          
+                        pass
+                # Use None ref to allow failing code to be pointed to by error message
+                self.namespace.default_property_ns_stack[-1][prop] = (None, val)                                       
+                
 
         if incl_search_paths is None:
             incl_search_paths = []
