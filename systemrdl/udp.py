@@ -69,3 +69,18 @@ class UDPDefinition:
         of the user defined property. This provides a mechanism to further
         validate the value assigend to your user-defined property.
         """
+
+    def get_unassigned_default(self, node: 'Node') -> Any:
+        """
+        According to the SystemRDL spec, if a user-defined property is not explicitly
+        assigned, then it does not get bound with any implied default value.
+
+        For convenience to developers, this callback allows you to specify an implied
+        default value if the UDP was never explicitly assigned.
+        This only affects the behavior of Node.get_property() and does not
+        affect the semantics of SystemRDL during compilaton.
+        """
+
+        # If a user-defined property is not explicitly assigned, then it
+        # does not get bound with its default value
+        return None

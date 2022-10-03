@@ -70,7 +70,7 @@ class UDPVisitor(BaseVisitor):
             expr_type = expr.predict_type()
 
             # temporarily expand valid_type into an array
-            if isinstance(self._valid_type, rdltypes.references.RefType):
+            if issubclass(self._valid_type, rdltypes.references.RefType):
                 valid_types = self._valid_type.expanded
             else:
                 valid_types = (self._valid_type,)

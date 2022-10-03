@@ -107,6 +107,7 @@ class PropertyRule:
                         value = AssignmentCast(self.env, src_ref, value, valid_type)
                     break
             else:
+                print(assign_type, self.valid_types)
                 self.env.msg.fatal(
                     "Incompatible assignment to property '%s'" % self.get_name(),
                     src_ref
@@ -2035,7 +2036,7 @@ class UserProperty(PropertyRule):
 
     @property
     def valid_types(self) -> Tuple[Any, ...]:
-        if isinstance(self.definition.valid_type, rdltypes.references.RefType):
+        if issubclass(self.definition.valid_type, rdltypes.references.RefType):
             return self.definition.valid_type.expanded
         else:
             return (self.definition.valid_type,)
@@ -2057,11 +2058,7 @@ class UserProperty(PropertyRule):
         super().assign_value(comp_def, value, src_ref)
 
     def get_default(self, node: m_node.Node) -> Any:
-        # pylint: disable=unused-argument
-
-        # If a user-defined property is not explicitly assigned, then it
-        # does not get bound with its default value
-        return None
+        return self.definition.get_unassigned_default(node)
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         if self.definition.constr_componentwidth:
