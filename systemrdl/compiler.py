@@ -2,6 +2,7 @@ from typing import Set, Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING
 import warnings as py_warnings
 
 from antlr4 import InputStream
+from systemrdl import rdltypes
 
 from . import messages
 from . import warnings
@@ -221,10 +222,15 @@ class RDLCompiler:
         if udp_def.name in self.env.property_rules.user_properties:
             raise ValueError("UDP '%s' has already been defined")
 
+        if isinstance(udp_def.valid_type, rdltypes.references.RefType):
+            valid_types = udp_def.valid_type.expanded
+        else:
+            valid_types = (udp_def.valid_type,)
+
         # Copy definition into internal UDP object & register it
         udp = BuiltinUserProperty(
             self.env, udp_def.name,
-            udp_def.valid_components, (udp_def.valid_type,),
+            udp_def.valid_components, valid_types,
             udp_def.default_assignment, udp_def.constr_componentwidth,
             udp_def.validate, soft
         )

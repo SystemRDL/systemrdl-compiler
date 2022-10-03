@@ -28,7 +28,10 @@ class UDPDefinition:
         # TODO: constraint,
     } # type: Set[Type[comp.Component]]
 
-    #: Value data type that this UDP will enforce
+    #: Data type of the assignment value that this UDP will enforce.
+    #: If this is a reference, either specify the specific component type class
+    #: (eg. :class:`~systemrdl.component.Field`), or the generic representation
+    #: of all references: :class:`~systemrdl.rdltypes.references.RefType`
     valid_type = None # type: Any
 
     #: Specifies the value assigned if a value is not specified when the UDP is bound to a component.

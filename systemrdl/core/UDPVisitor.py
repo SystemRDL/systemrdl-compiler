@@ -113,13 +113,7 @@ class UDPVisitor(BaseVisitor):
         token = self.visit(ctx.udp_data_type())
 
         if token.type == SystemRDLParser.REF_kw:
-            valid_types = [
-                comp.Field,
-                comp.Reg,
-                comp.Regfile,
-                comp.Addrmap,
-                comp.Mem
-            ] # type: List[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, comp.Component]]]
+            valid_types = rdltypes.references.RefType.expanded
         else:
             valid_types = [self.datatype_from_token(token)]
 

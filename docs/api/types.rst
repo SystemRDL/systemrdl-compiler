@@ -51,6 +51,11 @@ Once compiled, SystemRDL types are mapped to Python types as follows:
 
     *   - Component ``ref``
         - :class:`~systemrdl.node.Node` if queried using :meth:`Node.get_property() <systemrdl.node.Node.get_property>`
+          after design elaboration.
+
+          Prior to design elaboration, when pre-registring UDPs, component references
+          are specified by their specific :class:`~systemrdl.component.Component` class, or
+          the generic :class:`~systemrdl.rdltypes.references.RefType` object.
 
     *   - RHS property reference
         - :class:`~systemrdl.rdltypes.references.PropertyReference`
@@ -128,7 +133,9 @@ Structures
 
 --------------------------------------------------------------------------------
 
-Property Reference
-------------------
+References
+----------
 .. autoclass:: systemrdl.rdltypes.references.PropertyReference
     :members:
+
+.. autoclass:: systemrdl.rdltypes.references.RefType

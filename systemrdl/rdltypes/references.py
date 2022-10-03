@@ -1,10 +1,10 @@
 from typing import Tuple, List, Optional, Type, TYPE_CHECKING
 
 from ..node import Node, AddressableNode
+from .. import component as comp
 
 if TYPE_CHECKING:
     from ..source_ref import SourceRefBase
-    from .. import component as comp
     from ..compiler import RDLEnvironment
 
 
@@ -159,3 +159,27 @@ class PropertyReference:
         .. versionadded:: 1.21
         """
         raise NotImplementedError
+
+
+class RefType:
+    """
+    This class it not a true RDL type, but rather an object that represents
+    all possible RHS references that can be made. This represents all possible
+    component references, as well as RHS property references.
+
+    This is used primarily when pre-registering a UDP that has the generic
+    'ref' datatype.
+
+    .. versionadded:: 1.25
+    """
+
+    expanded = (
+        comp.Field,
+        comp.Signal,
+        comp.Reg,
+        comp.Regfile,
+        comp.Addrmap,
+        comp.Mem,
+        PropertyReference,
+        # TODO: eventually add constraint references
+    )
