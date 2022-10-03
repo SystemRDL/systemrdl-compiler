@@ -1,4 +1,4 @@
-from typing import Set, Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING, Callable
+from typing import Set, Type, Any, List, Tuple, Dict, Optional, Iterable, TYPE_CHECKING, Callable
 
 from antlr4 import InputStream
 
