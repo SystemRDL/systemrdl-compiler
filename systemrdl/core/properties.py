@@ -1,5 +1,7 @@
 from typing import Any, Set, Type, Tuple, TYPE_CHECKING, Optional, Dict, List, Union, Callable
 
+from systemrdl.udp import UDPDefinition
+
 from .. import component as comp
 from .. import node as m_node
 from .. import rdltypes
@@ -2018,33 +2020,39 @@ class Prop_bridge(PropertyRule):
 #===============================================================================
 
 class UserProperty(PropertyRule):
-    def __init__(
-            self, env: 'RDLEnvironment', name: str, bindable_to: 'Set[Type[comp.Component]]',
-            valid_types: Tuple[Any, ...], default_assignment: Any=None,
-            constr_componentwidth: bool=False
-        ) -> None:
+    def __init__(self, env: 'RDLEnvironment', definition_cls: Type[UDPDefinition]):
         super().__init__(env)
 
-        self.name = name
-        self.bindable_to = bindable_to
-        self.valid_types = valid_types
-        self.default_assignment = default_assignment
-        self.constr_componentwidth = constr_componentwidth
+        self.definition = definition_cls(env)
+
+    @property
+    def name(self) -> str:
+        return self.definition.name
+
+    @property
+    def bindable_to(self) -> 'Set[Type[comp.Component]]':
+        return self.definition.valid_components
+
+    @property
+    def valid_types(self) -> Tuple[Any, ...]:
+        if isinstance(self.definition.valid_type, rdltypes.references.RefType):
+            return self.definition.valid_type.expanded
+        else:
+            return (self.definition.valid_type,)
 
     def get_name(self) -> str:
         return self.name
-
 
     def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         # Property assignments with no rhs show up as None here
         # For user-defined properties, this implies the default value
         # (15.2.2)
         if value is None:
-            if self.default_assignment is None:
+            if self.definition.default_assignment is None:
                 # No default was set. Skip assignment entirely
                 return
 
-            value = self.default_assignment
+            value = self.definition.default_assignment
 
         super().assign_value(comp_def, value, src_ref)
 
@@ -2056,7 +2064,7 @@ class UserProperty(PropertyRule):
         return None
 
     def validate(self, node: m_node.Node, value: Any) -> None:
-        if self.constr_componentwidth:
+        if self.definition.constr_componentwidth:
             # 15.1.1-g: If constraint is set to componentwidth, the assigned
             #   value of the property shall not have a value of 1 for any bit
             #   beyond the width of the field.
@@ -2073,6 +2081,8 @@ class UserProperty(PropertyRule):
 
         self._validate_ref_is_present(node, value)
 
+        self.definition.validate(node, value)
+
 
 class BuiltinUserProperty(UserProperty):
     """
@@ -2080,28 +2090,10 @@ class BuiltinUserProperty(UserProperty):
     application.
     """
 
-    def __init__(
-            self, env: 'RDLEnvironment', name: str,
-            bindable_to: 'Set[Type[comp.Component]]', valid_types: Tuple[Any, ...],
-            default_assignment: Any = None,
-            constr_componentwidth: bool = False,
-            user_validate_func: Optional[Callable[[m_node.Node, Any], None]] = None,
-            soft: bool=True
-        ) -> None:
-        super().__init__(
-            env, name,
-            bindable_to, valid_types,
-            default_assignment, constr_componentwidth
-        )
+    def __init__(self, env: 'RDLEnvironment', definition_cls: Type[UDPDefinition], soft: bool=True):
+        super().__init__(env, definition_cls)
 
         self.is_soft = soft
-        self.user_validate_func = user_validate_func
-
-    def validate(self, node: m_node.Node, value: Any) -> None:
-        super().validate(node, value)
-
-        if self.user_validate_func:
-            self.user_validate_func(node, value)
 
 
 #===============================================================================
@@ -2568,14 +2560,24 @@ class PropertyRuleBook:
             existing_udp = self.user_properties[udp.name]
             if isinstance(existing_udp, BuiltinUserProperty) and existing_udp.is_soft:
                 # Existing UDP is soft. Check if incoming UDP is equivalent
-                if(
-                    existing_udp.bindable_to != udp.bindable_to
-                    or existing_udp.valid_types != udp.valid_types
-                    or existing_udp.default != udp.default
-                    or existing_udp.constr_componentwidth != udp.constr_componentwidth
-                ):
+                if(existing_udp.definition.valid_components != udp.definition.valid_components):
+                    self.env.msg.error(
+                        "The property definition for the feature extension '%s' uses a different 'components' definition from what this tool expects." % udp.name,
+                        src_ref
+                    )
+                if(existing_udp.definition.valid_type != udp.definition.valid_type):
+                    self.env.msg.error(
+                        "The property definition for the feature extension '%s' uses a different 'type' definition from what this tool expects." % udp.name,
+                        src_ref
+                    )
+                if(existing_udp.definition.default_assignment != udp.definition.default_assignment):
+                    self.env.msg.error(
+                        "The property definition for the feature extension '%s' uses a different 'default' definition from what this tool expects." % udp.name,
+                        src_ref
+                    )
+                if(existing_udp.definition.constr_componentwidth != udp.definition.constr_componentwidth):
                     self.env.msg.fatal(
-                        "The property definition for the feature extension '%s' differs from what this tool expects." % udp.name,
+                        "The property definition for the feature extension '%s' uses a different 'constraint' definition from what this tool expects." % udp.name,
                         src_ref
                     )
 

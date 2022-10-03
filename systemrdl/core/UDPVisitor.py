@@ -1,5 +1,7 @@
 from typing import List, Type, TYPE_CHECKING
 
+from systemrdl.udp import UDPDefinition
+
 from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
@@ -22,8 +24,8 @@ class UDPVisitor(BaseVisitor):
         super().__init__(compiler)
 
         self._constr_componentwidth = None # type: Optional[bool]
-        self._default = None # type: Any
-        self._valid_types = None # type: Optional[Tuple[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, comp.Component]], ...]]
+        self._default_assignment = None # type: Any
+        self._valid_type = None # type: Optional[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, comp.Component, rdltypes.references.RefType]]]
         self._bindable_to = None # type: Optional[Set[Type[comp.Component]]]
 
     def visitUdp_def(self, ctx: SystemRDLParser.Udp_defContext) -> None:
@@ -36,7 +38,7 @@ class UDPVisitor(BaseVisitor):
         # Check attribute rules
         # 15.1.1.b: A user-defined property definition shall include the
         #   component property specification.
-        if self._valid_types is None:
+        if self._valid_type is None:
             self.msg.fatal(
                 "User-defined property '%s' does not specify the 'type' attribute"
                 % udp_name,
@@ -53,23 +55,29 @@ class UDPVisitor(BaseVisitor):
 
         # 15.1 Table 30: Currently limited to componentwidth for type bit
         if self._constr_componentwidth:
-            if int not in self._valid_types:
+            if self._valid_type != int:
                 self.msg.fatal(
                     "Constraint 'componentwidth' is only valid for properties of type 'bit'",
                     src_ref_from_antlr(ctx.ID())
                 )
 
         # Evaluate default value, if any
-        if self._default is not None:
-            expr_ctx = self._default
+        if self._default_assignment is not None:
+            expr_ctx = self._default_assignment
 
             visitor = ExprVisitor(self.compiler)
             expr = visitor.visit(expr_ctx)
             expr_type = expr.predict_type()
 
+            # temporarily expand valid_type into an array
+            if isinstance(self._valid_type, rdltypes.references.RefType):
+                valid_types = self._valid_type.expanded
+            else:
+                valid_types = (self._valid_type,)
+
             # 15.1.1-e: The default value shall be assignment compatible with
             # the property type
-            for valid_type in self._valid_types:
+            for valid_type in valid_types:
                 if ast.is_castable(expr_type, valid_type):
                     if isinstance(expr, ast.ASTNode):
                         # Found a type-compatible match. (first match is best match)
@@ -87,24 +95,29 @@ class UDPVisitor(BaseVisitor):
 
             # OK to immediately evaluate the expression since there is no way that it
             # can depend on any post-elaborate references (parameters)
-            self._default = expr.get_value()
+            self._default_assignment = expr.get_value()
 
         constr_componentwidth = self._constr_componentwidth
         if constr_componentwidth is None:
             constr_componentwidth = False
 
+        # Create UDP definition class
+        class definition_cls(UDPDefinition):
+            pass
+        definition_cls.name = udp_name
+        definition_cls.valid_components = self._bindable_to
+        definition_cls.valid_type = self._valid_type
+        definition_cls.default_assignment = self._default_assignment
+        definition_cls.constr_componentwidth = constr_componentwidth
+
         # Create and register the new property rule
-        udp = properties.UserProperty(
-            self.compiler.env, udp_name,
-            self._bindable_to, self._valid_types, self._default,
-            constr_componentwidth
-        )
+        udp = properties.UserProperty(self.compiler.env, definition_cls)
         self.compiler.env.property_rules.register_udp(udp, src_ref_from_antlr(ctx.ID()))
 
 
     def visitUdp_type(self, ctx: SystemRDLParser.Udp_typeContext) -> None:
         # Determine which type this property can hold
-        if self._valid_types is not None:
+        if self._valid_type is not None:
             self.msg.fatal(
                 "More than one 'type' attribute specified for user-defined property",
                 src_ref_from_antlr(ctx.TYPE_kw())
@@ -113,17 +126,16 @@ class UDPVisitor(BaseVisitor):
         token = self.visit(ctx.udp_data_type())
 
         if token.type == SystemRDLParser.REF_kw:
-            valid_types = rdltypes.references.RefType.expanded
+            valid_type = rdltypes.references.RefType
         else:
-            valid_types = [self.datatype_from_token(token)]
+            valid_type = self.datatype_from_token(token)
 
         is_array = (ctx.array_type_suffix() is not None)
         if is_array:
-            # arrayify each entry in the list of valid types
-            for i, valid_type in enumerate(valid_types):
-                valid_types[i] = rdltypes.ArrayPlaceholder(valid_type) # type: ignore
+            # arrayify
+            valid_type = rdltypes.ArrayPlaceholder(valid_type) # type: ignore
 
-        self._valid_types = tuple(valid_types)
+        self._valid_type = valid_type
 
 
     _UDPUsage_Map = {
@@ -155,14 +167,14 @@ class UDPVisitor(BaseVisitor):
 
 
     def visitUdp_default(self, ctx: SystemRDLParser.Udp_defaultContext) -> None:
-        if self._default is not None:
+        if self._default_assignment is not None:
             self.msg.fatal(
                 "More than one 'default' attribute specified for user-defined property",
                 src_ref_from_antlr(ctx.DEFAULT_kw())
             )
 
         # defer expr evaluation until later
-        self._default = ctx.expr()
+        self._default_assignment = ctx.expr()
 
 
     def visitUdp_constraint(self, ctx: SystemRDLParser.Udp_constraintContext) -> None:

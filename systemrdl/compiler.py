@@ -122,28 +122,17 @@ class RDLCompiler:
             DeprecationWarning, stacklevel=2
         )
 
-        if valid_components is None:
-            valid_components = {
-                comp.Field,
-                comp.Reg,
-                comp.Regfile,
-                comp.Addrmap,
-                comp.Mem,
-                comp.Signal,
-                #TODO constraint,
-            }
+        # Build definition class based on args
+        class definition_cls(UDPDefinition):
+            pass
+        definition_cls.name = name
+        definition_cls.valid_type = valid_type
+        if valid_components is not None:
+            definition_cls.valid_components = valid_components
+        definition_cls.default_assignment = default
 
-        if name in self.env.property_rules.rdl_properties:
-            raise ValueError("name '%s' conflicts with existing built-in RDL property")
+        self.register_udp(definition_cls, soft=False)
 
-        udp = BuiltinUserProperty(
-            self.env, name,
-            valid_components, (valid_type,),
-            default,
-            soft=False
-        )
-
-        self.env.property_rules.user_properties[udp.name] = udp
 
     def register_udp(self, definition_cls: 'Type[UDPDefinition]', soft: bool=True) -> None:
         """
@@ -216,24 +205,13 @@ class RDLCompiler:
 
         .. versionadded:: 1.25
         """
-        udp_def = definition_cls(self.env)
-        if udp_def.name in self.env.property_rules.rdl_properties:
+        if definition_cls.name in self.env.property_rules.rdl_properties:
             raise ValueError("UDP definition's name '%s' conflicts with existing built-in RDL property")
-        if udp_def.name in self.env.property_rules.user_properties:
+        if definition_cls.name in self.env.property_rules.user_properties:
             raise ValueError("UDP '%s' has already been defined")
 
-        if isinstance(udp_def.valid_type, rdltypes.references.RefType):
-            valid_types = udp_def.valid_type.expanded
-        else:
-            valid_types = (udp_def.valid_type,)
-
-        # Copy definition into internal UDP object & register it
-        udp = BuiltinUserProperty(
-            self.env, udp_def.name,
-            udp_def.valid_components, valid_types,
-            udp_def.default_assignment, udp_def.constr_componentwidth,
-            udp_def.validate, soft
-        )
+        # Wrap definition with internal UDP object & register it
+        udp = BuiltinUserProperty(self.env, definition_cls, soft)
         self.env.property_rules.user_properties[udp.name] = udp
 
     def list_udps(self) -> List[str]:
