@@ -6,7 +6,7 @@ from .BaseVisitor import BaseVisitor
 from .ExprVisitor import ExprVisitor
 from .helpers import get_ID_text
 
-from . import properties
+from ..properties.user_defined import PureUserProperty
 from .. import ast
 
 from ..source_ref import src_ref_from_antlr
@@ -100,7 +100,7 @@ class UDPVisitor(BaseVisitor):
             constr_componentwidth = False
 
         # create UDP
-        udp = properties.PureUserProperty(
+        udp = PureUserProperty(
             self.compiler.env,
             udp_name,
             self._bindable_to,

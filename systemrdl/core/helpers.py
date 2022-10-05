@@ -1,8 +1,12 @@
 import textwrap
-from typing import Union
+from typing import Union, TYPE_CHECKING, Type, List
 
 from antlr4.Token import CommonToken
 from antlr4.tree.Tree import TerminalNodeImpl
+
+if TYPE_CHECKING:
+    from typing import TypeVar
+    T = TypeVar('T')
 
 def is_pow2(x: int) -> bool:
     return (x > 0) and ((x & (x - 1)) == 0)
@@ -48,3 +52,9 @@ def dedent_text(s: str) -> str:
             + textwrap.dedent("\n".join(linelist[1:]))
         )
     return s
+
+def get_all_subclasses(cls: Type['T']) -> List[Type['T']]:
+    return cls.__subclasses__() + [
+        g for s in cls.__subclasses__()
+        for g in get_all_subclasses(s)
+    ]

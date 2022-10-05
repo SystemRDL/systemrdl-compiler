@@ -8,7 +8,8 @@ from . import warnings # pylint: disable=reimported
 from .parser import sa_systemrdl
 from .core.ComponentVisitor import RootVisitor
 from .core.ExprVisitor import ExprVisitor
-from .core.properties import PropertyRuleBook, ExternalUserProperty, LegacyExternalUserProperty
+from .properties.rulebook import PropertyRuleBook
+from .properties.user_defined import ExternalUserProperty, LegacyExternalUserProperty
 from .core.namespace import NamespaceRegistry
 from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
 from .core.elaborate import StructuralPlacementListener, LateElabRevisitor

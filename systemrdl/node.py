@@ -374,7 +374,7 @@ class Node:
             If prop_name is invalid
         """
         # Importing here to avoid a circular import
-        from .core.properties import ExternalUserProperty # pylint: disable=import-outside-toplevel
+        from .properties.user_defined import ExternalUserProperty # pylint: disable=import-outside-toplevel
 
         ovr_default = False
         default = None
@@ -442,7 +442,7 @@ class Node:
         """
 
         # Importing here to avoid a circular import
-        from .core.properties import ExternalUserProperty # pylint: disable=import-outside-toplevel
+        from .properties.user_defined import ExternalUserProperty # pylint: disable=import-outside-toplevel
 
         if list_all:
             props = []
