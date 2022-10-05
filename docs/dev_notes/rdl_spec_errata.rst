@@ -746,3 +746,58 @@ are meaningless. A field defined as follows would be contradictory:
         negedge intr;
         sticky;
     } bad_field[8];
+
+
+
+Meaning of the User Defined Property ``default`` attribute
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+User Defined Property (UDP) declarations allow one to specify a ``default``
+attribute for a property. For example:
+
+.. code-block:: systemrdl
+    :emphasize-lines: 4
+
+    property some_bool_p {
+        type = boolean;
+        component = field;
+        default = false;
+    };
+
+Often, users will misinterpret this as the default value that gets bound to any
+component which was not explicitly assigned the property. However, careful
+reading of the SystemRDL spec will illustrate that this misleading attribute
+should actually be interpreted as the *implied assignment value* to be used if
+no value is specified in a property assignment statement.
+
+Specifically, using the ``some_bool_p`` UDP declared above, its usage would have
+the following effect:
+
+.. code-block:: systemrdl
+
+    field {
+        // some_bool_p is not assigned. It does not have a defined value for this component
+    } a;
+    // a->some_bool_p == undefined
+
+    field {
+        // Explicitly assigning true
+        some_bool_p = true;
+    } b;
+    // b->some_bool_p == true
+
+    field {
+        // Since no value was specified, The "default" assignment value of 'false' is used.
+        some_bool_p;
+    } c;
+    // c->some_bool_p == false
+
+
+For users that truly want to make a *default assignment* of a known value to all
+components, be reminded that the following assignment mechanism exists:
+
+.. code-block:: systemrdl
+    // Assigns 'false' to all compatible components unless overridden
+    default some_bool_p = false;
+
+    field {} a;
+    // a->some_bool_p = false
