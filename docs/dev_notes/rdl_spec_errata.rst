@@ -796,6 +796,7 @@ For users that truly want to make a *default assignment* of a known value to all
 components, be reminded that the following assignment mechanism exists:
 
 .. code-block:: systemrdl
+
     // Assigns 'false' to all compatible components unless overridden
     default some_bool_p = false;
 
