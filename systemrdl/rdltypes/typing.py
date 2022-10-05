@@ -4,7 +4,7 @@ import sys
 if TYPE_CHECKING:
     from .builtin_enums import BuiltinEnum
     from .user_enum import UserEnum
-    from .references import PropertyReference
+    from .references import PropertyReference, RefType
     from .user_struct import UserStruct
     from .array import ArrayPlaceholder
     from ..node import Node
@@ -25,7 +25,7 @@ else:
 PreElabRDLValue = Union[
     int, bool, str,
     'BuiltinEnum', 'UserEnum', 'UserStruct',
-    'PropertyReference', 'comp.Component'
+    'PropertyReference', 'comp.Component', 'RefType'
 ]
 
 if sys.version_info >= (3,5,4):

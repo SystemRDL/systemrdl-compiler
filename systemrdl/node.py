@@ -374,7 +374,7 @@ class Node:
             If prop_name is invalid
         """
         # Importing here to avoid a circular import
-        from .core.properties import BuiltinUserProperty # pylint: disable=import-outside-toplevel
+        from .core.properties import ExternalUserProperty # pylint: disable=import-outside-toplevel
 
         ovr_default = False
         default = None
@@ -407,7 +407,7 @@ class Node:
         # Otherwise, return its default value based on the property's rules
         rule = self.env.property_rules.lookup_property(prop_name, include_soft_udp=True)
 
-        if isinstance(rule, BuiltinUserProperty) and rule.is_soft:
+        if isinstance(rule, ExternalUserProperty) and rule.is_soft:
             # has not been declared by the user yet. Gracefully return None
             return None
 
@@ -442,7 +442,7 @@ class Node:
         """
 
         # Importing here to avoid a circular import
-        from .core.properties import BuiltinUserProperty # pylint: disable=import-outside-toplevel
+        from .core.properties import ExternalUserProperty # pylint: disable=import-outside-toplevel
 
         if list_all:
             props = []
@@ -452,7 +452,7 @@ class Node:
                         props.append(k)
             if include_udp:
                 for k, v in self.env.property_rules.user_properties.items():
-                    if isinstance(v, BuiltinUserProperty) and v.is_soft:
+                    if isinstance(v, ExternalUserProperty) and v.is_soft:
                         continue
                     if type(self.inst) in v.bindable_to:
                         props.append(k)

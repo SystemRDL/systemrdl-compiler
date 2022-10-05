@@ -1,7 +1,5 @@
 from typing import List, Type, TYPE_CHECKING
 
-from systemrdl.udp import UDPDefinition
-
 from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
@@ -73,7 +71,7 @@ class UDPVisitor(BaseVisitor):
             if issubclass(self._valid_type, rdltypes.references.RefType):
                 valid_types = self._valid_type.expanded
             else:
-                valid_types = (self._valid_type,)
+                valid_types = (self._valid_type,) # type: ignore
 
             # 15.1.1-e: The default value shall be assignment compatible with
             # the property type
@@ -101,17 +99,15 @@ class UDPVisitor(BaseVisitor):
         if constr_componentwidth is None:
             constr_componentwidth = False
 
-        # Create UDP definition class
-        class definition_cls(UDPDefinition):
-            pass
-        definition_cls.name = udp_name
-        definition_cls.valid_components = self._bindable_to
-        definition_cls.valid_type = self._valid_type
-        definition_cls.default_assignment = self._default_assignment
-        definition_cls.constr_componentwidth = constr_componentwidth
-
-        # Create and register the new property rule
-        udp = properties.UserProperty(self.compiler.env, definition_cls)
+        # create UDP
+        udp = properties.PureUserProperty(
+            self.compiler.env,
+            udp_name,
+            self._bindable_to,
+            self._valid_type,
+            self._default_assignment,
+            constr_componentwidth
+        )
         self.compiler.env.property_rules.register_udp(udp, src_ref_from_antlr(ctx.ID()))
 
 
@@ -124,11 +120,7 @@ class UDPVisitor(BaseVisitor):
             )
 
         token = self.visit(ctx.udp_data_type())
-
-        if token.type == SystemRDLParser.REF_kw:
-            valid_type = rdltypes.references.RefType
-        else:
-            valid_type = self.datatype_from_token(token)
+        valid_type = self.datatype_from_token(token)
 
         is_array = (ctx.array_type_suffix() is not None)
         if is_array:

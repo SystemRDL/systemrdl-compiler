@@ -2,14 +2,13 @@ from typing import Set, Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING
 import warnings as py_warnings
 
 from antlr4 import InputStream
-from systemrdl import rdltypes
 
 from . import messages
-from . import warnings
+from . import warnings # pylint: disable=reimported
 from .parser import sa_systemrdl
 from .core.ComponentVisitor import RootVisitor
 from .core.ExprVisitor import ExprVisitor
-from .core.properties import PropertyRuleBook, BuiltinUserProperty
+from .core.properties import PropertyRuleBook, ExternalUserProperty, LegacyExternalUserProperty
 from .core.namespace import NamespaceRegistry
 from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
 from .core.elaborate import StructuralPlacementListener, LateElabRevisitor
@@ -122,17 +121,20 @@ class RDLCompiler:
             DeprecationWarning, stacklevel=2
         )
 
-        # Build definition class based on args
-        class definition_cls(UDPDefinition):
-            pass
-        definition_cls.name = name
-        definition_cls.valid_type = valid_type
-        if valid_components is not None:
-            definition_cls.valid_components = valid_components
-        definition_cls.default_assignment = default
+        if name in self.env.property_rules.rdl_properties:
+            raise ValueError("UDP definition's name '%s' conflicts with existing built-in RDL property")
+        if name in self.env.property_rules.user_properties:
+            raise ValueError("UDP '%s' has already been defined")
 
-        self.register_udp(definition_cls, soft=False)
-
+        udp = LegacyExternalUserProperty(
+            self.env,
+            name,
+            valid_components,
+            valid_type,
+            default_assignment=default,
+            constr_componentwidth=False
+        )
+        self.env.property_rules.user_properties[udp.name] = udp
 
     def register_udp(self, definition_cls: 'Type[UDPDefinition]', soft: bool=True) -> None:
         """
@@ -211,7 +213,7 @@ class RDLCompiler:
             raise ValueError("UDP '%s' has already been defined")
 
         # Wrap definition with internal UDP object & register it
-        udp = BuiltinUserProperty(self.env, definition_cls, soft)
+        udp = ExternalUserProperty(self.env, definition_cls, soft)
         self.env.property_rules.user_properties[udp.name] = udp
 
     def list_udps(self) -> List[str]:
@@ -223,7 +225,7 @@ class RDLCompiler:
         """
         udps = []
         for udp_name, udp in self.env.property_rules.user_properties.items():
-            if isinstance(udp, BuiltinUserProperty) and udp.is_soft:
+            if isinstance(udp, ExternalUserProperty) and udp.is_soft:
                 continue
             udps.append(udp_name)
         return udps

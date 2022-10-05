@@ -1,6 +1,5 @@
-from typing import Any, Set, Type, Tuple, TYPE_CHECKING, Optional, Dict, List, Union, Callable
+from typing import Any, Set, Type, Tuple, TYPE_CHECKING, Optional, Dict, List, Union
 
-from systemrdl.udp import UDPDefinition
 
 from .. import component as comp
 from .. import node as m_node
@@ -12,7 +11,7 @@ if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
     from typing import TypeVar
-    from ..messages import MessageHandler
+    from ..udp import UDPDefinition
 
     T = TypeVar('T')
 
@@ -107,7 +106,6 @@ class PropertyRule:
                         value = AssignmentCast(self.env, src_ref, value, valid_type)
                     break
             else:
-                print(assign_type, self.valid_types)
                 self.env.msg.fatal(
                     "Incompatible assignment to property '%s'" % self.get_name(),
                     src_ref
@@ -2021,25 +2019,35 @@ class Prop_bridge(PropertyRule):
 #===============================================================================
 
 class UserProperty(PropertyRule):
-    def __init__(self, env: 'RDLEnvironment', definition_cls: Type[UDPDefinition]):
-        super().__init__(env)
-
-        self.definition = definition_cls(env)
-
+    """
+    Base-class for user-defined properties
+    """
     @property
     def name(self) -> str:
-        return self.definition.name
+        raise NotImplementedError
 
     @property
-    def bindable_to(self) -> 'Set[Type[comp.Component]]':
-        return self.definition.valid_components
+    def bindable_to(self) -> 'Set[Type[comp.Component]]': # type: ignore
+        raise NotImplementedError
 
     @property
-    def valid_types(self) -> Tuple[Any, ...]:
-        if issubclass(self.definition.valid_type, rdltypes.references.RefType):
-            return self.definition.valid_type.expanded
+    def valid_type(self) -> Any:
+        raise NotImplementedError
+
+    @property
+    def default_assignment(self) -> Any:
+        raise NotImplementedError
+
+    @property
+    def constr_componentwidth(self) -> bool:
+        raise NotImplementedError
+
+    @property
+    def valid_types(self) -> Tuple[Any, ...]: # type: ignore
+        if issubclass(self.valid_type, rdltypes.references.RefType):
+            return self.valid_type.expanded
         else:
-            return (self.definition.valid_type,)
+            return (self.valid_type,)
 
     def get_name(self) -> str:
         return self.name
@@ -2049,19 +2057,21 @@ class UserProperty(PropertyRule):
         # For user-defined properties, this implies the default value
         # (15.2.2)
         if value is None:
-            if self.definition.default_assignment is None:
+            if self.default_assignment is None:
                 # No default was set. Skip assignment entirely
                 return
 
-            value = self.definition.default_assignment
+            value = self.default_assignment
 
         super().assign_value(comp_def, value, src_ref)
 
     def get_default(self, node: m_node.Node) -> Any:
-        return self.definition.get_unassigned_default(node)
+        # If a user-defined property is not explicitly assigned, then it
+        # does not get bound with its default value
+        return None
 
     def validate(self, node: m_node.Node, value: Any) -> None:
-        if self.definition.constr_componentwidth:
+        if self.constr_componentwidth:
             # 15.1.1-g: If constraint is set to componentwidth, the assigned
             #   value of the property shall not have a value of 1 for any bit
             #   beyond the width of the field.
@@ -2078,19 +2088,88 @@ class UserProperty(PropertyRule):
 
         self._validate_ref_is_present(node, value)
 
-        self.definition.validate(node, value)
 
-
-class BuiltinUserProperty(UserProperty):
+class PureUserProperty(UserProperty):
     """
-    Specialization of UserProperty for UDPs that are pre-defined by the
-    application.
+    UDP that was defined purely within SystemRDL source
     """
 
-    def __init__(self, env: 'RDLEnvironment', definition_cls: Type[UDPDefinition], soft: bool=True):
-        super().__init__(env, definition_cls)
+    def __init__(
+        self, env: 'RDLEnvironment',
+        name: str,
+        valid_components: 'Set[Type[comp.Component]]',
+        valid_type: Any,
+        default_assignment: Any,
+        constr_componentwidth: bool
+    ):
+        super().__init__(env)
 
+        self._name = name
+        self._valid_components = valid_components
+        self._valid_type = valid_type
+        self._default_assignment = default_assignment
+        self._constr_componentwidth = constr_componentwidth
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def bindable_to(self) -> 'Set[Type[comp.Component]]': # type: ignore
+        return self._valid_components
+
+    @property
+    def valid_type(self) -> Any:
+        return self._valid_type
+
+    @property
+    def default_assignment(self) -> Any:
+        return self._default_assignment
+
+    @property
+    def constr_componentwidth(self) -> bool:
+        return self._constr_componentwidth
+
+class LegacyExternalUserProperty(PureUserProperty):
+    pass
+
+class ExternalUserProperty(UserProperty):
+    """
+    UDP that was defined via rdlc.register_udp().
+    This variant fetches its definition contents from an external class
+    """
+    def __init__(self, env: 'RDLEnvironment', definition_cls: 'Type[UDPDefinition]', soft: bool=True):
+        super().__init__(env)
+
+        self.definition = definition_cls(env)
         self.is_soft = soft
+
+    @property
+    def name(self) -> str:
+        return self.definition.name
+
+    @property
+    def bindable_to(self) -> 'Set[Type[comp.Component]]': # type: ignore
+        return self.definition.valid_components
+
+    @property
+    def valid_type(self) -> Any:
+        return self.definition.valid_type
+
+    @property
+    def default_assignment(self) -> Any:
+        return self.definition.default_assignment
+
+    @property
+    def constr_componentwidth(self) -> bool:
+        return self.definition.constr_componentwidth
+
+    def get_default(self, node: m_node.Node) -> Any:
+        return self.definition.get_unassigned_default(node)
+
+    def validate(self, node: m_node.Node, value: Any) -> None:
+        super().validate(node, value)
+        self.definition.validate(node, value)
 
 
 #===============================================================================
@@ -2540,7 +2619,7 @@ class PropertyRuleBook:
             return self.rdl_properties[prop_name]
         elif prop_name in self.user_properties:
             udp = self.user_properties[prop_name]
-            if isinstance(udp, BuiltinUserProperty) and udp.is_soft and not include_soft_udp:
+            if isinstance(udp, ExternalUserProperty) and udp.is_soft and not include_soft_udp:
                 # Soft UDPs do not officially exist until they are explicitly defined
                 return None
             return udp
@@ -2555,24 +2634,24 @@ class PropertyRuleBook:
         if udp.name in self.user_properties:
 
             existing_udp = self.user_properties[udp.name]
-            if isinstance(existing_udp, BuiltinUserProperty) and existing_udp.is_soft:
+            if isinstance(existing_udp, ExternalUserProperty) and existing_udp.is_soft:
                 # Existing UDP is soft. Check if incoming UDP is equivalent
-                if(existing_udp.definition.valid_components != udp.definition.valid_components):
+                if existing_udp.bindable_to != udp.bindable_to:
                     self.env.msg.error(
                         "The property definition for the feature extension '%s' uses a different 'components' definition from what this tool expects." % udp.name,
                         src_ref
                     )
-                if(existing_udp.definition.valid_type != udp.definition.valid_type):
+                if existing_udp.valid_type != udp.valid_type:
                     self.env.msg.error(
                         "The property definition for the feature extension '%s' uses a different 'type' definition from what this tool expects." % udp.name,
                         src_ref
                     )
-                if(existing_udp.definition.default_assignment != udp.definition.default_assignment):
+                if existing_udp.default_assignment != udp.default_assignment:
                     self.env.msg.error(
                         "The property definition for the feature extension '%s' uses a different 'default' definition from what this tool expects." % udp.name,
                         src_ref
                     )
-                if(existing_udp.definition.constr_componentwidth != udp.definition.constr_componentwidth):
+                if existing_udp.constr_componentwidth != udp.constr_componentwidth:
                     self.env.msg.fatal(
                         "The property definition for the feature extension '%s' uses a different 'constraint' definition from what this tool expects." % udp.name,
                         src_ref

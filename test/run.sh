@@ -43,7 +43,7 @@ $this_dir/../examples/export_json.py $this_dir/../examples/tiny.rdl
 mv $this_dir/out.json $this_dir/../examples/tiny.json
 
 # Run lint
-pylint --rcfile $this_dir/pylint.rc systemrdl
+pylint --rcfile $this_dir/pylint.rc -j 0 systemrdl
 
 # Run static type checking
 mypy $this_dir/../systemrdl

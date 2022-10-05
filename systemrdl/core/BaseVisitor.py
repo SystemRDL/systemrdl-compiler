@@ -32,10 +32,11 @@ class BaseVisitor(SystemRDLVisitor):
         SystemRDLParser.ONREADTYPE_kw       : rdltypes.OnReadType,
         SystemRDLParser.ONWRITETYPE_kw      : rdltypes.OnWriteType,
         SystemRDLParser.STRING_kw           : str,
-        SystemRDLParser.BOOLEAN_kw          : bool
+        SystemRDLParser.BOOLEAN_kw          : bool,
+        SystemRDLParser.REF_kw              : rdltypes.references.RefType,
     }
     def datatype_from_token(self, token):
-        # type: ('CommonToken') -> Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct]]
+        # type: ('CommonToken') -> Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, rdltypes.references.RefType]]
         """
         Given a SystemRDLParser token, lookup the type
         This only includes types under the "data_type" grammar rule

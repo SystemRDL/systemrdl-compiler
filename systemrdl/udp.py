@@ -71,6 +71,7 @@ class UDPDefinition:
         """
 
     def get_unassigned_default(self, node: 'Node') -> Any:
+        # pylint: disable=unused-argument
         """
         According to the SystemRDL spec, if a user-defined property is not explicitly
         assigned, then it does not get bound with any implied default value.
