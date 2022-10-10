@@ -69,9 +69,10 @@ Links
 
 .. toctree::
    :hidden:
-   :caption: Class Reference
+   :caption: API Reference
 
    api/compiler
+   api/udp
    api/node
    api/walker
    api/component

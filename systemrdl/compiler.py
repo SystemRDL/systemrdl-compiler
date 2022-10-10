@@ -141,69 +141,12 @@ class RDLCompiler:
         """
         Pre-register a User Defined Property into the compiler.
 
-        UDP semantics can be pre-loaded into the compiler namespace as a way to formalize
-        extensions to SystemRDL that your tool supports. Registration of a UDP is done as follows:
-
-        .. code-block:: python
-
-            from systemrdl.udp import UDPDefinition
-            from systemrdl.components import Field, Signal
-
-            # 1. Describe your UDP
-            class MyUDPDefinition(UDPDefinition):
-                name = "my_udp"
-                valid_components = {Field, Signal}
-                valid_type = int
-
-                # Optional callback that validates values assigned to 'my_udp'
-                def validate(self, node, value):
-                    if(value == 42):
-                        self.msg.error(
-                            "Value of 'my_udp' cannot be 42! That number is reserved for philosophical reasons",
-                            self.get_src_ref(node)
-                        )
-
-            # 2. Register it with your RDLCompiler instance
-            rdlc.register_udp(MyUDPDefinition)
-
-        The above definition is equivalent to the following SystemRDL:
-
-        .. code-block:: systemrdl
-
-            property my_udp {
-                type = longint unsigned;
-                component = field | signal;
-            };
-
-        By default, UDPs are registered as "soft" definitions. Soft UDPs behave as follows:
-
-            * The UDP is not available to be used until it is explicitly defined in the SystemRDL source.
-            * Upon definition, the user's declaration shall be equivalent to the pre-loaded definition.
-            * If the user's RDL source never defines the UDP, querying it via ``node.get_property()``
-              will gracefully return ``None`` instead of a ``LookupError`` exception.
-            * Once defined by the user in RDL source, the UDP is no longer soft.
-
-        The full details of the ``UDPDefinition`` class is as follows:
-
-        .. autoclass:: systemrdl.udp.UDPDefinition
-            :members:
-
         Parameters
         ----------
         definition_cls: :class:`systemrdl.udp.UDPDefinition`
             Reference to the container class that defines your new UDP.
         soft: bool
             Override to False to register the UDP as a hard definition.
-
-            .. important::
-                Registering hard UDPs not recommended since it encourages users to write
-                SystemRDL that uses UDP extensions that are not formally
-                declared in the RDL source. This bends the rules of the SystemRDL
-                specification and hurts the cross-vendor compatibility of your SystemRDL.
-
-                Using soft UDPs has the benefit of enforcing that the user
-                defines and uses UDPs correctly whilst not violating the official
-                SystemRDL language specification.
 
 
         .. versionadded:: 1.25

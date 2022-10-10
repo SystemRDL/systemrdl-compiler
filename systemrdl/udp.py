@@ -7,14 +7,15 @@ if TYPE_CHECKING:
     from .compiler import RDLEnvironment
     from .node import Node
     from .messages import MessageHandler
+    from .source_ref import SourceRefBase
 
 class UDPDefinition:
     """
     UDP definition descriptor class.
     """
 
-    #: UDP definition name
-    name = ""
+    #: User-defined property name
+    name = "" # type: str
 
     #: Set of :class:`~systemrdl.component.Component` types the UDP can be bound to.
     #: By default, the UDP can be bound to all components.
@@ -59,7 +60,19 @@ class UDPDefinition:
 
     @property
     def msg(self) -> 'MessageHandler':
+        """
+        Reference to the compiler's message handler.
+        Use this to emit error messages from within :meth:`validate()`.
+        """
         return self.env.msg
+
+    def get_src_ref(self, node: 'Node') -> 'SourceRefBase':
+        """
+        Get the src_ref object for this property assignment.
+
+        This function is useful when emitting error messages from within :meth:`validate()`.
+        """
+        return node.inst.property_src_ref.get(self.name, node.inst.inst_src_ref)
 
     def validate(self, node: 'Node', value: Any) -> None:
         """
@@ -68,6 +81,13 @@ class UDPDefinition:
         This function is called after design elaboration on every assignment
         of the user defined property. This provides a mechanism to further
         validate the value assigend to your user-defined property.
+
+        If the user-assigned value fails your validation test, be sure to flag
+        it as an error as follows:
+
+        .. code-block:: python
+
+            self.msg.error("My error message", self.get_src_ref(node))
         """
 
     def get_unassigned_default(self, node: 'Node') -> Any:
@@ -78,8 +98,8 @@ class UDPDefinition:
 
         For convenience to developers, this callback allows you to specify an implied
         default value if the UDP was never explicitly assigned.
-        This only affects the behavior of Node.get_property() and does not
-        affect the semantics of SystemRDL during compilaton.
+        This only affects the behavior of :meth:`Node.get_property()` and does not
+        change the semantics of how SystemRDL is interpreted during compilaton.
         """
 
         # If a user-defined property is not explicitly assigned, then it
