@@ -325,7 +325,6 @@ class ValidateListener(walker.RDLListener):
 
         this_f_hw = node.get_property('hw')
         this_f_sw = node.get_property('sw')
-        parent_accesswidth = node.parent.get_property('accesswidth')
         parent_regwidth = node.parent.get_property('regwidth')
 
         # hw property values of w1 or rw1 don't make sense
@@ -399,23 +398,6 @@ class ValidateListener(walker.RDLListener):
             self.msg.error(
                 "High bit (%d) of field '%s' exceeds MSb of parent register"
                 % (node.high, node.inst_name),
-                node.inst.inst_src_ref
-            )
-
-        # 10.6.1-f: Any field that is software-writable or clear on read shall
-        # not span multiple software accessible sub-words (e.g., a 64-bit
-        # register with a 32-bit access width may not have a writable field with
-        # bits in both the upper and lower half of the register).
-        #
-        # Interpreting this further - this rule applies any time a field is
-        # software-modifiable by any means, including rclr, rset, ruser
-        if ((parent_accesswidth < parent_regwidth)
-                and (node.lsb // parent_accesswidth) != (node.msb // parent_accesswidth)
-                and (node.is_sw_writable or node.get_property('onread') is not None)):
-            # Field spans across sub-words
-            self.msg.error(
-                "Software-modifiable field '%s' shall not span multiple software-accessible subwords."
-                % node.inst_name,
                 node.inst.inst_src_ref
             )
 
