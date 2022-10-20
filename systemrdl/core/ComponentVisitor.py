@@ -969,7 +969,7 @@ class FieldComponentVisitor(ComponentVisitor):
         # (and i assume this implies they can be instantiated, otherwise that would make no sense)
         if not isinstance(comp_def, comp.Signal):
             self.msg.fatal(
-                "Instantiation of '%s' components not allowed inside a reg definition"
+                "Instantiation of '%s' components not allowed inside a field definition"
                 % type(comp_def).__name__.lower(),
                 src_ref_from_antlr(ctx.component_inst(0).ID())
             )
@@ -982,7 +982,7 @@ class FieldComponentVisitor(ComponentVisitor):
         # 9.1: ... however, signal, enumeration (enum), and constraint components can be defined within a field component
         if comp_type is not comp.Signal:
             self.msg.fatal(
-                "Definitions of '%s' components not allowed inside a reg definition"
+                "Definitions of '%s' components not allowed inside a field definition"
                 % comp_type.__name__.lower(),
                 src_ref_from_antlr(type_token)
             )
@@ -1060,7 +1060,7 @@ class AddrmapComponentVisitor(ComponentVisitor):
         #   registers, register files, memories, address maps, or signals.
         if not isinstance(comp_def, (comp.Reg, comp.Regfile, comp.Mem, comp.Addrmap, comp.Signal)):
             self.msg.fatal(
-                "Instantiation of '%s' components not allowed inside a addrmap definition"
+                "Instantiation of '%s' components not allowed inside an addrmap definition"
                 % type(comp_def).__name__.lower(),
                 src_ref_from_antlr(ctx.component_inst(0).ID())
             )
