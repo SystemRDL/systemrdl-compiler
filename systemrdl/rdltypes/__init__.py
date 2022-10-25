@@ -46,3 +46,11 @@ def get_rdltype(value: Any) -> 'PreElabRDLType':
         return ArrayPlaceholder(array_el_type)
     else:
         return None
+
+
+class NoValue:
+    """
+    Non-value token used for UDPs that were bound to a component, but not
+    actually assigned a value.
+    (15.2.1-c)
+    """

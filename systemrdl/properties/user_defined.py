@@ -52,7 +52,15 @@ class UserProperty(PropertyRule):
         # (15.2.2)
         if value is None:
             if self.default_assignment is None:
-                # No default was set. Skip assignment entirely
+                # No default was set, so value is undefined.
+                # As per 15.2.1-c. UDP is still "bound" to the component, so give
+                # it the NoValue class as a value
+
+                # Circumvent the usual assignment function to avoid some pesky validation
+                comp_def.properties[self.get_name()] = rdltypes.NoValue
+                if src_ref is not None:
+                    comp_def.property_src_ref[self.get_name()] = src_ref
+
                 return
 
             value = self.default_assignment

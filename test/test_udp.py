@@ -4,6 +4,7 @@ from systemrdl import RDLCompiler
 from systemrdl.messages import RDLCompileError
 from systemrdl import component as comp
 from systemrdl.udp import UDPDefinition
+from systemrdl.rdltypes import NoValue
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -22,7 +23,7 @@ class TestUDP(RDLSourceTestCase):
 
         with self.subTest("foo"):
             self.assertIs(foo.get_property('some_ref_p'), None)
-            self.assertIs(foo.get_property('a_map_p'), None)
+            self.assertIs(foo.get_property('a_map_p'), NoValue)
 
         with self.subTest("bar"):
             self.assertIs(bar.get_property('some_ref_p'), None)

@@ -28,6 +28,9 @@ def normalize(value: Any, owner_node: Optional[node.Node]=None) -> str:
         return normalize_property_ref(value, owner_node)
     elif rdltypes.is_user_enum(value):
         return normalize_user_enum_type(value)
+    elif value is rdltypes.NoValue:
+        # this only happens if a UDP is assigned with no value
+        return "NaN"
     else:
         # Should never get here
         raise RuntimeError(value)
