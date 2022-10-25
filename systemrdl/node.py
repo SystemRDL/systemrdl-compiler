@@ -373,9 +373,6 @@ class Node:
         LookupError
             If prop_name is invalid
         """
-        # Importing here to avoid a circular import
-        from .properties.user_defined import ExternalUserProperty # pylint: disable=import-outside-toplevel
-
         ovr_default = False
         default = None
         if 'default' in kwargs:
@@ -406,10 +403,6 @@ class Node:
 
         # Otherwise, return its default value based on the property's rules
         rule = self.env.property_rules.lookup_property(prop_name, include_soft_udp=True)
-
-        if isinstance(rule, ExternalUserProperty) and rule.is_soft:
-            # has not been declared by the user yet. Gracefully return None
-            return None
 
         # Is it even a valid property or allowed for this component type?
         if rule is None:

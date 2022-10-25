@@ -63,9 +63,10 @@ UDPs as "soft" definitions. Soft UDP definitions behave as follows:
   compiler will flag an error.
   This ensures that the user's declaration matches the expectations of your tool.
 * If the user's RDL source never defines the UDP, querying it via
-  ``node.get_property()`` will gracefully return ``None`` instead of a
-  ``LookupError`` exception. This simplifies how tool developers interact with
-  users' RDL code.
+  ``node.get_property()`` will gracefully return its unassigned default (as
+  defined by :meth:`~systemrdl.udp.UDPDefinition.get_unassigned_default()`)
+  instead of a ``LookupError`` exception. This simplifies how tool developers
+  interact with users' RDL code.
 * Once defined by the user in RDL source, the UDP is no longer considered
   'soft', and can be assigned normally.
 
