@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Tuple, Union
 
 from .helpers import is_pow2, roundup_pow2, roundup_to
 from .. import walker
@@ -79,11 +79,10 @@ class ValidateListener(walker.RDLListener):
         self.addr_check_buffer_stack.append([])
 
         # Check for collision with previous addressable sibling
-        new_addr_check_buffer = []
         for prev_addressable in addr_check_buffer:
-            if (prev_addressable.raw_address_offset + prev_addressable.total_size) > node.raw_address_offset:
-                # Overlaps!
-
+            might_overlap = (prev_addressable.raw_address_offset + prev_addressable.total_size) > node.raw_address_offset
+            overlap = might_overlap and self.address_overlap(node, prev_addressable)
+            if overlap:
                 # Only allowable overlaps are as follows:
                 #   10.1-h: Registers shall not overlap, unless one contains only
                 #   read-only fields and the other contains only write-only or
@@ -103,15 +102,11 @@ class ValidateListener(walker.RDLListener):
                     self.msg.error(
                         "Instance '%s' at offset +0x%X:0x%X overlaps with '%s' at offset +0x%X:0x%X"
                         % (
-                            node.inst_name, node.raw_address_offset, node.raw_address_offset + node.total_size - 1,
-                            prev_addressable.inst_name, prev_addressable.raw_address_offset, prev_addressable.raw_address_offset + prev_addressable.total_size - 1,
+                            node.inst_name, *overlap[0],
+                            prev_addressable.inst_name, *overlap[1],
                         ),
                         node.inst.inst_src_ref
                     )
-
-                # Keep it in the list since it could collide again
-                new_addr_check_buffer.append(prev_addressable)
-        self.addr_check_buffer_stack[-2] = new_addr_check_buffer
 
         if node.is_array:
             assert node.array_stride is not None
@@ -144,6 +139,19 @@ class ValidateListener(walker.RDLListener):
                     node.inst.inst_src_ref
                 )
 
+    class _AddrRange(tuple):
+        def __new__(cls, node: AddressableNode):
+            return super().__new__(cls, (node.address_offset, node.address_offset + node.size - 1))
+
+    def address_overlap(self, node_a: AddressableNode, node_b: AddressableNode) -> Union[None, Tuple[_AddrRange, _AddrRange]]:
+        """Return the address range overlap between two nodes, or None."""
+        for unrolled_a in node_a.unrolled():
+            range_a = self._AddrRange(unrolled_a)
+            for unrolled_b in node_b.unrolled():
+                range_b = self._AddrRange(unrolled_b)
+                if range_a[1] >= range_b[0] and range_b[1] >= range_a[0]:
+                    return (range_a, range_b)
+        return None
 
     def enter_Addrmap(self, node: AddrmapNode) -> None:
         if node.get_property('bridge'):
