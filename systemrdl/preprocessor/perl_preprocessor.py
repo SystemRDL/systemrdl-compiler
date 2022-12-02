@@ -153,7 +153,7 @@ class PerlPreprocessor:
             )
 
         # Capture include contents
-        inc_regex = re.compile(r'`include\s+("([^\r\n]+)"|<([^\r\n]+)>)')
+        inc_regex = re.compile(r'`include\s+("([^\r\n]+)"|<([^\r\n]+)>|([^\r\n]+))')
         m_inc = inc_regex.match(self.text, start)
         if m_inc is None:
             self.env.msg.fatal(
