@@ -239,6 +239,11 @@ class StructuralPlacementListener(walker.RDLListener):
         # ... I assume that means if there are vregs inside a mem, then
         # memwidth inherits the max virtual reg regwidth?
         if 'memwidth' not in node.inst.properties:
+            if self.max_vreg_width == 0:
+                self.msg.error(
+                    "Width of memory component is unknown. Either assign 'memwidth', or instantiate a virtual register to define the memory's width.",
+                    node.inst.def_src_ref
+                )
             node.inst.properties['memwidth'] = self.max_vreg_width
 
         self.resolve_addresses(node)
