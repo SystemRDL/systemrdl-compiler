@@ -49,16 +49,19 @@ class MyImporter(RDLImporter):
         subsub = self.instantiate_regfile(my_rf, "subsub", 0)
         self.add_child(sub, subsub)
 
-
+        mem = self.create_mem_definition()
+        self.assign_property(mem, "memwidth", 32)
         self.add_child(
             top,
-            self.instantiate_mem(self.create_mem_definition(), "my_mem", 0x400, [2], 0x100)
+            self.instantiate_mem(mem, "my_mem", 0x400, [2], 0x100)
         )
 
+        mem2 = self.create_mem_definition("my_mem_t")
+        self.assign_property(mem2, "memwidth", 32)
         self.add_child(
             top,
             self.instantiate_mem(
-                self.create_mem_definition("my_mem_t"),
+                mem2,
                 "my_mem2", 0x800, [2], 0x100
             )
         )
