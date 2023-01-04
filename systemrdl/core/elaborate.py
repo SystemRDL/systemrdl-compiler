@@ -452,6 +452,13 @@ class StructuralPlacementListener(walker.RDLListener):
 
             if child_node.inst.addr_offset is not None:
                 # Address is already known. Do not need to infer
+                # Still, check that it honors the requested alignment
+                if (child_node.raw_address_offset % prop_alignment) != 0:
+                    self.msg.error(
+                        "Address offset +0x%x of component '%s' must be aligned on a 0x%x byte boundary"
+                        % (child_node.raw_address_offset, child_node.inst_name, prop_alignment),
+                        child_node.inst.inst_src_ref
+                    )
                 prev_node = child_node
                 continue
 
