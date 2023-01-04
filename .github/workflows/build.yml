@@ -134,14 +134,37 @@ jobs:
       - lint
       - mypy
 
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }} ${{ matrix.name_suffix }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os:
-          - ubuntu-latest
           - windows-latest
           - macos-latest
+        include:
+          # Only build CPython 3.x targets
+          - cibw_build: "cp3*"
+            cibw_skip: ""
+            name_suffix: ""
+
+          # Parallelize Linux builds because there are many!
+          - os: ubuntu-latest
+            name_suffix: "manylinux_x86_64"
+            cibw_build: "cp3*-manylinux_x86_64"
+            cibw_skip: ""
+          - os: ubuntu-latest
+            name_suffix: "manylinux_i686"
+            cibw_build: "cp3*-manylinux_i686"
+            cibw_skip: ""
+          - os: ubuntu-latest
+            name_suffix: "musllinux_x86_64"
+            cibw_build: "cp3*-musllinux_x86_64"
+            cibw_skip: ""
+          - os: ubuntu-latest
+            name_suffix: "others"
+            cibw_build: "cp3*"
+            cibw_skip: "cp3*-{manylinux_x86_64,manylinux_i686,musllinux_x86_64}"
+
 
     steps:
       - uses: actions/checkout@v2
@@ -149,8 +172,8 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.11.2
         env:
-          # Only build CPython 3.x targets
-          CIBW_BUILD: "cp3*"
+          CIBW_BUILD: ${{ matrix.cibw_build }}
+          CIBW_SKIP: ${{ matrix.cibw_skip }}
           # Ensure full C++17 availability on macOS builds
           MACOSX_DEPLOYMENT_TARGET: "10.13"
           # Signal setup.py to fail if binary build fails
