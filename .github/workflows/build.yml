@@ -32,6 +32,7 @@ jobs:
           - python-version: 3.6
             os: ubuntu-20.04
 
+    name: python${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -134,7 +135,7 @@ jobs:
       - lint
       - mypy
 
-    name: Build wheels on ${{ matrix.os }} ${{ matrix.name_suffix }}
+    name: ${{ matrix.os }} ${{ matrix.name_suffix }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
