@@ -38,6 +38,8 @@ class UserProperty(PropertyRule):
 
     @property
     def valid_types(self) -> Tuple[Any, ...]: # type: ignore
+        if isinstance(self.valid_type, rdltypes.ArrayPlaceholder):
+            return (self.valid_type,)
         if issubclass(self.valid_type, rdltypes.references.RefType):
             return self.valid_type.expanded
         else:
