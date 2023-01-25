@@ -5,7 +5,7 @@ SystemRDL Spec Errata
 =====================
 
 This document keeps track of all ambiguities, contradictions, and typos found
-in Accelera's `SystemRDL 2.0`_
+in Accellera's `SystemRDL 2.0`_
 language specification.
 
 For each issue, I include the resolved interpretation that is used in this
