@@ -22,7 +22,7 @@ class StructVisitor(BaseVisitor):
     def visitStruct_def(self, ctx: SystemRDLParser.Struct_defContext):
         self.compiler.namespace.enter_scope()
 
-        is_abstract = (ctx.ABSTRACT_kw() is not None)
+        is_abstract = ctx.ABSTRACT_kw() is not None
         struct_name = get_ID_text(ctx.name)
 
         if ctx.base is not None:

@@ -571,7 +571,7 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     def visitLocal_property_assignment(self, ctx: SystemRDLParser.Local_property_assignmentContext) -> None:
 
-        default = (ctx.DEFAULT_kw() is not None)
+        default = ctx.DEFAULT_kw() is not None
 
         if ctx.normal_prop_assign() is not None:
             prop_src_ref, prop_name, rhs = self.visit(ctx.normal_prop_assign())

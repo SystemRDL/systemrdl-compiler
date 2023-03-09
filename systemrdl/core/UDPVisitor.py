@@ -122,7 +122,7 @@ class UDPVisitor(BaseVisitor):
         token = self.visit(ctx.udp_data_type())
         valid_type = self.datatype_from_token(token)
 
-        is_array = (ctx.array_type_suffix() is not None)
+        is_array = ctx.array_type_suffix() is not None
         if is_array:
             # arrayify
             valid_type = rdltypes.ArrayPlaceholder(valid_type) # type: ignore
