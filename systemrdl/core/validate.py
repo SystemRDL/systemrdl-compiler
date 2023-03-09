@@ -342,12 +342,6 @@ class ValidateListener(walker.RDLListener):
                 % (node.inst_name),
                 node.inst.inst_src_ref
             )
-        elif (this_f_sw == rdltypes.AccessType.w) and (this_f_hw == rdltypes.AccessType.na):
-            self.msg.error(
-                "Field '%s' access property combination is meaningless: sw=w; hw=na;"
-                % (node.inst_name),
-                node.inst.inst_src_ref
-            )
         elif this_f_sw == rdltypes.AccessType.na:
             self.msg.error(
                 "Field '%s' sw access property is 'na' ... a field defined in a SOFTWARE "
