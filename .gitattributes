@@ -1,1 +1,3 @@
-systemrdl/parser/ext/** linguist-vendored
+systemrdl/parser/* linguist-generated
+systemrdl/parser/ext/* linguist-generated
+systemrdl/parser/ext/antlr4-cpp-runtime/** linguist-vendored
