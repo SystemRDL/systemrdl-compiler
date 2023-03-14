@@ -398,7 +398,7 @@ class ValidateListener(walker.RDLListener):
         # Optional warning if a field is missing a reset assignment
         if node.env.chk_missing_reset:
             # Implements storage but was never assigned a reset
-            if node.implements_storage and (node.get_property('reset') is None):
+            if (not node.is_virtual) and node.implements_storage and (node.get_property('reset') is None):
                 node.env.msg.message(
                     node.env.chk_missing_reset,
                     "Field '%s' implements storage but is missing a reset value. Initial state is undefined"
