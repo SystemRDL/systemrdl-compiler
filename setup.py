@@ -71,7 +71,7 @@ def run_setup(with_binary):
             "colorama",
             "markdown",
         ],
-        classifiers=(
+        classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Programming Language :: Python",
             "Programming Language :: Python :: 3",
@@ -89,7 +89,7 @@ def run_setup(with_binary):
             "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
             "Topic :: Software Development :: Compilers",
             "Topic :: Software Development :: Code Generators",
-        ),
+        ],
         project_urls={
             "Documentation": "http://systemrdl-compiler.readthedocs.io",
             "Source": "https://github.com/SystemRDL/systemrdl-compiler",
@@ -100,7 +100,6 @@ def run_setup(with_binary):
 
 #===============================================================================
 from setuptools.command.build_ext import build_ext
-from distutils.errors import CCompilerError, DistutilsExecError, DistutilsPlatformError
 
 def get_files(path, pattern):
     """
@@ -126,19 +125,14 @@ class ve_build_ext(build_ext):
     def run(self):
         try:
             build_ext.run(self)
-        except DistutilsPlatformError:
+        except Exception:
             raise BuildFailed()
 
     def build_extension(self, ext):
         try:
             build_ext.build_extension(self, ext)
-        except (CCompilerError, DistutilsExecError, DistutilsPlatformError):
+        except Exception:
             raise BuildFailed()
-        except ValueError:
-            # this can happen on Windows 64 bit, see Python issue 7511
-            if "'path'" in str(sys.exc_info()[1]):  # works with Python 2 and 3
-                raise BuildFailed()
-            raise
 
 
 # Detect if an alternate interpreter is being used
