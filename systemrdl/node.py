@@ -383,35 +383,42 @@ class Node:
         if kwargs:
             raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
 
-        # If its already in the component, then safe to bypass checks
-        if prop_name in self.inst.properties:
-            prop_value = self.inst.properties[prop_name]
+        if prop_name not in self.inst.properties:
+            # Was not assigned by the user
+            if ovr_default:
+                # Default value is being overridden by user. Return their value
+                return default
 
-            if isinstance(prop_value, rdltypes.ComponentRef):
-                # If this is a hierarchical component reference, convert it to a Node reference
-                prop_value = prop_value.build_node_ref(self, self.env)
-            elif isinstance(prop_value, rdltypes.PropertyReference):
-                prop_value._resolve_node(self)
-            elif (prop_name == "desc") and self.env.dedent_desc:
-                prop_value = helpers.dedent_text(prop_value)
+            # Otherwise, return its default value based on the property's rules
+            rule = self.env.property_rules.lookup_property(prop_name, include_soft_udp=True)
 
-            return prop_value
+            # Is it even a valid property or allowed for this component type?
+            if rule is None:
+                raise LookupError("Unknown property '%s'" % prop_name)
+            if type(self.inst) not in rule.bindable_to:
+                raise LookupError("Unknown property '%s'" % prop_name)
 
-        if ovr_default:
-            # Default value is being overridden by user. Return their value
-            return default
+            # Return the default value as specified by the rulebook
+            return rule.get_default(self)
 
-        # Otherwise, return its default value based on the property's rules
-        rule = self.env.property_rules.lookup_property(prop_name, include_soft_udp=True)
+        # Property WAS indeed assigned by the user
+        prop_value = self.inst.properties[prop_name]
 
-        # Is it even a valid property or allowed for this component type?
-        if rule is None:
-            raise LookupError("Unknown property '%s'" % prop_name)
-        if type(self.inst) not in rule.bindable_to:
-            raise LookupError("Unknown property '%s'" % prop_name)
+        if isinstance(prop_value, rdltypes.ComponentRef):
+            # If this is a hierarchical component reference, convert it to a Node reference
+            prop_value = prop_value.build_node_ref(self)
+        elif isinstance(prop_value, rdltypes.PropertyReference):
+            prop_value._resolve_node(self)
+        elif isinstance(prop_value, list):
+            # Inspect array and resolve any references
+            prop_value = rdltypes.references.resolve_node_refs_in_array(self, prop_value)
+        elif rdltypes.is_user_struct(type(prop_value)):
+            prop_value = rdltypes.references.resolve_node_refs_in_struct(self, prop_value)
+        elif (prop_name == "desc") and self.env.dedent_desc:
+            prop_value = helpers.dedent_text(prop_value)
 
-        # Return the default value as specified by the rulebook
-        return rule.get_default(self)
+        return prop_value
+
 
 
     def list_properties(self, list_all: bool=False, include_native: bool=True, include_udp: bool=True) -> List[str]:

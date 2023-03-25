@@ -17,11 +17,11 @@ def normalize(value: Any, owner_node: Optional[node.Node]=None) -> str:
     elif isinstance(value, str):
         return normalize_string(value)
     elif isinstance(value, list):
-        return normalize_array(value)
+        return normalize_array(value, owner_node)
     elif isinstance(value, (rdltypes.BuiltinEnum, rdltypes.UserEnum)):
         return normalize_enum(value)
     elif isinstance(value, rdltypes.UserStruct):
-        return normalize_struct(value)
+        return normalize_struct(value, owner_node)
     elif isinstance(value, node.Node):
         return normalize_component_ref(value, owner_node)
     elif isinstance(value, rdltypes.PropertyReference):
@@ -73,7 +73,7 @@ def normalize_enum(value: Union[rdltypes.BuiltinEnum, rdltypes.UserEnum]) -> str
     return value.name
 
 
-def normalize_array(value: List[Any]) -> str:
+def normalize_array(value: List[Any], owner_node: Optional[node.Node]=None) -> str:
     """
     5.1.1.4 - c.5:
         Arrays shall be rendered by:
@@ -88,14 +88,14 @@ def normalize_array(value: List[Any]) -> str:
     """
     norm_elements = []
     for element in value:
-        norm_elements.append(normalize(element))
+        norm_elements.append(normalize(element, owner_node))
 
     norm_str = "_".join(norm_elements)
     md5 = hashlib.md5(norm_str.encode('utf-8')).hexdigest()
     return md5[:8]
 
 
-def normalize_struct(value: rdltypes.UserStruct) -> str:
+def normalize_struct(value: rdltypes.UserStruct, owner_node: Optional[node.Node]=None) -> str:
     """
     5.1.1.4 - c.6:
         Structs shall be rendered by:
@@ -112,7 +112,7 @@ def normalize_struct(value: rdltypes.UserStruct) -> str:
     """
     norm_elements = []
     for member_name, member_value in value._values.items():
-        norm_elements.append("%s_%s" % (member_name, normalize(member_value)))
+        norm_elements.append("%s_%s" % (member_name, normalize(member_value, owner_node)))
 
     norm_str = "_".join(norm_elements)
     md5 = hashlib.md5(norm_str.encode('utf-8')).hexdigest()

@@ -5,6 +5,7 @@ from .ast_node import ASTNode
 from .conditional import is_castable
 
 from .. import rdltypes
+from .. import component as comp
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
@@ -127,17 +128,55 @@ class ArrayLiteral(ASTNode):
 
         # Get type of first element
         element_iter = iter(self.elements)
-        element_type = next(element_iter).predict_type()
+        uniform_type = next(element_iter).predict_type()
 
-        # All remaining elements shall match
+        # RDL does not allow directly nested arrays
+        assert not isinstance(uniform_type, rdltypes.ArrayPlaceholder)
+
+        # All elements of the array shall have a uniform type
         for element in element_iter:
-            if element_type != element.predict_type():
-                self.msg.fatal(
-                    "Elements of an array shall be the same type",
-                    self.src_ref
-                )
+            this_type = element.predict_type()
 
-        return rdltypes.ArrayPlaceholder(element_type)
+            # RDL does not allow directly nested arrays
+            assert not isinstance(this_type, rdltypes.ArrayPlaceholder)
+
+            # First check if it is a direct match
+            if uniform_type == this_type:
+                continue
+
+            # ... nope. Check if it is a compatible ref type
+            if uniform_type == rdltypes.references.RefType:
+                # array accepts any reference
+                if issubclass(this_type, (comp.Component, rdltypes.PropertyReference)):
+                    continue
+
+            # ... nope. Check if the array's element type can be generalized as a ref type
+            if (
+                issubclass(uniform_type, (comp.Component, rdltypes.PropertyReference))
+                and issubclass(this_type, (comp.Component, rdltypes.PropertyReference))
+            ):
+                # Both are still references, so convert this array to a general ref array
+                uniform_type = rdltypes.references.RefType
+                continue
+
+            # In the event that this is an array of user structs, check if maybe
+            # one is a subclass of the other
+            if rdltypes.is_user_struct(uniform_type) and rdltypes.is_user_struct(this_type):
+                if issubclass(this_type, uniform_type):
+                    # element is a specialization of the current uniform type.
+                    # all good!
+                    continue
+                if issubclass(uniform_type, this_type):
+                    # element is a more primitive base struct. Make the array more general
+                    uniform_type = this_type
+                    continue
+
+            self.msg.fatal(
+                "Elements of an array shall be the same type",
+                self.src_ref
+            )
+
+        return rdltypes.ArrayPlaceholder(uniform_type)
 
     def get_value(self, eval_width: Optional[int]=None) -> List[Any]:
         result = []

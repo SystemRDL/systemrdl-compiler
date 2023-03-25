@@ -1,0 +1,74 @@
+property ref_array {
+    type = ref[];
+    component = addrmap;
+};
+
+property reg_array {
+    type = reg[];
+    component = addrmap;
+};
+
+property field_array {
+    type = field[];
+    component = addrmap;
+};
+
+property int_array {
+    type = longint[];
+    component = addrmap;
+};
+
+struct my_struct {
+    boolean my_bool;
+    string my_string;
+};
+struct my_extended_struct : my_struct {
+    longint my_int;
+};
+
+property struct_array {
+    type = my_struct[];
+    component = addrmap;
+};
+
+
+addrmap top {
+    field my_field {sw=rw; hw=r;};
+    reg my_reg {
+        my_field f1;
+        my_field f2;
+    };
+
+    my_reg r1;
+    my_reg r2;
+    my_reg r3;
+
+    ref_array = '{r1, r2.f1, r3.f2->anded};
+    reg_array = '{r1, r2};
+    field_array = '{r1.f1, r2.f1, r3.f1};
+    int_array = '{10, 20};
+    struct_array = '{
+        my_struct'{my_bool: true, my_string: "hey"},
+        my_struct'{my_bool: false, my_string: "hello"},
+        my_extended_struct'{my_bool: false, my_string: "extended", my_int: 42}
+    };
+
+    addrmap {
+        my_reg x;
+        my_reg y;
+
+        ref_array = '{x.f1, x.f2, y.f1, y.f2};
+    } sub1;
+
+    addrmap {
+        my_reg a;
+        my_reg b;
+
+        ref_array = '{a.f1->anded, b.f2->anded};
+    } sub2;
+
+    addrmap {
+        my_reg reg1;
+    } sub3;
+    sub3->ref_array = '{sub2.a.f1, sub1.x.f2};
+};

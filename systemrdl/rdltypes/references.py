@@ -1,7 +1,8 @@
-from typing import Tuple, List, Optional, Type, TYPE_CHECKING
+from typing import Tuple, List, Optional, Type, TYPE_CHECKING, Any
 
 from ..node import Node, AddressableNode
 from .. import component as comp
+from .user_struct import UserStruct, is_user_struct
 
 if TYPE_CHECKING:
     from ..source_ref import SourceRefBase
@@ -31,7 +32,7 @@ class ComponentRef:
         # ]
         self.ref_elements = ref_elements
 
-    def build_node_ref(self, assignee_node: Node, env: 'RDLEnvironment') -> Node:
+    def build_node_ref(self, assignee_node: Node) -> Node:
         """
         Resolves the component reference into a Node object
         """
@@ -59,7 +60,7 @@ class ComponentRef:
 
                 for i, idx in enumerate(idx_list):
                     if idx >= current_node.array_dimensions[i]:
-                        env.msg.fatal(
+                        current_node.env.msg.fatal(
                             "Array index out of range. Expected 0-%d, got %d."
                             % (current_node.array_dimensions[i]-1, idx),
                             name_src_ref
@@ -144,7 +145,7 @@ class PropertyReference:
         return cls.__name__.replace("PropRef_", "")
 
     def _resolve_node(self, assignee_node: Node) -> None:
-        self.node = self._comp_ref.build_node_ref(assignee_node, self.env)
+        self.node = self._comp_ref.build_node_ref(assignee_node)
 
     def _validate(self) -> None:
         pass
@@ -183,3 +184,59 @@ class RefType:
         PropertyReference,
         # TODO: eventually add constraint references
     )
+
+
+def resolve_node_refs_in_array(assignee_node: Node, array: List[Any]) -> List[Any]:
+    """
+    Recursively converts any ComponentRef within the array to proper Node objects
+    """
+    new_array = []
+    changed = False
+    for value in array:
+        if isinstance(value, ComponentRef):
+            value = value.build_node_ref(assignee_node)
+            changed = True
+        elif isinstance(value, PropertyReference):
+            value._resolve_node(assignee_node)
+            changed = True
+        elif is_user_struct(type(value)):
+            new_value = resolve_node_refs_in_struct(assignee_node, value)
+            if new_value is not value:
+                changed = True
+            value = new_value
+        new_array.append(value)
+
+    if changed:
+        return new_array
+    return array
+
+def resolve_node_refs_in_struct(assignee_node: Node, struct: UserStruct) -> UserStruct:
+    """
+    Recursively converts any ComponentRef within the array to proper Node objects
+    """
+    new_values = {}
+    changed = False
+    for member_name, value in struct.members.items():
+        if isinstance(value, ComponentRef):
+            value = value.build_node_ref(assignee_node)
+            changed = True
+        elif isinstance(value, PropertyReference):
+            value._resolve_node(assignee_node)
+            changed = True
+        elif is_user_struct(type(value)):
+            new_svalue = resolve_node_refs_in_struct(assignee_node, value)
+            if new_svalue is not value:
+                changed = True
+            value = new_svalue
+        elif isinstance(value, list):
+            new_avalue = resolve_node_refs_in_array(assignee_node, value)
+            if new_avalue is not value:
+                changed = True
+            value = new_avalue
+        new_values[member_name] = value
+
+    if changed:
+        cls = type(struct)
+        new_struct = cls(new_values)
+        return new_struct
+    return struct

@@ -105,6 +105,8 @@ addrmap struct_test {
     p03 = final_struct'{foo:1, bar:5678, baz:"abcde"};
 
     reg {
+        // test 6.3.2.2.2-c: allow derived to be assigned to base
+        p01 = derived_struct'{foo:1, bar:4567};
         field {
             p1;
         } ex1_field1;

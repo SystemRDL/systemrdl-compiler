@@ -7,6 +7,7 @@ from ..parser.SystemRDLVisitor import SystemRDLVisitor
 from ..source_ref import src_ref_from_antlr
 
 from .. import rdltypes
+from .. import component as comp
 
 if TYPE_CHECKING:
     from ..compiler import RDLCompiler
@@ -34,9 +35,15 @@ class BaseVisitor(SystemRDLVisitor):
         SystemRDLParser.STRING_kw           : str,
         SystemRDLParser.BOOLEAN_kw          : bool,
         SystemRDLParser.REF_kw              : rdltypes.references.RefType,
+        SystemRDLParser.ADDRMAP_kw          : comp.Addrmap,
+        SystemRDLParser.REGFILE_kw          : comp.Regfile,
+        SystemRDLParser.MEM_kw              : comp.Mem,
+        SystemRDLParser.REG_kw              : comp.Reg,
+        SystemRDLParser.FIELD_kw            : comp.Field,
+        SystemRDLParser.SIGNAL_kw           : comp.Signal,
     }
     def datatype_from_token(self, token):
-        # type: ('CommonToken') -> Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, rdltypes.references.RefType]]
+        # type: ('CommonToken') -> Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, rdltypes.references.RefType, comp.Component]]
         """
         Given a SystemRDLParser token, lookup the type
         This only includes types under the "data_type" grammar rule

@@ -4,6 +4,7 @@ from .ast_node import ASTNode
 
 from ..core.helpers import truncate_int
 from .. import rdltypes
+from .. import component as comp
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
@@ -141,19 +142,21 @@ def is_castable(src: Any, dst: Any) -> bool:
     if ((src in [int, bool]) or rdltypes.is_user_enum(src)) and (dst in [int, bool]):
         # Pure numeric or enum can be cast to a numeric
         return True
-    elif (src == rdltypes.ArrayPlaceholder) and (dst == rdltypes.ArrayPlaceholder):
+    elif isinstance(src, rdltypes.ArrayPlaceholder) and isinstance(dst, rdltypes.ArrayPlaceholder):
         # Check that array element types also match
         if src.element_type is None:
             # indeterminate array type. Is castable
             return True
-        elif src.element_type == dst.element_type:
-            return True
-        else:
-            return False
+        return is_castable(src.element_type, dst.element_type)
     elif rdltypes.is_user_struct(dst):
         # Structs can be assigned their derived counterparts - aka their subclasses
         return issubclass(src, dst)
     elif dst == rdltypes.PropertyReference:
+        return issubclass(src, rdltypes.PropertyReference)
+    elif dst == rdltypes.references.RefType:
+        # Any reference
+        if issubclass(src, comp.Component):
+            return True
         return issubclass(src, rdltypes.PropertyReference)
     elif src == dst:
         return True

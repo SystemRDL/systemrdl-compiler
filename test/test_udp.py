@@ -164,3 +164,98 @@ class TestUDP(RDLSourceTestCase):
                 'some_ref_p',
             ]
         )
+
+    def test_udp_arrays(self):
+        root = self.compile(
+            ["rdl_src/udp_arrays.rdl"],
+            "top"
+        )
+        top = root.top
+        r1 = top.find_by_path("r1")
+        r1_f1 = top.find_by_path("r1.f1")
+        r1_f2 = top.find_by_path("r1.f2")
+        r2 = top.find_by_path("r2")
+        r2_f1 = top.find_by_path("r2.f1")
+        r2_f2 = top.find_by_path("r2.f2")
+        r3 = top.find_by_path("r3")
+        r3_f1 = top.find_by_path("r3.f1")
+        r3_f2 = top.find_by_path("r3.f2")
+
+        with self.subTest("top.ref_array"):
+            ref_array = top.get_property('ref_array')
+            self.assertEqual(len(ref_array), 3)
+            self.assertEqual(ref_array[0], r1)
+            self.assertEqual(ref_array[1], r2_f1)
+            self.assertEqual(ref_array[2].node, r3_f2)
+            self.assertEqual(ref_array[2].name, "anded")
+
+        with self.subTest("top.reg_array"):
+            self.assertListEqual(
+                top.get_property('reg_array'),
+                [r1, r2]
+            )
+
+        with self.subTest("top.field_array"):
+            self.assertListEqual(
+                top.get_property('field_array'),
+                [r1_f1, r2_f1, r3_f1]
+            )
+
+        with self.subTest("top.int_array"):
+            self.assertListEqual(
+                top.get_property('int_array'),
+                [10, 20]
+            )
+
+        with self.subTest("top.struct_array"):
+            struct_array = top.get_property('struct_array')
+            self.assertEqual(len(struct_array), 3)
+
+            self.assertEqual(struct_array[0].type_name, "my_struct")
+            self.assertEqual(set(struct_array[0].members.keys()), {"my_bool", "my_string"})
+            self.assertEqual(struct_array[0].my_bool, True)
+            self.assertEqual(struct_array[0].my_string, "hey")
+
+            self.assertEqual(struct_array[1].type_name, "my_struct")
+            self.assertEqual(set(struct_array[1].members.keys()), {"my_bool", "my_string"})
+            self.assertEqual(struct_array[1].my_bool, False)
+            self.assertEqual(struct_array[1].my_string, "hello")
+
+            self.assertEqual(struct_array[2].type_name, "my_extended_struct")
+            self.assertEqual(set(struct_array[2].members.keys()), {"my_bool", "my_string", "my_int"})
+            self.assertEqual(struct_array[2].my_bool, False)
+            self.assertEqual(struct_array[2].my_string, "extended")
+            self.assertEqual(struct_array[2].my_int, 42)
+
+
+
+        with self.subTest("sub1"):
+            sub1 = top.find_by_path("sub1")
+            x_f1 = top.find_by_path("sub1.x.f1")
+            x_f2 = top.find_by_path("sub1.x.f2")
+            y_f1 = top.find_by_path("sub1.y.f1")
+            y_f2 = top.find_by_path("sub1.y.f2")
+            self.assertListEqual(
+                sub1.get_property('ref_array'),
+                [x_f1, x_f2, y_f1, y_f2]
+            )
+
+        with self.subTest("sub2"):
+            sub2 = top.find_by_path("sub2")
+            a_f1 = top.find_by_path("sub2.a.f1")
+            b_f2 = top.find_by_path("sub2.b.f2")
+            prop = sub2.get_property('ref_array')
+            self.assertEqual(len(prop), 2)
+            self.assertEqual(prop[0].node, a_f1)
+            self.assertEqual(prop[0].name, "anded")
+            self.assertEqual(prop[1].node, b_f2)
+            self.assertEqual(prop[1].name, "anded")
+
+        with self.subTest("sub3"):
+            sub3 = top.find_by_path("sub3")
+            a_f1 = top.find_by_path("sub2.a.f1")
+            x_f2 = top.find_by_path("sub1.x.f2")
+            self.assertListEqual(
+                sub3.get_property('ref_array'),
+                [a_f1, x_f2]
+            )

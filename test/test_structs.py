@@ -32,6 +32,15 @@ class TestStructs(RDLSourceTestCase):
             self.assertEqual(p03.bar, 5678)
             self.assertEqual(p03.baz, "abcde")
 
+        with self.subTest("6.3.2.2.2-c"):
+            reg = root.find_by_path("struct_test.ex1_reg")
+            p01 = reg.get_property('p01')
+
+            self.assertEqual(p01.type_name, "derived_struct")
+            self.assertEqual(set(p01.members.keys()), set(["foo", "bar"]))
+            self.assertEqual(p01.foo, 1)
+            self.assertEqual(p01.bar, 4567)
+
         with self.subTest("ex1"):
             f1p1 = root.find_by_path("struct_test.ex1_reg.ex1_field1").get_property('p1')
             self.assertEqual(f1p1.type_name, "struct1")
