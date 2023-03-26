@@ -188,7 +188,7 @@ class ExprVisitor(BaseVisitor):
                 src_ref_from_antlr(ctx.ID(0))
             )
 
-        # Get it's value
+        # Get its value
         if enum_entry_name not in enum_type.members:
             self.msg.fatal(
                 "'%s' is not a valid member of enum '%s'"

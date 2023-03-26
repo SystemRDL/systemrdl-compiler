@@ -445,7 +445,7 @@ class Prop_reset(PropertyRule):
             # 9.5.1-c: The reset value cannot be larger than can fit in the field
             if value >= (1 << node.width):
                 self.env.msg.error(
-                    "The reset value (%d) of field '%s' cannot fit within it's width (%d)"
+                    "The reset value (%d) of field '%s' cannot fit within its width (%d)"
                     % (value, node.inst_name, node.width),
                     self.get_src_ref(node)
                 )

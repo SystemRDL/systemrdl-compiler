@@ -135,7 +135,7 @@ class ComponentVisitor(BaseVisitor):
         # Since the definition is named, register it with the namespace
         self.compiler.namespace.register_type(def_name, comp_def, src_ref_from_antlr(ctx.ID()))
 
-        # A named component's scope name is the same as it's type name
+        # A named component's scope name is the same as its type name
         comp_def._scope_name = def_name
 
         return comp_def

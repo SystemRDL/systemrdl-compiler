@@ -784,7 +784,7 @@ class AddressableNode(Node):
     def raw_address_offset(self) -> int:
         """
         Raw byte address offset of the first array element node relative to
-        it's parent.
+        its parent.
 
         If this node is not an array, then this is equivalent to
         :attr:`address_offset`
@@ -797,9 +797,9 @@ class AddressableNode(Node):
     @property
     def address_offset(self) -> int:
         """
-        Byte address offset of this node relative to it's parent
+        Byte address offset of this node relative to its parent
 
-        If this node is an array, it's index must be known
+        If this node is an array, its index must be known
 
         Raises
         ------

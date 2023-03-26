@@ -138,7 +138,7 @@ class PropertyRule:
     def _validate_ref_width(self, node: m_node.VectorNode, value: Any) -> None:
         """
         Helper function to check that if value is a vector-like reference,
-        that it's width matches the node.
+        that its width matches the node.
         """
         if isinstance(value, m_node.VectorNode):
             if node.width != value.width:
@@ -167,12 +167,12 @@ class PropertyRule:
     def _validate_ref_width_is_1(self, node: m_node.Node, value: Any) -> None:
         """
         Helper function to check that if value is a vector-like reference,
-        that it's width is exactly 1.
+        that its width is exactly 1.
         """
         if isinstance(value, m_node.VectorNode):
             if value.width != 1:
                 self.env.msg.error(
-                    "%s '%s' references %s '%s' but it's width is not 1"
+                    "%s '%s' references %s '%s' but its width is not 1"
                     % (
                         type(node.inst).__name__.lower(), node.inst_name,
                         type(value.inst).__name__.lower(), value.inst_name
@@ -182,7 +182,7 @@ class PropertyRule:
         elif isinstance(value, rdltypes.PropertyReference) and value.width is not None:
             if value.width != 1:
                 self.env.msg.error(
-                    "%s '%s' references property '%s->%s' but it's width is not 1"
+                    "%s '%s' references property '%s->%s' but its width is not 1"
                     % (
                         type(node.inst).__name__.lower(), node.inst_name,
                         value.node.inst_name, value.name,
@@ -220,10 +220,10 @@ class PropertyRule:
     def _validate_width_eq_or_smaller(self, node: m_node.VectorNode, value: Any) -> None:
         """
         Helper function to check that if value is a vector-like reference,
-        that it's width is equal or smaller than the node's width
+        that its width is equal or smaller than the node's width
 
         Used for 9.8.1: The increment/decrement value shall be equal to or
-        smaller than the field’s width.
+        smaller than the field's width.
         """
         if isinstance(value, int):
             if node.width < value.bit_length():

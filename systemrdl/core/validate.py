@@ -180,7 +180,7 @@ class ValidateListener(walker.RDLListener):
             if node.array_stride > (node.get_property('regwidth') // 8):
                 self.msg.message(
                     self.env.chk_sparse_reg_stride,
-                    "Address stride (+= %d) of register array '%s' is not equal to it's width (regwidth/8 = %d)"
+                    "Address stride (+= %d) of register array '%s' is not equal to its width (regwidth/8 = %d)"
                     % (node.array_stride, node.inst_name, (node.get_property('regwidth') // 8)),
                     node.inst.inst_src_ref
                 )

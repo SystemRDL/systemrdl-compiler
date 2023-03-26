@@ -1,6 +1,6 @@
 
 #: Check if a field that implements storage, or is a runtime constant, is
-#: missing it's reset value.
+#: missing its reset value.
 MISSING_RESET = 1<<0
 
 #: Check if a field's bit offset is not explicitly specified.
