@@ -321,6 +321,13 @@ Typo in semantic rule 11.2-f
 Mentions "register files", even though they are not allowed in "mem" components
 as per 11.1-b-1-ii.
 
+A similar mistake exists in 3.1:
+
+.. pull-quote::
+
+    memory: A contiguous array of memory data elements. A data structure within
+    a memory can be specified with virtual registers or **register files**.
+
 
 
 Typo in type name generation BNF snippet 5.1.1.4-c
