@@ -1,4 +1,5 @@
 from typing import Tuple, List, Optional, Type, TYPE_CHECKING, Any
+import copy
 
 from ..node import Node, AddressableNode
 from .. import component as comp
@@ -147,6 +148,14 @@ class PropertyReference:
     def _resolve_node(self, assignee_node: Node) -> None:
         self.node = self._comp_ref.build_node_ref(assignee_node)
 
+    def get_resolved_ref(self, assignee_node: Node) -> 'PropertyReference':
+        # Return a copy of this PropertyReference, but with a resolved
+        # node reference.
+        # Copying is essential to prevent quirk found in bug #164
+        new_prop_ref = copy.copy(self)
+        new_prop_ref._resolve_node(assignee_node)
+        return new_prop_ref
+
     def _validate(self) -> None:
         pass
 
@@ -197,7 +206,7 @@ def resolve_node_refs_in_array(assignee_node: Node, array: List[Any]) -> List[An
             value = value.build_node_ref(assignee_node)
             changed = True
         elif isinstance(value, PropertyReference):
-            value._resolve_node(assignee_node)
+            value = value.get_resolved_ref(assignee_node)
             changed = True
         elif is_user_struct(type(value)):
             new_value = resolve_node_refs_in_struct(assignee_node, value)
@@ -221,7 +230,7 @@ def resolve_node_refs_in_struct(assignee_node: Node, struct: UserStruct) -> User
             value = value.build_node_ref(assignee_node)
             changed = True
         elif isinstance(value, PropertyReference):
-            value._resolve_node(assignee_node)
+            value = value.get_resolved_ref(assignee_node)
             changed = True
         elif is_user_struct(type(value)):
             new_svalue = resolve_node_refs_in_struct(assignee_node, value)

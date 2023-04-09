@@ -408,7 +408,7 @@ class Node:
             # If this is a hierarchical component reference, convert it to a Node reference
             prop_value = prop_value.build_node_ref(self)
         elif isinstance(prop_value, rdltypes.PropertyReference):
-            prop_value._resolve_node(self)
+            prop_value = prop_value.get_resolved_ref(self)
         elif isinstance(prop_value, list):
             # Inspect array and resolve any references
             prop_value = rdltypes.references.resolve_node_refs_in_array(self, prop_value)

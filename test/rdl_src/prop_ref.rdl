@@ -9,6 +9,16 @@ addrmap prop_value_ref {
     }y;
 };
 
+addrmap ref_in_array {
+    reg {
+        default sw=rw;
+        default hw=rw;
+        field {} a = 0;
+        field {} b = 0;
+        b->next = a->anded;
+    } myreg[8];
+};
+
 addrmap err_missing_reset {
     reg {
         default sw=rw;

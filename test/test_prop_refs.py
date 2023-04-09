@@ -17,6 +17,24 @@ class TestPropRefs(RDLSourceTestCase):
         self.assertEqual(ref.node, a)
         self.assertEqual(ref.name, "reset")
 
+    def test_prop_ref_in_array(self):
+        root = self.compile(
+            ["rdl_src/prop_ref.rdl"],
+            "ref_in_array"
+        )
+        a0 = root.find_by_path("ref_in_array.myreg[0].a")
+        b0 = root.find_by_path("ref_in_array.myreg[0].b")
+        a1 = root.find_by_path("ref_in_array.myreg[1].a")
+        b1 = root.find_by_path("ref_in_array.myreg[1].b")
+
+        b0_next = b0.get_property('next')
+        b1_next = b1.get_property('next')
+
+        self.assertEqual(b0_next.node, a0)
+        self.assertEqual(b0_next.name, 'anded')
+        self.assertEqual(b1_next.node, a1)
+        self.assertEqual(b1_next.name, 'anded')
+
 
     def test_inferred_vector(self):
         root = self.compile(
