@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from ..ast import ASTNode
 from .helpers import is_pow2, roundup_pow2, roundup_to
-from .value_normalization import normalize
+from .value_normalization import normalize, RefInParameterError
 
 from .. import component as comp
 from .. import walker
@@ -608,7 +608,15 @@ class LateElabListener(walker.RDLListener):
                     orig_param_value = node.inst.original_def.parameters[i].get_value()
                     new_param_value = inst_parameter.get_value()
                     if new_param_value != orig_param_value:
-                        extra_type_name_segments.append(inst_parameter.get_normalized_parameter())
+                        try:
+                            segment = inst_parameter.get_normalized_parameter()
+                            extra_type_name_segments.append(segment)
+                        except RefInParameterError:
+                            self.msg.error(
+                                "Parameter '%s' contains a reference. SystemRDL does not allow component references inside parameter values."
+                                % inst_parameter.name,
+                                node.inst.inst_src_ref
+                            )
 
             # Further augment type name as per extended type generation from DPAs
             if self.env.use_extended_type_name_gen:

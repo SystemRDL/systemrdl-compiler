@@ -4,6 +4,9 @@ from typing import Any, Optional, Union, List
 from .. import rdltypes
 from .. import node
 
+class RefInParameterError(Exception):
+    pass
+
 def normalize(value: Any, owner_node: Optional[node.Node]=None) -> str:
     """
     Flatten an RDL value into a unique string that is used for type
@@ -31,9 +34,16 @@ def normalize(value: Any, owner_node: Optional[node.Node]=None) -> str:
     elif value is rdltypes.NoValue:
         # this only happens if a UDP is assigned with no value
         return "NaN"
+    elif isinstance(value, rdltypes.references.ComponentRef) and owner_node is None:
+        # This only happens if a parameter contains a struct that wraps a reference
+        # datatype. # Since the parameter's value doesnt bother getting resolved,
+        # It shows up as a ComponentRef object here.
+        # SystemRDL spec does not allow references in parameters, so this ends up
+        # being an odd, but convenient place to catch this.
+        raise RefInParameterError
     else:
         # Should never get here
-        raise RuntimeError(value)
+        raise RuntimeError(value, owner_node)
 
 
 def normalize_scalar(value: int) -> str:

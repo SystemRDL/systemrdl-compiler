@@ -1,0 +1,24 @@
+signal {} my_signal1;
+signal {} my_signal2;
+
+struct my_struct {
+    signal my_ref;
+};
+
+reg myReg #(
+    my_struct PARAM = my_struct'{my_ref: my_signal1}
+) {
+    field {
+        next = PARAM.my_ref;
+    } data[0:0] = 0;
+};
+
+addrmap parameters1 {
+    myReg reg0;
+};
+
+addrmap parameters2 {
+    myReg #(
+        .PARAM(my_struct'{my_ref: my_signal2})
+    ) reg0;
+};

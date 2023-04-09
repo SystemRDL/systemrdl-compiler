@@ -190,3 +190,16 @@ class TestParameters(RDLSourceTestCase):
         self.assertEqual(ffX.width, 2)
         self.assertEqual(ffY.width, 3)
         self.assertEqual(ffZ.width, 1)
+
+    def test_err_ref_in_parameter(self):
+        self.assertRDLCompileError(
+            ["rdl_err_src/err_ref_in_parameter.rdl"],
+            "parameters1",
+            r"Parameter 'PARAM' contains a reference. SystemRDL does not allow component references inside parameter values."
+        )
+
+        self.assertRDLCompileError(
+            ["rdl_err_src/err_ref_in_parameter.rdl"],
+            "parameters2",
+            r"Parameter 'PARAM' contains a reference. SystemRDL does not allow component references inside parameter values."
+        )
