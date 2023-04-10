@@ -5,6 +5,7 @@ from .bases import PropertyRule, PropertyRuleBoolPair
 from .. import component as comp
 from .. import node as m_node
 from ..ast.cast import AssignmentCast
+from ..ast.ast_node import ASTNode
 from .. import rdltypes
 
 if TYPE_CHECKING:
@@ -64,8 +65,10 @@ class Prop_dontcompare(PropertyRule):
         # If assigned to any other components, exclusively cast it to a boolean
         if not isinstance(comp_def, comp.Field):
             value = comp_def.properties[self.get_name()]
-            value = AssignmentCast(self.env, src_ref, value, bool)
-            comp_def.properties[self.get_name()] = value
+            if isinstance(value, ASTNode):
+                # was not an implicit True assignment
+                value = AssignmentCast(self.env, src_ref, value, bool)
+                comp_def.properties[self.get_name()] = value
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         donttest = node.get_property('donttest')
@@ -145,8 +148,10 @@ class Prop_donttest(PropertyRule):
         # If assigned to any other components, exclusively cast it to a boolean
         if not isinstance(comp_def, comp.Field):
             value = comp_def.properties[self.get_name()]
-            value = AssignmentCast(self.env, src_ref, value, bool)
-            comp_def.properties[self.get_name()] = value
+            if isinstance(value, ASTNode):
+                # was not an implicit True assignment
+                value = AssignmentCast(self.env, src_ref, value, bool)
+                comp_def.properties[self.get_name()] = value
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         if isinstance(node, m_node.FieldNode):
