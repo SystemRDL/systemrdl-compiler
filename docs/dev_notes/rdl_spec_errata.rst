@@ -257,6 +257,19 @@ Ignore the implication in Table 7 that the ``ref`` keyword can be used in parame
 or structs. Other areas in the specification forbid it more directly.
 
 
+``donttest`` and ``dontcompare`` are not strictly mutually-exclusive
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Table G1 shows these marked as mutually exclusive group "O", however these
+properties are not strictly mutually-exclusive, so marking them as such is
+inappropriate.
+
+Clause 5.2.2.1-c outlines specific scenarios where both can be assigned on the
+same field.
+
+**Resolution:**
+
+Ignore the mutex mark in Table G1 in favor of the semantics in 5.2.2.1-c.
+
 --------------------------------------------------------------------------------
 
 Compilation issues in examples

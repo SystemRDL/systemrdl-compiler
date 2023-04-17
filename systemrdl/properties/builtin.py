@@ -56,7 +56,6 @@ class Prop_dontcompare(PropertyRule):
     valid_types = (int, bool,)
     default = False
     dyn_assign_allowed = True
-    mutex_group = "O"
 
     def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         super().assign_value(comp_def, value, src_ref)
@@ -76,7 +75,7 @@ class Prop_dontcompare(PropertyRule):
         if isinstance(node, m_node.FieldNode):
             # 5.2.2.1-a: If value is a bit mask, the mask shall have the same width
             # as the field
-            if isinstance(value, int):
+            if not isinstance(value, bool) and isinstance(value, int):
                 if value >= (1 << node.width):
                     self.env.msg.error(
                         "Bit mask (%d) of property 'dontcompare' exceeds width (%d) of field '%s'"
@@ -109,7 +108,7 @@ class Prop_dontcompare(PropertyRule):
 
         else:
             # A boolean may end up cast as an int. Normalize 0 or 1 to boolean
-            if isinstance(value, int) and value in (0, 1):
+            if not isinstance(value, bool) and isinstance(value, int) and value in (0, 1):
                 value = bool(value)
 
             # 5.2.2.1-b: can also be applied to reg, regfile, and addrmap
@@ -139,7 +138,6 @@ class Prop_donttest(PropertyRule):
     valid_types = (int, bool,)
     default = False
     dyn_assign_allowed = True
-    mutex_group = "O"
 
     def assign_value(self, comp_def: comp.Component, value: Any, src_ref: 'SourceRefBase') -> None:
         super().assign_value(comp_def, value, src_ref)
@@ -157,7 +155,7 @@ class Prop_donttest(PropertyRule):
         if isinstance(node, m_node.FieldNode):
             # 5.2.2.1-a: If value is a bit mask, the mask shall have the same width
             # as the field
-            if isinstance(value, int):
+            if not isinstance(value, bool) and isinstance(value, int):
                 if value >= (1 << node.width):
                     self.env.msg.error(
                         "Bit mask (%d) of property 'donttest' exceeds width (%d) of field '%s'"
@@ -166,7 +164,7 @@ class Prop_donttest(PropertyRule):
                     )
         else:
             # A boolean may end up cast as an int. Normalize 0 or 1 to boolean
-            if isinstance(value, int) and value in (0, 1):
+            if not isinstance(value, bool) and isinstance(value, int) and value in (0, 1):
                 value = bool(value)
 
             # 5.2.2.1-b: can also be applied to reg, regfile, and addrmap
