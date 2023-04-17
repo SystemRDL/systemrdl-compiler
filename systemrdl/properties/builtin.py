@@ -730,7 +730,7 @@ def _validate_swwe_writable(env: "RDLEnvironment", node: m_node.Node, prop_name:
     # the user.
     this_f_sw = node.get_property('sw')
 
-    if isinstance(prop_value, rdltypes.ComponentRef):
+    if isinstance(prop_value, m_node.Node):
         shall_be_writable = True
     elif prop_value is True:
         shall_be_writable = True
@@ -885,7 +885,7 @@ class Prop_we(PropertyRule):
         self._validate_ref_width_is_1(node, value)
         self._validate_ref_is_present(node, value)
 
-        if isinstance(value, comp.VectorComponent):
+        if isinstance(value, (m_node.FieldNode, rdltypes.PropertyReference)):
             uses_we = True
         else:
             # value is boolean
@@ -918,7 +918,7 @@ class Prop_wel(PropertyRule):
         self._validate_ref_width_is_1(node, value)
         self._validate_ref_is_present(node, value)
 
-        if isinstance(value, comp.VectorComponent):
+        if isinstance(value, (m_node.FieldNode, rdltypes.PropertyReference)):
             uses_we = True
         else:
             # value is boolean
