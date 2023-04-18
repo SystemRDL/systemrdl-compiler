@@ -3,6 +3,7 @@ default hw=r;
 
 addrmap field_resets {
     signal {activehigh;} reset_x;
+    signal {field_reset = false;} not_a_reset;
 
     regfile {
         signal {field_reset; activehigh;} reset_y;
@@ -28,6 +29,7 @@ addrmap field_resets {
 
 
 addrmap cpuif_resets {
+    signal {cpuif_reset = false;} not_a_reset;
     regfile {
         signal {cpuif_reset; activehigh;} reset_x;
         reg {

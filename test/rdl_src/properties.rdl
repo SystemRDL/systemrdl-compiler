@@ -6,16 +6,21 @@ addrmap donttest_top {
         } f1;
         field {
             donttest = true;
+            dontcompare = false;
         } f2;
         field {
             donttest = false;
         } f3;
         field {
             donttest = 1;
+            dontcompare = 2; // ok to set together due to differing bitmasks
         } f4[4];
         field {
             donttest = true;
         } f5[4];
+        field {
+            donttest;
+        } f6[4];
     };
 
     reg_t r1;
@@ -23,11 +28,13 @@ addrmap donttest_top {
     reg_t r3;
     reg_t r4;
     reg_t r5;
+    reg_t r6;
 
     r2->donttest = 0;
     r3->donttest = 1;
     r4->donttest = true;
     r5->donttest = false;
+    r6->donttest;
 };
 
 addrmap dontcompare_top {
@@ -47,6 +54,9 @@ addrmap dontcompare_top {
         field {
             dontcompare = true;
         } f5[4];
+        field {
+            dontcompare;
+        } f6[4];
     };
 
     reg_t r1;
@@ -54,9 +64,54 @@ addrmap dontcompare_top {
     reg_t r3;
     reg_t r4;
     reg_t r5;
+    reg_t r6;
 
     r2->dontcompare = 0;
     r3->dontcompare = 1;
     r4->dontcompare = true;
     r5->dontcompare = false;
+    r6->dontcompare;
+};
+
+
+addrmap misc {
+    bridge = false;
+
+    reg {
+        errextbus = true;
+
+        field {
+            swwe = false;
+        } f1;
+
+        field {} f2;
+        f2->swwe = f1;
+
+        field {} f3;
+        f3->swwel = f1;
+
+        field {} f4;
+        f4->we = f1;
+
+        field {} f5;
+        f5->wel = f1;
+    } external r1;
+
+    reg {
+        field {} fx;
+
+        field {
+            sw = rw;
+            hw=rw;
+            hwset;
+        } f1;
+        f1->hwmask = fx;
+
+        field {
+            sw = rw;
+            hw=rw;
+            hwclr;
+        } f2;
+        f2->hwenable = fx;
+    } r2;
 };

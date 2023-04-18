@@ -67,6 +67,12 @@ class TestPropRefs(RDLSourceTestCase):
             r"Assignment creates a circular reference"
         )
 
+    def test_err_self_reset(self):
+        self.assertRDLCompileError(
+            ["rdl_src/prop_ref.rdl"],
+            "err_self_reset",
+            r"Field 'a' cannot reference itself in reset property"
+        )
 
     def test_err_no_inferred(self):
         self.assertRDLCompileError(

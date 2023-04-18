@@ -40,9 +40,13 @@ class TestIntr(RDLSourceTestCase):
             self.assertEqual(irqA.get_property('stickybit'), False)
 
     def test_intr_example(self):
-        top = self.compile(
+        root = self.compile(
             ["rdl_src/intr_prop.rdl"],
             "int_map_m"
         )
+        top = root.top
 
-        # TODO: Is there something to validate in this example?
+        self.assertIs(top.find_by_path("block_a_int").is_interrupt_reg, True)
+        self.assertIs(top.find_by_path("block_a_int").is_halt_reg, True)
+        self.assertIs(top.find_by_path("block_a_int_en").is_interrupt_reg, False)
+        self.assertIs(top.find_by_path("block_a_int_en").is_halt_reg, False)

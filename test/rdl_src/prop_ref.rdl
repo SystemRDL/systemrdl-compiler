@@ -40,6 +40,15 @@ addrmap err_circular_ref {
     }y;
 };
 
+addrmap err_self_reset {
+    reg {
+        default sw=rw;
+        default hw=rw;
+        field {} a;
+        a->reset = a;
+    }y;
+};
+
 addrmap inferred_vector {
     reg {
         default sw=rw;

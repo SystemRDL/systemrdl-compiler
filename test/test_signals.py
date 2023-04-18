@@ -16,39 +16,42 @@ class TestParameters(RDLSourceTestCase):
             ["rdl_src/reset_signals.rdl"],
             "field_resets"
         )
+        top = root.top
+
+        self.assertIs(top.find_by_path("not_a_reset").get_property('field_reset'), False)
 
         self.assertEqual(
-            root.find_by_path("field_resets.rf.x.A").get_property('resetsignal'),
-            root.find_by_path("field_resets.rf.x.reset_z"),
+            top.find_by_path("rf.x.A").get_property('resetsignal'),
+            top.find_by_path("rf.x.reset_z"),
         )
 
         self.assertEqual(
-            root.find_by_path("field_resets.rf.x.B").get_property('resetsignal'),
-            root.find_by_path("field_resets.reset_x"),
+            top.find_by_path("rf.x.B").get_property('resetsignal'),
+            top.find_by_path("reset_x"),
         )
 
         self.assertEqual(
-            root.find_by_path("field_resets.rf.x.C").get_property('resetsignal'),
-            root.find_by_path("field_resets.rf.reset_y"),
+            top.find_by_path("rf.x.C").get_property('resetsignal'),
+            top.find_by_path("rf.reset_y"),
         )
 
         self.assertEqual(
-            root.find_by_path("field_resets.rf.y.A").get_property('resetsignal'),
-            root.find_by_path("field_resets.rf.reset_y"),
+            top.find_by_path("rf.y.A").get_property('resetsignal'),
+            top.find_by_path("rf.reset_y"),
         )
 
         self.assertEqual(
-            root.find_by_path("field_resets.rf.y.B").get_property('resetsignal'),
-            root.find_by_path("field_resets.reset_x"),
+            top.find_by_path("rf.y.B").get_property('resetsignal'),
+            top.find_by_path("reset_x"),
         )
 
         self.assertIsNone(
-            root.find_by_path("field_resets.z.A").get_property('resetsignal')
+            top.find_by_path("z.A").get_property('resetsignal')
         )
 
         self.assertEqual(
-            root.find_by_path("field_resets.z.B").get_property('resetsignal'),
-            root.find_by_path("field_resets.reset_x"),
+            top.find_by_path("z.B").get_property('resetsignal'),
+            top.find_by_path("reset_x"),
         )
 
     def test_cpuif_resets(self):
@@ -56,17 +59,21 @@ class TestParameters(RDLSourceTestCase):
             ["rdl_src/reset_signals.rdl"],
             "cpuif_resets"
         )
-        reset_x = root.find_by_path("cpuif_resets.rf.reset_x")
-        reset_y = root.find_by_path("cpuif_resets.rf.x.reset_y")
+        top = root.top
+
+        reset_x = top.find_by_path("rf.reset_x")
+        reset_y = top.find_by_path("rf.x.reset_y")
+
+        self.assertIs(top.find_by_path("not_a_reset").get_property('cpuif_reset'), False)
 
         self.assertIsNone(root.find_by_path("cpuif_resets").cpuif_reset)
-        self.assertEqual(root.find_by_path("cpuif_resets.rf").cpuif_reset, reset_x)
-        self.assertEqual(root.find_by_path("cpuif_resets.rf.x").cpuif_reset, reset_y)
-        self.assertEqual(root.find_by_path("cpuif_resets.rf.x.A").cpuif_reset, reset_y)
-        self.assertEqual(root.find_by_path("cpuif_resets.rf.y").cpuif_reset, reset_x)
-        self.assertEqual(root.find_by_path("cpuif_resets.rf.y.A").cpuif_reset, reset_x)
-        self.assertIsNone(root.find_by_path("cpuif_resets.z").cpuif_reset)
-        self.assertIsNone(root.find_by_path("cpuif_resets.z.A").cpuif_reset)
+        self.assertEqual(top.find_by_path("rf").cpuif_reset, reset_x)
+        self.assertEqual(top.find_by_path("rf.x").cpuif_reset, reset_y)
+        self.assertEqual(top.find_by_path("rf.x.A").cpuif_reset, reset_y)
+        self.assertEqual(top.find_by_path("rf.y").cpuif_reset, reset_x)
+        self.assertEqual(top.find_by_path("rf.y.A").cpuif_reset, reset_x)
+        self.assertIsNone(top.find_by_path("z").cpuif_reset)
+        self.assertIsNone(top.find_by_path("z.A").cpuif_reset)
 
     def test_field_reset_err(self):
         self.assertRDLCompileError(

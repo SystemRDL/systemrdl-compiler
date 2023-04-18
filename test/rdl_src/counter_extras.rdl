@@ -1,0 +1,23 @@
+addrmap top {
+    signal {} incr_signal;
+    signal {} decr_signal;
+    reg {
+        field {
+            sw=r; hw=na;
+            counter;
+            incr = incr_signal;
+            decr = decr_signal;
+            overflow;
+            underflow;
+            incrwidth = 2;
+            decrwidth = 3;
+        } f1[8] = 0;
+
+        field {
+            sw=r; hw=na;
+            counter;
+            incr = incr_signal;
+            decr = decr_signal;
+        } f2[8] = 0;
+    } r1;
+};
