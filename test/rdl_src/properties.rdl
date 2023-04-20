@@ -114,4 +114,29 @@ addrmap misc {
         } f2;
         f2->hwenable = fx;
     } r2;
+
+    reg {
+        field {
+            sw=r;
+            hw=w;
+            posedge intr;
+            sticky = false;
+        } irq;
+
+        field {
+            sw=rw; hw=na;
+        } f1, f2;
+        irq->mask = f1;
+        irq->haltmask = f2;
+
+        field {
+            intr;
+            sticky;
+        }irq2[2];
+
+        field {
+            intr;
+            stickybit;
+        }irq3;
+    } intr_reg;
 };

@@ -7,15 +7,33 @@ class TestPropRefs(RDLSourceTestCase):
             ["rdl_src/prop_ref.rdl"],
             "prop_value_ref"
         )
-        a = root.find_by_path("prop_value_ref.y.a")
-        ref = root.find_by_path("prop_value_ref.y.b").get_property('next')
+        top = root.top
+
+        a = top.find_by_path("y.a")
+        b = top.find_by_path("y.b")
+        c = top.find_by_path("y.c")
+        d = top.find_by_path("y.d")
+        e = top.find_by_path("y.e")
+
+        b_ref = b.get_property('next')
+        c_ref = c.get_property('next')
+        d_ref = d.get_property('next')
+        e_ref = e.get_property('next')
+
         self.assertRegex(
-            str(ref),
+            str(b_ref),
             r"<PropRef_reset prop_value_ref.y.a->reset at 0x\w+>"
         )
 
-        self.assertEqual(ref.node, a)
-        self.assertEqual(ref.name, "reset")
+        self.assertEqual(b_ref.node, a)
+        self.assertEqual(b_ref.name, "reset")
+        self.assertEqual(b_ref, c_ref)
+        self.assertNotEqual(c_ref, d_ref)
+        self.assertNotEqual(d_ref, e_ref)
+        self.assertNotEqual(b_ref, 1234)
+
+
+
 
     def test_prop_ref_in_array(self):
         root = self.compile(

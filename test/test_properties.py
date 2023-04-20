@@ -65,3 +65,15 @@ class TestProperties(RDLSourceTestCase):
         )
 
         self.assertFalse(top.get_property('bridge'))
+
+
+        self.assertIs(top.find_by_path("intr_reg.irq").get_property('sticky'), False)
+        self.assertIs(top.find_by_path("intr_reg.irq").get_property('stickybit'), True)
+        self.assertEqual(top.find_by_path("intr_reg.irq").get_property('mask'), top.find_by_path("intr_reg.f1"))
+        self.assertEqual(top.find_by_path("intr_reg.irq").get_property('haltmask'), top.find_by_path("intr_reg.f2"))
+
+        self.assertIs(top.find_by_path("intr_reg.irq2").get_property('sticky'), True)
+        self.assertIs(top.find_by_path("intr_reg.irq2").get_property('stickybit'), False)
+
+        self.assertIs(top.find_by_path("intr_reg.irq3").get_property('sticky'), False)
+        self.assertIs(top.find_by_path("intr_reg.irq3").get_property('stickybit'), True)

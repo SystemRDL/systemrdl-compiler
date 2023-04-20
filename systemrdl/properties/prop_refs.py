@@ -33,6 +33,19 @@ class PropertyValueReference(rdltypes.PropertyReference):
             ref_value = ref_value.node.get_property(ref_value.name)
 
 
+class PropertyValueReferenceFieldwidth(PropertyValueReference):
+    """
+    Similar to PropertyValueReference, but is limited to fields and tracks
+    the field's width
+    """
+    allowed_inst_type = comp.Field
+
+    @property
+    def width(self) -> Optional[int]:
+        assert isinstance(self.node, m_node.FieldNode)
+        return self.node.width
+
+
 class RealOrInferredVectorReference(PropertyValueReference):
     """
     References the vector that was directly assign to the property, or inferred
@@ -57,26 +70,21 @@ class RealOrInferredVectorReference(PropertyValueReference):
 #-------------------------------------------------------------------------------
 # Reductions
 #-------------------------------------------------------------------------------
-class PropRef_anded(rdltypes.PropertyReference):
+class ReductionPropRef(rdltypes.PropertyReference):
     allowed_inst_type = comp.Field
 
     @property
     def width(self) -> Optional[int]:
         return 1
 
-class PropRef_ored(rdltypes.PropertyReference):
-    allowed_inst_type = comp.Field
+class PropRef_anded(ReductionPropRef):
+    pass
 
-    @property
-    def width(self) -> Optional[int]:
-        return 1
+class PropRef_ored(ReductionPropRef):
+    pass
 
-class PropRef_xored(rdltypes.PropertyReference):
-    allowed_inst_type = comp.Field
-
-    @property
-    def width(self) -> Optional[int]:
-        return 1
+class PropRef_xored(ReductionPropRef):
+    pass
 
 #-------------------------------------------------------------------------------
 # Counter
@@ -347,70 +355,30 @@ class PropRef_halt(rdltypes.PropertyReference):
     def width(self) -> Optional[int]:
         return 1
 
-class PropRef_haltenable(PropertyValueReference):
-    allowed_inst_type = comp.Field
+class PropRef_haltenable(PropertyValueReferenceFieldwidth):
+    pass
 
-    @property
-    def width(self) -> Optional[int]:
-        assert isinstance(self.node, m_node.FieldNode)
-        return self.node.width
+class PropRef_haltmask(PropertyValueReferenceFieldwidth):
+    pass
 
-class PropRef_haltmask(PropertyValueReference):
-    allowed_inst_type = comp.Field
+class PropRef_enable(PropertyValueReferenceFieldwidth):
+    pass
 
-    @property
-    def width(self) -> Optional[int]:
-        assert isinstance(self.node, m_node.FieldNode)
-        return self.node.width
-
-class PropRef_enable(PropertyValueReference):
-    allowed_inst_type = comp.Field
-
-    @property
-    def width(self) -> Optional[int]:
-        assert isinstance(self.node, m_node.FieldNode)
-        return self.node.width
-
-class PropRef_mask(PropertyValueReference):
-    allowed_inst_type = comp.Field
-
-    @property
-    def width(self) -> Optional[int]:
-        assert isinstance(self.node, m_node.FieldNode)
-        return self.node.width
+class PropRef_mask(PropertyValueReferenceFieldwidth):
+    pass
 
 #-------------------------------------------------------------------------------
-class PropRef_hwenable(PropertyValueReference):
-    allowed_inst_type = comp.Field
+class PropRef_hwenable(PropertyValueReferenceFieldwidth):
+    pass
 
-    @property
-    def width(self) -> Optional[int]:
-        assert isinstance(self.node, m_node.FieldNode)
-        return self.node.width
+class PropRef_hwmask(PropertyValueReferenceFieldwidth):
+    pass
 
-class PropRef_hwmask(PropertyValueReference):
-    allowed_inst_type = comp.Field
+class PropRef_next(PropertyValueReferenceFieldwidth):
+    pass
 
-    @property
-    def width(self) -> Optional[int]:
-        assert isinstance(self.node, m_node.FieldNode)
-        return self.node.width
-
-class PropRef_next(PropertyValueReference):
-    allowed_inst_type = comp.Field
-
-    @property
-    def width(self) -> Optional[int]:
-        assert isinstance(self.node, m_node.FieldNode)
-        return self.node.width
-
-class PropRef_reset(PropertyValueReference):
-    allowed_inst_type = comp.Field
-
-    @property
-    def width(self) -> Optional[int]:
-        assert isinstance(self.node, m_node.FieldNode)
-        return self.node.width
+class PropRef_reset(PropertyValueReferenceFieldwidth):
+    pass
 
 class PropRef_resetsignal(PropertyValueReference):
     allowed_inst_type = comp.Field

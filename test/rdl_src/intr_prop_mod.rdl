@@ -21,4 +21,10 @@ addrmap intr_prop_mod_test {
             intr = true; // Still OK
         }irqA;
     }reg2;
+
+    reg {
+        field {
+            intr = true; // Implies level
+        }irqX;
+    }reg3;
 };

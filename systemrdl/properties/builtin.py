@@ -1330,12 +1330,11 @@ class Prop_enable(PropertyRule):
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
-        if value:
-            if not node.get_property('intr'):
-                self.env.msg.error(
-                    "The 'enable' property can only be used on interrupt fields.",
-                    self.get_src_ref(node)
-                )
+        if not node.get_property('intr'):
+            self.env.msg.error(
+                "The 'enable' property can only be used on interrupt fields.",
+                self.get_src_ref(node)
+            )
 
 
 class Prop_mask(PropertyRule):
@@ -1350,12 +1349,11 @@ class Prop_mask(PropertyRule):
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
-        if value:
-            if not node.get_property('intr'):
-                self.env.msg.error(
-                    "The 'mask' property can only be used on interrupt fields.",
-                    self.get_src_ref(node)
-                )
+        if not node.get_property('intr'):
+            self.env.msg.error(
+                "The 'mask' property can only be used on interrupt fields.",
+                self.get_src_ref(node)
+            )
 
 
 class Prop_haltenable(PropertyRule):
@@ -1370,12 +1368,11 @@ class Prop_haltenable(PropertyRule):
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
-        if value:
-            if not node.get_property('intr'):
-                self.env.msg.error(
-                    "The 'haltenable' property can only be used on interrupt fields.",
-                    self.get_src_ref(node)
-                )
+        if not node.get_property('intr'):
+            self.env.msg.error(
+                "The 'haltenable' property can only be used on interrupt fields.",
+                self.get_src_ref(node)
+            )
 
 
 class Prop_haltmask(PropertyRule):
@@ -1390,12 +1387,11 @@ class Prop_haltmask(PropertyRule):
         self._validate_ref_width(node, value)
         self._validate_ref_is_present(node, value)
 
-        if value:
-            if not node.get_property('intr'):
-                self.env.msg.error(
-                    "The 'haltmask' property can only be used on interrupt fields.",
-                    self.get_src_ref(node)
-                )
+        if not node.get_property('intr'):
+            self.env.msg.error(
+                "The 'haltmask' property can only be used on interrupt fields.",
+                self.get_src_ref(node)
+            )
 
 
 class Prop_sticky(PropertyRule):
