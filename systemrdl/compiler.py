@@ -370,13 +370,13 @@ class RDLCompiler:
                     parameter = p
                     break
             else:
-                raise ValueError("Parameter '%s' is not available for override" % param_name)
+                self.msg.fatal("Elaboration top does not have a parameter '%s' that is available for override" % param_name)
 
             literal_expr = ast.ExternalLiteral(self.env, value)
             assign_expr = ast.AssignmentCast(self.env, None, literal_expr, parameter.param_type)
             assign_type = assign_expr.predict_type()
             if assign_type is None:
-                raise TypeError("Incorrect type for parameter '%s'" % param_name)
+                self.msg.fatal("Incorrect type for top-level parameter override of '%s'" % param_name)
 
             parameter.expr = assign_expr
 
