@@ -104,6 +104,10 @@ class RDLCompiler:
             raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
 
         #: Reference to the compiler's :class:`~systemrdl.messages.MessageHandler` object
+        #:
+        #: .. warning::
+        #:
+        #:      This will be deprecated in a future release. See this page for more details: https://github.com/SystemRDL/systemrdl-compiler/issues/168
         self.msg = self.env.msg
 
         self.namespace = NamespaceRegistry(self.env) # type: NamespaceRegistry

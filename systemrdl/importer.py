@@ -25,6 +25,10 @@ class RDLImporter:
         self.compiler = compiler
 
         #: Reference to the compiler message handler
+        #:
+        #: .. warning::
+        #:
+        #:      This will be deprecated in a future release. See this page for more details: https://github.com/SystemRDL/systemrdl-compiler/issues/168
         self.msg = compiler.env.msg
 
         #: Source reference used by default when not specified in importer

@@ -44,6 +44,12 @@ Exceptions
 
 Message Handling
 ----------------
+
+.. warning::
+
+    The ``MessagePrinter`` and ``MessageHandler`` classes will be deprecated in
+    a future release. See the following page for details: https://github.com/SystemRDL/systemrdl-compiler/issues/168
+
 .. autoclass:: systemrdl.messages.MessagePrinter
     :members:
 
