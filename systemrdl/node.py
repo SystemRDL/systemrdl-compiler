@@ -1488,7 +1488,8 @@ def get_group_node_size(node: Union[AddrmapNode, RegfileNode]) -> int:
     Shared getter for AddrmapNode and RegfileNode's "size" property
     """
     # addrmap/regfile is guaranteed to have an addressable child.
-    assert node.inst.children
+    if not node.inst.children:
+        return 0
     assert isinstance(node.inst.children[-1], comp.AddressableComponent)
 
     # Current node's size is based on last child
