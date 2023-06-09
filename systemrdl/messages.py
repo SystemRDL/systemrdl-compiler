@@ -159,7 +159,7 @@ class MessagePrinter:
 
         Parameters
         ----------
-        lines: list
+        lines: List[str]
             List of strings containing each line of the message
         """
 

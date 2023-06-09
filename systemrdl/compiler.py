@@ -71,7 +71,7 @@ class RDLCompiler:
             Set to True by default.
 
             See :ref:`dpa_type_generation` for more details.
-        perl_safe_opcodes: list
+        perl_safe_opcodes: List[str]
             Perl preprocessor commands are executed within a
             `Perl Safe <https://perldoc.perl.org/Safe.html>`_ compartment to
             prevent malicious code execution.
@@ -188,7 +188,7 @@ class RDLCompiler:
         path:str
             Path to an RDL source file
 
-        incl_search_paths:list
+        incl_search_paths: List[str]
             List of additional paths to search to resolve includes.
             If unset, defaults to an empty list.
 
@@ -231,7 +231,7 @@ class RDLCompiler:
         path:str
             Path to an RDL source file
 
-        incl_search_paths:list
+        incl_search_paths: List[str]
             List of additional paths to search to resolve includes.
             If unset, defaults to an empty list.
 
