@@ -1,0 +1,22 @@
+addrmap interleaved_arrays_test_err {
+    reg test { 
+        field {
+        sw = w;
+        hw = rw;
+        } f1;
+    }; 
+    test reg1[8] @ 0x20 += 0x40;
+    test reg2[8] @ 0x24 += 0x40;
+    test reg3 @ 0x24;
+};
+
+addrmap interleaved_arrays_test_err_2 {
+    reg test { 
+        field {
+        sw = w;
+        hw = rw;
+        } f1;
+    }; 
+    test reg1[8] @ 0x20 += 0x41;
+    test reg2[8] @ 0x24 += 0x40;
+};
