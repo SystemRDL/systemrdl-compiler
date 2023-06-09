@@ -881,7 +881,7 @@ class Prop_we(PropertyRule):
                 self.get_src_ref(node)
             )
 
-        if uses_we and not node.implements_storage:
+        if uses_we and not node.implements_storage and not node.is_alias:
             self.env.msg.error(
                 "Use of 'we' property on field '%s' that does not implement storage does not make sense"
                 % (node.inst_name),
@@ -914,7 +914,7 @@ class Prop_wel(PropertyRule):
                 self.get_src_ref(node)
             )
 
-        if uses_we and not node.implements_storage:
+        if uses_we and not node.implements_storage and not node.is_alias:
             self.env.msg.error(
                 "Use of 'wel' property on field '%s' that does not implement storage does not make sense"
                 % (node.inst_name),
