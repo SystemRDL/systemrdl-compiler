@@ -30,6 +30,7 @@ addrmap `TOP_NAME {
     `ifdef FOO
         reg2_t foo1;
         `INST(reg2_t, macro_foo1);
+        `FOO
     `elsif BAR
         reg2_t bar1;
         `INST(reg2_t, macro_bar1);
@@ -39,6 +40,11 @@ addrmap `TOP_NAME {
     `endif
 
     `line 123 "asdf" 1
+
+    `ifdef BAR
+        reg2_t bar1p5;
+        `BAR
+    `endif
 
     `ifndef FOO
         reg2_t foo2;

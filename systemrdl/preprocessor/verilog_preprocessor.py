@@ -1,15 +1,14 @@
 import re
-from typing import List, Union, Tuple, TYPE_CHECKING, Optional, Match
+from typing import List, Union, Tuple, TYPE_CHECKING, Optional, Match, Dict
 
 from ..source_ref import SourceRefBase, SegmentedSourceRef
 from . import segment_map
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
-    from typing import Dict
 
 class VerilogPreprocessor:
-    def __init__(self, env: 'RDLEnvironment', text: str, src_seg_map: Optional[segment_map.SegmentMap]=None, src_ref_override: Optional[SourceRefBase]=None):
+    def __init__(self, env: 'RDLEnvironment', text: str, src_seg_map: Optional[segment_map.SegmentMap]=None, src_ref_override: Optional[SourceRefBase]=None, defines: Optional[Dict[str,str]]=None):
         self.env = env
 
         # Unprocessed text
@@ -36,6 +35,10 @@ class VerilogPreprocessor:
 
         # Macro namespace
         self._macro_defs = {} # type: Dict[str, Macro]
+        if defines is not None:
+            for k, v in defines.items():
+                macro = Macro(v, [])
+                self._macro_defs[k] = macro
 
         self._conditional = ConditionalState()
         self._conditional_stack = [] # type: List[ConditionalState]

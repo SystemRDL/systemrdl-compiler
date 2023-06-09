@@ -10,7 +10,7 @@ from unittest_utils import RDLSourceTestCase
 ])
 class TestPreprocessor(RDLSourceTestCase):
 
-    def test_preprocessor(self):
+    def test_perl_preprocessor(self):
         root = self.compile(
             [self.src],
             "top",
@@ -35,6 +35,111 @@ class TestPreprocessor(RDLSourceTestCase):
         with self.subTest("reg1_data4"):
             self.assertEqual(reg1_data4.msb, 5)
             self.assertEqual(reg1_data4.lsb, 4)
+
+
+    def test_verilog_preprocessor(self):
+        root = self.compile(
+            [self.src],
+            "top",
+            incl_search_paths=["rdl_src/incdir"]
+        )
+
+        with self.subTest("conditional1"):
+            self.assertIsNone(root.find_by_path("top.foo1"))
+            self.assertIsNone(root.find_by_path("top.bar1"))
+            self.assertIsNotNone(root.find_by_path("top.else1"))
+            self.assertIsNone(root.find_by_path("top.macro_foo1"))
+            self.assertIsNone(root.find_by_path("top.macro_bar1"))
+            self.assertIsNotNone(root.find_by_path("top.macro_else1"))
+
+        with self.subTest("conditional2"):
+            self.assertIsNotNone(root.find_by_path("top.foo2"))
+            self.assertIsNone(root.find_by_path("top.bar2"))
+            self.assertIsNone(root.find_by_path("top.else2"))
+
+        with self.subTest("conditional3"):
+            self.assertIsNotNone(root.find_by_path("top.foo3"))
+            self.assertIsNone(root.find_by_path("top.bar3"))
+            self.assertIsNone(root.find_by_path("top.else3"))
+            self.assertIsNone(root.find_by_path("top.xxx3"))
+            self.assertIsNone(root.find_by_path("top.yyy3"))
+            self.assertIsNone(root.find_by_path("top.xyelse3"))
+
+        with self.subTest("conditional4"):
+            self.assertIsNone(root.find_by_path("top.foo4"))
+            self.assertIsNotNone(root.find_by_path("top.bar4"))
+            self.assertIsNone(root.find_by_path("top.else4"))
+            self.assertIsNone(root.find_by_path("top.xxx4"))
+            self.assertIsNotNone(root.find_by_path("top.yyy4"))
+            self.assertIsNone(root.find_by_path("top.xyelse4"))
+
+        with self.subTest("Misc maros"):
+            self.assertIsNotNone(root.find_by_path("top.abcd1234"))
+
+            desc = root.find_by_path("top").get_property('desc')
+            self.assertEqual(desc, "left side: \"right side\"")
+
+            name = root.find_by_path("top").get_property('name')
+            self.assertEqual(name, "b + 1 + 42 + a")
+
+        with self.subTest("conditional undef"):
+            self.assertIsNotNone(root.find_by_path("top.macrox_exists1"))
+            self.assertIsNone(root.find_by_path("top.macrox_dne1"))
+            self.assertIsNone(root.find_by_path("top.macrox_exists2"))
+            self.assertIsNotNone(root.find_by_path("top.macrox_dne2"))
+
+
+    def test_user_defines(self):
+        with self.subTest("foo"):
+            root = self.compile(
+                [self.src],
+                "top",
+                incl_search_paths=["rdl_src/incdir"],
+                defines={
+                    "FOO": "reg2_t foo_upp;",
+                }
+            )
+            self.assertIsNotNone(root.find_by_path("top.foo1"))
+            self.assertIsNotNone(root.find_by_path("top.foo_upp"))
+            self.assertIsNone(root.find_by_path("top.bar1"))
+            self.assertIsNone(root.find_by_path("top.bar1p5"))
+            self.assertIsNone(root.find_by_path("top.foo2"))
+            self.assertIsNone(root.find_by_path("top.bar2"))
+
+        with self.subTest("bar"):
+            root = self.compile(
+                [self.src],
+                "top",
+                incl_search_paths=["rdl_src/incdir"],
+                defines={
+                    "BAR": "reg2_t bar_upp;",
+                }
+            )
+            self.assertIsNone(root.find_by_path("top.foo1"))
+            self.assertIsNone(root.find_by_path("top.foo_upp"))
+            self.assertIsNotNone(root.find_by_path("top.bar1"))
+            self.assertIsNotNone(root.find_by_path("top.bar1p5"))
+            self.assertIsNotNone(root.find_by_path("top.bar_upp"))
+            self.assertIsNotNone(root.find_by_path("top.foo2"))
+            self.assertIsNone(root.find_by_path("top.bar2"))
+
+        with self.subTest("foo bar"):
+            root = self.compile(
+                [self.src],
+                "top",
+                incl_search_paths=["rdl_src/incdir"],
+                defines={
+                    "BAR": "reg2_t bar_upp;",
+                    "FOO": "reg2_t foo_upp;",
+                }
+            )
+            self.assertIsNotNone(root.find_by_path("top.foo1"))
+            self.assertIsNotNone(root.find_by_path("top.foo_upp"))
+            self.assertIsNone(root.find_by_path("top.bar1"))
+            self.assertIsNotNone(root.find_by_path("top.bar1p5"))
+            self.assertIsNotNone(root.find_by_path("top.bar_upp"))
+            self.assertIsNone(root.find_by_path("top.foo2"))
+            self.assertIsNotNone(root.find_by_path("top.bar2"))
 
     def test_src_ref_translation(self):
         root = self.compile(
@@ -112,47 +217,3 @@ class TestPreprocessor(RDLSourceTestCase):
             self.assertEqual(os.path.basename(src_ref.path), "preprocessor_incl2.rdl")
             self.assertEqual(src_ref.line, 3)
             self.assertEqual(src_ref.line_selection, (12, 12))
-
-        with self.subTest("conditional1"):
-            self.assertIsNone(root.find_by_path("top.foo1"))
-            self.assertIsNone(root.find_by_path("top.bar1"))
-            self.assertIsNotNone(root.find_by_path("top.else1"))
-            self.assertIsNone(root.find_by_path("top.macro_foo1"))
-            self.assertIsNone(root.find_by_path("top.macro_bar1"))
-            self.assertIsNotNone(root.find_by_path("top.macro_else1"))
-
-        with self.subTest("conditional2"):
-            self.assertIsNotNone(root.find_by_path("top.foo2"))
-            self.assertIsNone(root.find_by_path("top.bar2"))
-            self.assertIsNone(root.find_by_path("top.else2"))
-
-        with self.subTest("conditional3"):
-            self.assertIsNotNone(root.find_by_path("top.foo3"))
-            self.assertIsNone(root.find_by_path("top.bar3"))
-            self.assertIsNone(root.find_by_path("top.else3"))
-            self.assertIsNone(root.find_by_path("top.xxx3"))
-            self.assertIsNone(root.find_by_path("top.yyy3"))
-            self.assertIsNone(root.find_by_path("top.xyelse3"))
-
-        with self.subTest("conditional4"):
-            self.assertIsNone(root.find_by_path("top.foo4"))
-            self.assertIsNotNone(root.find_by_path("top.bar4"))
-            self.assertIsNone(root.find_by_path("top.else4"))
-            self.assertIsNone(root.find_by_path("top.xxx4"))
-            self.assertIsNotNone(root.find_by_path("top.yyy4"))
-            self.assertIsNone(root.find_by_path("top.xyelse4"))
-
-        with self.subTest("Misc maros"):
-            self.assertIsNotNone(root.find_by_path("top.abcd1234"))
-
-            desc = root.find_by_path("top").get_property('desc')
-            self.assertEqual(desc, "left side: \"right side\"")
-
-            name = root.find_by_path("top").get_property('name')
-            self.assertEqual(name, "b + 1 + 42 + a")
-
-        with self.subTest("conditional undef"):
-            self.assertIsNotNone(root.find_by_path("top.macrox_exists1"))
-            self.assertIsNone(root.find_by_path("top.macrox_dne1"))
-            self.assertIsNone(root.find_by_path("top.macrox_exists2"))
-            self.assertIsNotNone(root.find_by_path("top.macrox_dne2"))
