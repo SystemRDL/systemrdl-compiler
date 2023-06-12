@@ -13,12 +13,10 @@ from ..node import AddrmapNode, RegfileNode, MemNode, RegNode, FieldNode
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
 
-
 @dataclass
 class AddressRange:
     lo: int
     hi: int
-
 
 def _occupied_addresses(node: AddressableNode) -> Iterator[AddressRange]:
     """
@@ -178,7 +176,8 @@ class ValidateListener(walker.RDLListener):
 
                     # If it overlapped, keep it in the list since it could collide again
                     new_addr_check_buffer.append(prev_addressable)
-                    break  # don't need to check any more ranges if they overlap
+                    # don't need to check any more ranges if the components overlap at least one time
+                    break 
 
         self.addr_check_buffer_stack[-2] = new_addr_check_buffer
 

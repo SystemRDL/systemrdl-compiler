@@ -5,8 +5,8 @@ addrmap interleaved_arrays_test {
         hw = rw;
         } f1;
     }; 
-    test reg1[8] @ 0x20 += 0x40;
-    test reg2[8] @ 0x24 += 0x40;
+    test reg1[8] @ 0x00 += 0x08;
+    test reg2[8] @ 0x04 += 0x08;
 };
 
 addrmap interleaved_arrays_test_2 {
