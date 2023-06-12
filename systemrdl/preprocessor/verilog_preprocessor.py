@@ -1,15 +1,14 @@
 import re
-from typing import List, Union, Tuple, TYPE_CHECKING, Optional, Match
+from typing import List, Union, Tuple, TYPE_CHECKING, Optional, Match, Dict
 
 from ..source_ref import SourceRefBase, SegmentedSourceRef
 from . import segment_map
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
-    from typing import Dict
 
 class VerilogPreprocessor:
-    def __init__(self, env: 'RDLEnvironment', text: str, src_seg_map: Optional[segment_map.SegmentMap]=None, src_ref_override: Optional[SourceRefBase]=None):
+    def __init__(self, env: 'RDLEnvironment', text: str, src_seg_map: Optional[segment_map.SegmentMap]=None, src_ref_override: Optional[SourceRefBase]=None, defines: Optional[Dict[str,str]]=None):
         self.env = env
 
         # Unprocessed text
@@ -36,6 +35,10 @@ class VerilogPreprocessor:
 
         # Macro namespace
         self._macro_defs = {} # type: Dict[str, Macro]
+        if defines is not None:
+            for k, v in defines.items():
+                macro = Macro(v, [])
+                self._macro_defs[k] = macro
 
         self._conditional = ConditionalState()
         self._conditional_stack = [] # type: List[ConditionalState]
@@ -319,15 +322,16 @@ class VerilogPreprocessor:
         # Scan for macro args if necessary
         if macro.args:
             # scan for args
-            argv = self.macro_arg_scanner()
+            raw_argv = self.macro_arg_scanner()
 
             # run each argv through the main scanner
+            argv = []
             if self._conditional.is_active:
-                for i, (arg_text, arg_src_ref) in enumerate(argv):
+                for arg_text, arg_src_ref in raw_argv:
                     vpp = VerilogPreprocessor(self.env, arg_text, src_ref_override=arg_src_ref)
                     vpp._macro_defs = self._macro_defs
                     vpp._active_macro_stack = self._active_macro_stack
-                    argv[i], _ = vpp.preprocess()
+                    argv.append(vpp.preprocess()[0])
         else:
             argv = []
 
@@ -387,7 +391,7 @@ class VerilogPreprocessor:
     #---------------------------------------------------------------------------
     # Define scanner
     #---------------------------------------------------------------------------
-    def define_arg_scanner(self) -> list:
+    def define_arg_scanner(self) -> List[str]:
         """
         Scan in define args starting from the current scan_idx.
         scan_idx is advanced to after the arg list.
@@ -480,7 +484,7 @@ class VerilogPreprocessor:
     #---------------------------------------------------------------------------
     # Macro Arg Scanner
     #---------------------------------------------------------------------------
-    def macro_arg_scanner(self) -> list:
+    def macro_arg_scanner(self) -> List[Tuple[str, SourceRefBase]]:
         """
         When a macro is instantiated and has args, this scanner parses them
         and returns the raw extracted arg text
@@ -568,7 +572,7 @@ class VerilogPreprocessor:
 
         return argvs
 
-def get_illegal_trailing_text_pos(text: str, idx: int) -> Tuple[Union[int, None], Union[int, None]]:
+def get_illegal_trailing_text_pos(text: str, idx: int) -> Tuple[Optional[int], Optional[int]]:
     """
     Scan the remainder of a line for illegal text.
     Verilog preprocessor directives require that there be no trailing text,
@@ -668,11 +672,11 @@ class ConditionalState:
 
 
 class Macro:
-    def __init__(self, contents: str, args: list):
+    def __init__(self, contents: str, args: List[str]):
         self.args = args
         self.segments = self.prepare_segments(contents)
 
-    def prepare_segments(self, contents: str) -> list:
+    def prepare_segments(self, contents: str) -> List[Union[int, str]]:
         """
         Prepares the macro contents:
         - remove macro-specific quote escape sequences
@@ -730,7 +734,7 @@ class Macro:
         segments.append(contents[seg_start_idx:])
         return segments
 
-    def render_macro(self, parent_vpp: VerilogPreprocessor, argv: list, src_ref: SourceRefBase) -> str:
+    def render_macro(self, parent_vpp: VerilogPreprocessor, argv: List[str], src_ref: SourceRefBase) -> str:
         if len(argv) != len(self.args):
             parent_vpp.env.msg.fatal(
                 "Macro expansion requires %d arguments. Got %d instead"

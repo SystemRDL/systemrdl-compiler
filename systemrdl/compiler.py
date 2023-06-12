@@ -71,7 +71,7 @@ class RDLCompiler:
             Set to True by default.
 
             See :ref:`dpa_type_generation` for more details.
-        perl_safe_opcodes: list
+        perl_safe_opcodes: List[str]
             Perl preprocessor commands are executed within a
             `Perl Safe <https://perldoc.perl.org/Safe.html>`_ compartment to
             prevent malicious code execution.
@@ -179,7 +179,7 @@ class RDLCompiler:
         return udps
 
 
-    def preprocess_file(self, path: str, incl_search_paths: Optional[List[str]]=None) -> FileInfo:
+    def preprocess_file(self, path: str, incl_search_paths: Optional[List[str]]=None, defines: Optional[Dict[str,str]]=None) -> FileInfo:
         """
         Preprocess a single file without compiling it.
 
@@ -188,7 +188,7 @@ class RDLCompiler:
         path:str
             Path to an RDL source file
 
-        incl_search_paths:list
+        incl_search_paths: List[str]
             List of additional paths to search to resolve includes.
             If unset, defaults to an empty list.
 
@@ -196,6 +196,10 @@ class RDLCompiler:
 
             1. Search each path specified in ``incl_search_paths``.
             2. Path relative to the source file performing the include.
+
+        defines: Dict[str, str]
+            Dictionary of pre-defined verilog macros where the key is the macro
+            name, and the value is the macro text.
 
         Raises
         ------
@@ -213,12 +217,12 @@ class RDLCompiler:
         if incl_search_paths is None:
             incl_search_paths = []
 
-        input_stream, included_files = preprocessor.preprocess_file(self.env, path, incl_search_paths)
+        input_stream, included_files = preprocessor.preprocess_file(self.env, path, incl_search_paths, defines)
 
         return FileInfo(input_stream.strdata, included_files)
 
 
-    def compile_file(self, path: str, incl_search_paths: Optional[List[str]]=None) -> FileInfo:
+    def compile_file(self, path: str, incl_search_paths: Optional[List[str]]=None, defines: Optional[Dict[str,str]]=None) -> FileInfo:
         """
         Parse & compile a single file and append it to RDLCompiler's root
         namespace.
@@ -231,7 +235,7 @@ class RDLCompiler:
         path:str
             Path to an RDL source file
 
-        incl_search_paths:list
+        incl_search_paths: List[str]
             List of additional paths to search to resolve includes.
             If unset, defaults to an empty list.
 
@@ -239,6 +243,10 @@ class RDLCompiler:
 
             1. Search each path specified in ``incl_search_paths``.
             2. Path relative to the source file performing the include.
+
+        defines: Dict[str, str]
+            Dictionary of pre-defined verilog macros where the key is the macro
+            name, and the value is the macro text.
 
         Raises
         ------
@@ -258,7 +266,7 @@ class RDLCompiler:
         if incl_search_paths is None:
             incl_search_paths = []
 
-        input_stream, included_files = preprocessor.preprocess_file(self.env, path, incl_search_paths)
+        input_stream, included_files = preprocessor.preprocess_file(self.env, path, incl_search_paths, defines)
 
         # Run Antlr parser on input
         parsed_tree = sa_systemrdl.parse(

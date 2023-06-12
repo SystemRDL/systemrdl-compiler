@@ -30,7 +30,7 @@ class RDLSourceTestCase(unittest.TestCase):
         self.compiler_warning_flags = 0
         self.compiler_error_flags = 0
 
-    def compile(self, files, top_name=None, inst_name=None, parameters=None, incl_search_paths=None):
+    def compile(self, files, top_name=None, inst_name=None, parameters=None, incl_search_paths=None, defines=None):
         this_dir = os.path.dirname(os.path.realpath(__file__))
         rdlc = RDLCompiler(
             message_printer=TestPrinter(),
@@ -38,7 +38,7 @@ class RDLSourceTestCase(unittest.TestCase):
             error_flags=self.compiler_error_flags
         )
         for file in files:
-            rdlc.compile_file(os.path.join(this_dir, file), incl_search_paths)
+            rdlc.compile_file(os.path.join(this_dir, file), incl_search_paths, defines)
         return rdlc.elaborate(top_name, inst_name, parameters)
 
 

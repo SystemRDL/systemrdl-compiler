@@ -515,13 +515,9 @@ class ValidateListener(walker.RDLListener):
             # but the user never specified its value, so its readback value is
             # ambiguous.
             if (
-                not node.implements_storage
-                and node.is_sw_readable
-                and (node.get_property("reset") is None)
-                and (
-                    node.get_property("hw")
-                    in {rdltypes.AccessType.na, rdltypes.AccessType.r}
-                )
+                not node.is_alias
+                and not node.implements_storage and node.is_sw_readable and (node.get_property('reset') is None)
+                and (node.get_property('hw') in {rdltypes.AccessType.na, rdltypes.AccessType.r})
             ):
                 node.env.msg.message(
                     node.env.chk_missing_reset,
