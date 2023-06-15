@@ -822,3 +822,30 @@ components, be reminded that the following assignment mechanism exists:
 
     field {} a;
     // a->some_bool_p = false
+
+
+Interleaved arrays of components
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+A frequent question I get is whether arrays can be interleaved. For example:
+
+.. code-block:: systemrdl
+
+    addrmap test {
+        field my_field {};
+
+        reg {
+            my_field f[0:0] = 0;
+        } array1[2] @ 0x0 += 0x8;
+
+        reg {
+            my_field f[0:0] = 0;
+        } array2[2] @ 0x4 += 0x8;
+    };
+
+The SystemRDL spec does not provide explicit guidance on this, however some
+investigation of this topic has concluded that this should not be allowed.
+
+* Since SystemRDL has been co-designed with IP-XACT, cross-compatibility with
+  IP-XACT semantics should be preserved. `IP-XACT disallows this <https://github.com/SystemRDL/systemrdl-compiler/issues/160#issuecomment-1504697766>`_.
+* Richard Weber (SystemRDL standards comittee member) `confirms array interleaving
+  would cause compatibility issues and should not be allowed <https://forums.accellera.org/topic/7513-interleaved-registers>`_.
