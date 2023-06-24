@@ -31,7 +31,7 @@ Issue submission expectations:
 
 ## Contribute code using a pull request
 Pull requests are the best way to propose changes to the codebase. We actively
-welcome your pull requests. To maximize the chance of your pull request beiung accepted,
+welcome your pull requests. To maximize the chance of your pull request getting accepted,
 please review the expectations below.
 
 Pull request expectations:
