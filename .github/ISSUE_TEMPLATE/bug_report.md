@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-[ ] I have reviewed this project's [contribution guidelines](https://github.com/SystemRDL/systemrdl-compiler/blob/main/CONTRIBUTING.md)
+- [ ] I have reviewed this project's [contribution guidelines](https://github.com/SystemRDL/systemrdl-compiler/blob/main/CONTRIBUTING.md)
 
 **Describe the bug**
 A clear and concise description of what the bug is.
