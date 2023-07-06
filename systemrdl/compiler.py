@@ -373,6 +373,9 @@ class RDLCompiler:
         else:
             top_inst.inst_name = top_def_name
 
+        for param in top_inst.parameters:
+            param._value = None # Clear cached values
+
         # Override parameters as needed
         for param_name, value in parameters.items():
             # Find the parameter to override
@@ -391,8 +394,6 @@ class RDLCompiler:
                 self.msg.fatal("Incorrect type for top-level parameter override of '%s'" % param_name)
 
             parameter.expr = assign_expr
-            parameter._value = None # Ensure cached value is cleared
-
 
         # instantiate top_inst into the root component instance
         root_inst.children.append(top_inst)
