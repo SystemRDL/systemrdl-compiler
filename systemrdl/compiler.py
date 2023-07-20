@@ -391,7 +391,6 @@ class RDLCompiler:
                 self.msg.fatal("Incorrect type for top-level parameter override of '%s'" % param_name)
 
             parameter.expr = assign_expr
-            parameter._value = None # Ensure cached value is cleared
 
 
         # instantiate top_inst into the root component instance
