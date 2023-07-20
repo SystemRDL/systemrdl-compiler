@@ -1,4 +1,5 @@
 from typing import List, Type, TYPE_CHECKING
+import inspect
 
 from ..parser.SystemRDLParser import SystemRDLParser
 
@@ -68,7 +69,7 @@ class UDPVisitor(BaseVisitor):
             expr_type = expr.predict_type()
 
             # temporarily expand valid_type into an array
-            if issubclass(self._valid_type, rdltypes.references.RefType):
+            if inspect.isclass(self._valid_type) and issubclass(self._valid_type, rdltypes.references.RefType):
                 valid_types = self._valid_type.expanded
             else:
                 valid_types = (self._valid_type,) # type: ignore
@@ -91,9 +92,7 @@ class UDPVisitor(BaseVisitor):
                     src_ref_from_antlr(expr_ctx)
                 )
 
-            # OK to immediately evaluate the expression since there is no way that it
-            # can depend on any post-elaborate references (parameters)
-            self._default_assignment = expr.get_value()
+            self._default_assignment = expr
 
         constr_componentwidth = self._constr_componentwidth
         if constr_componentwidth is None:

@@ -94,6 +94,7 @@ def run_setup(with_binary):
             "Documentation": "http://systemrdl-compiler.readthedocs.io",
             "Source": "https://github.com/SystemRDL/systemrdl-compiler",
             "Tracker": "https://github.com/SystemRDL/systemrdl-compiler/issues",
+            "Changelog": "https://github.com/SystemRDL/systemrdl-compiler/releases",
         },
     )
 
