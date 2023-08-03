@@ -58,6 +58,14 @@ class UserProperty(PropertyRule):
                 # As per 15.2.1-c. UDP is still "bound" to the component, so give
                 # it the NoValue class as a value
 
+                # Check if property is allowed in this component
+                if type(comp_def) not in self.bindable_to:
+                    self.env.msg.fatal(
+                        "The property '%s' is not valid for '%s' components"
+                        % (self.get_name(), type(comp_def).__name__.lower()),
+                        src_ref
+                    )
+
                 # Circumvent the usual assignment function to avoid some pesky validation
                 comp_def.properties[self.get_name()] = rdltypes.NoValue
                 if src_ref is not None:
