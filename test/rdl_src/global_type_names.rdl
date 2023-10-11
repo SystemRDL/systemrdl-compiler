@@ -1,0 +1,25 @@
+reg r_global {
+    field {} f1[4];
+
+    field myfield {};
+    myfield f2;
+    myfield f3[4];
+    field myfield2 {fieldwidth = 4;};
+    myfield2 f4;
+};
+
+regfile rf_global #(
+    longint unsigned NUM = 4
+){
+    reg r_local {
+        field {} f_param[NUM];
+        field myfield {};
+        myfield f_param2[NUM];
+    } r1;
+    r_global r2;
+};
+
+addrmap top {
+    rf_global rf1;
+    rf_global #(.NUM (8)) rf2;
+};

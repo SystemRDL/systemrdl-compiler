@@ -686,6 +686,45 @@ class Node:
         else:
             return self.inst.original_def.type_name
 
+    def get_global_type_name(self, separator: str = "__") -> Optional[str]:
+        """
+        Returns a globally scoped type name that can be used to uniquely identify this
+        node's type.
+
+        If scope or type name information is not available due to the node being imported
+        from a non-RDL source, this will return None.
+
+        .. versionadded:: 1.27.0
+        """
+
+        if (self.type_name is None) or (self.inst.parent_scope is None):
+            # Scope information is not known
+            return None
+
+        if isinstance(self.inst.parent_scope, comp.Root):
+            # Declaration of this was in the root scope
+            return self.type_name
+
+        # Due to namespace nesting properties, it is guaranteed that the parent
+        # scope definition is also going to be one of the node's ancestors.
+        # Seek up and find it
+        current_parent_node = self.parent
+        while current_parent_node:
+            if current_parent_node.inst.original_def is None:
+                # Original def reference is unknown
+                return None
+            if current_parent_node.inst.original_def is self.inst.parent_scope:
+                # Parent node's definition matches the scope we're looking for
+                parent_scope_path = current_parent_node.get_global_type_name(separator)
+                if parent_scope_path is None:
+                    return None
+                return parent_scope_path + separator + self.type_name
+
+            current_parent_node = current_parent_node.parent
+
+        # Failed to find the path
+        return None
+
     @property
     def external(self) -> bool:
         """
@@ -1006,6 +1045,29 @@ class SignalNode(VectorNode):
 
 #===============================================================================
 class FieldNode(VectorNode):
+    def get_global_type_name(self, separator: str = "__") -> Optional[str]:
+        name = super().get_global_type_name(separator)
+        if name is None:
+            return None
+
+        # Fields may reuse the same type, but end up instantiating different widths
+        # Uniquify the type name further if the field width was overridden when instantiating
+        if self.inst.original_def is None:
+            suffix = ""
+        elif self.inst.original_def.type_name is None:
+            # is an anonymous definition. No extra suffix needed
+            suffix =  ""
+        elif "fieldwidth" in self.list_properties():
+            # fieldwidth was explicitly set.
+            # This type name is already sufficiently distinct
+            suffix =  ""
+        elif self.width == 1:
+            # field width is the default. Skip suffix
+            suffix =  ""
+        else:
+            suffix = "_w%d" % self.width
+
+        return name + suffix
 
     @property
     def is_virtual(self) -> bool:
