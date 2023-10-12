@@ -3,3 +3,6 @@ git+https://github.com/amykyta3/sphinx_csv_filter.git
 
 sphinx >= 5.0.0
 sphinx-rtd-theme >= 1.0.0
+
+# Install project and dependencies
+../
