@@ -71,7 +71,7 @@ def run_setup(with_binary):
         ext_modules=ext_modules,
         cmdclass={"build_ext": ve_build_ext},
         python_requires='>=3.5.2',
-        install_requires=parse_requirements("requirements.txt")
+        install_requires=parse_requirements("requirements.txt"),
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Programming Language :: Python",
