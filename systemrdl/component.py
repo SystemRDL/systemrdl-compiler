@@ -14,9 +14,6 @@ if TYPE_CHECKING:
 class Component:
     """
     Base class for all component types
-
-    .. inheritance-diagram:: systemrdl.component
-        :top-classes: ~Component
     """
 
     def __init__(self) -> None:

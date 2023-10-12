@@ -16,10 +16,6 @@ class Node:
     """
     The Node object is a higher-level overlay that provides a more user-friendly
     interface to query the compiled RDL object model.
-
-    .. inheritance-diagram:: systemrdl.node
-        :top-classes: ~Node
-
     """
 
     def __init__(self, inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']):

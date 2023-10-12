@@ -31,7 +31,6 @@ author = 'Alex Mykyta'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
-    'sphinx.ext.inheritance_diagram',
     'crate.sphinx.csv',
 ]
 
