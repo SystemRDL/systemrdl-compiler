@@ -18,6 +18,11 @@ with open(os.path.join("systemrdl", "__about__.py"), encoding='utf-8') as f:
     exec(f.read(), v_dict)
     rdl_version = v_dict['__version__']
 
+def parse_requirements(filename):
+    lineiter = (line.strip() for line in open(filename))
+    reqs = [line for line in lineiter if line and not line.startswith("#")]
+    return reqs
+
 target = platform.system().lower()
 PLATFORMS = {'windows', 'linux', 'darwin', 'cygwin'}
 for known in PLATFORMS:
@@ -66,11 +71,7 @@ def run_setup(with_binary):
         ext_modules=ext_modules,
         cmdclass={"build_ext": ve_build_ext},
         python_requires='>=3.5.2',
-        install_requires=[
-            "antlr4-python3-runtime >= 4.11, < 4.14",
-            "colorama",
-            "markdown",
-        ],
+        install_requires=parse_requirements("requirements.txt")
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Programming Language :: Python",
