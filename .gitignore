@@ -9,6 +9,7 @@
 **/*.rpt
 **/htmlcov
 **/*.so
+**/.idea
 
 build/
 dist/

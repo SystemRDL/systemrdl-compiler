@@ -1,5 +1,5 @@
 
-// Generated from SystemRDL.g4 by ANTLR 4.11.1
+// Generated from SystemRDL.g4 by ANTLR 4.13.1
 
 
 #include "SystemRDLVisitor.h"
@@ -37,10 +37,19 @@ struct SystemRDLParserStaticData final {
 };
 
 ::antlr4::internal::OnceFlag systemrdlParserOnceFlag;
+#if ANTLR4_USE_THREAD_LOCAL_CACHE
+static thread_local
+#endif
 SystemRDLParserStaticData *systemrdlParserStaticData = nullptr;
 
 void systemrdlParserInitialize() {
+#if ANTLR4_USE_THREAD_LOCAL_CACHE
+  if (systemrdlParserStaticData != nullptr) {
+    return;
+  }
+#else
   assert(systemrdlParserStaticData == nullptr);
+#endif
   auto staticData = std::make_unique<SystemRDLParserStaticData>(
     std::vector<std::string>{
       "root", "eval_expr_root", "root_elem", "component_def", "explicit_component_inst", 
@@ -476,9 +485,9 @@ SystemRDLParser::RootContext* SystemRDLParser::root() {
     setState(175);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & -1151971457975189504) != 0 || (((_la - 64) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 64)) & 2305843009213736847) != 0) {
+    while ((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & -1151971457975189504) != 0) || ((((_la - 64) & ~ 0x3fULL) == 0) &&
+      ((1ULL << (_la - 64)) & 2305843009213736847) != 0)) {
       setState(170);
       root_elem();
       setState(171);
@@ -1155,9 +1164,9 @@ SystemRDLParser::Component_bodyContext* SystemRDLParser::component_body() {
     setState(247);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & -1151971457975189504) != 0 || (((_la - 64) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 64)) & 2305843009213728655) != 0) {
+    while ((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & -1151971457975189504) != 0) || ((((_la - 64) & ~ 0x3fULL) == 0) &&
+      ((1ULL << (_la - 64)) & 2305843009213728655) != 0)) {
       setState(242);
       component_body_elem();
       setState(243);
@@ -1933,8 +1942,8 @@ SystemRDLParser::Component_type_primaryContext* SystemRDLParser::component_type_
     setState(311);
     antlrcpp::downCast<Component_type_primaryContext *>(_localctx)->kw = _input->LT(1);
     _la = _input->LA(1);
-    if (!(((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 33285996544) != 0)) {
+    if (!((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 33285996544) != 0))) {
       antlrcpp::downCast<Component_type_primaryContext *>(_localctx)->kw = _errHandler->recoverInline(this);
     }
     else {
@@ -2492,8 +2501,8 @@ SystemRDLParser::ExprContext* SystemRDLParser::expr(int precedence) {
         setState(353);
         antlrcpp::downCast<UnaryExprContext *>(_localctx)->op = _input->LT(1);
         _la = _input->LA(1);
-        if (!((((_la - 96) & ~ 0x3fULL) == 0) &&
-          ((1ULL << (_la - 96)) & 3823) != 0)) {
+        if (!(((((_la - 96) & ~ 0x3fULL) == 0) &&
+          ((1ULL << (_la - 96)) & 3823) != 0))) {
           antlrcpp::downCast<UnaryExprContext *>(_localctx)->op = _errHandler->recoverInline(this);
         }
         else {
@@ -2589,8 +2598,8 @@ SystemRDLParser::ExprContext* SystemRDLParser::expr(int precedence) {
           setState(362);
           antlrcpp::downCast<BinaryExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
-          if (!((((_la - 110) & ~ 0x3fULL) == 0) &&
-            ((1ULL << (_la - 110)) & 13) != 0)) {
+          if (!(((((_la - 110) & ~ 0x3fULL) == 0) &&
+            ((1ULL << (_la - 110)) & 13) != 0))) {
             antlrcpp::downCast<BinaryExprContext *>(_localctx)->op = _errHandler->recoverInline(this);
           }
           else {
@@ -2660,8 +2669,8 @@ SystemRDLParser::ExprContext* SystemRDLParser::expr(int precedence) {
           setState(371);
           antlrcpp::downCast<BinaryExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
-          if (!((((_la - 117) & ~ 0x3fULL) == 0) &&
-            ((1ULL << (_la - 117)) & 15) != 0)) {
+          if (!(((((_la - 117) & ~ 0x3fULL) == 0) &&
+            ((1ULL << (_la - 117)) & 15) != 0))) {
             antlrcpp::downCast<BinaryExprContext *>(_localctx)->op = _errHandler->recoverInline(this);
           }
           else {
@@ -3226,8 +3235,8 @@ SystemRDLParser::CastContext* SystemRDLParser::cast() {
         setState(433);
         antlrcpp::downCast<CastTypeContext *>(_localctx)->typ = _input->LT(1);
         _la = _input->LA(1);
-        if (!(((_la & ~ 0x3fULL) == 0) &&
-          ((1ULL << _la) & 1835008) != 0)) {
+        if (!((((_la & ~ 0x3fULL) == 0) &&
+          ((1ULL << _la) & 1835008) != 0))) {
           antlrcpp::downCast<CastTypeContext *>(_localctx)->typ = _errHandler->recoverInline(this);
         }
         else {
@@ -3641,8 +3650,8 @@ SystemRDLParser::Data_typeContext* SystemRDLParser::data_type() {
         setState(465);
         antlrcpp::downCast<Data_typeContext *>(_localctx)->kw = _input->LT(1);
         _la = _input->LA(1);
-        if (!(((_la & ~ 0x3fULL) == 0) &&
-          ((1ULL << _la) & 125829120) != 0)) {
+        if (!((((_la & ~ 0x3fULL) == 0) &&
+          ((1ULL << _la) & 125829120) != 0))) {
           antlrcpp::downCast<Data_typeContext *>(_localctx)->kw = _errHandler->recoverInline(this);
         }
         else {
@@ -4528,8 +4537,8 @@ SystemRDLParser::Accesstype_literalContext* SystemRDLParser::accesstype_literal(
     setState(533);
     antlrcpp::downCast<Accesstype_literalContext *>(_localctx)->kw = _input->LT(1);
     _la = _input->LA(1);
-    if (!(((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 34909494181888) != 0)) {
+    if (!((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 34909494181888) != 0))) {
       antlrcpp::downCast<Accesstype_literalContext *>(_localctx)->kw = _errHandler->recoverInline(this);
     }
     else {
@@ -4595,8 +4604,8 @@ SystemRDLParser::Onreadtype_literalContext* SystemRDLParser::onreadtype_literal(
     setState(535);
     antlrcpp::downCast<Onreadtype_literalContext *>(_localctx)->kw = _input->LT(1);
     _la = _input->LA(1);
-    if (!(((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 246290604621824) != 0)) {
+    if (!((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 246290604621824) != 0))) {
       antlrcpp::downCast<Onreadtype_literalContext *>(_localctx)->kw = _errHandler->recoverInline(this);
     }
     else {
@@ -4686,8 +4695,8 @@ SystemRDLParser::Onwritetype_literalContext* SystemRDLParser::onwritetype_litera
     setState(537);
     antlrcpp::downCast<Onwritetype_literalContext *>(_localctx)->kw = _input->LT(1);
     _la = _input->LA(1);
-    if (!(((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 143833713099145216) != 0)) {
+    if (!((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 143833713099145216) != 0))) {
       antlrcpp::downCast<Onwritetype_literalContext *>(_localctx)->kw = _errHandler->recoverInline(this);
     }
     else {
@@ -4753,8 +4762,8 @@ SystemRDLParser::Addressingtype_literalContext* SystemRDLParser::addressingtype_
     setState(539);
     antlrcpp::downCast<Addressingtype_literalContext *>(_localctx)->kw = _input->LT(1);
     _la = _input->LA(1);
-    if (!(((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 1008806316530991104) != 0)) {
+    if (!((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 1008806316530991104) != 0))) {
       antlrcpp::downCast<Addressingtype_literalContext *>(_localctx)->kw = _errHandler->recoverInline(this);
     }
     else {
@@ -5587,8 +5596,8 @@ SystemRDLParser::Prop_keywordContext* SystemRDLParser::prop_keyword() {
     setState(607);
     antlrcpp::downCast<Prop_keywordContext *>(_localctx)->kw = _input->LT(1);
     _la = _input->LA(1);
-    if (!(((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 3459714491866939392) != 0)) {
+    if (!((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 3459714491866939392) != 0))) {
       antlrcpp::downCast<Prop_keywordContext *>(_localctx)->kw = _errHandler->recoverInline(this);
     }
     else {
@@ -5662,8 +5671,8 @@ SystemRDLParser::Prop_modContext* SystemRDLParser::prop_mod() {
     setState(609);
     antlrcpp::downCast<Prop_modContext *>(_localctx)->kw = _input->LT(1);
     _la = _input->LA(1);
-    if (!((((_la - 62) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 62)) & 31) != 0)) {
+    if (!(((((_la - 62) & ~ 0x3fULL) == 0) &&
+      ((1ULL << (_la - 62)) & 31) != 0))) {
       antlrcpp::downCast<Prop_modContext *>(_localctx)->kw = _errHandler->recoverInline(this);
     }
     else {
@@ -5747,8 +5756,8 @@ SystemRDLParser::Udp_defContext* SystemRDLParser::udp_def() {
       setState(619); 
       _errHandler->sync(this);
       _la = _input->LA(1);
-    } while ((((_la - 69) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 69)) & 4109) != 0);
+    } while (((((_la - 69) & ~ 0x3fULL) == 0) &&
+      ((1ULL << (_la - 69)) & 4109) != 0));
     setState(621);
     match(SystemRDLParser::T__2);
    
@@ -6655,8 +6664,8 @@ SystemRDLParser::Struct_defContext* SystemRDLParser::struct_def() {
     setState(710);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 67777593344) != 0 || _la == SystemRDLParser::ID) {
+    while ((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 67777593344) != 0) || _la == SystemRDLParser::ID) {
       setState(705);
       struct_elem();
       setState(706);
@@ -7076,9 +7085,9 @@ SystemRDLParser::Constraint_bodyContext* SystemRDLParser::constraint_body() {
     setState(746);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 4611685949709748292) != 0 || (((_la - 80) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 80)) & 35184622694401) != 0) {
+    while ((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 4611685949709748292) != 0) || ((((_la - 80) & ~ 0x3fULL) == 0) &&
+      ((1ULL << (_la - 80)) & 35184622694401) != 0)) {
       setState(741);
       constraint_body_elem();
       setState(742);
@@ -7328,8 +7337,8 @@ SystemRDLParser::Constr_relationalContext* SystemRDLParser::constr_relational() 
     setState(766);
     antlrcpp::downCast<Constr_relationalContext *>(_localctx)->op = _input->LT(1);
     _la = _input->LA(1);
-    if (!((((_la - 114) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 114)) & 125) != 0)) {
+    if (!(((((_la - 114) & ~ 0x3fULL) == 0) &&
+      ((1ULL << (_la - 114)) & 125) != 0))) {
       antlrcpp::downCast<Constr_relationalContext *>(_localctx)->op = _errHandler->recoverInline(this);
     }
     else {
@@ -7779,5 +7788,9 @@ bool SystemRDLParser::exprSempred(ExprContext *_localctx, size_t predicateIndex)
 }
 
 void SystemRDLParser::initialize() {
+#if ANTLR4_USE_THREAD_LOCAL_CACHE
+  systemrdlParserInitialize();
+#else
   ::antlr4::internal::call_once(systemrdlParserOnceFlag, systemrdlParserInitialize);
+#endif
 }

@@ -1,4 +1,4 @@
-# Generated from SystemRDL.g4 by ANTLR 4.11.1
+# Generated from SystemRDL.g4 by ANTLR 4.13.1
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -610,7 +610,7 @@ class SystemRDLParser ( Parser ):
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.11.1")
+        self.checkVersion("4.13.1")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
@@ -656,7 +656,7 @@ class SystemRDLParser ( Parser ):
             self.state = 175
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while ((_la) & ~0x3f) == 0 and ((1 << _la) & -1151971457975189504) != 0 or (((_la - 64)) & ~0x3f) == 0 and ((1 << (_la - 64)) & 2305843009213736847) != 0:
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & -1151971457975189504) != 0) or ((((_la - 64)) & ~0x3f) == 0 and ((1 << (_la - 64)) & 2305843009213736847) != 0):
                 self.state = 170
                 self.root_elem()
                 self.state = 171
@@ -1224,7 +1224,7 @@ class SystemRDLParser ( Parser ):
             self.state = 247
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while ((_la) & ~0x3f) == 0 and ((1 << _la) & -1151971457975189504) != 0 or (((_la - 64)) & ~0x3f) == 0 and ((1 << (_la - 64)) & 2305843009213728655) != 0:
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & -1151971457975189504) != 0) or ((((_la - 64)) & ~0x3f) == 0 and ((1 << (_la - 64)) & 2305843009213728655) != 0):
                 self.state = 242
                 self.component_body_elem()
                 self.state = 243
@@ -1876,7 +1876,7 @@ class SystemRDLParser ( Parser ):
             self.state = 311
             localctx.kw = self._input.LT(1)
             _la = self._input.LA(1)
-            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 33285996544) != 0):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 33285996544) != 0)):
                 localctx.kw = self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -2315,7 +2315,7 @@ class SystemRDLParser ( Parser ):
                 self.state = 353
                 localctx.op = self._input.LT(1)
                 _la = self._input.LA(1)
-                if not((((_la - 96)) & ~0x3f) == 0 and ((1 << (_la - 96)) & 3823) != 0):
+                if not(((((_la - 96)) & ~0x3f) == 0 and ((1 << (_la - 96)) & 3823) != 0)):
                     localctx.op = self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
@@ -2368,7 +2368,7 @@ class SystemRDLParser ( Parser ):
                         self.state = 362
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
-                        if not((((_la - 110)) & ~0x3f) == 0 and ((1 << (_la - 110)) & 13) != 0):
+                        if not(((((_la - 110)) & ~0x3f) == 0 and ((1 << (_la - 110)) & 13) != 0)):
                             localctx.op = self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
@@ -2425,7 +2425,7 @@ class SystemRDLParser ( Parser ):
                         self.state = 371
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
-                        if not((((_la - 117)) & ~0x3f) == 0 and ((1 << (_la - 117)) & 15) != 0):
+                        if not(((((_la - 117)) & ~0x3f) == 0 and ((1 << (_la - 117)) & 15) != 0)):
                             localctx.op = self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
@@ -2915,7 +2915,7 @@ class SystemRDLParser ( Parser ):
                 self.state = 433
                 localctx.typ = self._input.LT(1)
                 _la = self._input.LA(1)
-                if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 1835008) != 0):
+                if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 1835008) != 0)):
                     localctx.typ = self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
@@ -3201,7 +3201,7 @@ class SystemRDLParser ( Parser ):
                 self.state = 465
                 localctx.kw = self._input.LT(1)
                 _la = self._input.LA(1)
-                if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 125829120) != 0):
+                if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 125829120) != 0)):
                     localctx.kw = self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
@@ -3911,7 +3911,7 @@ class SystemRDLParser ( Parser ):
             self.state = 533
             localctx.kw = self._input.LT(1)
             _la = self._input.LA(1)
-            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 34909494181888) != 0):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 34909494181888) != 0)):
                 localctx.kw = self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -3964,7 +3964,7 @@ class SystemRDLParser ( Parser ):
             self.state = 535
             localctx.kw = self._input.LT(1)
             _la = self._input.LA(1)
-            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 246290604621824) != 0):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 246290604621824) != 0)):
                 localctx.kw = self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -4035,7 +4035,7 @@ class SystemRDLParser ( Parser ):
             self.state = 537
             localctx.kw = self._input.LT(1)
             _la = self._input.LA(1)
-            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 143833713099145216) != 0):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 143833713099145216) != 0)):
                 localctx.kw = self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -4088,7 +4088,7 @@ class SystemRDLParser ( Parser ):
             self.state = 539
             localctx.kw = self._input.LT(1)
             _la = self._input.LA(1)
-            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 1008806316530991104) != 0):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 1008806316530991104) != 0)):
                 localctx.kw = self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -4764,7 +4764,7 @@ class SystemRDLParser ( Parser ):
             self.state = 607
             localctx.kw = self._input.LT(1)
             _la = self._input.LA(1)
-            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 3459714491866939392) != 0):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 3459714491866939392) != 0)):
                 localctx.kw = self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -4823,7 +4823,7 @@ class SystemRDLParser ( Parser ):
             self.state = 609
             localctx.kw = self._input.LT(1)
             _la = self._input.LA(1)
-            if not((((_la - 62)) & ~0x3f) == 0 and ((1 << (_la - 62)) & 31) != 0):
+            if not(((((_la - 62)) & ~0x3f) == 0 and ((1 << (_la - 62)) & 31) != 0)):
                 localctx.kw = self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -4893,7 +4893,7 @@ class SystemRDLParser ( Parser ):
                 self.state = 619 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if not ((((_la - 69)) & ~0x3f) == 0 and ((1 << (_la - 69)) & 4109) != 0):
+                if not (((((_la - 69)) & ~0x3f) == 0 and ((1 << (_la - 69)) & 4109) != 0)):
                     break
 
             self.state = 621
@@ -5639,7 +5639,7 @@ class SystemRDLParser ( Parser ):
             self.state = 710
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while ((_la) & ~0x3f) == 0 and ((1 << _la) & 67777593344) != 0 or _la==125:
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 67777593344) != 0) or _la==125:
                 self.state = 705
                 self.struct_elem()
                 self.state = 706
@@ -5979,7 +5979,7 @@ class SystemRDLParser ( Parser ):
             self.state = 746
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while ((_la) & ~0x3f) == 0 and ((1 << _la) & 4611685949709748292) != 0 or (((_la - 80)) & ~0x3f) == 0 and ((1 << (_la - 80)) & 35184622694401) != 0:
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 4611685949709748292) != 0) or ((((_la - 80)) & ~0x3f) == 0 and ((1 << (_la - 80)) & 35184622694401) != 0):
                 self.state = 741
                 self.constraint_body_elem()
                 self.state = 742
@@ -6188,7 +6188,7 @@ class SystemRDLParser ( Parser ):
             self.state = 766
             localctx.op = self._input.LT(1)
             _la = self._input.LA(1)
-            if not((((_la - 114)) & ~0x3f) == 0 and ((1 << (_la - 114)) & 125) != 0):
+            if not(((((_la - 114)) & ~0x3f) == 0 and ((1 << (_la - 114)) & 125) != 0)):
                 localctx.op = self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)

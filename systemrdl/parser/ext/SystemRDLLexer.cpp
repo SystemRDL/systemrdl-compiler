@@ -1,5 +1,5 @@
 
-// Generated from SystemRDL.g4 by ANTLR 4.11.1
+// Generated from SystemRDL.g4 by ANTLR 4.13.1
 
 
 #include "SystemRDLLexer.h"
@@ -42,10 +42,19 @@ struct SystemRDLLexerStaticData final {
 };
 
 ::antlr4::internal::OnceFlag systemrdllexerLexerOnceFlag;
+#if ANTLR4_USE_THREAD_LOCAL_CACHE
+static thread_local
+#endif
 SystemRDLLexerStaticData *systemrdllexerLexerStaticData = nullptr;
 
 void systemrdllexerLexerInitialize() {
+#if ANTLR4_USE_THREAD_LOCAL_CACHE
+  if (systemrdllexerLexerStaticData != nullptr) {
+    return;
+  }
+#else
   assert(systemrdllexerLexerStaticData == nullptr);
+#endif
   auto staticData = std::make_unique<SystemRDLLexerStaticData>(
     std::vector<std::string>{
       "T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "T__6", "T__7", "T__8", 
@@ -498,5 +507,9 @@ const atn::ATN& SystemRDLLexer::getATN() const {
 
 
 void SystemRDLLexer::initialize() {
+#if ANTLR4_USE_THREAD_LOCAL_CACHE
+  systemrdllexerLexerInitialize();
+#else
   ::antlr4::internal::call_once(systemrdllexerLexerOnceFlag, systemrdllexerLexerInitialize);
+#endif
 }

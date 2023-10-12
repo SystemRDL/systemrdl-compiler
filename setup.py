@@ -67,7 +67,7 @@ def run_setup(with_binary):
         cmdclass={"build_ext": ve_build_ext},
         python_requires='>=3.5.2',
         install_requires=[
-            "antlr4-python3-runtime >= 4.11, < 4.12",
+            "antlr4-python3-runtime >= 4.11, < 4.14",
             "colorama",
             "markdown",
         ],
@@ -82,6 +82,7 @@ def run_setup(with_binary):
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
             "Programming Language :: Python :: 3 :: Only",
             "Intended Audience :: Developers",
             "License :: OSI Approved :: MIT License",

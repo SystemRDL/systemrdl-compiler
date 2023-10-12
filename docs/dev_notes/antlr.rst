@@ -10,7 +10,7 @@ From: https://github.com/antlr/antlr4/blob/master/doc/getting-started.md
 Download antlr4::
 
     cd /usr/local/lib
-    sudo curl -O https://www.antlr.org/download/antlr-4.11.1-complete.jar
+    sudo curl -O https://www.antlr.org/download/antlr-4.13.1-complete.jar
 
 
 Antlr API reference: http://www.antlr.org/api/Java/index.html
@@ -22,7 +22,7 @@ Upgrading the Antlr version
 * Download latest jar file (See above)
 * Install latest python packages::
 
-    python3 -m pip install --user -U antlr4-python3-runtime speedy-antlr-tool mypy
+    python3 -m pip install -U antlr4-python3-runtime speedy-antlr-tool mypy
 
 * Download C++ runtime source distribution from https://www.antlr.org/download.html
 
