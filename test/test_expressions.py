@@ -56,11 +56,11 @@ class TestBuiltinLiteral(RDLSourceTestCase):
 #===============================================================================
 class TestArrayLiteral(RDLSourceTestCase):
     def test_valid(self):
-        self.assertEqual((rdlt.ArrayPlaceholder(None), []), self.eval_RDL_expr("('{})"))
-        self.assertEqual((rdlt.ArrayPlaceholder(int), [1,2,3,4]), self.eval_RDL_expr("('{1,2,3,4})"))
-        self.assertEqual((rdlt.ArrayPlaceholder(str), ["foo", "bar", "baz"]), self.eval_RDL_expr('(\'{"foo", "bar", "baz"})'))
+        self.assertEqual((rdlt.ArrayedType(None), []), self.eval_RDL_expr("('{})"))
+        self.assertEqual((rdlt.ArrayedType(int), [1,2,3,4]), self.eval_RDL_expr("('{1,2,3,4})"))
+        self.assertEqual((rdlt.ArrayedType(str), ["foo", "bar", "baz"]), self.eval_RDL_expr('(\'{"foo", "bar", "baz"})'))
         self.assertEqual(
-            (rdlt.ArrayPlaceholder(rdlt.AccessType), [rdlt.AccessType.rw, rdlt.AccessType.na]),
+            (rdlt.ArrayedType(rdlt.AccessType), [rdlt.AccessType.rw, rdlt.AccessType.na]),
             self.eval_RDL_expr("('{rw, na})")
         )
 
@@ -553,8 +553,8 @@ class TestTernaryOperator(RDLSourceTestCase):
         self.assertEqual((int, 456), self.eval_RDL_expr("0 ? 123 : 456"))
         self.assertEqual((int, 1), self.eval_RDL_expr("true ? true : false"))
         self.assertEqual((int, 0), self.eval_RDL_expr("false ? true : false"))
-        self.assertEqual((rdlt.ArrayPlaceholder(str), ['foo','bar']), self.eval_RDL_expr('true ? \'{"foo", "bar"} : \'{"baz"}'))
-        self.assertEqual((rdlt.ArrayPlaceholder(str), ['baz']), self.eval_RDL_expr('false ? \'{"foo", "bar"} : \'{"baz"}'))
+        self.assertEqual((rdlt.ArrayedType(str), ['foo','bar']), self.eval_RDL_expr('true ? \'{"foo", "bar"} : \'{"baz"}'))
+        self.assertEqual((rdlt.ArrayedType(str), ['baz']), self.eval_RDL_expr('false ? \'{"foo", "bar"} : \'{"baz"}'))
 
     def test_right_associative(self):
         # A ? B : C ? D : E

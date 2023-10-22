@@ -8,9 +8,9 @@ from .user_enum import UserEnumMemberContainer, UserEnum, is_user_enum
 
 from .user_struct import UserStruct, is_user_struct
 
-from .array import ArrayPlaceholder
+from .array import ArrayedType
 
-from .references import ComponentRef, PropertyReference
+from .references import ComponentRef, PropertyReference, RefType
 
 if TYPE_CHECKING:
     from .typing import PreElabRDLType
@@ -32,7 +32,7 @@ def get_rdltype(value: Any) -> 'PreElabRDLType':
     elif isinstance(value, BuiltinEnum):
         return type(value)
     elif isinstance(value, list):
-        # Create ArrayPlaceholder representation
+        # Create ArrayedType representation
         # Determine element type and make sure it is uniform
         array_el_type = None # type: Optional[PreElabRDLType]
         for el in value:
@@ -43,7 +43,7 @@ def get_rdltype(value: Any) -> 'PreElabRDLType':
             if (array_el_type is not None) and (el_type != array_el_type):
                 return None
             array_el_type = el_type
-        return ArrayPlaceholder(array_el_type)
+        return ArrayedType(array_el_type)
     else:
         return None
 

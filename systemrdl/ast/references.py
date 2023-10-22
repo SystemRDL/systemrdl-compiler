@@ -54,12 +54,12 @@ class ArrayIndex(ASTNode):
             )
 
         array_type = self.array.predict_type()
-        if not isinstance(array_type, rdltypes.ArrayPlaceholder):
+        if not isinstance(array_type, rdltypes.ArrayedType):
             self.msg.fatal(
                 "Cannot index non-array type",
                 self.array.src_ref
             )
-        assert isinstance(array_type, rdltypes.ArrayPlaceholder)
+        assert isinstance(array_type, rdltypes.ArrayedType)
 
         return array_type.element_type
 

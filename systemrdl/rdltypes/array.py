@@ -3,7 +3,7 @@ from typing import Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from .typing import PreElabRDLType
 
-class ArrayPlaceholder():
+class ArrayedType():
     """
     Placeholder class to describe array types
 
@@ -15,7 +15,7 @@ class ArrayPlaceholder():
         self.element_type = element_type
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, ArrayPlaceholder):
+        if isinstance(other, ArrayedType):
             return self.element_type == other.element_type
         else:
             return NotImplemented

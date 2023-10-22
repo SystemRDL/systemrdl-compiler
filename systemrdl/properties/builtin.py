@@ -221,14 +221,14 @@ class Prop_hdl_path_gate(PropertyRule):
 
 class Prop_hdl_path_gate_slice(PropertyRule):
     bindable_to = {comp.Field, comp.Mem}
-    valid_types = (rdltypes.ArrayPlaceholder(str),)
+    valid_types = (rdltypes.ArrayedType(str),)
     default = None
     dyn_assign_allowed = True
 
 
 class Prop_hdl_path_slice(PropertyRule):
     bindable_to = {comp.Field, comp.Mem}
-    valid_types = (rdltypes.ArrayPlaceholder(str),)
+    valid_types = (rdltypes.ArrayedType(str),)
     default = None
     dyn_assign_allowed = True
 

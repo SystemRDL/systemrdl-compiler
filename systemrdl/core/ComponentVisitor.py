@@ -512,10 +512,10 @@ class ComponentVisitor(BaseVisitor):
         param_data_type = self.datatype_from_token(data_type_token)
         if ctx.array_type_suffix() is None:
             # Non-array type
-            param_type = param_data_type # type: Union[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, rdltypes.references.RefType, comp.Component]], rdltypes.ArrayPlaceholder]
+            param_type = param_data_type # type: Union[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, rdltypes.references.RefType, comp.Component]], rdltypes.ArrayedType]
         else:
             # Array-like type
-            param_type = rdltypes.ArrayPlaceholder(param_data_type)
+            param_type = rdltypes.ArrayedType(param_data_type)
 
         # Get parameter name
         param_name = get_ID_text(ctx.ID())

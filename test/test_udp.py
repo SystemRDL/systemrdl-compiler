@@ -4,7 +4,7 @@ from systemrdl import RDLCompiler
 from systemrdl.messages import RDLCompileError
 from systemrdl import component as comp
 from systemrdl.udp import UDPDefinition
-from systemrdl.rdltypes import NoValue
+from systemrdl.rdltypes import NoValue, ArrayedType, RefType
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -259,3 +259,32 @@ class TestUDP(RDLSourceTestCase):
                 sub3.get_property('ref_array'),
                 [a_f1, x_f2]
             )
+
+    def test_builtin_udp_arrays(self):
+        class RefArrayUDP(UDPDefinition):
+            name = "ref_array"
+            valid_type = ArrayedType(RefType)
+            valid_components = {comp.Addrmap}
+
+        class RegArrayUDP(UDPDefinition):
+            name = "reg_array"
+            valid_type = ArrayedType(comp.Reg)
+            valid_components = {comp.Addrmap}
+
+        class FieldArrayUDP(UDPDefinition):
+            name = "field_array"
+            valid_type = ArrayedType(comp.Field)
+            valid_components = {comp.Addrmap}
+
+        class IntArrayUDP(UDPDefinition):
+            name = "int_array"
+            valid_type = ArrayedType(int)
+            valid_components = {comp.Addrmap}
+
+        rdlc = RDLCompiler()
+        rdlc.register_udp(RefArrayUDP)
+        rdlc.register_udp(RegArrayUDP)
+        rdlc.register_udp(FieldArrayUDP)
+        rdlc.register_udp(IntArrayUDP)
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_arrays.rdl"))
+        root = rdlc.elaborate("top")

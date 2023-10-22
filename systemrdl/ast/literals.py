@@ -120,25 +120,25 @@ class ArrayLiteral(ASTNode):
         super().__init__(env, src_ref)
         self.elements = elements
 
-    def predict_type(self) -> rdltypes.ArrayPlaceholder:
+    def predict_type(self) -> rdltypes.ArrayedType:
 
         if not self.elements:
             # Empty array. Element type is indeterminate
-            return rdltypes.ArrayPlaceholder(None)
+            return rdltypes.ArrayedType(None)
 
         # Get type of first element
         element_iter = iter(self.elements)
         uniform_type = next(element_iter).predict_type()
 
         # RDL does not allow directly nested arrays
-        assert not isinstance(uniform_type, rdltypes.ArrayPlaceholder)
+        assert not isinstance(uniform_type, rdltypes.ArrayedType)
 
         # All elements of the array shall have a uniform type
         for element in element_iter:
             this_type = element.predict_type()
 
             # RDL does not allow directly nested arrays
-            assert not isinstance(this_type, rdltypes.ArrayPlaceholder)
+            assert not isinstance(this_type, rdltypes.ArrayedType)
 
             # First check if it is a direct match
             if uniform_type == this_type:
@@ -176,7 +176,7 @@ class ArrayLiteral(ASTNode):
                 self.src_ref
             )
 
-        return rdltypes.ArrayPlaceholder(uniform_type)
+        return rdltypes.ArrayedType(uniform_type)
 
     def get_value(self, eval_width: Optional[int]=None) -> List[Any]:
         result = []

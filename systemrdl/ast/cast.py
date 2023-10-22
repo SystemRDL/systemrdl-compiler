@@ -142,7 +142,7 @@ def is_castable(src: Any, dst: Any) -> bool:
     if ((src in [int, bool]) or rdltypes.is_user_enum(src)) and (dst in [int, bool]):
         # Pure numeric or enum can be cast to a numeric
         return True
-    elif isinstance(src, rdltypes.ArrayPlaceholder) and isinstance(dst, rdltypes.ArrayPlaceholder):
+    elif isinstance(src, rdltypes.ArrayedType) and isinstance(dst, rdltypes.ArrayedType):
         # Check that array element types also match
         if src.element_type is None:
             # indeterminate array type. Is castable

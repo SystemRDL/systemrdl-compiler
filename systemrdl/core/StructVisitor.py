@@ -81,7 +81,7 @@ class StructVisitor(BaseVisitor):
         member_type = self.visit(ctx.struct_type())
 
         if ctx.array_type_suffix() is not None:
-            member_type = rdltypes.ArrayPlaceholder(member_type)
+            member_type = rdltypes.ArrayedType(member_type)
 
         return member_type, member_name, member_src_ref
 

@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from .user_enum import UserEnum
     from .references import PropertyReference, RefType
     from .user_struct import UserStruct
-    from .array import ArrayPlaceholder
+    from .array import ArrayedType
     from ..node import Node
     from .. import component as comp
 
@@ -29,7 +29,7 @@ PreElabRDLValue = Union[
 ]
 
 if sys.version_info >= (3,5,4):
-    PreElabRDLType = Union[Type[PreElabRDLValue], 'ArrayPlaceholder']
+    PreElabRDLType = Union[Type[PreElabRDLValue], 'ArrayedType']
 else:
     # Stub on 3.5.3 or older due to: https://github.com/python/typing/issues/266
     PreElabRDLType = Any # type: ignore

@@ -15,7 +15,7 @@ from .. import component as comp
 from .. import rdltypes
 
 if TYPE_CHECKING:
-    from typing import Optional, Union, Any, Set, Tuple
+    from typing import Optional, Union, Any, Set
     from ..compiler import RDLCompiler
 
 class UDPVisitor(BaseVisitor):
@@ -124,7 +124,7 @@ class UDPVisitor(BaseVisitor):
         is_array = ctx.array_type_suffix() is not None
         if is_array:
             # arrayify
-            valid_type = rdltypes.ArrayPlaceholder(valid_type) # type: ignore
+            valid_type = rdltypes.ArrayedType(valid_type) # type: ignore
 
         self._valid_type = valid_type
 
