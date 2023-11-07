@@ -124,3 +124,16 @@ class TestStructs(RDLSourceTestCase):
             self.assertEqual(struct._is_abstract, struct2._is_abstract)
             self.assertIs(type(struct).__class__, type(struct2).__class__)
             self.assertIs(type(struct).__module__, type(struct2).__module__)
+
+    def test_incomplete_struct(self):
+        root = self.compile(
+            ["rdl_src/incomplete_struct.rdl"],
+            "top"
+        )
+
+        struct = root.find_by_path("top.r1.f1").get_property('struct_prop')
+        self.assertEqual(struct.a, False)
+        self.assertEqual(struct.b, "")
+        self.assertEqual(struct.c, rdlt.AccessType.rw)
+        self.assertEqual(struct.d, rdlt.AddressingType.regalign)
+        self.assertEqual(struct.e, [])

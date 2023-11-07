@@ -261,6 +261,38 @@ class ExprVisitor(BaseVisitor):
 
             values[member_name] = (member_expr, member_name_src_ref)
 
+        missing_members = set(struct_type._members.keys()) - set(values.keys())
+        undefined_members = []
+        for member_name in missing_members:
+            # 6.3.2.3.2-b: When defining struct member values, unassigned members
+            # shall receive a default value depending on their type, when available:
+            t = struct_type._members[member_name]
+            if t == bool:
+                values[member_name] = (ast.BoolLiteral(self.compiler.env, None, False), None)
+            elif t == str:
+                values[member_name] = (ast.StringLiteral(self.compiler.env, None, ""), None)
+            elif t == rdltypes.AccessType:
+                v = ast.BuiltinEnumLiteral(self.compiler.env, None, rdltypes.AccessType.rw)
+                values[member_name] = (v, None)
+            elif t == rdltypes.AddressingType:
+                v = ast.BuiltinEnumLiteral(self.compiler.env, None, rdltypes.AddressingType.regalign)
+                values[member_name] = (v, None)
+            elif isinstance(t, rdltypes.ArrayedType):
+                v = ast.ArrayLiteral(self.compiler.env, None, [])
+                values[member_name] = (v, None)
+            else:
+                undefined_members.append(member_name)
+
+        if undefined_members:
+            # 6.3.2.3.2-c: All the members from a struct instance shall be assigned
+            # a value, either explicitly or by default.
+            # Undefined struct members shall raise an error
+            self.msg.fatal(
+                "Incomplete struct literal '%s'. The following members are undefined: %s"
+                % (struct_type_name, ", ".join(undefined_members)),
+                src_ref_from_antlr(ctx.ID())
+            )
+
         expr = ast.StructLiteral(
             self.compiler.env,
             src_ref_from_antlr(ctx.ID()),

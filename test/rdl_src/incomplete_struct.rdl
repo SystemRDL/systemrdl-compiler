@@ -1,0 +1,21 @@
+struct struct_t {
+    boolean x;
+    boolean a;
+    string b;
+    accesstype c;
+    addressingtype d;
+    longint e[];
+};
+
+property struct_prop {
+    type = struct_t;
+    component = field;
+};
+
+addrmap top {
+    reg {
+        field {
+            struct_prop = struct_t'{};
+        } f1;
+    } r1;
+};

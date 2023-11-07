@@ -937,11 +937,10 @@ class AddressableNode(Node):
         """
         assert isinstance(self.inst, comp.AddressableComponent)
         if self.is_array:
-            # Total size of arrays is technically supposed to be:
-            #   self.inst.array_stride * (self.inst.n_elements-1) + self.size
-            # However this opens up a whole slew of ugly corner cases that the
-            # spec designers may not have anticipated.
-            # Using a simplified calculation for now until someone actually cares
+            # RDL spec does not explicitly clarify this, but total size for arrays
+            # should include any additional trailing padding implied by the stride.
+            # This makes it consistent with IP-XACT.
+            # See discussion here: https://forums.accellera.org/topic/7529-interpretation-of-total-array-size-implicit-address-allocation/
             return self.array_stride * self.inst.n_elements
 
         else:

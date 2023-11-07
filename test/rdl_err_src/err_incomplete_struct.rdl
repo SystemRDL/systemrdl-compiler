@@ -1,0 +1,17 @@
+struct struct_t {
+    boolean a;
+    longint b;
+};
+
+property struct_prop {
+    type = struct_t;
+    component = field;
+};
+
+addrmap top {
+    reg {
+        field {
+            struct_prop = struct_t'{a: true};
+        } f;
+    } reg_error;
+};

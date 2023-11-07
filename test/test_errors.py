@@ -68,6 +68,13 @@ class TestErrors(RDLSourceTestCase):
             r"Definitions of 'addrmap' components not allowed inside a mem definition"
         )
 
+    def test_incomplete_struct(self):
+        self.assertRDLCompileError(
+            ["rdl_err_src/err_incomplete_struct.rdl"],
+            None,
+            r"Incomplete struct literal 'struct_t'. The following members are undefined: b"
+        )
+
 
 class TestUserErrors(RDLSourceTestCase):
     def setUp(self):
