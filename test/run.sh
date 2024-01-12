@@ -21,7 +21,9 @@ source $this_dir/.venv/bin/activate
 
 # Install test dependencies
 pip install -U pip setuptools wheel
-pip install pytest pytest-cov coverage pylint mypy parameterized types-Markdown pytest-parallel
+pip install pytest pytest-cov coverage pylint parameterized types-Markdown pytest-parallel
+# Exclude version due to: https://github.com/python/mypy/issues/16770
+pip install "mypy != 1.8.0"
 
 # Install dut
 export SYSTEMRDL_REQUIRE_BINARY_BUILD=1

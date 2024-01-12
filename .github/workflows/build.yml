@@ -123,7 +123,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install -U mypy types-Markdown
+          python -m pip install -U types-Markdown
+
+          # Exclude version due to: https://github.com/python/mypy/issues/16770
+          python -m pip install -U "mypy != 1.8.0"
 
       - name: Type Check
         run: |

@@ -1089,8 +1089,8 @@ class FieldNode(VectorNode):
             (hw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1,
                     rdltypes.AccessType.w, rdltypes.AccessType.w1))
             or self.get_property('counter')
-            or self.get_property('hwset')
-            or self.get_property('hwclr')
+            or bool(self.get_property('hwset'))
+            or bool(self.get_property('hwclr'))
         )
 
     @property
