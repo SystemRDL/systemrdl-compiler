@@ -1,5 +1,6 @@
 include LICENSE
 include LICENSE-3RD-PARTY
 include systemrdl/preprocessor/ppp_runner.pl
+include systemrdl/py.typed
 recursive-include systemrdl/parser/ext *
 recursive-exclude test *
