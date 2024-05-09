@@ -83,6 +83,34 @@ class TestUDP(RDLSourceTestCase):
         with self.assertRaises(RDLCompileError):
             rdlc.elaborate("top")
 
+    def test_udp_types(self):
+        root = self.compile(
+            ["rdl_src/udp_types.rdl"],
+            "top"
+        )
+        field = root.find_by_path("top.x.defaults")
+        self.assertEqual(field.get_property("int_udp"), 123)
+        self.assertEqual(field.get_property("bool_udp"), False)
+
+    def test_soft_udp_types(self):
+        class IntUDP(UDPDefinition):
+            name = "int_udp"
+            valid_type = int
+            default_assignment = 123
+        class BoolUDP(UDPDefinition):
+            name = "bool_udp"
+            valid_type = bool
+            default_assignment = False
+        rdlc = RDLCompiler()
+        rdlc.register_udp(IntUDP)
+        rdlc.register_udp(BoolUDP)
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/udp_types.rdl"))
+        root = rdlc.elaborate("top")
+
+        field = root.find_by_path("top.x.defaults")
+        self.assertEqual(field.get_property("int_udp"), 123)
+        self.assertEqual(field.get_property("bool_udp"), False)
+
     def test_soft_udp_undeclared(self):
         class MyUDP(UDPDefinition):
             name = "int_udp"

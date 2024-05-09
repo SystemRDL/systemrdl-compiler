@@ -1,0 +1,21 @@
+property int_udp {
+    type = longint;
+    default = 123;
+    component = all;
+};
+
+property bool_udp {
+    type = boolean;
+    default = false;
+    component = all;
+};
+
+
+addrmap top {
+    reg {
+        field {
+            int_udp;
+            bool_udp;
+        } defaults;
+    } x;
+};

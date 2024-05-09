@@ -5,6 +5,7 @@ from .user_defined import UserProperty, ExternalUserProperty
 
 from .. import rdltypes
 from ..core.helpers import get_all_subclasses
+from ..ast.ast_node import ASTNode
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
@@ -61,7 +62,12 @@ class PropertyRuleBook:
                         "The property definition for the feature extension '%s' uses a different 'type' definition from what this tool expects." % udp.name,
                         src_ref
                     )
-                if existing_udp.default_assignment != udp.default_assignment:
+
+                if isinstance(udp.default_assignment, ASTNode):
+                    udp_default_assign_value = udp.default_assignment.get_value()
+                else:
+                    udp_default_assign_value = udp.default_assignment
+                if existing_udp.default_assignment != udp_default_assign_value:
                     self.env.msg.error(
                         "The property definition for the feature extension '%s' uses a different 'default' definition from what this tool expects." % udp.name,
                         src_ref
