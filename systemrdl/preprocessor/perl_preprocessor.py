@@ -166,7 +166,7 @@ class PerlPreprocessor:
 
         # Check that only comments follow
         cruft_start, cruft_end = get_illegal_trailing_text_pos(self.text, end+1)
-        if cruft_start is not None:
+        if cruft_start is not None and cruft_end is not None:
             self.env.msg.fatal(
                 "Unexpected text after include",
                 DirectSourceRef(self.path, cruft_start, cruft_end)

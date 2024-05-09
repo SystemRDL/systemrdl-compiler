@@ -48,12 +48,11 @@ class VerilogPreprocessor:
 
         self._output_text_segments = [] # type: List[str]
         self._current_output_idx = 0
+        self._output_seg_map = None # type: Optional[segment_map.SegmentMap]
         if self._src_seg_map:
             self._output_seg_map = segment_map.SegmentMap()
-        else:
-            self._output_seg_map = None
 
-    def preprocess(self) -> Tuple[str, segment_map.SegmentMap]:
+    def preprocess(self) -> Tuple[str, Optional[segment_map.SegmentMap]]:
         self.main_scanner()
 
         if not self._conditional.is_idle or self._conditional_stack:
@@ -67,12 +66,13 @@ class VerilogPreprocessor:
 
     def get_err_src_ref(self, start:int, end:int) -> SourceRefBase:
         """
-        When mitting an error, return the appropriate src_ref.
+        When emitting an error, return the appropriate src_ref.
         If at the top-level preprocessing pass, creates a unique reference
         against src_seg_map. Otherwise returns src_ref_override
         """
         if self._src_ref_override:
             return self._src_ref_override
+        assert isinstance(self._src_seg_map, segment_map.SegmentMap)
         return SegmentedSourceRef(self._src_seg_map, start, end)
 
     #---------------------------------------------------------------------------
@@ -120,6 +120,8 @@ class VerilogPreprocessor:
                 # Reached EOF
                 break
 
+            assert m.lastindex is not None
+
             # Process directives.
             # process_*() functions will advance the index as appropriate
             check_trailing = False
@@ -157,7 +159,7 @@ class VerilogPreprocessor:
             if check_trailing:
                 # Check for trailing text on a macro directive line
                 start, end = get_illegal_trailing_text_pos(self._text, self._scan_idx)
-                if start is not None:
+                if start is not None and end is not None:
                     self.env.msg.fatal(
                         "Unexpected text after preprocessor directive",
                         self.get_err_src_ref(start, end)
@@ -169,6 +171,8 @@ class VerilogPreprocessor:
         self.emit_segment(len(self._text))
 
     def process_ifdef(self, m: Match) -> None:
+        assert m.lastindex is not None
+
         self.emit_segment(m.start(m.lastindex + 1))
 
         identifier = m.group(m.lastindex + 2)
@@ -183,6 +187,8 @@ class VerilogPreprocessor:
         self._seg_start_idx = self._scan_idx
 
     def process_ifndef(self, m: Match) -> None:
+        assert m.lastindex is not None
+
         self.emit_segment(m.start(m.lastindex + 1))
 
         identifier = m.group(m.lastindex + 2)
@@ -197,6 +203,8 @@ class VerilogPreprocessor:
         self._seg_start_idx = self._scan_idx
 
     def process_elsif(self, m: Match) -> None:
+        assert m.lastindex is not None
+
         self.emit_segment(m.start(m.lastindex + 1))
 
         identifier = m.group(m.lastindex + 2)
@@ -212,6 +220,8 @@ class VerilogPreprocessor:
         self._seg_start_idx = self._scan_idx
 
     def process_else(self, m: Match) -> None:
+        assert m.lastindex is not None
+
         self.emit_segment(m.start(m.lastindex + 1))
 
         if not self._conditional.is_in_if_block or self._conditional.is_in_else_block:
@@ -224,6 +234,8 @@ class VerilogPreprocessor:
         self._seg_start_idx = self._scan_idx
 
     def process_endif(self, m: Match) -> None:
+        assert m.lastindex is not None
+
         self.emit_segment(m.start(m.lastindex + 1))
 
         if self._conditional.is_idle and not self._conditional_stack:
@@ -241,6 +253,8 @@ class VerilogPreprocessor:
             self._conditional = self._conditional_stack.pop()
 
     def process_define(self, m: Match) -> None:
+        assert m.lastindex is not None
+
         self.emit_segment(m.start(m.lastindex + 1))
 
         identifier = m.group(m.lastindex + 2)
@@ -273,6 +287,8 @@ class VerilogPreprocessor:
         self._seg_start_idx = self._scan_idx
 
     def process_undef(self, m: Match) -> None:
+        assert m.lastindex is not None
+
         self.emit_segment(m.start(m.lastindex + 1))
 
         if self._conditional.is_active:
@@ -283,6 +299,8 @@ class VerilogPreprocessor:
         self._seg_start_idx = self._scan_idx
 
     def process_macro(self, m: Match) -> None:
+        assert m.lastindex is not None
+
         self.emit_segment(m.start())
         identifier = m.group(m.lastindex + 1)
         self._scan_idx = m.end()
@@ -295,6 +313,7 @@ class VerilogPreprocessor:
         if self._src_ref_override:
             macro_src_ref = self._src_ref_override
         else:
+            assert isinstance(self._src_seg_map, segment_map.SegmentMap)
             macro_src_ref = SegmentedSourceRef(self._src_seg_map, m.start(), m.end() - 1)
 
         # Check if macro identifier is not one of the reserved directives
@@ -359,6 +378,7 @@ class VerilogPreprocessor:
                 macro_start_idx, macro_end_idx,
                 self._src_seg_map
             )
+            assert isinstance(self._output_seg_map, segment_map.SegmentMap)
             self._output_seg_map.segments.append(segment)
             self._current_output_idx += text_len
 
@@ -384,6 +404,7 @@ class VerilogPreprocessor:
                         end_idx - 1,
                         self._src_seg_map
                     )
+                    assert isinstance(self._output_seg_map, segment_map.SegmentMap)
                     self._output_seg_map.segments.append(segment)
                     # Advance the output offset
                     self._current_output_idx += end_idx - self._seg_start_idx
@@ -527,6 +548,8 @@ class VerilogPreprocessor:
         }
 
         for m in query_regex.finditer(self._text, self._scan_idx):
+            assert m.lastindex is not None
+
             if m.lastgroup != "punc":
                 continue
 
@@ -537,6 +560,7 @@ class VerilogPreprocessor:
                 if self._src_ref_override:
                     argvs.append((argv, self._src_ref_override))
                 else:
+                    assert isinstance(self._src_seg_map, segment_map.SegmentMap)
                     src_ref = SegmentedSourceRef(self._src_seg_map, argv_start_idx, m.start() - 1)
                     argvs.append((argv, src_ref))
                 argv_start_idx = m.end()
@@ -546,6 +570,7 @@ class VerilogPreprocessor:
                 if self._src_ref_override:
                     argvs.append((argv, self._src_ref_override))
                 else:
+                    assert isinstance(self._src_seg_map, segment_map.SegmentMap)
                     src_ref = SegmentedSourceRef(self._src_seg_map, argv_start_idx, m.start() - 1)
                     argvs.append((argv, src_ref))
                 self._scan_idx = m.end()
@@ -597,6 +622,7 @@ def get_illegal_trailing_text_pos(text: str, idx: int) -> Tuple[Optional[int], O
         # Did not match. Find end of the line
         eol_regex = re.compile(r'.+$', re.MULTILINE)
         m = eol_regex.match(text, idx)
+        assert m is not None
         return (m.start(), m.end() - 1)
 
 
@@ -708,6 +734,8 @@ class Macro:
         seg_start_idx = 0
         segments = [] # type: List[Union[int, str]]
         for m in query_regex.finditer(contents):
+            assert m.lastindex is not None
+
             if m.lastgroup == "esc1":
                 # replace with unescaped version
                 segments.append(contents[seg_start_idx:m.start()])
