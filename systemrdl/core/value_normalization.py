@@ -71,7 +71,7 @@ def normalize_string(value: str) -> str:
         String values shall be rendered using the first eight characters of
         their md5 (Message-Digest Algorithm) checksum.
     """
-    md5 = hashlib.md5(value.encode('utf-8')).hexdigest()
+    md5 = hashlib.md5(value.encode('utf-8'), usedforsecurity=False).hexdigest()
     return md5[:8]
 
 
