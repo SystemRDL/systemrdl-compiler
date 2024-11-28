@@ -49,6 +49,15 @@ How to submit a PR:
 4. Ensure the test suite passes.
 5. Submit the pull request!
 
+## Run the tests
+Run: test/run.sh
+
+If you see an error like:
+```
+fatal error: Python.h: No such file or directory
+```
+then install the header files and static libraries for python dev as instructed
+at https://stackoverflow.com/questions/21530577
 
 ## Any contributions you make will be under the MIT Software License
 In short, when you submit code changes, your submissions are understood to be
