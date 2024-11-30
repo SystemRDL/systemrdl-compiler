@@ -75,6 +75,36 @@ class TestErrors(RDLSourceTestCase):
             r"Incomplete struct literal 'struct_t'. The following members are undefined: b"
         )
 
+    def test_multiple_type(self):
+        self.assertRDLCompileError(
+            ["rdl_err_src/err_multiple_type.rdl"],
+            None,
+            r".*/err_multiple_type.rdl:6:7: .*fatal: .*Multiple declarations of type 'reg_a_t'\n"
+            r"\s*reg .*reg_a_t.*\{.*\n"
+            r".*\n"  # ^^^^^^^
+            r".*/err_multiple_type.rdl:2:15: .*fatal:.*\n"
+            r"\s*reg .*reg_a_t.*\{.*\n"
+        )
+
+    def test_multiple_instance(self):
+        self.assertRDLCompileError(
+            ["rdl_err_src/err_multiple_instance.rdl"],
+            None,
+            r".*/err_multiple_instance.rdl:12:11: .*fatal: .*Multiple declarations of instance 'a'\n"
+            r"\s*reg_b_t .*a.*;.*\n"
+            r".*\n"  # ^^^^^^^
+            r".*/err_multiple_instance.rdl:10:11: .*fatal:.*\n"
+            r"\s*reg_a_t .*a.*;.*\n"
+        )
+
+    def test_default_already_assigned(self):
+        self.assertRDLCompileError(
+            ["rdl_err_src/err_default_already_assigned.rdl"],
+            None,
+            r".*/err_default_already_assigned.rdl:6:7: .*fatal: .*Property 'descr' was already assigned in this scope\n"
+            r'.*\s*descr.* = "def";.*\n'
+        )
+
 
 class TestUserErrors(RDLSourceTestCase):
     def setUp(self):

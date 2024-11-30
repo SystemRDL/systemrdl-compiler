@@ -50,6 +50,12 @@ class MessagePrinter:
         lines = self.format_message(severity, text, src_ref)
         self.emit_message(lines)
 
+    def print_message_with_other_refs(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase],
+                      other_src_refs: Optional[List[SourceRefBase]]) -> List[str]:
+        lines = self.format_message_with_other_refs(severity, text, src_ref, other_src_refs)
+        self.emit_message(lines)
+        return lines
+
     def format_message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]) -> List[str]:
         """
         Formats the message prior to emitting it.
@@ -62,6 +68,30 @@ class MessagePrinter:
             Body of message
         src_ref: :class:`SourceRefBase`
             Reference to source context object
+
+        Returns
+        -------
+        list
+            List of strings for each line of the message
+        """
+        return self.format_message_with_other_refs(severity, text, src_ref, other_src_refs=None)
+
+    def format_message_with_other_refs(
+            self, severity: Severity, text: str, src_ref: Optional[SourceRefBase],
+            other_src_refs: Optional[List[SourceRefBase]]) -> List[str]:
+        """
+        Formats the message prior to emitting it.
+
+        Parameters
+        ----------
+        severity: :class:`Severity`
+            Message severity.
+        text: str
+            Body of message
+        src_ref: :class:`SourceRefBase`
+            Reference to source context object
+        other_src_refs: List[SourceRefBase]
+            Optional references to source context objects from other related contexts.
 
         Returns
         -------
@@ -84,7 +114,16 @@ class MessagePrinter:
             )
             return lines
 
+        self._append_message(severity, text, color, src_ref, lines)
+        if other_src_refs is not None:
+            for other_src_ref in other_src_refs:
+                self._append_message(severity, '', color, other_src_ref, lines)
 
+        return lines
+
+    @staticmethod
+    def _append_message(severity: Severity, text: str, color: str,
+                        src_ref: SourceRefBase, lines: List[str]) -> None:
         if isinstance(src_ref, DetailedFileSourceRef):
             # Detailed message selection context is available
             lines.append(
@@ -94,7 +133,7 @@ class MessagePrinter:
                 + Style.RESET_ALL
                 + text
             )
-            lines.extend(self.get_selection_context(src_ref, color))
+            lines.extend(MessagePrinter.get_selection_context(src_ref, color))
         elif isinstance(src_ref, FileSourceRef):
             # Only the file path is known
             lines.append(
@@ -105,11 +144,10 @@ class MessagePrinter:
                 + text
             )
         else:
-            raise RuntimeError
+            raise NotImplementedError(str(type(src_ref)))
 
-        return lines
-
-    def get_selection_context(self, src_ref: DetailedFileSourceRef, color_code: str) -> List[str]:
+    @staticmethod
+    def get_selection_context(src_ref: DetailedFileSourceRef, color_code: str) -> List[str]:
         """
         Generates the message context lines
         """
@@ -175,7 +213,8 @@ class MessageHandler:
         #: Set to True if an error message was ever emitted
         self.had_error = False
 
-    def message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
+    def message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]=None,
+                other_src_refs: Optional[List[SourceRefBase]]=None) -> None:
         if severity == Severity.NONE:
             return
 
@@ -185,10 +224,10 @@ class MessageHandler:
         if severity < self.min_verbosity:
             return
 
-        self.printer.print_message(severity, text, src_ref)
+        lines = self.printer.print_message_with_other_refs(severity, text, src_ref, other_src_refs)
 
         if severity >= Severity.FATAL:
-            raise RDLCompileError(text)
+            raise RDLCompileError('\n'.join(lines))
 
     def debug(self, text: str) -> None:
         self.message(Severity.DEBUG, text)
@@ -196,7 +235,8 @@ class MessageHandler:
     def info(self, text: str) -> None:
         self.message(Severity.INFO, text)
 
-    def warning(self, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
+    def warning(self, text: str, src_ref: Optional[SourceRefBase]=None,
+                other_src_refs: Optional[List[SourceRefBase]]=None) -> None:
         """
         Print a warning message.
 
@@ -206,10 +246,13 @@ class MessageHandler:
             Message text
         src_ref: SourceRefBase
             Optional source reference object to provide message context
+        other_src_refs: List[SourceRefBase]
+            Optional references to source context objects from other related contexts.
         """
-        self.message(Severity.WARNING, text, src_ref)
+        self.message(Severity.WARNING, text, src_ref, other_src_refs)
 
-    def error(self, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
+    def error(self, text: str, src_ref: Optional[SourceRefBase]=None,
+              other_src_refs: Optional[List[SourceRefBase]]=None) -> None:
         """
         Print an error message.
         Sets ``had_error`` to True.
@@ -220,10 +263,14 @@ class MessageHandler:
             Message text
         src_ref: SourceRefBase
             Optional source reference object to provide message context
+        other_src_refs: List[SourceRefBase]
+            Optional references to source context objects from other related contexts.
         """
-        self.message(Severity.ERROR, text, src_ref)
+        self.message(Severity.ERROR, text, src_ref, other_src_refs)
 
-    def fatal(self, text: str, src_ref: Optional[SourceRefBase]=None) -> 'NoReturn': # type: ignore
+    def fatal(self, text: str, src_ref: Optional[SourceRefBase]=None,
+              other_src_refs: Optional[List[SourceRefBase]]=None
+              ) -> None:
         """
         Print a fatal message.
 
@@ -233,19 +280,29 @@ class MessageHandler:
             Message text
         src_ref: SourceRefBase
             Optional source reference object to provide message context
+        other_src_refs: List[SourceRefBase]
+            Optional references to source context objects from other related contexts.
 
         Raises
         ------
         RDLCompileError
             Always raises this exception
         """
-        self.message(Severity.FATAL, text, src_ref)
+        self.message(Severity.FATAL, text, src_ref, other_src_refs)
 
 
 class MessageExceptionRaiser(MessagePrinter):
     def print_message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]) -> None:
         if severity >= Severity.ERROR:
             raise ValueError(text)
+
+    def print_message_with_other_refs(
+            self, severity: Severity, text: str, src_ref: Optional[SourceRefBase],
+            other_src_refs: Optional[List[SourceRefBase]]) -> List[str]:
+        if severity >= Severity.ERROR:
+            lines = self.format_message_with_other_refs(severity, text, src_ref, other_src_refs)
+            raise ValueError('\n'.join(lines))
+        return lines
 
 #===============================================================================
 # Speedy-Antlr error listener
