@@ -16,10 +16,10 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - 3.6
-          - 3.7
-          - 3.8
-          - 3.9
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
@@ -27,8 +27,14 @@ jobs:
           - os: ubuntu-latest
 
           # older versions need older OS
-          - python-version: 3.6
+          - python-version: "3.6"
             os: ubuntu-20.04
+
+          - python-version: "3.7"
+            os: ubuntu-22.04
+
+          - python-version: "3.8"
+            os: ubuntu-22.04
 
     name: python${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
@@ -183,6 +189,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: whl-${{ matrix.os }}${{ matrix.name_suffix }}
           path: ./wheelhouse/*.whl
 
 #-------------------------------------------------------------------------------
@@ -205,6 +212,7 @@ jobs:
         run: python setup.py sdist
 
       - uses: actions/upload-artifact@v4
+        name: sdist
         with:
           path: dist/*.tar.gz
 
@@ -221,7 +229,6 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: artifact
           path: dist
 
       - uses: pypa/gh-action-pypi-publish@release/v1
