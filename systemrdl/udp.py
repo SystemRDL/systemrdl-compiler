@@ -50,11 +50,11 @@ class UDPDefinition:
 
         # validate a few things
         if not re.fullmatch(r"[a-z_]\w*", self.name, re.IGNORECASE):
-            raise ValueError("Invalid UDP name '%s'" % self.name)
+            raise ValueError(f"Invalid UDP name '{self.name}'")
         if not isinstance(self.valid_components, set):
-            raise TypeError("UDP %s's 'valid_components' property shall be a set" % self.name)
+            raise TypeError(f"UDP {self.name}'s 'valid_components' property shall be a set")
         if self.valid_type is None:
-            raise ValueError("UDP %s's 'valid_type' property was not defined" % self.name)
+            raise ValueError(f"UDP {self.name}'s 'valid_type' property was not defined")
         if self.constr_componentwidth and self.valid_type != int:
             raise ValueError("'constr_componentwidth' can only be true if UDP is of integer type")
 

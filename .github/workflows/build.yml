@@ -16,7 +16,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - 3.5
           - 3.6
           - 3.7
           - 3.8
@@ -24,12 +23,11 @@ jobs:
           - "3.10"
           - "3.11"
           - "3.12"
+          - "3.13"
         include:
           - os: ubuntu-latest
 
           # older versions need older OS
-          - python-version: 3.5
-            os: ubuntu-20.04
           - python-version: 3.6
             os: ubuntu-20.04
 

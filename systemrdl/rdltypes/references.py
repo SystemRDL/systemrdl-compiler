@@ -115,12 +115,7 @@ class PropertyReference:
         self.node = None # type: Node
 
     def __repr__(self) -> str:
-        return "<%s %s->%s at 0x%x>" % (
-            self.__class__.__qualname__,
-            self.node.get_path(),
-            self.name,
-            id(self)
-        )
+        return f"<{self.__class__.__qualname__} {self.node.get_path()}->{self.name} at {id(self):#x}>"
 
     def __eq__(self, other: object) -> bool:
         """

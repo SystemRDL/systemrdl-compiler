@@ -34,11 +34,7 @@ class Node:
         self.parent = parent
 
     def __repr__(self) -> str:
-        return "<%s %s at 0x%x>" % (
-            self.__class__.__qualname__,
-            self.get_path(),
-            id(self)
-        )
+        return f"<{self.__class__.__qualname__} {self.get_path()} at {id(self):#x}>"
 
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> 'Node':
@@ -381,7 +377,7 @@ class Node:
 
         # Check for stray kwargs
         if kwargs:
-            raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
+            raise TypeError(f"got an unexpected keyword argument '{list(kwargs.keys())[0]}'")
 
         if prop_name not in self.inst.properties:
             # Was not assigned by the user
@@ -394,9 +390,9 @@ class Node:
 
             # Is it even a valid property or allowed for this component type?
             if rule is None:
-                raise LookupError("Unknown property '%s'" % prop_name)
+                raise LookupError(f"Unknown property '{prop_name}'")
             if type(self.inst) not in rule.bindable_to:
-                raise LookupError("Unknown property '%s'" % prop_name)
+                raise LookupError(f"Unknown property '{prop_name}'")
 
             # Return the default value as specified by the rulebook
             return rule.get_default(self)
@@ -1064,7 +1060,7 @@ class FieldNode(VectorNode):
             # field width is the default. Skip suffix
             suffix =  ""
         else:
-            suffix = "_w%d" % self.width
+            suffix = f"_w{self.width}"
 
         return name + suffix
 

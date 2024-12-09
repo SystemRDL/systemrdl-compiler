@@ -18,9 +18,9 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'SystemRDL Compiler'
-copyright = '%d, Alex Mykyta' % datetime.datetime.now().year
-author = 'Alex Mykyta'
+project = "SystemRDL Compiler"
+copyright = f"{datetime.datetime.now().year}, Alex Mykyta"
+author = "Alex Mykyta"
 
 
 # -- General configuration ---------------------------------------------------
