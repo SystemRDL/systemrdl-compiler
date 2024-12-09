@@ -9,7 +9,7 @@ class AutoNoValueEnum(enum.Enum):
         return obj
 
     def __repr__(self) -> str:
-        return '<%s.%s>' % (self.__class__.__name__, self.name)
+        return f"<{self.__class__.__name__}.{self.name}>"
 
 class BuiltinEnum(AutoNoValueEnum):
     pass
@@ -45,7 +45,7 @@ class AccessType(BuiltinEnum):
         .. versionadded:: 1.23
         """
         if not isinstance(other, AccessType):
-            raise TypeError("unsupported addend types: %s + %s" % (repr(self), repr(other)))
+            raise TypeError(f"unsupported addend types: {repr(self)} + {repr(other)}")
 
         pair = {other, self}
 

@@ -145,15 +145,11 @@ class Component:
 
     def __repr__(self) -> str:
         if self.is_instance:
-            name_str = "%s (%s)" % (self.inst_name, self.type_name)
+            name_str = f"{self.inst_name} ({self.type_name})"
         else:
             name_str = self.type_name
 
-        return "<%s %s at 0x%x>" % (
-            self.__class__.__qualname__,
-            name_str,
-            id(self)
-        )
+        return f"<{self.__class__.__qualname__} {name_str} at {id(self):#x}>"
 
 
     def get_child_by_name(self, inst_name: str) -> Optional['Component']:

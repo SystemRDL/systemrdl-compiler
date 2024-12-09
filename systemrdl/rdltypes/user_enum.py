@@ -42,10 +42,7 @@ class UserEnumMeta(type):
     def __contains__(cls, obj: Any) -> bool:
         if not isinstance(obj, UserEnum):
             raise TypeError(
-                "unsupported operand type(s) for 'in': '%s' and '%s'"
-                % (
-                    type(obj).__qualname__, cls.__class__.__qualname__
-                )
+                f"unsupported operand type(s) for 'in': '{type(obj).__qualname__}' and '{cls.__class__.__qualname__}'"
             )
         return isinstance(obj, cls) and obj._name in cls._member_map
 
@@ -59,7 +56,7 @@ class UserEnumMeta(type):
         return len(cls._member_map)
 
     def __repr__(cls) -> str:
-        return "<UserEnum %r>" % cls.__name__
+        return f"<UserEnum {cls.__name__}>"
 
     def __reversed__(cls) -> 'Generator[UserEnum, None, None]':
         """

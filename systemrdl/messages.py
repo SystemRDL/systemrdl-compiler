@@ -89,7 +89,7 @@ class MessagePrinter:
             # Detailed message selection context is available
             lines.append(
                 Style.BRIGHT
-                + "%s:%d:%d: " % (src_ref.path, src_ref.line, src_ref.line_selection[0]+1)
+                + f"{src_ref.path}:{src_ref.line}:{src_ref.line_selection[0]+1}: "
                 + color + severity.name.lower() + ": "
                 + Style.RESET_ALL
                 + text
@@ -99,7 +99,7 @@ class MessagePrinter:
             # Only the file path is known
             lines.append(
                 Style.BRIGHT
-                + "%s: " % src_ref.path
+                + f"{src_ref.path}: "
                 + color + severity.name.lower() + ": "
                 + Style.RESET_ALL
                 + text

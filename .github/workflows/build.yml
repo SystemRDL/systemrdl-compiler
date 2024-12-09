@@ -16,7 +16,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - 3.5
           - 3.6
           - 3.7
           - 3.8
@@ -28,8 +27,6 @@ jobs:
           - os: ubuntu-latest
 
           # older versions need older OS
-          - python-version: 3.5
-            os: ubuntu-20.04
           - python-version: 3.6
             os: ubuntu-20.04
 
@@ -97,7 +94,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |
@@ -119,7 +116,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |
@@ -184,7 +181,7 @@ jobs:
           # Signal setup.py to fail if binary build fails
           SYSTEMRDL_REQUIRE_BINARY_BUILD: ~
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
 
@@ -202,12 +199,12 @@ jobs:
       - uses: actions/setup-python@v4
         name: Install Python
         with:
-          python-version: 3.8
+          python-version: "3.10"
 
       - name: Build sdist
         run: python setup.py sdist
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: dist/*.tar.gz
 
@@ -222,7 +219,7 @@ jobs:
     # Only publish when a GitHub Release is created.
     if: github.event_name == 'release'
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: artifact
           path: dist

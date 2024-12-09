@@ -51,7 +51,7 @@ def normalize_scalar(value: int) -> str:
     5.1.1.4 - c.1:
         Scalar values shall be rendered using their hexadecimal representation.
     """
-    return "%x" % value
+    return f"{value:x}"
 
 
 def normalize_boolean(value: bool) -> str:
@@ -122,7 +122,7 @@ def normalize_struct(value: rdltypes.UserStruct, owner_node: Optional[node.Node]
     """
     norm_elements = []
     for member_name, member_value in value._values.items():
-        norm_elements.append("%s_%s" % (member_name, normalize(member_value, owner_node)))
+        norm_elements.append(f"{member_name}_{normalize(member_value, owner_node)}")
 
     norm_str = "_".join(norm_elements)
     md5 = hashlib.new('md5', norm_str.encode('utf-8'), usedforsecurity=False).hexdigest()
@@ -143,7 +143,7 @@ def normalize_property_ref(value: rdltypes.PropertyReference, owner_node: node.N
     Hash of relative path from owner of the property to the target component's
     property
     """
-    path = "%s->%s" % (value.node.get_rel_path(owner_node), value.name)
+    path = f"{value.node.get_rel_path(owner_node)}->{value.name}"
     md5 = hashlib.new('md5', path.encode('utf-8'), usedforsecurity=False).hexdigest()
     return md5[:8]
 
