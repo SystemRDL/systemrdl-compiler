@@ -631,11 +631,11 @@ class LateElabListener(walker.RDLListener):
 
                     # <child_name>_<hash of child type name>
                     if child.type_name is not None:
-                        norm_name = hashlib.md5(child.type_name.encode('utf-8')).hexdigest()[:8]
+                        norm_name = hashlib.new('md5', child.type_name.encode('utf-8'), usedforsecurity=False).hexdigest()[:8]
                     else:
                         # an external importer did not assign a type name.
                         # Use the inst name instead
-                        norm_name = hashlib.md5(child.inst_name.encode('utf-8')).hexdigest()[:8]
+                        norm_name = hashlib.new('md5', child.inst_name.encode('utf-8'), usedforsecurity=False).hexdigest()[:8]
                     extra_type_name_segments.append(child_name + "_" + norm_name)
 
                 # this component's DPAs

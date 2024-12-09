@@ -71,7 +71,7 @@ def normalize_string(value: str) -> str:
         String values shall be rendered using the first eight characters of
         their md5 (Message-Digest Algorithm) checksum.
     """
-    md5 = hashlib.md5(value.encode('utf-8')).hexdigest()
+    md5 = hashlib.new('md5', value.encode('utf-8'), usedforsecurity=False).hexdigest()
     return md5[:8]
 
 
@@ -101,7 +101,7 @@ def normalize_array(value: List[Any], owner_node: Optional[node.Node]=None) -> s
         norm_elements.append(normalize(element, owner_node))
 
     norm_str = "_".join(norm_elements)
-    md5 = hashlib.md5(norm_str.encode('utf-8')).hexdigest()
+    md5 = hashlib.new('md5', norm_str.encode('utf-8'), usedforsecurity=False).hexdigest()
     return md5[:8]
 
 
@@ -125,7 +125,7 @@ def normalize_struct(value: rdltypes.UserStruct, owner_node: Optional[node.Node]
         norm_elements.append(f"{member_name}_{normalize(member_value, owner_node)}")
 
     norm_str = "_".join(norm_elements)
-    md5 = hashlib.md5(norm_str.encode('utf-8')).hexdigest()
+    md5 = hashlib.new('md5', norm_str.encode('utf-8'), usedforsecurity=False).hexdigest()
     return md5[:8]
 
 
@@ -134,7 +134,7 @@ def normalize_component_ref(value: node.Node, owner_node: node.Node) -> str:
     Hash of relative path from owner of the property to the target component
     """
     path = value.get_rel_path(owner_node)
-    md5 = hashlib.md5(path.encode('utf-8')).hexdigest()
+    md5 = hashlib.new('md5', path.encode('utf-8'), usedforsecurity=False).hexdigest()
     return md5[:8]
 
 
@@ -144,7 +144,7 @@ def normalize_property_ref(value: rdltypes.PropertyReference, owner_node: node.N
     property
     """
     path = f"{value.node.get_rel_path(owner_node)}->{value.name}"
-    md5 = hashlib.md5(path.encode('utf-8')).hexdigest()
+    md5 = hashlib.new('md5', path.encode('utf-8'), usedforsecurity=False).hexdigest()
     return md5[:8]
 
 
