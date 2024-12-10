@@ -4,30 +4,14 @@ import platform
 import fnmatch
 import setuptools
 
-with open("README.md", "r", encoding='utf-8') as fh:
-    long_description = fh.read()
-
-# Replace relative image path with github-hosted one
-long_description = long_description.replace(
-    "docs/img/overview.svg",
-    "https://raw.githubusercontent.com/SystemRDL/systemrdl-compiler/main/docs/img/overview.svg?sanitize=true"
-)
-
-with open(os.path.join("systemrdl", "__about__.py"), encoding='utf-8') as f:
-    v_dict = {}
-    exec(f.read(), v_dict)
-    rdl_version = v_dict['__version__']
-
 target = platform.system().lower()
 PLATFORMS = {'windows', 'linux', 'darwin', 'cygwin'}
 for known in PLATFORMS:
     if target.startswith(known):
         target = known
 
-
 def run_setup(with_binary):
     if with_binary:
-
         extra_compile_args = {
             'windows': ['/DANTLR4CPP_STATIC', '/Zc:__cplusplus', '/std:c++17'],
             'linux': ['-std=c++17'],
@@ -40,11 +24,11 @@ def run_setup(with_binary):
             name='systemrdl.parser.sa_systemrdl_cpp_parser',
 
             # Add the Antlr runtime source directory to the include search path
-            include_dirs=["systemrdl/parser/ext/antlr4-cpp-runtime"],
+            include_dirs=["src/systemrdl/parser/ext/antlr4-cpp-runtime"],
 
             # Rather than listing each C++ file (Antlr has a lot!), discover them automatically
-            sources=get_files("systemrdl/parser/ext", "*.cpp"),
-            depends=get_files("systemrdl/parser/ext", "*.h"),
+            sources=get_files("src/systemrdl/parser/ext", "*.cpp"),
+            depends=get_files("src/systemrdl/parser/ext", "*.h"),
 
             extra_compile_args=extra_compile_args.get(target, [])
         )
@@ -53,49 +37,8 @@ def run_setup(with_binary):
         ext_modules = []
 
     setuptools.setup(
-        name="systemrdl-compiler",
-        version=rdl_version,
-        author="Alex Mykyta",
-        author_email="amykyta3@github.com",
-        description="Parse and elaborate front-end for SystemRDL 2.0",
-        long_description=long_description,
-        long_description_content_type="text/markdown",
-        url="https://github.com/SystemRDL/systemrdl-compiler",
-        packages=setuptools.find_packages(exclude=["test"]),
-        include_package_data=True,
         ext_modules=ext_modules,
         cmdclass={"build_ext": ve_build_ext},
-        python_requires='>=3.6',
-        install_requires=[
-            "antlr4-python3-runtime >= 4.11, < 4.14",
-            "colorama",
-            "markdown",
-        ],
-        classifiers=[
-            "Development Status :: 5 - Production/Stable",
-            "Programming Language :: Python",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
-            "Programming Language :: Python :: 3.10",
-            "Programming Language :: Python :: 3.11",
-            "Programming Language :: Python :: 3.12",
-            "Programming Language :: Python :: 3 :: Only",
-            "Intended Audience :: Developers",
-            "License :: OSI Approved :: MIT License",
-            "Operating System :: OS Independent",
-            "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
-            "Topic :: Software Development :: Compilers",
-            "Topic :: Software Development :: Code Generators",
-        ],
-        project_urls={
-            "Documentation": "http://systemrdl-compiler.readthedocs.io",
-            "Source": "https://github.com/SystemRDL/systemrdl-compiler",
-            "Tracker": "https://github.com/SystemRDL/systemrdl-compiler/issues",
-            "Changelog": "https://github.com/SystemRDL/systemrdl-compiler/releases",
-        },
     )
 
 
