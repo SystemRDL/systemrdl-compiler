@@ -30,15 +30,20 @@ def run_setup(with_binary):
             sources=get_files("src/systemrdl/parser/ext", "*.cpp"),
             depends=get_files("src/systemrdl/parser/ext", "*.h"),
 
-            extra_compile_args=extra_compile_args.get(target, [])
+            extra_compile_args=extra_compile_args.get(target, []),
+            define_macros=[("Py_LIMITED_API", "0x03060000")],
+            py_limited_api=True,
         )
         ext_modules = [parser_ext]
+        options = {"bdist_wheel": {"py_limited_api": "cp36"}}
     else:
         ext_modules = []
+        options = {}
 
     setuptools.setup(
         ext_modules=ext_modules,
         cmdclass={"build_ext": ve_build_ext},
+        options=options,
     )
 
 
@@ -88,6 +93,9 @@ is_old_python = sys.version_info[0:2] <= (3, 5)
 
 # Force using fallback python parser under some conditions
 using_fallback = is_jython or is_pypy or is_old_python
+
+if 'SYSTEMRDL_SKIP_BINARY_BUILD' in os.environ:
+    using_fallback = True
 
 if not using_fallback:
     try:
