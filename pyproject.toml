@@ -41,6 +41,20 @@ classifiers = [
     "Topic :: Software Development :: Code Generators",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "parameterized",
+    "pylint",
+
+    # Avoiding newer mypy for now because I didn't know how to do type hints
+    # 5 years ago...
+    #   https://github.com/python/mypy/issues/16770
+    "mypy < 1.8.0",
+    "types-Markdown",
+]
+
 [project.urls]
 Source = "https://github.com/SystemRDL/systemrdl-compiler"
 Tracker = "https://github.com/SystemRDL/systemrdl-compiler/issues"
