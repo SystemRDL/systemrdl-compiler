@@ -1,0 +1,13 @@
+addrmap top {
+  reg reg_a_t {
+    field {} f;
+  };
+
+  reg reg_b_t {
+    field {} g;
+  };
+
+  reg_a_t a;
+
+  reg_b_t a;
+};

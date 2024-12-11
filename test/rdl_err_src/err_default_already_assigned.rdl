@@ -1,0 +1,11 @@
+addrmap top {
+  reg reg_a_t {
+    field {
+      descr = "abc";
+
+      descr = "def";
+    } f;
+  };
+
+  reg_a_t a;
+};
