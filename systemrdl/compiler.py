@@ -101,7 +101,7 @@ class RDLCompiler:
 
         # Check for stray kwargs
         if kwargs:
-            raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
+            raise TypeError(f"got an unexpected keyword argument '{list(kwargs.keys())[0]}'")
 
         #: Reference to the compiler's :class:`~systemrdl.messages.MessageHandler` object
         #:
@@ -127,9 +127,9 @@ class RDLCompiler:
         )
 
         if name in self.env.property_rules.rdl_properties:
-            raise ValueError("UDP definition's name '%s' conflicts with existing built-in RDL property")
+            raise ValueError(f"UDP definition's name '{name}' conflicts with existing built-in RDL property")
         if name in self.env.property_rules.user_properties:
-            raise ValueError("UDP '%s' has already been defined")
+            raise ValueError(f"UDP '{name}' has already been defined")
 
         udp = LegacyExternalUserProperty(
             self.env,
@@ -156,9 +156,9 @@ class RDLCompiler:
         .. versionadded:: 1.25
         """
         if definition_cls.name in self.env.property_rules.rdl_properties:
-            raise ValueError("UDP definition's name '%s' conflicts with existing built-in RDL property")
+            raise ValueError(f"UDP definition's name '{definition_cls.name}' conflicts with existing built-in RDL property")
         if definition_cls.name in self.env.property_rules.user_properties:
-            raise ValueError("UDP '%s' has already been defined")
+            raise ValueError(f"UDP '{definition_cls.name}' has already been defined")
 
         # Wrap definition with internal UDP object & register it
         udp = ExternalUserProperty(self.env, definition_cls, soft)
@@ -341,11 +341,11 @@ class RDLCompiler:
         if top_def_name is not None:
             # Lookup top_def_name
             if top_def_name not in self.root.comp_defs:
-                self.msg.fatal("Elaboration target '%s' not found" % top_def_name)
+                self.msg.fatal(f"Elaboration target '{top_def_name}' not found")
             top_def = self.root.comp_defs[top_def_name]
 
             if not isinstance(top_def, comp.Addrmap):
-                self.msg.fatal("Elaboration target '%s' is not an 'addrmap' component" % top_def_name)
+                self.msg.fatal(f"Elaboration target '{top_def_name}' is not an 'addrmap' component")
         else:
             # Not specified. Find the last addrmap defined
             for comp_def in reversed(self.root.comp_defs.values()):
@@ -382,13 +382,13 @@ class RDLCompiler:
                     parameter = p
                     break
             else:
-                self.msg.fatal("Elaboration top does not have a parameter '%s' that is available for override" % param_name)
+                self.msg.fatal(f"Elaboration top does not have a parameter '{param_name}' that is available for override")
 
             literal_expr = ast.ExternalLiteral(self.env, value)
             assign_expr = ast.AssignmentCast(self.env, None, literal_expr, parameter.param_type)
             assign_type = assign_expr.predict_type()
             if assign_type is None:
-                self.msg.fatal("Incorrect type for top-level parameter override of '%s'" % param_name)
+                self.msg.fatal(f"Incorrect type for top-level parameter override of '{param_name}'")
 
             parameter.expr = assign_expr
 

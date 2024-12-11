@@ -54,7 +54,7 @@ class RDLImporter:
     # ------------------------ create_xxx_definition() -------------------------
     def _create_definition(self, cls: "Type[ComponentClass]", type_name: Optional[str] = None, src_ref: Optional[SourceRefBase] = None) -> "ComponentClass":
         if (type_name is not None) and not re.fullmatch(r"[a-zA-Z_]\w*", type_name):
-            raise ValueError("Type name has invalid characters: '%s'" % type_name)
+            raise ValueError(f"Type name has invalid characters: '{type_name}'")
         C = cls()
         C.type_name = type_name
         C.def_src_ref = src_ref or self.default_src_ref
@@ -138,7 +138,7 @@ class RDLImporter:
         if comp_def.is_instance:
             raise ValueError("Component is already instantiated")
         if not re.fullmatch(r"[a-zA-Z_]\w*", inst_name):
-            raise ValueError("Instance name has invalid characters: '%s'" % inst_name)
+            raise ValueError(f"Instance name has invalid characters: '{inst_name}'")
 
         if comp_def.type_name is None:
             # anonymous definition. No need to copy since it can only be used once
@@ -284,7 +284,7 @@ class RDLImporter:
             if isinstance(child, comp.Field):
                 bad = False
         if bad:
-            raise TypeError("Parent %s cannot be assigned child %s" % (repr(parent), repr(child)))
+            raise TypeError(f"Parent {repr(parent)} cannot be assigned child {repr(child)}")
 
         if not child.is_instance:
             raise ValueError("Child must be an instance if adding to a parent")
@@ -308,7 +308,7 @@ class RDLImporter:
 
         rule = self.compiler.env.property_rules.lookup_property(prop_name)
         if rule is None:
-            raise ValueError("Unrecognized property '%s'" % prop_name)
+            raise ValueError(f"Unrecognized property '{prop_name}'")
         if isinstance(value, comp.Component):
             # Warn user that this is not how references work
             raise TypeError("Invalid assignment type")

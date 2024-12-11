@@ -55,11 +55,11 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
     ]
 
     if is_desc:
-        tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_spec)
+        tok_regex = '|'.join(f"(?P<{pair[0]}>{pair[1]})" for pair in token_spec)
     else:
         # filter out tags that are not to be interpreted in 'name' properties
         skipset = {'img', 'list', 'bullet', 'xlist', 'br', 'p', 'xp', 'index', 'index_parent', 'name'}
-        tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_spec if pair[0] not in skipset)
+        tok_regex = '|'.join(f"(?P<{pair[0]}>{pair[1]})" for pair in token_spec if pair[0] not in skipset)
 
     pos = 0
     text_segs = []

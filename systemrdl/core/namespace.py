@@ -1,4 +1,3 @@
-import sys
 from typing import TYPE_CHECKING, Dict, List, Union, Type, Tuple
 
 from .parameter import Parameter
@@ -11,12 +10,7 @@ if TYPE_CHECKING:
     from .. import rdltypes
     from ..ast import ASTNode
 
-if sys.version_info >= (3,5,4):
-    TypeNSRef = Union[comp.Component, Type['rdltypes.UserEnum'], Type['rdltypes.UserStruct']]
-else:
-    # Stub on 3.5.3 or older due to: https://github.com/python/typing/issues/266
-    from typing import Any
-    TypeNSRef = Any # type: ignore
+TypeNSRef = Union[comp.Component, Type['rdltypes.UserEnum'], Type['rdltypes.UserStruct']]
 TypeNSEntry = TypeNSRef
 TypeNSScope = Dict[str, TypeNSEntry]
 

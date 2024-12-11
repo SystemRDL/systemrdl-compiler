@@ -21,7 +21,7 @@ Registration of a UDP is done as follows:
 .. code-block:: python
 
     from systemrdl.udp import UDPDefinition
-    from systemrdl.components import Field, Signal
+    from systemrdl.component import Field, Signal
 
     # 1. Describe your UDP
     class MyUDPDefinition(UDPDefinition):
