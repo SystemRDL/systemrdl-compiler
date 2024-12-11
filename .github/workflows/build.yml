@@ -188,7 +188,8 @@ jobs:
       matrix:
         os:
           - windows-latest
-          - macos-latest
+          - macos-13 # intel-based macos
+          - macos-latest # Apple silicon
           - ubuntu-latest
         include:
           # Only build CPython 3.x targets
