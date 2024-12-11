@@ -40,7 +40,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - "3.6"
           - "3.7"
           - "3.8"
           - "3.9"
@@ -51,9 +50,6 @@ jobs:
           - os: ubuntu-latest
 
           # older versions need older OS
-          - python-version: "3.6"
-            os: ubuntu-20.04
-
           - python-version: "3.7"
             os: ubuntu-22.04
 
@@ -192,7 +188,8 @@ jobs:
       matrix:
         os:
           - windows-latest
-          - macos-latest
+          - macos-13 # intel-based macos
+          - macos-latest # Apple silicon
           - ubuntu-latest
         include:
           # Only build CPython 3.x targets
@@ -204,8 +201,8 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
-          # Only build CPython ABI3 targets
-          CIBW_BUILD: "cp3*-abi3-*"
+          # Only build CPython targets
+          CIBW_BUILD: "cp3*"
           # Ensure full C++17 availability on macOS builds
           MACOSX_DEPLOYMENT_TARGET: "10.13"
           # Signal setup.py to fail if binary build fails

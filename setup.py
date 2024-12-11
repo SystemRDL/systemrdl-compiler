@@ -1,8 +1,7 @@
-import sys
 import os
 import platform
-import fnmatch
 import setuptools
+from glob import glob
 
 target = platform.system().lower()
 PLATFORMS = {'windows', 'linux', 'darwin', 'cygwin'}
@@ -27,15 +26,15 @@ def run_setup(with_binary):
             include_dirs=["src/systemrdl/parser/ext/antlr4-cpp-runtime"],
 
             # Rather than listing each C++ file (Antlr has a lot!), discover them automatically
-            sources=get_files("src/systemrdl/parser/ext", "*.cpp"),
-            depends=get_files("src/systemrdl/parser/ext", "*.h"),
+            sources=glob("src/systemrdl/parser/ext/**/*.cpp", recursive=True),
+            depends=glob("src/systemrdl/parser/ext/**/*.h", recursive=True),
 
             extra_compile_args=extra_compile_args.get(target, []),
-            define_macros=[("Py_LIMITED_API", "0x03060000")],
+            define_macros=[("Py_LIMITED_API", "0x03070000")],
             py_limited_api=True,
         )
         ext_modules = [parser_ext]
-        options = {"bdist_wheel": {"py_limited_api": "cp36"}}
+        options = {"bdist_wheel": {"py_limited_api": "cp37"}}
     else:
         ext_modules = []
         options = {}
@@ -50,27 +49,14 @@ def run_setup(with_binary):
 #===============================================================================
 from setuptools.command.build_ext import build_ext
 
-def get_files(path, pattern):
-    """
-    Recursive file search that is compatible with python3.4 and older
-    """
-    matches = []
-    for root, _, filenames in os.walk(path):
-        for filename in fnmatch.filter(filenames, pattern):
-            matches.append(os.path.join(root, filename))
-    return matches
-
-
 class BuildFailed(Exception):
     pass
-
 
 class ve_build_ext(build_ext):
     """
     This class extends setuptools to fail with a common BuildFailed exception
     if a build fails
     """
-
     def run(self):
         try:
             build_ext.run(self)
@@ -83,29 +69,15 @@ class ve_build_ext(build_ext):
         except Exception:
             raise BuildFailed()
 
-
-# Detect if an alternate interpreter is being used
-is_jython = "java" in sys.platform
-is_pypy = hasattr(sys, "pypy_version_info")
-
-# Antlr accelerator is no longer supported on older Python versions
-is_old_python = sys.version_info[0:2] <= (3, 5)
-
-# Force using fallback python parser under some conditions
-using_fallback = is_jython or is_pypy or is_old_python
-
-if 'SYSTEMRDL_SKIP_BINARY_BUILD' in os.environ:
-    using_fallback = True
-
-if not using_fallback:
-    try:
-        run_setup(with_binary=True)
-    except BuildFailed:
-        if 'SYSTEMRDL_REQUIRE_BINARY_BUILD' in os.environ:
-            # Force failure if binary build is required
-            raise
-        else:
-            using_fallback = True
+using_fallback = False
+try:
+    run_setup(with_binary=True)
+except BuildFailed:
+    if 'SYSTEMRDL_REQUIRE_BINARY_BUILD' in os.environ:
+        # Force failure if binary build is required
+        raise
+    else:
+        using_fallback = True
 
 if using_fallback:
     run_setup(with_binary=False)
