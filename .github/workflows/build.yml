@@ -40,7 +40,7 @@ jobs:
     strategy:
       matrix:
         python-version:
-          # FIXME: add this back - "3.6"
+          - "3.6"
           - "3.7"
           - "3.8"
           - "3.9"
@@ -50,9 +50,9 @@ jobs:
         include:
           - os: ubuntu-latest
 
-#          # older versions need older OS
-#          - python-version: "3.6"
-#            os: ubuntu-20.04
+          # older versions need older OS
+          - python-version: "3.6"
+            os: ubuntu-20.04
 
           - python-version: "3.7"
             os: ubuntu-22.04
@@ -204,8 +204,8 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
-          # Only build CPython 3.x targets
-          CIBW_BUILD: "cp3*"
+          # Only build CPython ABI3 targets
+          CIBW_BUILD: "cp3*-abi3-*"
           # Ensure full C++17 availability on macOS builds
           MACOSX_DEPLOYMENT_TARGET: "10.13"
           # Signal setup.py to fail if binary build fails
@@ -253,8 +253,8 @@ jobs:
         run: python -m build --sdist
 
       - uses: actions/upload-artifact@v4
-        name: release-dist-sdist
         with:
+          name: release-dist-sdist
           path: dist/*.tar.gz
 
 #-------------------------------------------------------------------------------
