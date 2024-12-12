@@ -26,6 +26,8 @@ class UserEnumMemberContainer:
         self.rdl_name = rdl_name
         self.rdl_desc = rdl_desc
 
+    def __hash__(self) -> int:
+        return hash((self.name, self.value, self.rdl_name, self.rdl_desc))
 
 class UserEnumMeta(type):
     """
