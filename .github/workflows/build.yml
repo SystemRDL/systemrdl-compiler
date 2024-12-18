@@ -262,6 +262,8 @@ jobs:
 
     runs-on: ubuntu-latest
     environment: release
+    permissions:
+      id-token: write
 
     # Only publish when a GitHub Release is created.
     if: github.event_name == 'release'
