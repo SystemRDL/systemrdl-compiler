@@ -272,5 +272,6 @@ jobs:
         with:
           pattern: release-dist-*
           path: dist
+          merge-multiple: true
 
       - uses: pypa/gh-action-pypi-publish@release/v1
