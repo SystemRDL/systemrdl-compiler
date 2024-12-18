@@ -118,7 +118,7 @@ class ExprVisitor(BaseVisitor):
                 src_ref_from_antlr(ctx.VLOG_INT())
             )
 
-        if val >= (1 << width):
+        if val.bit_length() > width:
             self.msg.fatal(
                 "Value of integer literal exceeds the specified width",
                 src_ref_from_antlr(ctx.VLOG_INT())

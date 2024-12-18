@@ -76,7 +76,7 @@ class Prop_dontcompare(PropertyRule):
             # 5.2.2.1-a: If value is a bit mask, the mask shall have the same width
             # as the field
             if not isinstance(value, bool) and isinstance(value, int):
-                if value >= (1 << node.width):
+                if value.bit_length() > node.width:
                     self.env.msg.error(
                         "Bit mask (%d) of property 'dontcompare' exceeds width (%d) of field '%s'"
                         % (value, node.width, node.inst_name),
@@ -433,7 +433,7 @@ class Prop_reset(PropertyRule):
         assert isinstance(node, m_node.FieldNode)
         if isinstance(value, int):
             # 9.5.1-c: The reset value cannot be larger than can fit in the field
-            if value >= (1 << node.width):
+            if value.bit_length() > node.width:
                 self.env.msg.error(
                     "The reset value (%d) of field '%s' cannot fit within its width (%d)"
                     % (value, node.inst_name, node.width),

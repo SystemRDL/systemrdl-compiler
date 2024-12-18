@@ -90,8 +90,8 @@ class UserProperty(PropertyRule):
 
             # Spec does not specify, but assuming this check gets ignored for
             # non-vector nodes
-            if isinstance(node, m_node.VectorNode):
-                if value >= (1 << node.width):
+            if isinstance(node, m_node.VectorNode) and isinstance(value, int):
+                if value.bit_length() > node.width:
                     self.env.msg.error(
                         "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
                         % (value, self.name, node.width, node.inst_name),
