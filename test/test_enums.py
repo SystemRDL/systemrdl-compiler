@@ -81,3 +81,26 @@ class TestEnums(RDLSourceTestCase):
                 self.assertEqual(m.rdl_desc, m2.rdl_desc)
             self.assertIs(type(e).__class__, type(e2).__class__)
             self.assertIs(type(e).__module__, type(e2).__module__)
+
+    def test_enums_in_expressions(self):
+        root = self.compile(
+            ["rdl_src/enums_in_expressions.rdl"],
+            "enum_expr_test"
+        )
+        def check_result(name: str, value: int):
+            reg = root.top.get_child_by_name(name)
+            self.assertEqual(reg.get_property("int_prop"), value)
+
+        check_result("concat1", 0xC10)
+        check_result("concat2", 0x22000000000000000D10)
+        check_result("concat3", 0x220D10)
+        check_result("repl", 0x000000000000000300000000000000030000000000000003)
+        check_result("add", 8)
+        check_result("sub", 2)
+        check_result("mul", 6)
+        check_result("div", 6)
+        check_result("mod", 2)
+        check_result("and", 8)
+        check_result("or", 13)
+        check_result("xor", 5)
+        check_result("inv", 0xFFFFFFFF_FFFFFFF3)

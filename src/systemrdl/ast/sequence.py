@@ -15,20 +15,11 @@ class Concatenate(ASTNode):
         self.elements = elements
         self.type = None # type: Union[Type[int], Type[str]]
 
-    def predict_type(self):
-        # type: () -> Union[Type[int], Type[str]]
-
-        # Get type of first element
+    def predict_type(self) -> Union[Type[int], Type[str]]:
         element_iter = iter(self.elements)
-        element_type = next(element_iter).predict_type()
 
-        # All remaining elements shall match
-        for element in element_iter:
-            if element_type != element.predict_type():
-                self.msg.fatal(
-                    "Elements of a concatenation shall be the same type",
-                    self.src_ref
-                )
+        # first element defines the type of the concatenation
+        element_type = next(element_iter).predict_type()
         if is_castable(element_type, int):
             self.type = int
         elif is_castable(element_type, str):
@@ -38,6 +29,14 @@ class Concatenate(ASTNode):
                 "Concatenation operator can only be used for integral or string types",
                 self.src_ref
             )
+
+        # All remaining elements shall be castable to the concatenation type
+        for element in element_iter:
+            if not is_castable(element.predict_type(), self.type):
+                self.msg.fatal(
+                    "Elements of a concatenation shall be the same type",
+                    self.src_ref
+                )
         return self.type
 
     def get_min_eval_width(self) -> int:

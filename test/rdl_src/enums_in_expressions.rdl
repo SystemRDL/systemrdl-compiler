@@ -1,0 +1,41 @@
+property int_prop {
+    type = longint;
+    component = all;
+};
+
+addrmap enum_expr_test {
+    enum my_enum1 {
+        zero;
+        one;
+        two;
+        three;
+    };
+
+    enum my_enum2 {
+        ten = 10;
+        eleven = 11;
+        twelve = 12;
+        thirteen = 13;
+    };
+
+    reg myreg {
+        field {} f;
+    };
+
+    // convenience macro that instantiates the reg, and assigns the UDP with an expression
+    `define EXPR(name, expr) myreg name; name->int_prop = expr
+
+    `EXPR(concat1, {my_enum2::twelve, 8'h10});
+    `EXPR(concat2, {8'h22, my_enum2::thirteen, 8'h10});
+    `EXPR(concat3, {8'h22, (8)'(my_enum2::thirteen), 8'h10});
+    `EXPR(repl, {3{my_enum1::three}});
+    `EXPR(add, my_enum1::three + 5);
+    `EXPR(sub, my_enum1::three - 1);
+    `EXPR(mul, my_enum1::three * 2);
+    `EXPR(div, my_enum2::twelve / 2);
+    `EXPR(mod, my_enum2::twelve % 5);
+    `EXPR(and, my_enum2::twelve & 9);
+    `EXPR(or, my_enum2::twelve | 9);
+    `EXPR(xor, my_enum2::twelve ^ 9);
+    `EXPR(inv, ~my_enum2::twelve);
+};
