@@ -16,7 +16,7 @@ authors = [
 ]
 description="Parse and elaborate front-end for SystemRDL 2.0"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = {text = "MIT"}
 keywords = [
     "SystemRDL", "CSR", "compiler", "tool", "registers", "generator",
     "register abstraction layer", "FPGA", "ASIC",
