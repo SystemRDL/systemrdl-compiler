@@ -1,5 +1,5 @@
 import hashlib
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, cast
 
 from ..ast import ASTNode
 from .helpers import is_pow2, roundup_pow2, roundup_to
@@ -43,7 +43,9 @@ class ElabExpressionsListener(walker.RDLListener):
 
 
     def enter_AddressableComponent(self, node: AddressableNode) -> None:
-        assert isinstance(node.inst, comp.AddressableComponent)
+        # Cast to pre-elaborated variant to satisfy type hinting
+        node.inst = cast(comp.AddressableComponent_PreExprElab, node.inst)
+
         # Evaluate instance object expressions
         if isinstance(node.inst.addr_offset, ASTNode):
             node.inst.addr_offset = node.inst.addr_offset.get_value()
@@ -76,7 +78,9 @@ class ElabExpressionsListener(walker.RDLListener):
 
 
     def enter_VectorComponent(self, node: VectorNode) -> None:
-        assert isinstance(node.inst, comp.VectorComponent)
+        # Cast to pre-elaborated variant to satisfy type hinting
+        node.inst = cast(comp.VectorComponent_PreExprElab, node.inst)
+
         # Evaluate instance object expressions
         if isinstance(node.inst.width, ASTNode):
             node.inst.width = node.inst.width.get_value()
@@ -208,9 +212,9 @@ class StructuralPlacementListener(walker.RDLListener):
 
     def __init__(self, msg_handler: 'MessageHandler'):
         self.msg = msg_handler
-        self.msb0_mode_stack = [] # type: List[bool]
-        self.addressing_mode_stack = [] # type: List[rdltypes.AddressingType]
-        self.alignment_stack = [] # type: List[Optional[int]]
+        self.msb0_mode_stack: List[bool] = []
+        self.addressing_mode_stack: List[rdltypes.AddressingType] = []
+        self.alignment_stack: List[Optional[int]] = []
         self.max_vreg_width = 0
 
 
@@ -250,10 +254,12 @@ class StructuralPlacementListener(walker.RDLListener):
 
 
     def exit_Field(self, node: FieldNode) -> None:
-        assert isinstance(node.inst, comp.Field)
+        # Cast to pre-elaborated variant to satisfy type hinting
+        node.inst = cast(comp.Field_PreStructuralElab, node.inst)
+
         # Resolve field width
         if node.inst.width is None:
-            fieldwidth = node.get_property('fieldwidth')
+            fieldwidth = node.get_property('fieldwidth', default=None)
 
             if (node.inst.lsb is not None) and (node.inst.msb is not None):
                 width = abs(node.inst.msb - node.inst.lsb) + 1
@@ -275,11 +281,12 @@ class StructuralPlacementListener(walker.RDLListener):
 
 
     def exit_Signal(self, node: SignalNode) -> None:
-        assert isinstance(node.inst, comp.Signal)
+        # Cast to pre-elaborated variant to satisfy type hinting
+        node.inst = cast(comp.Signal_PreStructuralElab, node.inst)
 
         # Resolve signal width
         if node.inst.width is None:
-            signalwidth = node.get_property('signalwidth')
+            signalwidth = node.get_property('signalwidth', default=None)
 
             if signalwidth is not None:
                 node.inst.width = signalwidth
@@ -303,8 +310,6 @@ class StructuralPlacementListener(walker.RDLListener):
 
 
     def exit_Reg(self, node: RegNode) -> None:
-        assert isinstance(node.inst, comp.Reg)
-
         regwidth = node.get_property('regwidth')
 
         self.max_vreg_width = max(regwidth, self.max_vreg_width)
@@ -316,6 +321,9 @@ class StructuralPlacementListener(walker.RDLListener):
         for inst in node.inst.children:
             if not isinstance(inst, comp.Field):
                 continue
+
+            # Cast to pre-elaborated variant to satisfy type hinting
+            inst = cast(comp.Field_PreStructuralElab, inst)
 
             if (inst.lsb is None) or (inst.msb is None):
                 continue
@@ -347,10 +355,15 @@ class StructuralPlacementListener(walker.RDLListener):
 
         # Assign field positions
         # Children are iterated in order of declaration
-        prev_inst = None # type: Optional[comp.Field]
+        prev_inst: Optional[comp.Field] = None
         for inst in node.inst.children:
             if not isinstance(inst, comp.Field):
                 continue
+
+            # Cast to pre-elaborated variant to satisfy type hinting
+            inst = cast(comp.Field_PreStructuralElab, inst)
+
+            assert inst.width is not None # Width was resolved in field visit
 
             if (inst.lsb is None) or (inst.msb is None):
                 # Offset is not known
@@ -370,8 +383,10 @@ class StructuralPlacementListener(walker.RDLListener):
                         inst.lsb = regwidth - 1
                     else:
                         inst.lsb = prev_inst.msb - 1
+                    assert inst.lsb is not None
 
                     inst.msb = inst.lsb - inst.width + 1
+                    assert inst.msb is not None
 
                     if inst.msb < 0:
                         node.env.msg.fatal(
@@ -387,8 +402,10 @@ class StructuralPlacementListener(walker.RDLListener):
                         inst.lsb = 0
                     else:
                         inst.lsb = prev_inst.msb + 1
+                    assert inst.lsb is not None
 
                     inst.msb = inst.lsb + inst.width - 1
+                    assert inst.msb is not None
             inst.high = max(inst.msb, inst.lsb)
             inst.low = min(inst.msb, inst.lsb)
             prev_inst = inst
@@ -419,7 +436,6 @@ class StructuralPlacementListener(walker.RDLListener):
 
 
     def exit_AddressableComponent(self, node: AddressableNode) -> None:
-        assert isinstance(node.inst, comp.AddressableComponent)
         # Resolve array stride if needed
         if node.inst.is_array and (node.inst.array_stride is None):
             node.inst.array_stride = node.size
@@ -448,7 +464,6 @@ class StructuralPlacementListener(walker.RDLListener):
         for child_node in node.children(skip_not_present=False):
             if not isinstance(child_node, AddressableNode):
                 continue
-            assert isinstance(child_node.inst, comp.AddressableComponent)
 
             if child_node.inst.addr_offset is not None:
                 # Address is already known. Do not need to infer
@@ -519,6 +534,7 @@ class StructuralPlacementListener(walker.RDLListener):
             if not isinstance(inst, comp.AddressableComponent):
                 return -1
             else:
+                assert inst.addr_offset is not None
                 return inst.addr_offset
         node.inst.children.sort(key=get_child_sort_key)
 
@@ -530,10 +546,10 @@ class LateElabListener(walker.RDLListener):
     def __init__(self, msg_handler: 'MessageHandler', env: 'RDLEnvironment'):
         self.msg = msg_handler
         self.env = env
-        self.coerce_external_to = None # type: Optional[bool]
-        self.coerce_end_regfile = None # type: Optional[Node]
+        self.coerce_external_to: Optional[bool] = None
+        self.coerce_end_regfile: Optional[Node] = None
 
-        self.node_needs_revisit = [] # type: List[Node]
+        self.node_needs_revisit: List[Node] = []
 
 
     def enter_Component(self, node: Node) -> None:
@@ -565,15 +581,13 @@ class LateElabListener(walker.RDLListener):
 
 
     def enter_Reg(self, node: RegNode) -> None:
-        assert isinstance(node.inst, comp.Reg)
-
         if self.coerce_external_to is not None:
             # Is nested inside regfile that is coercing to a particular inst type
             node.inst.external = self.coerce_external_to
         elif node.inst.external is None:
             if node.inst.is_alias:
                 # inherit internal/external instance type from alias primary
-                assert isinstance(node.inst.alias_primary_inst, comp.Reg)
+                assert node.inst.alias_primary_inst is not None
                 if node.inst.alias_primary_inst.external is not None:
                     node.inst.external = node.inst.alias_primary_inst.external
                 else:
@@ -585,7 +599,7 @@ class LateElabListener(walker.RDLListener):
 
         # Register aliases with their primary register
         if node.inst.is_alias:
-            assert isinstance(node.inst.alias_primary_inst, comp.Reg)
+            assert node.inst.alias_primary_inst is not None
             node.inst.alias_primary_inst._alias_names.append(node.inst_name)
 
 
@@ -628,6 +642,7 @@ class LateElabListener(walker.RDLListener):
                 for child_name in node.inst._dyn_assigned_children:
                     child = node.inst.get_child_by_name(child_name)
                     assert child is not None
+                    assert child.inst_name is not None
 
                     # <child_name>_<hash of child type name>
                     if child.type_name is not None:
@@ -670,9 +685,8 @@ class LateElabRevisitor:
         # Resolve alias register's instance type if it was not possible to do so earlier.
         # By now, its primary would have been resolved.
         if node.inst.external is None:
-            assert isinstance(node.inst, comp.Reg)
             if node.inst.is_alias:
-                assert isinstance(node.inst.alias_primary_inst, comp.Reg)
+                assert node.inst.alias_primary_inst is not None
                 if node.inst.alias_primary_inst.external is not None:
                     node.inst.external = node.inst.alias_primary_inst.external
                 else:

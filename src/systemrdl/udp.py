@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Set, Type
+from typing import TYPE_CHECKING, Any, Set, Type, Optional
 import re
 
 from . import component as comp
@@ -15,11 +15,11 @@ class UDPDefinition:
     """
 
     #: User-defined property name
-    name = "" # type: str
+    name: str = ""
 
     #: Set of :class:`~systemrdl.component.Component` types the UDP can be bound to.
     #: By default, the UDP can be bound to all components.
-    valid_components = {
+    valid_components: Set[Type[comp.Component]] = {
         comp.Field,
         comp.Reg,
         comp.Regfile,
@@ -27,23 +27,23 @@ class UDPDefinition:
         comp.Mem,
         comp.Signal,
         # TODO: constraint,
-    } # type: Set[Type[comp.Component]]
+    }
 
     #: Data type of the assignment value that this UDP will enforce.
     #: If this is a reference, either specify the specific component type class
     #: (eg. :class:`~systemrdl.component.Field`), or the generic representation
     #: of all references: :class:`~systemrdl.rdltypes.references.RefType`
-    valid_type = None # type: Any
+    valid_type: Any = None
 
     #: Specifies the value assigned if a value is not specified when the UDP is bound to a component.
     #: Value must be compatible with ``valid_type``
-    default_assignment = None # type: Any
+    default_assignment: Any = None
 
     #: If set to True, enables a validation check that enforces that the
     #: assigned value of the property shall not have a value of 1 for any
     #: bit beyond the width of the field.
     #: This can only be used if ``valid_type`` is ``int``
-    constr_componentwidth = False
+    constr_componentwidth: bool = False
 
     def __init__(self, env: 'RDLEnvironment') -> None:
         self.env = env
@@ -66,7 +66,7 @@ class UDPDefinition:
         """
         return self.env.msg
 
-    def get_src_ref(self, node: 'Node') -> 'SourceRefBase':
+    def get_src_ref(self, node: 'Node') -> Optional['SourceRefBase']:
         """
         Get the src_ref object for this property assignment.
 

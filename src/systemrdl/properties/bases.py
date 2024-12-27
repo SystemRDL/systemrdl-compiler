@@ -16,19 +16,19 @@ if TYPE_CHECKING:
 #===============================================================================
 class PropertyRule:
     # Set of components this property can be bound to
-    bindable_to = set() # type: Set[Type[comp.Component]]
+    bindable_to: Set[Type['comp.Component']] = set()
 
     # List of valid assignment types. In order of cast preference
-    valid_types = tuple() # type: Tuple[Any, ...]
+    valid_types: Tuple[Any, ...] = tuple()
 
     # Default value if not assigned
-    default = None # type: Any
+    default: Any = None
 
     # Whether dynamic assignments are allowed to be made to this property
-    dyn_assign_allowed= True # type: bool
+    dyn_assign_allowed: bool = True
 
     # Group string in which this property is mutually exclusive
-    mutex_group = None # type: Optional[str]
+    mutex_group: Optional[str] = None
 
 
     def __init__(self, env: 'RDLEnvironment'):
@@ -247,7 +247,7 @@ class PropertyRule:
                     self.get_src_ref(node)
                 )
 
-    def get_src_ref(self, node: m_node.Node) -> 'SourceRefBase':
+    def get_src_ref(self, node: m_node.Node) -> Optional['SourceRefBase']:
         return node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
 
 
@@ -268,7 +268,7 @@ class PropertyRuleBoolPair(PropertyRule):
             return self.default
 
 #===============================================================================
-_MUTEX_PROP_GROUPS = {} # type: Dict[str, Set[str]]
+_MUTEX_PROP_GROUPS: Dict[str, Set[str]] = {}
 def _get_mutex_properties(group_name: str) -> Set[str]:
     # initialize cache for the first time if needed
     if not _MUTEX_PROP_GROUPS:

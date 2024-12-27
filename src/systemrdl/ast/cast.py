@@ -9,7 +9,7 @@ from .. import component as comp
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
-    from rdltypes.typing import PreElabRDLType
+    from ..rdltypes.typing import PreElabRDLType
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -22,6 +22,7 @@ class WidthCast(ASTNode):
     def __init__(self, env: 'RDLEnvironment', src_ref: 'OptionalSourceRef', v: ASTNode, w_expr: Optional[ASTNode]=None, w_int: int=64):
         super().__init__(env, src_ref)
 
+        self.w_expr: Optional[ASTNode]
         if w_expr is not None:
             self.v = v
             self.w_expr = w_expr
@@ -33,6 +34,7 @@ class WidthCast(ASTNode):
 
     def predict_type(self) -> Type[int]:
         if self.cast_width is None:
+            assert self.w_expr is not None # mutually exclusive
             if not is_castable(self.w_expr.predict_type(), int):
                 self.msg.fatal(
                     "Width operand of cast expression is not a compatible numeric type",
@@ -48,6 +50,7 @@ class WidthCast(ASTNode):
 
     def get_min_eval_width(self) -> int:
         if self.cast_width is None:
+            assert self.w_expr is not None # mutually exclusive
             self.cast_width = int(self.w_expr.get_value())
         return self.cast_width
 
@@ -55,6 +58,7 @@ class WidthCast(ASTNode):
     def get_value(self, eval_width: Optional[int]=None) -> int:
         # Truncate to cast width instead of eval width
         if self.cast_width is None:
+            assert self.w_expr is not None # mutually exclusive
             self.cast_width = int(self.w_expr.get_value())
         if self.cast_width == 0:
             self.msg.fatal(

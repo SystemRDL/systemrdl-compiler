@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Dict, Any
+from typing import Tuple, Union, Dict, Any, Optional
 
 from antlr4.Token import CommonToken
 from antlr4 import ParserRuleContext
@@ -33,7 +33,7 @@ class FileSourceRef(SourceRefBase):
 
     Some register model importers may only be able to provide limited source context.
     """
-    def __init__(self, path: str):
+    def __init__(self, path: str) -> None:
         super().__init__()
         self._path = path
 
@@ -94,14 +94,14 @@ class DirectSourceRef(DetailedFileSourceRef):
     """
     Source reference that points directly to a file's coordinates.
     """
-    def __init__(self, path: str, start_idx: int, end_idx: int):
+    def __init__(self, path: str, start_idx: int, end_idx: int) -> None:
         super().__init__(path)
-        self._start_idx = start_idx
-        self._end_idx = end_idx
+        self._start_idx: int = start_idx
+        self._end_idx: int = end_idx
 
-        self._line = None # type: int
-        self._line_text = None # type: str
-        self._line_selection = None # type: Tuple[int, int]
+        self._line: Optional[int] = None
+        self._line_text: Optional[str] = None
+        self._line_selection: Optional[Tuple[int, int]] = None
 
     def _extract_line_info(self) -> None:
         idx = 0
@@ -143,18 +143,21 @@ class DirectSourceRef(DetailedFileSourceRef):
     def line(self) -> int:
         if self._line is None:
             self._extract_line_info()
+            assert self._line is not None
         return self._line
 
     @property
     def line_text(self) -> str:
         if self._line_text is None:
             self._extract_line_info()
+            assert self._line_text is not None
         return self._line_text
 
     @property
     def line_selection(self) -> Tuple[int, int]:
         if self._line_selection is None:
             self._extract_line_info()
+            assert self._line_selection is not None
         return self._line_selection
 
 
@@ -164,9 +167,10 @@ class SegmentedSourceRef(DirectSourceRef):
     Source reference that requires coordinate transformation through one or more
     segment maps
     """
+    _path: Optional[str] # type: ignore # overriding this to be optional
 
     def __init__(self, seg_map: SegmentMap, start_idx: int, end_idx: int):
-        super().__init__(None, None, None)
+        super().__init__(None, None, None) # type: ignore # overriding this to be optional
 
         self._seg_map = seg_map
         self._seg_start_idx = start_idx
@@ -176,6 +180,7 @@ class SegmentedSourceRef(DirectSourceRef):
     def path(self) -> str:
         if self._path is None:
             self._resolve_seg_map()
+            assert self._path is not None
         return self._path
 
     def _resolve_seg_map(self) -> None:
@@ -185,7 +190,7 @@ class SegmentedSourceRef(DirectSourceRef):
 
 
 #-------------------------------------------------------------------------------
-def src_ref_from_antlr(antlr_ref: Union[CommonToken, TerminalNodeImpl, ParserRuleContext]) -> 'SourceRefBase':
+def src_ref_from_antlr(antlr_ref: Union[CommonToken, TerminalNodeImpl, ParserRuleContext]) -> Optional[SourceRefBase]:
     # Normalize to pair of CommonToken objects
     if isinstance(antlr_ref, CommonToken):
         token = antlr_ref

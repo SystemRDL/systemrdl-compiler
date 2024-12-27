@@ -16,15 +16,15 @@ class PropertyRuleBook:
         self.env = env
 
         # Auto-discover all properties defined below and load into dict
-        self.rdl_properties = {} # type: Dict[str, PropertyRule]
+        self.rdl_properties: Dict[str, PropertyRule] = {}
         for prop in get_all_subclasses(PropertyRule):
             if prop.__name__.startswith("Prop_"):
                 prop_inst = prop(self.env)
                 self.rdl_properties[prop_inst.get_name()] = prop(self.env)
 
-        self.user_properties = {} # type: Dict[str, UserProperty]
+        self.user_properties: Dict[str, UserProperty] = {}
 
-        self.rdl_prop_refs = {} # type: Dict[str, Type[rdltypes.PropertyReference]]
+        self.rdl_prop_refs: Dict[str, Type[rdltypes.PropertyReference]] = {}
         for prop_ref in get_all_subclasses(rdltypes.PropertyReference):
             if prop_ref.__name__.startswith("PropRef_"):
                 prop_name = prop_ref.get_name()
@@ -42,11 +42,10 @@ class PropertyRuleBook:
         else:
             return None
 
-    def lookup_prop_ref_type(self, prop_ref_name):
-        # type: (str) -> Optional[Type[rdltypes.PropertyReference]]
+    def lookup_prop_ref_type(self, prop_ref_name: str) -> Optional[Type[rdltypes.PropertyReference]]:
         return self.rdl_prop_refs.get(prop_ref_name, None)
 
-    def register_udp(self, udp: UserProperty, src_ref: 'SourceRefBase') -> None:
+    def register_udp(self, udp: UserProperty, src_ref: Optional['SourceRefBase']) -> None:
         if udp.name in self.user_properties:
 
             existing_udp = self.user_properties[udp.name]

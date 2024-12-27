@@ -2,7 +2,7 @@ import re
 import itertools
 from copy import deepcopy, copy
 from collections import deque
-from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Dict, Union
+from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Dict, Union, overload
 
 from . import component as comp
 from . import rdltypes
@@ -22,7 +22,7 @@ class Node:
 
     """
 
-    def __init__(self, inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']):
+    def __init__(self, inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']) -> None:
         # Generic Node constructor.
         # Do not call directly. Use factory() static method instead
         self.env = env
@@ -56,6 +56,45 @@ class Node:
                 setattr(result, k, deepcopy(v, memo))
         return result
 
+    @overload
+    @staticmethod
+    def _factory(inst: comp.Field, env: 'RDLEnvironment', parent: Optional['Node']) -> 'FieldNode':
+        ...
+
+    @overload
+    @staticmethod
+    def _factory(inst: comp.Reg, env: 'RDLEnvironment', parent: Optional['Node']) -> 'RegNode':
+        ...
+
+    @overload
+    @staticmethod
+    def _factory(inst: comp.Regfile, env: 'RDLEnvironment', parent: Optional['Node']) -> 'RegfileNode':
+        ...
+
+    @overload
+    @staticmethod
+    def _factory(inst: comp.Addrmap, env: 'RDLEnvironment', parent: Optional['Node']) -> 'AddrmapNode':
+        ...
+
+    @overload
+    @staticmethod
+    def _factory(inst: comp.Mem, env: 'RDLEnvironment', parent: Optional['Node']) -> 'MemNode':
+        ...
+
+    @overload
+    @staticmethod
+    def _factory(inst: comp.Signal, env: 'RDLEnvironment', parent: Optional['Node']) -> 'SignalNode':
+        ...
+
+    @overload
+    @staticmethod
+    def _factory(inst: comp.AddressableComponent, env: 'RDLEnvironment', parent: Optional['Node']) -> 'AddressableNode':
+        ...
+
+    @overload
+    @staticmethod
+    def _factory(inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']) -> 'Node':
+        ...
 
     @staticmethod
     def _factory(inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']=None) -> 'Node':
@@ -86,17 +125,19 @@ class Node:
 
         .. versionadded:: 1.20.0
         """
-        cls = type(self)
-        if isinstance(self, AddressableNode) and self.is_array: # pylint: disable=no-member
+        if isinstance(self, AddressableNode) and self.array_dimensions: # pylint: disable=no-member
+            cls = type(self)
+
             # Is an array. Yield a Node object for each instance
             range_list = [range(n) for n in self.array_dimensions] # pylint: disable=no-member
             for idxs in itertools.product(*range_list):
                 N = cls(self.inst, self.env, self.parent)
-                N.current_idx = idxs # type: ignore
+                N.current_idx = list(idxs)
                 yield N
         else:
+            cls2 = type(self)
             # not an array. Nothing to unroll
-            yield cls(self.inst, self.env, self.parent)
+            yield cls2(self.inst, self.env, self.parent)
 
 
     def children(self, unroll: bool=False, skip_not_present: bool=True) -> Iterator['Node']:
@@ -124,13 +165,12 @@ class Node:
                     # ispresent was explicitly set to False. Skip it
                     continue
 
-            if unroll and isinstance(child_inst, comp.AddressableComponent) and child_inst.is_array:
-                assert child_inst.array_dimensions is not None
+            if unroll and isinstance(child_inst, comp.AddressableComponent) and child_inst.array_dimensions:
                 # Unroll the array
                 range_list = [range(n) for n in child_inst.array_dimensions]
                 for idxs in itertools.product(*range_list):
                     N = Node._factory(child_inst, self.env, self)
-                    N.current_idx = idxs # type: ignore # pylint: disable=attribute-defined-outside-init
+                    N.current_idx = list(idxs) # pylint: disable=attribute-defined-outside-init
                     yield N
             else:
                 yield Node._factory(child_inst, self.env, self)
@@ -304,7 +344,9 @@ class Node:
             If an array index in the path is invalid
         """
         pathparts = path.split('.')
-        current_node = self
+        current_node: Optional[Node] = self
+        assert current_node is not None
+
         for pathpart in pathparts:
             # If parent reference, jump upwards
             if pathpart == "^":
@@ -326,9 +368,8 @@ class Node:
             if idx_list:
                 if not isinstance(current_node, AddressableNode):
                     raise IndexError("Index attempted on unindexable component")
-                assert isinstance(current_node.inst, comp.AddressableComponent)
 
-                if current_node.inst.is_array:
+                if current_node.inst.array_dimensions:
                     # is an array
                     if len(idx_list) != len(current_node.inst.array_dimensions):
                         raise IndexError("Wrong number of array dimensions")
@@ -479,6 +520,7 @@ class Node:
             Override how array suffixes are represented when the index is not known
         """
         # pylint: disable=unused-argument
+        assert self.inst.inst_name is not None
         return self.inst.inst_name
 
 
@@ -652,6 +694,7 @@ class Node:
         """
         Name of instantiated element
         """
+        assert self.inst.inst_name is not None
         return self.inst.inst_name
 
     @property
@@ -728,6 +771,9 @@ class Node:
 
         .. versionadded:: 1.9
         """
+        # Guaranteed after elaboration
+        assert self.inst.external is not None
+
         return self.inst.external
 
     @property
@@ -740,7 +786,7 @@ class Node:
 
         .. versionadded:: 1.19
         """
-        current_node = self
+        current_node: Optional[Node] = self
         while current_node is not None:
             for signal in current_node.signals():
                 if signal.get_property('cpuif_reset'):
@@ -764,22 +810,24 @@ class AddressableNode(Node):
     """
     Base-class for any kind of node that can have an address
     """
+    parent: Union['AddressableNode', 'RootNode']
+    inst: comp.AddressableComponent
 
-    def __init__(self, inst: comp.AddressableComponent, env: 'RDLEnvironment', parent: Optional[Node]):
+    def __init__(self, inst: comp.AddressableComponent, env: 'RDLEnvironment', parent: Optional[Node]) -> None:
         super().__init__(inst, env, parent)
 
         #: List of current array indexes this node is referencing where the last
         #: item in this list iterates the most frequently
         #:
         #: If None, then the current index is unknown
-        self.current_idx = None # type: Optional[List[int]]
+        self.current_idx: Optional[List[int]] = None
 
 
     def get_path_segment(self, array_suffix: str="[{index:d}]", empty_array_suffix: str="[]") -> str:
         # Extends get_path_segment() in order to append any array suffixes
         path_segment = super().get_path_segment(array_suffix, empty_array_suffix)
 
-        if self.is_array:
+        if self.array_dimensions:
             if self.current_idx is None:
                 # Index is not known.
                 for dim in self.array_dimensions:
@@ -815,7 +863,7 @@ class AddressableNode(Node):
 
         .. versionadded:: 1.7
         """
-        if self.is_array:
+        if self.array_dimensions:
             self.current_idx = [0] * len(self.array_dimensions)
 
         if isinstance(self.parent, AddressableNode):
@@ -832,7 +880,7 @@ class AddressableNode(Node):
         :attr:`address_offset`
 
         """
-        assert isinstance(self.inst, comp.AddressableComponent)
+        assert self.inst.addr_offset is not None
         return self.inst.addr_offset
 
 
@@ -849,7 +897,8 @@ class AddressableNode(Node):
             If this property is referenced on a node whose array index is not
             fully defined
         """
-        if self.is_array:
+        if self.array_dimensions:
+            assert self.array_stride is not None
             if self.current_idx is None:
                 raise ValueError("Index of array element must be known to derive address")
 
@@ -887,7 +936,6 @@ class AddressableNode(Node):
         .. versionadded:: 1.7
         """
         if self.parent and not isinstance(self.parent, RootNode):
-            assert isinstance(self.parent, AddressableNode)
             return self.parent.raw_absolute_address + self.raw_address_offset
         else:
             return self.raw_address_offset
@@ -908,7 +956,6 @@ class AddressableNode(Node):
 
         """
         if self.parent and not isinstance(self.parent, RootNode):
-            assert isinstance(self.parent, AddressableNode)
             return self.parent.absolute_address + self.address_offset
         else:
             return self.address_offset
@@ -931,8 +978,8 @@ class AddressableNode(Node):
         Determine the size (in bytes) of this node.
         If an array, returns size of the entire array
         """
-        assert isinstance(self.inst, comp.AddressableComponent)
         if self.is_array:
+            assert self.array_stride is not None
             # RDL spec does not explicitly clarify this, but total size for arrays
             # should include any additional trailing padding implied by the stride.
             # This makes it consistent with IP-XACT.
@@ -948,7 +995,6 @@ class AddressableNode(Node):
         """
         Indicates that this node represents an array of instances
         """
-        assert isinstance(self.inst, comp.AddressableComponent)
         return self.inst.is_array
 
 
@@ -960,7 +1006,6 @@ class AddressableNode(Node):
 
         If node is not an array (``is_array == False``), then this is ``None``
         """
-        assert isinstance(self.inst, comp.AddressableComponent)
         return self.inst.array_dimensions
 
 
@@ -971,7 +1016,6 @@ class AddressableNode(Node):
 
         If node is not an array (``is_array == False``), then this is ``None``
         """
-        assert isinstance(self.inst, comp.AddressableComponent)
         return self.inst.array_stride
 
 #===============================================================================
@@ -979,13 +1023,14 @@ class VectorNode(Node):
     """
     Base-class for any kind of node that is vector-like.
     """
+    parent: Node
+    inst: comp.VectorComponent
 
     @property
     def width(self) -> int:
         """
         Width of vector in bits
         """
-        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.width
 
     @property
@@ -993,7 +1038,6 @@ class VectorNode(Node):
         """
         Bit position of most significant bit
         """
-        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.msb
 
     @property
@@ -1001,7 +1045,6 @@ class VectorNode(Node):
         """
         Bit position of least significant bit
         """
-        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.lsb
 
     @property
@@ -1009,7 +1052,6 @@ class VectorNode(Node):
         """
         High index of bit range
         """
-        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.high
 
     @property
@@ -1017,12 +1059,14 @@ class VectorNode(Node):
         """
         Low index of bit range
         """
-        assert isinstance(self.inst, comp.VectorComponent)
         return self.inst.low
 
 
 #===============================================================================
 class RootNode(Node):
+    parent: None
+    inst: comp.Root
+
     @property
     def top(self) -> 'AddrmapNode':
         """
@@ -1036,10 +1080,14 @@ class RootNode(Node):
 
 #===============================================================================
 class SignalNode(VectorNode):
-    pass
+    parent: Node
+    inst: comp.Signal
 
 #===============================================================================
 class FieldNode(VectorNode):
+    parent: 'RegNode'
+    inst: comp.Field
+
     def get_global_type_name(self, separator: str = "__") -> Optional[str]:
         name = super().get_global_type_name(separator)
         if name is None:
@@ -1069,7 +1117,6 @@ class FieldNode(VectorNode):
         """
         Determines if this node represents a virtual field (child of a virtual register)
         """
-        assert isinstance(self.parent, RegNode)
         return self.parent.is_virtual
 
     @property
@@ -1255,7 +1302,6 @@ class FieldNode(VectorNode):
 
         .. versionadded:: 1.23
         """
-        assert isinstance(self.parent, RegNode)
         return self.parent.is_alias
 
 
@@ -1272,7 +1318,6 @@ class FieldNode(VectorNode):
         if not self.is_alias:
             raise ValueError("Field is not an alias")
 
-        assert isinstance(self.parent, RegNode)
         primary_reg = self.parent.alias_primary
         primary_field = primary_reg.get_child_by_name(self.inst_name)
         assert isinstance(primary_field, FieldNode)
@@ -1304,7 +1349,6 @@ class FieldNode(VectorNode):
 
         .. versionadded:: 1.23
         """
-        assert isinstance(self.parent, RegNode)
         for alias_reg in self.parent.aliases(skip_not_present=skip_not_present):
             alias_field = alias_reg.get_child_by_name(self.inst_name)
 
@@ -1321,6 +1365,8 @@ class FieldNode(VectorNode):
 
 #===============================================================================
 class RegNode(AddressableNode):
+    parent: Union['AddrmapNode', 'RegNode', 'MemNode']
+    inst: comp.Reg
 
     @property
     def size(self) -> int:
@@ -1413,7 +1459,6 @@ class RegNode(AddressableNode):
 
         .. versionadded:: 1.23
         """
-        assert isinstance(self.inst, comp.Reg)
         return self.inst.is_alias
 
 
@@ -1430,12 +1475,14 @@ class RegNode(AddressableNode):
         if not self.is_alias:
             raise ValueError("Register is not an alias")
 
+        assert self.inst.alias_primary_inst is not None
+        assert self.inst.alias_primary_inst.inst_name is not None
+
         # Limitations in grammar make it so that an alias primary can only be
         # referenced by a single ID token. This means the primary cannot be a
         # hierarchical path, or anything else fancy. This implicitly guarantees
         # that the alias primary is a sibling in the hierarchy.
         # Simply look up the sibling by-name.
-        assert isinstance(self.inst, comp.Reg)
         name = self.inst.alias_primary_inst.inst_name
         primary_reg = self.parent.get_child_by_name(name)
         assert isinstance(primary_reg, RegNode)
@@ -1456,7 +1503,6 @@ class RegNode(AddressableNode):
 
         .. versionadded:: 1.23
         """
-        assert isinstance(self.inst, comp.Reg)
         return bool(self.inst._alias_names)
 
 
@@ -1472,7 +1518,6 @@ class RegNode(AddressableNode):
 
         .. versionadded:: 1.23
         """
-        assert isinstance(self.inst, comp.Reg)
 
         for reg_name in self.inst._alias_names:
             alias_reg = self.parent.get_child_by_name(reg_name)
@@ -1493,6 +1538,8 @@ class RegNode(AddressableNode):
 
 #===============================================================================
 class RegfileNode(AddressableNode):
+    parent: 'AddrmapNode'
+    inst: comp.Regfile
 
     @property
     def size(self) -> int:
@@ -1500,6 +1547,8 @@ class RegfileNode(AddressableNode):
 
 #===============================================================================
 class AddrmapNode(AddressableNode):
+    parent: Union['AddrmapNode', RootNode]
+    inst: comp.Addrmap
 
     @property
     def size(self) -> int:
@@ -1507,6 +1556,8 @@ class AddrmapNode(AddressableNode):
 
 #===============================================================================
 class MemNode(AddressableNode):
+    parent: AddrmapNode
+    inst: comp.Mem
 
     @property
     def size(self) -> int:

@@ -19,7 +19,7 @@ class ComponentRef:
     When a user requests the reference value, it is resolved into a Node object
     """
 
-    def __init__(self, ref_root: 'comp.Component', ref_elements: List[RefElement]):
+    def __init__(self, ref_root: 'comp.Component', ref_elements: List[RefElement]) -> None:
         # Handle to the component definition where ref_elements is relative to
         # This is the original_def, and NOT the actual instance
         self.ref_root = ref_root
@@ -37,7 +37,7 @@ class ComponentRef:
         """
         Resolves the component reference into a Node object
         """
-        current_node = assignee_node
+        current_node: Optional[Node] = assignee_node
         # Traverse up from assignee until ref_root is reached
         while True:
             if current_node is None:
@@ -46,18 +46,25 @@ class ComponentRef:
                 break
             current_node = current_node.parent
 
+        # Above loop can only exit if not None
+        assert current_node is not None
+
         for inst_name, idx_list, name_src_ref in self.ref_elements:
             # find instance
             current_node = current_node.get_child_by_name(inst_name)
-
+            assert current_node is not None
 
             # Check if indexes are valid
             if idx_list:
                 # Reference contains one or more suffixes
                 # Validation during compilation would have already enforced that
                 # references are sane.
+
                 # Safe to expect this to be an AddressableNode
                 assert isinstance(current_node, AddressableNode)
+
+                # If idx_list is not empty, guaranteed to be an array node
+                assert current_node.array_dimensions is not None
 
                 for i, idx in enumerate(idx_list):
                     if idx >= current_node.array_dimensions[i]:
@@ -103,16 +110,16 @@ class PropertyReference:
         print(next_prop.name) # prints: "intr"
 
     """
-    allowed_inst_type = None # type: Type[comp.Component]
+    allowed_inst_type: Type[comp.Component]
 
-    def __init__(self, src_ref: 'SourceRefBase', env: 'RDLEnvironment', comp_ref: ComponentRef):
+    def __init__(self, src_ref: Optional['SourceRefBase'], env: 'RDLEnvironment', comp_ref: ComponentRef) -> None:
         self.env = env
         self.src_ref = src_ref
         self._comp_ref = comp_ref
 
         #: Node object that represents the component instance from which the
         #: property is being referenced.
-        self.node = None # type: Node
+        self.node: Node
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__qualname__} {self.node.get_path()}->{self.name} at {id(self):#x}>"

@@ -34,25 +34,23 @@ class VerilogPreprocessor:
         self._seg_start_idx = 0
 
         # Macro namespace
-        self._macro_defs = {} # type: Dict[str, Macro]
+        self._macro_defs: Dict[str, Macro] = {}
         if defines is not None:
             for k, v in defines.items():
                 macro = Macro(v, [])
                 self._macro_defs[k] = macro
 
         self._conditional = ConditionalState()
-        self._conditional_stack = [] # type: List[ConditionalState]
+        self._conditional_stack: List[ConditionalState] = []
 
         # Stack of what macros are currently being processed
-        self._active_macro_stack = [] # type: List[str]
+        self._active_macro_stack: List[str] = []
 
-        self._output_text_segments = [] # type: List[str]
+        self._output_text_segments: List[str] = []
         self._current_output_idx = 0
-        self._output_seg_map = None # type: Optional[segment_map.SegmentMap]
-        if self._src_seg_map:
-            self._output_seg_map = segment_map.SegmentMap()
+        self._output_seg_map = segment_map.SegmentMap()
 
-    def preprocess(self) -> Tuple[str, Optional[segment_map.SegmentMap]]:
+    def preprocess(self) -> Tuple[str, segment_map.SegmentMap]:
         self.main_scanner()
 
         if not self._conditional.is_idle or self._conditional_stack:
@@ -538,7 +536,7 @@ class VerilogPreprocessor:
             re.DOTALL | re.MULTILINE
         )
 
-        enclosures_stack = [] # type: List[str]
+        enclosures_stack: List[str] = []
         argvs = []
         argv_start_idx = self._scan_idx
         punc_pairs = {
@@ -732,7 +730,7 @@ class Macro:
         )
 
         seg_start_idx = 0
-        segments = [] # type: List[Union[int, str]]
+        segments: List[Union[int, str]] = []
         for m in query_regex.finditer(contents):
             assert m.lastindex is not None
 

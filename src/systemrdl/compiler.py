@@ -46,7 +46,6 @@ class FileInfo:
 
 
 class RDLCompiler:
-
     def __init__(self, **kwargs: Any):
         """
         RDLCompiler constructor.
@@ -110,14 +109,14 @@ class RDLCompiler:
         #:      This will be deprecated in a future release. See this page for more details: https://github.com/SystemRDL/systemrdl-compiler/issues/168
         self.msg = self.env.msg
 
-        self.namespace = NamespaceRegistry(self.env) # type: NamespaceRegistry
-        self.visitor = RootVisitor(self)
-        self.root = self.visitor.component # type: comp.Root # type: ignore
+        self.namespace: NamespaceRegistry = NamespaceRegistry(self.env)
+        self.visitor: RootVisitor = RootVisitor(self)
+        self.root = self.visitor.component
 
 
     def define_udp(
             self, name: str, valid_type: Any,
-            valid_components: 'Optional[Set[Type[comp.Component]]]'=None,
+            valid_components: Optional[Set[Type[comp.Component]]]=None,
             default: Any=None
         ) -> None:
 
@@ -130,6 +129,15 @@ class RDLCompiler:
             raise ValueError(f"UDP definition's name '{name}' conflicts with existing built-in RDL property")
         if name in self.env.property_rules.user_properties:
             raise ValueError(f"UDP '{name}' has already been defined")
+        if valid_components is None:
+            valid_components = {
+                comp.Field,
+                comp.Reg,
+                comp.Regfile,
+                comp.Addrmap,
+                comp.Mem,
+                comp.Signal,
+            }
 
         udp = LegacyExternalUserProperty(
             self.env,
@@ -386,8 +394,10 @@ class RDLCompiler:
 
             literal_expr = ast.ExternalLiteral(self.env, value)
             assign_expr = ast.AssignmentCast(self.env, None, literal_expr, parameter.param_type)
-            assign_type = assign_expr.predict_type()
-            if assign_type is None:
+            try:
+                # Try to predict type to test if ExternalLiteral maps to a valid RDL type
+                assign_expr.predict_type()
+            except ValueError:
                 self.msg.fatal(f"Incorrect type for top-level parameter override of '{param_name}'")
 
             parameter.expr = assign_expr

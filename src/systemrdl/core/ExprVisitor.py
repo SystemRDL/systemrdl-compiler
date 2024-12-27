@@ -374,7 +374,7 @@ class ExprVisitor(BaseVisitor):
 
         if isinstance(first_elem, Parameter):
             # Reference is to a local parameter
-            ref_expr = ast.ParameterRef(self.compiler.env, first_name_src_ref, first_elem) # type: ast.ASTNode
+            ref_expr: ast.ASTNode = ast.ParameterRef(self.compiler.env, first_name_src_ref, first_elem)
 
             # Wrap ref_expr with array/struct dereferencers as appropriate
             for array_suffix in first_array_suffixes:

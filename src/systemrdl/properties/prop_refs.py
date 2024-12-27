@@ -51,7 +51,7 @@ class RealOrInferredVectorReference(PropertyValueReference):
     References the vector that was directly assign to the property, or inferred
     by setting the property to True
     """
-    complementary_prop = None # type: Optional[str]
+    complementary_prop: Optional[str] = None
     def _validate(self) -> None:
         super()._validate()
         # validate that this property is enabled in the target (is not False)

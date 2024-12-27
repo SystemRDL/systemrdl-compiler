@@ -26,8 +26,10 @@ def normalize(value: Any, owner_node: Optional[node.Node]=None) -> str:
     elif isinstance(value, rdltypes.UserStruct):
         return normalize_struct(value, owner_node)
     elif isinstance(value, node.Node):
+        assert owner_node is not None # None only possible with Parameters, but those cannot have references
         return normalize_component_ref(value, owner_node)
     elif isinstance(value, rdltypes.PropertyReference):
+        assert owner_node is not None # None only possible with Parameters, but those cannot have references
         return normalize_property_ref(value, owner_node)
     elif rdltypes.is_user_enum(value):
         return normalize_user_enum_type(value)
@@ -36,7 +38,7 @@ def normalize(value: Any, owner_node: Optional[node.Node]=None) -> str:
         return "NaN"
     elif isinstance(value, rdltypes.references.ComponentRef) and owner_node is None:
         # This only happens if a parameter contains a struct that wraps a reference
-        # datatype. # Since the parameter's value doesnt bother getting resolved,
+        # datatype. Since the parameter's value doesnt bother getting resolved,
         # It shows up as a ComponentRef object here.
         # SystemRDL spec does not allow references in parameters, so this ends up
         # being an odd, but convenient place to catch this.
@@ -83,7 +85,7 @@ def normalize_enum(value: Union[rdltypes.BuiltinEnum, rdltypes.UserEnum]) -> str
     return value.name
 
 
-def normalize_array(value: List[Any], owner_node: Optional[node.Node]=None) -> str:
+def normalize_array(value: List[Any], owner_node: Optional[node.Node]) -> str:
     """
     5.1.1.4 - c.5:
         Arrays shall be rendered by:
@@ -105,7 +107,7 @@ def normalize_array(value: List[Any], owner_node: Optional[node.Node]=None) -> s
     return md5[:8]
 
 
-def normalize_struct(value: rdltypes.UserStruct, owner_node: Optional[node.Node]=None) -> str:
+def normalize_struct(value: rdltypes.UserStruct, owner_node: Optional[node.Node]) -> str:
     """
     5.1.1.4 - c.6:
         Structs shall be rendered by:

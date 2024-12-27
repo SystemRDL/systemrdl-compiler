@@ -16,11 +16,17 @@ class UserStructMeta(type):
     Declare a metaclass for UserStruct so that it can be uniquely identified
     during dynamic type pickling
     """
-    _members = OrderedDict() # type: UserStructMembers
-    _is_abstract = True # type: bool
-    _parent_scope = None # type: Optional[comp.Component]
+    _members: UserStructMembers = OrderedDict()
+    _is_abstract: bool = True
+    _parent_scope: Optional[comp.Component] = None
 
-    def define_new(cls, name: str, members: UserStructMembers, is_abstract: bool=False, _parent_scope: Optional[comp.Component]=None) -> Type['UserStruct']:
+    def define_new(
+        cls,
+        name: str,
+        members: UserStructMembers,
+        is_abstract: bool=False,
+        _parent_scope: Optional[comp.Component]=None
+    ) -> Type['UserStruct']:
         """
         Define a new struct type derived from the current type.
 
@@ -92,7 +98,7 @@ class UserStruct(metaclass=UserStructMeta):
             ...
     """
 
-    def __init__(self, values: Dict[str, Any]):
+    def __init__(self, values: Dict[str, Any]) -> None:
         """
         Create an instance of the struct
 
@@ -159,8 +165,13 @@ class UserStruct(metaclass=UserStructMeta):
             # Get parent definition's scope path
             parent_path = parent_scope.get_scope_path(scope_separator)
 
+            # If parent scope exists, then its scope name is also guaranteed to
+            # exist
+            assert parent_scope._scope_name is not None
+
             # Extend it with its scope name
             if parent_path:
+
                 return(
                     parent_path
                     + scope_separator
@@ -184,7 +195,7 @@ def _reduce_user_struct(c: Type[UserStruct]) -> Any:
         return 'UserStruct'
 
     assert len(c.__bases__) == 1 # Only supporting single-inheritence
-    base_cls = c.__bases__[0] # type: Type[UserStruct]
+    base_cls: Type[UserStruct] = c.__bases__[0]
 
     # remove members that exist in base class
     unique_members = c._members.copy()
@@ -195,8 +206,8 @@ def _reduce_user_struct(c: Type[UserStruct]) -> Any:
     return (base_cls.define_new, args)
 copyreg.pickle(UserStructMeta, _reduce_user_struct) # type: ignore
 
-
 # Utility functions
+# TODO: Once py3.7 is dropped, annotate this with TypeIs[Type[UserStruct]]
 def is_user_struct(t: Any) -> bool:
     """
     Test if type ``t`` is a :class:`~UserStruct`

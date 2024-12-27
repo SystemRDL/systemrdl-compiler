@@ -21,7 +21,7 @@ class _RelationalExpr(ASTNode):
         super().__init__(env, src_ref)
         self.l = l
         self.r = r
-        self.is_numeric = None # type: bool
+        self.is_numeric: bool = False
 
     def predict_type(self) -> Type[bool]:
         l_type = self.l.predict_type()

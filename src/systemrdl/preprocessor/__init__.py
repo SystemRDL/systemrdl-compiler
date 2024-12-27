@@ -8,7 +8,13 @@ from .stream import PreprocessedInputStream
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
 
-def preprocess_file(env: 'RDLEnvironment', path: str, search_paths: List[str], defines: Optional[Dict[str,str]]=None) -> Tuple[PreprocessedInputStream, Set[str]]:
+def preprocess_file(
+    env: 'RDLEnvironment',
+    path: str,
+    search_paths: List[str],
+    defines: Optional[Dict[str, str]]=None
+) -> Tuple[PreprocessedInputStream, Set[str]]:
+
     # Run file through Perl preprocessor
     ppp = PerlPreprocessor(env, path, search_paths)
     preprocessed_text, seg_map = ppp.preprocess()

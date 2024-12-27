@@ -10,6 +10,7 @@ dependencies = [
     "antlr4-python3-runtime >= 4.11, < 4.14",
     "colorama",
     "markdown",
+    "typing_extensions",
 ]
 authors = [
     {name="Alex Mykyta"},

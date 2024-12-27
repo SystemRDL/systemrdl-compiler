@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Optional, Any
+from typing import TYPE_CHECKING, Dict, Tuple, List, Optional, Any, cast
 from collections import OrderedDict
 
 from ..parser.SystemRDLParser import SystemRDLParser
@@ -27,8 +27,9 @@ if TYPE_CHECKING:
 #===============================================================================
 class ComponentVisitor(BaseVisitor):
     comp_type = comp.Component
+    component: comp.Component
 
-    def __init__(self, compiler: 'RDLCompiler', def_name: str=None, param_defs: List[Parameter]=None):
+    def __init__(self, compiler: 'RDLCompiler', def_name: Optional[str]=None, param_defs: Optional[List[Parameter]]=None):
         super().__init__(compiler)
 
         self.component = self.comp_type() #pylint: disable=not-callable
@@ -43,7 +44,7 @@ class ComponentVisitor(BaseVisitor):
         #   {
         #       prop_name : (prop_src_ref, prop_rhs)
         #   }
-        self.property_dict = OrderedDict() # type: Dict[str, Tuple[SourceRefBase, Any]]
+        self.property_dict: Dict[str, Tuple[SourceRefBase, Any]] = OrderedDict()
 
         # Scratchpad of dynamic property assignments encountered in body of component
         # format is:
@@ -52,13 +53,13 @@ class ComponentVisitor(BaseVisitor):
         #           prop_name : (prop_src_ref, prop_rhs)
         #       }
         #   }
-        self.dynamic_property_dict = OrderedDict() # type: Dict[comp.Component, Dict[str, Tuple[SourceRefBase, Any]]]
+        self.dynamic_property_dict: Dict[comp.Component, Dict[str, Tuple[SourceRefBase, Any]]] = OrderedDict()
 
         # Scratchpad to pass stuff down between visitor functions
-        self._tmp_comp_def = None # type: comp.Component
-        self._tmp_comp_inst = None # type: comp.Component
-        self._tmp_inst_type = None # type: CommonToken
-        self._tmp_alias_primary_inst = None # type: Optional[comp.Reg]
+        self._tmp_comp_def: comp.Component
+        self._tmp_comp_inst: comp.Component
+        self._tmp_inst_type: CommonToken
+        self._tmp_alias_primary_inst: Optional[comp.Reg]
 
     #---------------------------------------------------------------------------
     # Component Definitions
@@ -162,7 +163,7 @@ class ComponentVisitor(BaseVisitor):
         SystemRDLParser.SIGNAL_kw   : comp.Signal,
         SystemRDLParser.MEM_kw      : comp.Mem
     }
-    def define_component(self, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: str, param_defs: List[Parameter]) -> comp.Component:
+    def define_component(self, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: Optional[str], param_defs: List[Parameter]) -> comp.Component:
         """
         Given component definition, recurse to another ComponentVisitor
         to define a new component
@@ -337,7 +338,7 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.external = None
 
 
-    def get_instance_assignment(self, ctx: 'ParserRuleContext') -> ast.ASTNode:
+    def get_instance_assignment(self, ctx: Optional['ParserRuleContext']) -> Optional[ast.ASTNode]:
         """
         Gets the integer expression in any of the four instance assignment
         operators ('=' '@' '+=' '%=')
@@ -462,12 +463,15 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.properties['reset'] = field_inst_reset
 
         elif isinstance(comp_inst, comp.AddressableComponent):
-            comp_inst.addr_offset = inst_addr_fixed # type: ignore
-            comp_inst.addr_align = inst_addr_align # type: ignore
+            # Cast to pre-elaborated variant to satisfy type hinting
+            comp_inst = cast(comp.AddressableComponent_PreExprElab, comp_inst)
+
+            comp_inst.addr_offset = inst_addr_fixed
+            comp_inst.addr_align = inst_addr_align
             if array_suffixes:
                 comp_inst.is_array = True
                 comp_inst.array_dimensions = array_suffixes
-                comp_inst.array_stride = inst_addr_stride # type: ignore
+                comp_inst.array_stride = inst_addr_stride
         else:
             raise RuntimeError
 
@@ -510,9 +514,10 @@ class ComponentVisitor(BaseVisitor):
         # Construct parameter type
         data_type_token = self.visit(ctx.data_type())
         param_data_type = self.datatype_from_token(data_type_token)
+        param_type: Union[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, rdltypes.references.RefType, comp.Component]], rdltypes.ArrayedType]
         if ctx.array_type_suffix() is None:
             # Non-array type
-            param_type = param_data_type # type: Union[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, rdltypes.references.RefType, comp.Component]], rdltypes.ArrayedType]
+            param_type = param_data_type
         else:
             # Array-like type
             param_type = rdltypes.ArrayedType(param_data_type)
@@ -542,7 +547,7 @@ class ComponentVisitor(BaseVisitor):
 
         return param
 
-    def visitParam_inst(self, ctx: SystemRDLParser.Param_instContext) -> Dict[str, Tuple[ast.ASTNode, SourceRefBase]]:
+    def visitParam_inst(self, ctx: SystemRDLParser.Param_instContext) -> Dict[str, Tuple[ast.ASTNode, Optional[SourceRefBase]]]:
         param_assigns = {}
         for assignment in ctx.getTypedRuleContexts(SystemRDLParser.Param_assignmentContext):
             param_name, assign_expr = self.visit(assignment)
@@ -641,13 +646,15 @@ class ComponentVisitor(BaseVisitor):
                 target_inst._dyn_assigned_children.append(inst_name)
 
             # Traverse to next child in token list
-            target_inst = target_inst.get_child_by_name(inst_name)
-            if target_inst is None:
+            next_target_inst = target_inst.get_child_by_name(inst_name)
+            if next_target_inst is None:
                 # Not found!
                 self.msg.fatal(
                     "Could not resolve hierarchical reference to '%s'" % inst_name,
                     src_ref_from_antlr(name_token)
                 )
+            else:
+                target_inst = next_target_inst
 
         # Add assignment to dynamic_property_dict
         target_inst_dict = self.dynamic_property_dict.get(target_inst, OrderedDict())
@@ -684,7 +691,7 @@ class ComponentVisitor(BaseVisitor):
 
         return name_token
 
-    def visitNormal_prop_assign(self, ctx: SystemRDLParser.Normal_prop_assignContext) -> Tuple[SourceRefBase, str, Optional[ast.ASTNode]]:
+    def visitNormal_prop_assign(self, ctx: SystemRDLParser.Normal_prop_assignContext) -> Tuple[Optional[SourceRefBase], str, Optional[ast.ASTNode]]:
 
         # Get property string
         if ctx.prop_keyword() is not None:
@@ -726,7 +733,7 @@ class ComponentVisitor(BaseVisitor):
         return src_ref_from_antlr(prop_token), prop_name, rhs # type: ignore
 
 
-    def visitProp_mod_assign(self, ctx: SystemRDLParser.Prop_mod_assignContext) -> Tuple[SourceRefBase, str]:
+    def visitProp_mod_assign(self, ctx: SystemRDLParser.Prop_mod_assignContext) -> Tuple[Optional[SourceRefBase], str]:
         prop_mod_token = self.visit(ctx.prop_mod())
         prop_mod = prop_mod_token.text
 
@@ -766,7 +773,7 @@ class ComponentVisitor(BaseVisitor):
             rule.assign_value(self.component, prop_rhs, prop_src_ref)
 
         # Apply locally-assigned properties
-        mutex_bins = {} # type: Dict[str, str]
+        mutex_bins: Dict[str, str] = {}
         for prop_name, (prop_src_ref, prop_rhs) in self.property_dict.items():
             rule = self.compiler.env.property_rules.lookup_property(prop_name)
             if rule is None:
@@ -797,7 +804,7 @@ class ComponentVisitor(BaseVisitor):
     def apply_dynamic_properties(self) -> None:
 
         for target_inst, target_inst_dict in self.dynamic_property_dict.items():
-            mutex_bins = {} # type: Dict[str, str]
+            mutex_bins: Dict[str, str] = {}
             for prop_name, (prop_src_ref, prop_rhs) in target_inst_dict.items():
                 rule = self.compiler.env.property_rules.lookup_property(prop_name)
                 if rule is None:
@@ -902,6 +909,7 @@ class ComponentVisitor(BaseVisitor):
 #===============================================================================
 class RootVisitor(ComponentVisitor):
     comp_type = comp.Root
+    component: comp.Root
 
     def visitRoot(self, ctx: SystemRDLParser.RootContext) -> None:
         self.visitChildren(ctx)
@@ -917,11 +925,11 @@ class RootVisitor(ComponentVisitor):
         super().visitLocal_property_assignment(ctx)
 
 
-    def define_component(self, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: str, param_defs: List[Parameter]) -> comp.Component:
+    def define_component(self, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: Optional[str], param_defs: List[Parameter]) -> comp.Component:
         comp_def = super().define_component(body, type_token, def_name, param_defs)
 
         if def_name is not None:
-            self.component.comp_defs[def_name] = comp_def # type: ignore
+            self.component.comp_defs[def_name] = comp_def
 
         return comp_def
 
@@ -959,6 +967,7 @@ class RootVisitor(ComponentVisitor):
 #===============================================================================
 class FieldComponentVisitor(ComponentVisitor):
     comp_type = comp.Field
+    component: comp.Field
 
     def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
@@ -992,6 +1001,7 @@ class FieldComponentVisitor(ComponentVisitor):
 #===============================================================================
 class RegComponentVisitor(ComponentVisitor):
     comp_type = comp.Reg
+    component: comp.Reg
 
     def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
@@ -1022,6 +1032,7 @@ class RegComponentVisitor(ComponentVisitor):
 #===============================================================================
 class RegfileComponentVisitor(ComponentVisitor):
     comp_type = comp.Regfile
+    component: comp.Regfile
 
     def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
@@ -1051,6 +1062,7 @@ class RegfileComponentVisitor(ComponentVisitor):
 #===============================================================================
 class AddrmapComponentVisitor(ComponentVisitor):
     comp_type = comp.Addrmap
+    component: comp.Addrmap
 
     def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
@@ -1071,6 +1083,7 @@ class AddrmapComponentVisitor(ComponentVisitor):
 #===============================================================================
 class MemComponentVisitor(ComponentVisitor):
     comp_type = comp.Mem
+    component: comp.Mem
 
     def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         # Unpack instance def info from parent
@@ -1100,6 +1113,7 @@ class MemComponentVisitor(ComponentVisitor):
 #===============================================================================
 class SignalComponentVisitor(ComponentVisitor):
     comp_type = comp.Signal
+    component: comp.Signal
 
     def visitComponent_insts(self, ctx: SystemRDLParser.Component_instsContext) -> None:
         self.msg.fatal(

@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING, Tuple, Any, Optional
+from typing import List, TYPE_CHECKING, Tuple, Any, Optional, Type
 
 from ..parser.SystemRDLParser import SystemRDLParser
 
@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from ..source_ref import SourceRefBase
     from ..compiler import RDLCompiler
     from .. import component as comp
-    from typing import Type
 
 class EnumVisitor(BaseVisitor):
 
@@ -24,8 +23,7 @@ class EnumVisitor(BaseVisitor):
         super().__init__(compiler)
         self.parent_component = parent_component
 
-    def visitEnum_def(self, ctx):
-        # type: (SystemRDLParser.Enum_defContext) -> Tuple[Type[rdltypes.UserEnum], str, SourceRefBase]
+    def visitEnum_def(self, ctx: SystemRDLParser.Enum_defContext) -> Tuple[Type[rdltypes.UserEnum], str, Optional['SourceRefBase']]:
         self.compiler.namespace.enter_scope()
 
         # Allowing enum definitions to access Parameters from the parent scope
@@ -37,9 +35,9 @@ class EnumVisitor(BaseVisitor):
         enum_name = get_ID_text(ctx.ID())
 
         # Collect members
-        entry_values = [] # type: List[int]
-        entry_names = [] # type: List[str]
-        members = [] # type: List[rdltypes.UserEnumMemberContainer]
+        entry_values: List[int] = []
+        entry_names: List[str] = []
+        members: List[rdltypes.UserEnumMemberContainer] = []
         for enum_entry_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Enum_entryContext):
             name_token, value_expr_ctx, rdl_name, rdl_desc = self.visit(enum_entry_ctx)
 
@@ -96,8 +94,8 @@ class EnumVisitor(BaseVisitor):
         name_token = ctx.ID()
         value_expr_ctx = ctx.expr()
 
-        rdl_name = None # type: Optional[str]
-        rdl_desc = None # type: Optional[str]
+        rdl_name: Optional[str] = None
+        rdl_desc: Optional[str] = None
 
         for pa_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Enum_prop_assignContext):
             prop_token, prop_value = self.visit(pa_ctx)

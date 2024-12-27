@@ -3,13 +3,11 @@ from collections import OrderedDict
 import inspect
 import copyreg
 
-
 from ..core import rdlformatcode
 from .. import component as comp
 
 if TYPE_CHECKING:
     from markdown import Markdown
-
 
 
 class UserEnumMemberContainer:
@@ -34,8 +32,8 @@ class UserEnumMeta(type):
     Metaclass for UserEnum
     """
 
-    _member_map = {} # type: Dict[str, UserEnum]
-    _parent_scope = None # type: Optional[comp.Component]
+    _member_map: Dict[str, 'UserEnum'] = {}
+    _parent_scope: Optional[comp.Component] = None
 
     def __bool__(cls) -> bool:
         # classes/types should always be True.
@@ -107,7 +105,7 @@ class UserEnumMeta(type):
             raise ValueError("All members of an enum shall have unique values")
 
         # Create the new class
-        classdict = {
+        classdict: Dict[str, Any] = {
             '_member_map': OrderedDict(),
             '_parent_scope': _parent_scope,
         }
@@ -149,6 +147,10 @@ class UserEnumMeta(type):
         else:
             # Get parent definition's scope path
             parent_path = parent_scope.get_scope_path(scope_separator)
+
+            # If parent scope exists, then its scope name is also guaranteed to
+            # exist
+            assert parent_scope._scope_name is not None
 
             # Extend it with its scope name
             if parent_path:
@@ -276,7 +278,7 @@ def _reduce_user_enum(c: Type[UserEnum]) -> Any:
         return 'UserEnum'
 
     assert len(c.__bases__) == 1 # Only supporting single-inheritence
-    base_cls = c.__bases__[0] # type: Type[UserEnum]
+    base_cls: Type[UserEnum] = c.__bases__[0]
 
     # decompose members back into factory containers
     members = []
@@ -290,7 +292,7 @@ def _reduce_user_enum(c: Type[UserEnum]) -> Any:
     return (base_cls.define_new, args)
 copyreg.pickle(UserEnumMeta, _reduce_user_enum) # type: ignore
 
-
+# TODO: Once py3.7 is dropped, annotate this with TypeIs[Type[UserEnum]]
 def is_user_enum(t: Any) -> bool:
     """
     Test if type ``t`` is a :class:`~UserEnum`

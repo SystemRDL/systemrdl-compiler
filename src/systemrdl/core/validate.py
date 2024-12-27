@@ -20,16 +20,16 @@ class ValidateListener(walker.RDLListener):
         # Used in field overlap checks
         # This is a rolling buffer of previous fields that still have a chance
         # to possibly collide with a future field
-        self.field_check_buffer = [] # type: List[FieldNode]
+        self.field_check_buffer: List[FieldNode] = []
 
         # Used in addrmap, regfile, and reg overlap checks
         # Same concept as the field check buffer, but is also a stack
-        self.addr_check_buffer_stack = [[]] # type: List[List[AddressableNode]]
+        self.addr_check_buffer_stack: List[List[AddressableNode]] = [[]]
 
         # Keep track of whether a given hierarchy has a reset signal.
         # Signals can exist in Root, so pre-load with one stack entry
-        self.has_cpuif_reset_stack = [False] # type: List[bool]
-        self.has_field_reset_stack = [False] # type: List[bool]
+        self.has_cpuif_reset_stack: List[bool] = [False]
+        self.has_field_reset_stack: List[bool] = [False]
 
 
     def enter_Component(self, node: Node) -> None:
@@ -41,6 +41,7 @@ class ValidateListener(walker.RDLListener):
                 prop_value._validate()
 
             prop_rule = self.env.property_rules.lookup_property(prop_name)
+            assert prop_rule is not None
             prop_rule.validate(node, prop_value)
 
         if not isinstance(node, SignalNode):

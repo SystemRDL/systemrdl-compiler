@@ -22,10 +22,10 @@ class UDPVisitor(BaseVisitor):
     def __init__(self, compiler: 'RDLCompiler') -> None:
         super().__init__(compiler)
 
-        self._constr_componentwidth = None # type: Optional[bool]
-        self._default_assignment = None # type: Any
-        self._valid_type = None # type: Optional[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, comp.Component, rdltypes.references.RefType]]]
-        self._bindable_to = None # type: Optional[Set[Type[comp.Component]]]
+        self._constr_componentwidth: Optional[bool] = None
+        self._default_assignment: Any = None
+        self._valid_type: Optional[Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, comp.Component, rdltypes.references.RefType]]] = None
+        self._bindable_to: Optional[Set[Type[comp.Component]]] = None
 
     def visitUdp_def(self, ctx: SystemRDLParser.Udp_defContext) -> None:
         udp_name = get_ID_text(ctx.ID())
@@ -146,7 +146,7 @@ class UDPVisitor(BaseVisitor):
                 src_ref_from_antlr(ctx.COMPONENT_kw())
             )
 
-        comp_types = [] # type: List[Type[comp.Component]]
+        comp_types: List[Type[comp.Component]] = []
         for token_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Udp_comp_typeContext):
             token = self.visit(token_ctx)
             if token.type == SystemRDLParser.ALL_kw:

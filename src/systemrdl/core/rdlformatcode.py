@@ -88,35 +88,43 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
             text_segs.append("</u>")
         elif m.lastgroup == 'color':
             m2 = re.match(r'\[color=([^\]]+)\]', m.group(0))
+            assert m2 is not None
             text_segs.append('<span style="color:%s">' % m2.group(1))
         elif m.lastgroup == 'xcolor':
             text_segs.append('</span>')
         elif m.lastgroup == 'size':
             m2 = re.match(r'\[size=([^\]]+)\]', m.group(0))
+            assert m2 is not None
             text_segs.append('<span style="font-size:%s">' % m2.group(1))
         elif m.lastgroup == 'xsize':
             text_segs.append('</span>')
         elif m.lastgroup == 'plainurl':
             m2 = re.match(r'\[url\](.*?)\[/url\]', m.group(0), re.DOTALL)
+            assert m2 is not None
             text_segs.append('<a href="%s">%s</a>' % (m2.group(1).strip(), m2.group(1).strip()))
         elif m.lastgroup == 'url':
             m2 = re.match(r'\[url=([^\]]+)\]', m.group(0))
+            assert m2 is not None
             text_segs.append('<a href="%s">' % m2.group(1).strip())
         elif m.lastgroup == 'xurl':
             text_segs.append('</a>')
         elif m.lastgroup == 'email':
             m2 = re.match(r'\[email\](.*?)\[/email\]', m.group(0), re.DOTALL)
+            assert m2 is not None
             text_segs.append('<a href="mailto:%s">%s</a>' % (m2.group(1).strip(), m2.group(1).strip()))
         elif m.lastgroup == 'img':
             m2 = re.match(r'\[img\](.*?)\[/img\]', m.group(0), re.DOTALL)
+            assert m2 is not None
             text_segs.append('<img src="%s">' % m2.group(1))
         elif m.lastgroup == 'code':
             m2 = re.match(r'\[code\](.*?)\s*\[/code\]', m.group(0), re.DOTALL)
+            assert m2 is not None
             text_segs.append('<code>%s</code>' % m2.group(1))
 
         elif m.lastgroup == 'list':
             # List start tag
             m2 = re.match(r'\[list(?:=([^\]]+))?\]', m.group(0))
+            assert m2 is not None
             ltype = m2.group(1)
             if ltype is None:
                 text_segs.append('<ul>')
@@ -168,7 +176,7 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
         elif m.lastgroup == 'sp':
             text_segs.append("&nbsp;")
         elif m.lastgroup == 'index':
-            if (node is not None) and isinstance(node, AddressableNode) and node.is_array:
+            if (node is not None) and isinstance(node, AddressableNode) and node.array_dimensions:
                 subscripts = []
                 if node.current_idx is None:
                     # Index is not known. Use range
@@ -183,7 +191,7 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
             else:
                 text_segs.append(m.group(0))
         elif m.lastgroup == 'index_parent':
-            if (node is not None) and (node.parent is not None) and isinstance(node.parent, AddressableNode) and node.parent.is_array:
+            if (node is not None) and (node.parent is not None) and isinstance(node.parent, AddressableNode) and node.parent.array_dimensions:
                 subscripts = []
                 if node.parent.current_idx is None:
                     # Index is not known. Use range

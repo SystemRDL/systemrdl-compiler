@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..core.parameter import Parameter
     from ..source_ref import SourceRefBase
-    from rdltypes.typing import PreElabRDLType, RDLValue
+    from ..rdltypes.typing import PreElabRDLType
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -59,7 +59,12 @@ class ArrayIndex(ASTNode):
                 "Cannot index non-array type",
                 self.array.src_ref
             )
-        assert isinstance(array_type, rdltypes.ArrayedType)
+        if array_type.element_type is None:
+            # Array type is not known, therefore it must be an emptyy array.
+            self.msg.fatal(
+                "Array is empty. Cannot index",
+                self.array.src_ref
+            )
 
         return array_type.element_type
 
@@ -162,7 +167,8 @@ class InstRef(ASTNode):
         referenced.
         Also do some checks on the array indexes
         """
-        current_comp = self.ref_root
+        current_comp: Optional[comp.Component] = self.ref_root
+        assert current_comp is not None
         for name, array_suffixes, name_src_ref in self.ref_elements:
 
             # find instance
@@ -179,8 +185,7 @@ class InstRef(ASTNode):
                 array_suffix.predict_type()
 
             # Check array suffixes
-            if (isinstance(current_comp, comp.AddressableComponent)) and current_comp.is_array:
-                assert isinstance(current_comp.array_dimensions, list)
+            if (isinstance(current_comp, comp.AddressableComponent)) and current_comp.array_dimensions:
                 # is an array
                 if len(array_suffixes) != len(current_comp.array_dimensions):
                     self.msg.fatal(

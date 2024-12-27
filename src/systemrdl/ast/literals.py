@@ -10,7 +10,7 @@ from .. import component as comp
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
-    from rdltypes.typing import PreElabRDLType, RDLValue
+    from ..rdltypes.typing import PreElabRDLType, RDLValue
 
     OptionalSourceRef = Optional[SourceRefBase]
 

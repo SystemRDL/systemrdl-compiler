@@ -486,7 +486,7 @@ class Prop_resetsignal(PropertyRule):
         If no field reset signal was explicitly assigned, search for signals in
         the enclosing hierarchy with field_reset=True
         """
-        current_node = node
+        current_node: Optional[m_node.Node] = node
         while current_node is not None:
             for signal in current_node.signals():
                 if signal.get_property('field_reset'):

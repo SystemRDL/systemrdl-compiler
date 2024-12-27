@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List, Union, Type, Tuple
+from typing import TYPE_CHECKING, Dict, List, Union, Type, Tuple, Optional
 
 from .parameter import Parameter
 
@@ -15,7 +15,7 @@ TypeNSEntry = TypeNSRef
 TypeNSScope = Dict[str, TypeNSEntry]
 
 ElementNSRef = Union[comp.Component, Parameter]
-ElementNSEntry = Tuple[ElementNSRef, comp.Component]
+ElementNSEntry = Tuple[ElementNSRef, Optional[comp.Component]]
 ElementNSScope = Dict[str, ElementNSEntry]
 
 DefaultNSRef = Union['ASTNode', bool, 'rdltypes.InterruptType']
@@ -28,14 +28,14 @@ class NamespaceRegistry():
         self.env = env
         self.msg = env.msg
 
-        self.type_ns_stack = [{}] # type: List[TypeNSScope]
-        self.element_ns_stack = [{}] # type: List[ElementNSScope]
-        self.default_property_ns_stack = [{}] # type: List[DefaultNSScope]
+        self.type_ns_stack: List[TypeNSScope] = [{}]
+        self.element_ns_stack: List[ElementNSScope] = [{}]
+        self.default_property_ns_stack: List[DefaultNSScope] = [{}]
 
         # Control if Parameter objects are visible from parent scopes
         self.parent_parameters_visible = True
 
-    def register_type(self, name: str, ref: TypeNSRef, src_ref: 'SourceRefBase') -> None:
+    def register_type(self, name: str, ref: TypeNSRef, src_ref: Optional['SourceRefBase']) -> None:
         if name in self.type_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of type '%s'" % name,
@@ -43,7 +43,7 @@ class NamespaceRegistry():
             )
         self.type_ns_stack[-1][name] = ref
 
-    def register_element(self, name: str, ref: ElementNSRef, parent_comp_def: comp.Component, src_ref: 'SourceRefBase') -> None:
+    def register_element(self, name: str, ref: ElementNSRef, parent_comp_def: Optional[comp.Component], src_ref: Optional['SourceRefBase']) -> None:
         if name in self.element_ns_stack[-1]:
             self.msg.fatal(
                 "Multiple declarations of instance '%s'" % name,
@@ -61,13 +61,13 @@ class NamespaceRegistry():
 
         self.default_property_ns_stack[-1][name] = (src_ref, ref)
 
-    def lookup_type(self, name: str) -> TypeNSEntry:
+    def lookup_type(self, name: str) -> Optional[TypeNSEntry]:
         for scope in reversed(self.type_ns_stack):
             if name in scope:
                 return scope[name]
         return None
 
-    def lookup_element(self, name: str) -> ElementNSEntry:
+    def lookup_element(self, name: str) -> Union[ElementNSEntry, Tuple[None, None]]:
         """
         Look up the element (component instance, or parameter) visible in the
         current scope.
@@ -93,8 +93,7 @@ class NamespaceRegistry():
                     return (el, parent_def)
         return (None, None)
 
-    def get_default_properties(self, comp_type):
-        # type: (Type[comp.Component]) -> DefaultNSScope
+    def get_default_properties(self, comp_type: Type[comp.Component]) -> DefaultNSScope:
         """
         Returns a flattened dictionary of all default property assignments
         visible in the current scope that apply to the current component type.

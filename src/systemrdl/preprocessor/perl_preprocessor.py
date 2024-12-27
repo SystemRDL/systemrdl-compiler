@@ -24,7 +24,7 @@ class PerlPreprocessor:
         with open(path, 'r', newline='', encoding='utf_8') as f:
             self.text = f.read()
 
-        self.included_files = set() # type: Set[str]
+        self.included_files: Set[str] = set()
 
     #---------------------------------------------------------------------------
     def preprocess(self) -> Tuple[str, segment_map.SegmentMap]:
@@ -213,7 +213,7 @@ class PerlPreprocessor:
         returns:
             (pl_segments, has_perl_tags)
         """
-        pl_segments = [] # type: List[PPPSegment]
+        pl_segments: List[PPPSegment] = []
         has_perl_tags = False
         pos = 0
 
@@ -221,7 +221,7 @@ class PerlPreprocessor:
 
             # Capture any leading text
             if start != pos:
-                pl_seg = PPPUnalteredSegment(self, pos, start-1) # type: PPPSegment
+                pl_seg: PPPSegment = PPPUnalteredSegment(self, pos, start - 1)
                 pl_segments.append(pl_seg)
 
             if typ == "incl":

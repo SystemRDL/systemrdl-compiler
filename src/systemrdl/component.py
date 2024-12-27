@@ -2,12 +2,13 @@ import operator
 import functools
 from copy import deepcopy
 from collections import OrderedDict
-from typing import Optional, List, Dict, TYPE_CHECKING, Any
+from typing import Optional, List, Dict, TYPE_CHECKING, Any, Union
 
 if TYPE_CHECKING:
     from typing import TypeVar
     from .core.parameter import Parameter
     from .source_ref import SourceRefBase
+    from .ast import ASTNode
 
     ComponentClass = TypeVar('ComponentClass', bound='Component')
 
@@ -32,14 +33,14 @@ class Component:
         #: .. note::
         #:      This represents the parent *lexical* scope! This does *not*
         #:      refer to the hierarchical parent of this component.
-        self.parent_scope = None # type: Component
+        self.parent_scope: Optional[Component] = None
 
         # Name of this component's declaration scope
         # This field is only valid in non-instantiated components (referenced
-        # via an instance's original_def)
+        # via an instance's original_def, or a component's parent_scope)
         # If declaration was anonymous, inherits the first instance's name,
         # otherwise it contains the original type name.
-        self._scope_name = None # type: str
+        self._scope_name: Optional[str] = None
 
         #: Named definition identifier.
         #: If declaration was anonymous, instantiation type names inherit
@@ -53,7 +54,7 @@ class Component:
         #:
         #: Importers may leave this as ``None`` if an appropriate type name
         #: cannot be imported.
-        self.type_name = None # type: Optional[str]
+        self.type_name: Optional[str] = None
 
         #: List of :class:`~systemrdl.component.Component` instances that are
         #: direct descendants of this component.
@@ -64,50 +65,50 @@ class Component:
         #: - All other components follow.
         #: - AddressableComponents are sorted by ascending base_addr
         #: - Fields are sorted by ascending low bit
-        self.children = [] # type: List[Component]
+        self.children: List[Component] = []
 
         # Parameters of this component definition.
         # These are listed in the order that they were defined
-        self.parameters = [] # type: List[Parameter]
+        self.parameters: List[Parameter] = []
 
         # Properties applied to this component
-        self.properties = {} # type: Dict[str, Any]
+        self.properties: Dict[str, Any] = {}
 
         #: :ref:`api_src_ref` for each explicit property assignment (if available)
-        self.property_src_ref = {} # type: Dict[str, SourceRefBase]
+        self.property_src_ref: Dict[str, SourceRefBase] = {}
 
         #: :ref:`api_src_ref` for the component definition
-        self.def_src_ref = None # type: Optional[SourceRefBase]
+        self.def_src_ref: Optional[SourceRefBase] = None
 
         #------------------------------
         # Component instantiation
         #------------------------------
         #: If instantiated, set to True
-        self.is_instance = False # type: bool
+        self.is_instance: bool = False
 
         #: Name of instantiated element
-        self.inst_name = None # type: Optional[str]
+        self.inst_name: Optional[str] = None
 
         #: Reference to original :class:`~systemrdl.component.Component`
         #: definition this instance is derived from.
         #:
         #: Importers may leave this as ``None`` if appropriate.
-        self.original_def = None # type: Optional[Component]
+        self.original_def: Optional[Component] = None
 
         #: True if instance type is external. False if internal.
-        self.external = None # type: bool
+        self.external: Optional[bool] = None
 
         #: :ref:`api_src_ref` for the component instantiation.
-        self.inst_src_ref = None # type: Optional[SourceRefBase]
+        self.inst_src_ref: Optional[SourceRefBase] = None
 
         #------------------------------
         # List of property names that were assigned via a dynamic property
         # assignment.
-        self._dyn_assigned_props = [] # type: List[str]
+        self._dyn_assigned_props: List[str] = []
 
         # List of child instances that were assigned "through" this component,
         # from outside this component's scope.
-        self._dyn_assigned_children = [] # type: List[str]
+        self._dyn_assigned_children: List[str] = []
 
 
     def _copy_for_inst(self: 'ComponentClass', memo: Dict[int, Any]) -> 'ComponentClass':
@@ -147,7 +148,7 @@ class Component:
         if self.is_instance:
             name_str = f"{self.inst_name} ({self.type_name})"
         else:
-            name_str = self.type_name
+            name_str = str(self.type_name)
 
         return f"<{self.__class__.__qualname__} {name_str} at {id(self):#x}>"
 
@@ -212,6 +213,10 @@ class Component:
 
             # Extend it with its scope name
             if parent_path:
+                # If parent scope exists, then its scope name is also guaranteed to
+                # exist
+                assert self.parent_scope._scope_name is not None
+
                 return(
                     parent_path
                     + scope_separator
@@ -232,25 +237,26 @@ class AddressableComponent(Component):
         # Component instantiation
         #------------------------------
         #: Address offset from the parent component.
-        #: If left as None, compiler will resolve with inferred value.
-        self.addr_offset = None # type: int
+        #: If left as None, compiler will resolve with inferred value during
+        #: elaboration
+        self.addr_offset: Optional[int] = None
 
         #: Address alignment if explicitly assigned by user.
-        self.addr_align = None # type: Optional[int]
+        self.addr_align: Optional[int] = None
 
         #------------------------------
         # Array Properties
         #------------------------------
         #: If true, then ``array_dimensions`` and ``array_stride`` are valid.
-        self.is_array = False # type: bool
+        self.is_array: bool = False
 
         #: List of sizes for each array dimension.
         #: Last item in the list iterates the most frequently.
-        self.array_dimensions = None # type: Optional[List[int]]
+        self.array_dimensions: Optional[List[int]] = None
 
         #: Address offset between array elements.
         #: If left as None, compiler will resolve with inferred value.
-        self.array_stride = None # type: Optional[int]
+        self.array_stride: Optional[int] = None
 
 
     @property
@@ -260,11 +266,20 @@ class AddressableComponent(Component):
         If array is multidimensional, array is flattened.
         Returns 1 if not an array.
         """
-        if self.is_array:
-            assert isinstance(self.array_dimensions, list)
+        if self.array_dimensions:
             return functools.reduce(operator.mul, self.array_dimensions)
         else:
             return 1
+
+class AddressableComponent_PreExprElab(AddressableComponent):
+    """
+    Alternately typed representation for type hinting prior to expression
+    elaboration
+    """
+    addr_offset: Optional[Union[int, 'ASTNode']] # type: ignore
+    addr_align: Optional[Union[int, 'ASTNode']] # type: ignore
+    array_stride: Optional[Union[int, 'ASTNode']] # type: ignore
+
 
 class VectorComponent(Component):
     """
@@ -276,18 +291,32 @@ class VectorComponent(Component):
         #------------------------------
         # Component instantiation
         #------------------------------
+        # Note: All of these are guaranteed to be resolved after elaboration to
+        # not be None. For this reason, type-hints are specified to represent the
+        # post-elaboration user-facing state.
+
         #: Width of vector in bits
-        self.width = None # type: int
+        self.width: int = None # type: ignore
 
         #: Bit position of most significant bit
-        self.msb = None # type: int
+        self.msb: int = None # type: ignore
         #: Bit position of least significant bit
-        self.lsb = None # type: int
+        self.lsb: int = None # type: ignore
 
         #: High index of bit range
-        self.high = None # type: int
+        self.high: int = None # type: ignore
         #: Low index of bit range
-        self.low = None # type: int
+        self.low: int = None # type: ignore
+
+
+class VectorComponent_PreExprElab(VectorComponent):
+    """
+    Alternately typed representation for type hinting prior to expression
+    elaboration
+    """
+    width: Optional[Union[int, 'ASTNode']] # type: ignore
+    msb: Optional[Union[int, 'ASTNode']] # type: ignore
+    lsb: Optional[Union[int, 'ASTNode']] # type: ignore
 
 #===============================================================================
 class Root(Component):
@@ -298,13 +327,35 @@ class Root(Component):
         super().__init__()
         #: Dictionary of :class:`~systemrdl.component.Component` definitions in
         #: the global root scope.
-        self.comp_defs = OrderedDict() # type: Dict[str, Component]
+        self.comp_defs: Dict[str, Component] = OrderedDict()
 
 class Signal(VectorComponent):
     pass
 
+class Signal_PreStructuralElab(Signal):
+    """
+    Alternately typed representation for type hinting prior to structural placement
+    elaboration
+    """
+    width: Optional[int] # type: ignore
+    msb: Optional[int] # type: ignore
+    lsb: Optional[int] # type: ignore
+    high: Optional[int] # type: ignore
+    low: Optional[int] # type: ignore
+
 class Field(VectorComponent):
     pass
+
+class Field_PreStructuralElab(Field):
+    """
+    Alternately typed representation for type hinting prior to structural placement
+    elaboration
+    """
+    width: Optional[int] # type: ignore
+    msb: Optional[int] # type: ignore
+    lsb: Optional[int] # type: ignore
+    high: Optional[int] # type: ignore
+    low: Optional[int] # type: ignore
 
 class Reg(AddressableComponent):
     def __init__(self) -> None:
@@ -313,22 +364,22 @@ class Reg(AddressableComponent):
         #: If true, fields are to be arranged in msb0 order
         #:
         #: .. versionadded:: 1.7
-        self.is_msb0_order = False # type: bool
+        self.is_msb0_order: bool = False
 
         # List of register inst names that are aliases of this primary
         # Due to limitations in RDL grammar, these can only be siblings in the hierarchy
         # so names are unambiguous
-        self._alias_names = [] # type: List[str]
+        self._alias_names: List[str] = []
 
         #------------------------------
         # Alias Register
         #------------------------------
         #: If true, then ``alias_primary_inst`` is valid
-        self.is_alias = False # type: bool
+        self.is_alias: bool = False
 
         #: Reference to primary register :class:`~systemrdl.component.Component`
         #: instance
-        self.alias_primary_inst = None # type: Optional[Reg]
+        self.alias_primary_inst: Optional[Reg] = None
 
 class Regfile(AddressableComponent):
     pass

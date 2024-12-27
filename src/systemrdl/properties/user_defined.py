@@ -127,7 +127,7 @@ class PureUserProperty(UserProperty):
         return self._name
 
     @property
-    def bindable_to(self) -> 'Set[Type[comp.Component]]': # type: ignore
+    def bindable_to(self) -> 'Set[Type[comp.Component]]': # type: ignore # overriding base class var as property
         return self._valid_components
 
     @property

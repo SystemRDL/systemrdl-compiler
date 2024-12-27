@@ -50,7 +50,7 @@ class IncludeRef:
 class SegmentMap:
 
     def __init__(self) -> None:
-        self.segments = [] # type: List[Segment]
+        self.segments: List[Segment] = []
 
     def translate_offset(self, offset: int, round_up: bool) -> Tuple[int, str]:
         # Scan through segments

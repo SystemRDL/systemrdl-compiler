@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Type, Union
 
 from .helpers import get_ID_text
 
@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from ..compiler import RDLCompiler
     from antlr4.Token import CommonToken
     from antlr4 import ParserRuleContext
-    from typing import Union, Type
 
 class BaseVisitor(SystemRDLVisitor):
 
@@ -42,8 +41,7 @@ class BaseVisitor(SystemRDLVisitor):
         SystemRDLParser.FIELD_kw            : comp.Field,
         SystemRDLParser.SIGNAL_kw           : comp.Signal,
     }
-    def datatype_from_token(self, token):
-        # type: ('CommonToken') -> Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, rdltypes.references.RefType, comp.Component]]
+    def datatype_from_token(self, token: 'CommonToken') -> Type[Union[int, str, bool, rdltypes.BuiltinEnum, rdltypes.UserEnum, rdltypes.UserStruct, rdltypes.references.RefType, comp.Component]]:
         """
         Given a SystemRDLParser token, lookup the type
         This only includes types under the "data_type" grammar rule
@@ -60,7 +58,7 @@ class BaseVisitor(SystemRDLVisitor):
                 )
 
             if rdltypes.is_user_enum(typ) or rdltypes.is_user_struct(typ):
-                return typ # type: ignore
+                return typ # type: ignore # holding off on proper type narrowing until python3.7 is dropped
             else:
                 self.msg.fatal(
                     "Type '%s' is not a struct or enum" % get_ID_text(token),

@@ -35,7 +35,7 @@ class RDLImporter:
         #: model construction methods
         #: By default, this simply points to the file currently being imported,
         #: without any line offset information
-        self.default_src_ref = None # type: SourceRefBase
+        self.default_src_ref: SourceRefBase
 
     def import_file(self, path: str) -> None:
         """

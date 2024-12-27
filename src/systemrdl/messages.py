@@ -1,6 +1,7 @@
 import sys
 import enum
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import List, Optional, Union, overload, NoReturn
+from typing_extensions import Literal
 
 from antlr4.Token import CommonToken
 from antlr4 import ParserRuleContext, InputStream
@@ -14,9 +15,6 @@ from .parser.sa_systemrdl import SA_ErrorListener
 
 from .source_ref import SourceRefBase, src_ref_from_antlr, SegmentedSourceRef
 from .source_ref import DetailedFileSourceRef, FileSourceRef
-
-if TYPE_CHECKING:
-    from typing import NoReturn
 
 # Colorama needs to be initialized to properly work in Windows
 # This is a no-op in other OSes
@@ -175,6 +173,14 @@ class MessageHandler:
         #: Set to True if an error message was ever emitted
         self.had_error = False
 
+    @overload
+    def message(self, severity: Literal[Severity.FATAL], text: str, src_ref: Optional[SourceRefBase]=None) -> NoReturn:
+        ...
+
+    @overload
+    def message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
+        ...
+
     def message(self, severity: Severity, text: str, src_ref: Optional[SourceRefBase]=None) -> None:
         if severity == Severity.NONE:
             return
@@ -223,7 +229,7 @@ class MessageHandler:
         """
         self.message(Severity.ERROR, text, src_ref)
 
-    def fatal(self, text: str, src_ref: Optional[SourceRefBase]=None) -> 'NoReturn': # type: ignore
+    def fatal(self, text: str, src_ref: Optional[SourceRefBase]=None) -> NoReturn:
         """
         Print a fatal message.
 

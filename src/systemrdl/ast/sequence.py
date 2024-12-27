@@ -13,7 +13,7 @@ class Concatenate(ASTNode):
     def __init__(self, env: 'RDLEnvironment', src_ref: 'OptionalSourceRef', elements: List[ASTNode]):
         super().__init__(env, src_ref)
         self.elements = elements
-        self.type = None # type: Union[Type[int], Type[str]]
+        self.type: Union[Type[int], Type[str]] = int
 
     def predict_type(self) -> Union[Type[int], Type[str]]:
         element_iter = iter(self.elements)
@@ -73,11 +73,10 @@ class Replicate(ASTNode):
         super().__init__(env, src_ref)
         self.reps = reps
         self.concat = concat
-        self.type = None # type: Union[Type[int], Type[str]]
-        self.reps_value = None # type: int
+        self.type: Union[Type[int], Type[str]] = int
+        self.reps_value: Optional[int] = None
 
-    def predict_type(self):
-        # type: () -> Union[Type[int], Type[str]]
+    def predict_type(self) -> Union[Type[int], Type[str]]:
 
         if not is_castable(self.reps.predict_type(), int):
             self.msg.fatal(

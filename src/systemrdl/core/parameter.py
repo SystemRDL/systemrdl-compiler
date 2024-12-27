@@ -6,6 +6,7 @@ from .value_normalization import normalize
 if TYPE_CHECKING:
     from .. import rdltypes
     from ..ast import ASTNode
+    from ..node import Node
 
 class Parameter:
     def __init__(self, param_type: 'rdltypes.PreElabRDLType', name: str, default_expr: Optional['ASTNode']=None):
@@ -16,7 +17,7 @@ class Parameter:
 
         # Stores the evaluated result of self.expr so that subsequent queries do
         # not need to repeatedly re-evaluate it
-        self._value = None # type: Any
+        self._value: Any = None
 
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> 'Parameter':
