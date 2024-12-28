@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from ..parser.SystemRDLParser import SystemRDLParser
 
 from .BaseVisitor import BaseVisitor
-from .helpers import get_ID_text
+from .helpers import get_ID_text, KW_TO_COMPONENT_MAP
 
 from .. import component as comp
 from ..source_ref import src_ref_from_antlr
@@ -86,21 +86,13 @@ class StructVisitor(BaseVisitor):
         return member_type, member_name, member_src_ref
 
 
-    _CompType_Map = {
-        SystemRDLParser.FIELD_kw    : comp.Field,
-        SystemRDLParser.REG_kw      : comp.Reg,
-        SystemRDLParser.REGFILE_kw  : comp.Regfile,
-        SystemRDLParser.ADDRMAP_kw  : comp.Addrmap,
-        SystemRDLParser.SIGNAL_kw   : comp.Signal,
-        SystemRDLParser.MEM_kw      : comp.Mem
-    }
     def visitStruct_type(self, ctx: SystemRDLParser.Struct_typeContext):
         if ctx.data_type() is not None:
             data_type_token = self.visit(ctx.data_type())
             member_type = self.datatype_from_token(data_type_token)
         elif ctx.component_type() is not None:
             type_token = self.visit(ctx.component_type())
-            member_type = self._CompType_Map[type_token.type]
+            member_type = KW_TO_COMPONENT_MAP[type_token.type]
         else:
             raise RuntimeError
 

@@ -4,6 +4,9 @@ from typing import Union, TYPE_CHECKING, Type, List
 from antlr4.Token import CommonToken
 from antlr4.tree.Tree import TerminalNodeImpl
 
+from ..parser.SystemRDLParser import SystemRDLParser
+from .. import component as comp
+
 if TYPE_CHECKING:
     from typing import TypeVar
     T = TypeVar('T')
@@ -58,3 +61,12 @@ def get_all_subclasses(cls: Type['T']) -> List[Type['T']]:
         g for s in cls.__subclasses__()
         for g in get_all_subclasses(s)
     ]
+
+KW_TO_COMPONENT_MAP = {
+    SystemRDLParser.FIELD_kw    : comp.Field,
+    SystemRDLParser.REG_kw      : comp.Reg,
+    SystemRDLParser.REGFILE_kw  : comp.Regfile,
+    SystemRDLParser.ADDRMAP_kw  : comp.Addrmap,
+    SystemRDLParser.SIGNAL_kw   : comp.Signal,
+    SystemRDLParser.MEM_kw      : comp.Mem,
+}

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Optional, Any, cast
+from typing import TYPE_CHECKING, Dict, Tuple, List, Optional, Any, cast, Type, Union
 from collections import OrderedDict
 
 from ..parser.SystemRDLParser import SystemRDLParser
@@ -9,7 +9,7 @@ from .EnumVisitor import EnumVisitor
 from .StructVisitor import StructVisitor
 from .UDPVisitor import UDPVisitor
 from .parameter import Parameter
-from .helpers import get_ID_text
+from .helpers import get_ID_text, KW_TO_COMPONENT_MAP
 
 from .. import ast
 from ..source_ref import src_ref_from_antlr, SourceRefBase
@@ -17,7 +17,6 @@ from .. import component as comp
 from .. import rdltypes
 
 if TYPE_CHECKING:
-    from typing import Type, Union
     from ..compiler import RDLCompiler
     from antlr4.Token import CommonToken
     from antlr4 import ParserRuleContext
@@ -155,24 +154,15 @@ class ComponentVisitor(BaseVisitor):
     def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
         pass
 
-    _CompType_Map = {
-        SystemRDLParser.FIELD_kw    : comp.Field,
-        SystemRDLParser.REG_kw      : comp.Reg,
-        SystemRDLParser.REGFILE_kw  : comp.Regfile,
-        SystemRDLParser.ADDRMAP_kw  : comp.Addrmap,
-        SystemRDLParser.SIGNAL_kw   : comp.Signal,
-        SystemRDLParser.MEM_kw      : comp.Mem
-    }
+
     def define_component(self, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: Optional[str], param_defs: List[Parameter]) -> comp.Component:
         """
         Given component definition, recurse to another ComponentVisitor
         to define a new component
         """
-        for subclass in ComponentVisitor.__subclasses__():
-            if subclass.comp_type == self._CompType_Map[type_token.type]:
-                visitor = subclass(self.compiler, def_name, param_defs)
-                return visitor.visit(body)
-        raise RuntimeError
+        visitor_cls = KW_TO_VISITOR_MAP[type_token.type]
+        visitor = visitor_cls(self.compiler, def_name, param_defs)
+        return visitor.visit(body)
 
     #---------------------------------------------------------------------------
     # Component Instantiation
@@ -985,7 +975,7 @@ class FieldComponentVisitor(ComponentVisitor):
         super().visitComponent_insts(ctx)
 
     def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
-        comp_type = self._CompType_Map[type_token.type]
+        comp_type = KW_TO_COMPONENT_MAP[type_token.type]
 
         # 9.2-a: No other types of structural components shall be defined within a field component.
         # 9.1: ... however, signal, enumeration (enum), and constraint components can be defined within a field component
@@ -1017,7 +1007,7 @@ class RegComponentVisitor(ComponentVisitor):
         super().visitComponent_insts(ctx)
 
     def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
-        comp_type = self._CompType_Map[type_token.type]
+        comp_type = KW_TO_COMPONENT_MAP[type_token.type]
 
         # 10.2-b-1-i: Component definitions are limited to field, constraint, signal, and enum components
         if comp_type not in [comp.Signal, comp.Field]:
@@ -1048,7 +1038,7 @@ class RegfileComponentVisitor(ComponentVisitor):
         super().visitComponent_insts(ctx)
 
     def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
-        comp_type = self._CompType_Map[type_token.type]
+        comp_type = KW_TO_COMPONENT_MAP[type_token.type]
 
         # 12.1-b-1-i: Component definitions are limited to field, reg, regfile, signal, constraint, and enum
         if comp_type not in [comp.Field, comp.Reg, comp.Regfile, comp.Signal]:
@@ -1099,7 +1089,7 @@ class MemComponentVisitor(ComponentVisitor):
         super().visitComponent_insts(ctx)
 
     def check_comp_def_allowed(self, type_token: 'CommonToken') -> None:
-        comp_type = self._CompType_Map[type_token.type]
+        comp_type = KW_TO_COMPONENT_MAP[type_token.type]
 
         # 11.1-b-a-i: Component definitions are limited to field, reg, constraint, and enum components.
         if comp_type not in [comp.Field, comp.Reg]:
@@ -1126,3 +1116,14 @@ class SignalComponentVisitor(ComponentVisitor):
             "Definitions of components not allowed inside a signal definition",
             src_ref_from_antlr(type_token)
         )
+
+
+#===============================================================================
+KW_TO_VISITOR_MAP: Dict[int, Type[ComponentVisitor]] = {
+    SystemRDLParser.FIELD_kw    : FieldComponentVisitor,
+    SystemRDLParser.REG_kw      : RegComponentVisitor,
+    SystemRDLParser.REGFILE_kw  : RegfileComponentVisitor,
+    SystemRDLParser.ADDRMAP_kw  : AddrmapComponentVisitor,
+    SystemRDLParser.SIGNAL_kw   : SignalComponentVisitor,
+    SystemRDLParser.MEM_kw      : MemComponentVisitor,
+}
