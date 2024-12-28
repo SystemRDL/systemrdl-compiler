@@ -135,10 +135,9 @@ class Node:
             yield cls2(self.inst, self.env, self.parent)
 
 
-    def children(self, unroll: bool=False, skip_not_present: bool=True) -> Iterator['Node']:
+    def children(self, unroll: bool=False, skip_not_present: bool=True) -> List['Node']:
         """
-        Returns an iterator that provides nodes for all immediate children of
-        this component.
+        Returns a list of all immediate children of this component.
 
         Parameters
         ----------
@@ -148,11 +147,16 @@ class Node:
         skip_not_present : bool
             If True, skips children whose 'ispresent' property is set to False
 
-        Yields
-        ------
+        Returns
+        -------
         :class:`~Node`
             All immediate children
+
+
+        .. versionchanged:: 1.29
+            Returns list instead of generator
         """
+        children: List[Node] = []
         for child_inst in self.inst.children:
             if skip_not_present:
                 # Check if property ispresent == False
@@ -166,9 +170,10 @@ class Node:
                 for idxs in itertools.product(*range_list):
                     N = Node._factory(child_inst, self.env, self)
                     N.current_idx = list(idxs) # pylint: disable=attribute-defined-outside-init
-                    yield N
+                    children.append(N)
             else:
-                yield Node._factory(child_inst, self.env, self)
+                children.append(Node._factory(child_inst, self.env, self))
+        return children
 
 
     def descendants(self, unroll: bool=False, skip_not_present: bool=True, in_post_order: bool=False) -> Iterator['Node']:
@@ -204,56 +209,65 @@ class Node:
                 yield from child.descendants(unroll, skip_not_present, in_post_order)
 
 
-    def signals(self, skip_not_present: bool=True) -> Iterator['SignalNode']:
+    def signals(self, skip_not_present: bool=True) -> List['SignalNode']:
         """
-        Returns an iterator that provides nodes for all immediate signals of
-        this component.
+        Returns a list of all immediate signals of this component.
 
         Parameters
         ----------
         skip_not_present : bool
             If True, skips children whose 'ispresent' property is set to False
 
-        Yields
-        ------
+        Returns
+        -------
         :class:`~SignalNode`
             All signals in this component
+
+
+        .. versionchanged:: 1.29
+            Returns list instead of generator
         """
+        children = []
         for child in self.children(skip_not_present=skip_not_present):
             if isinstance(child, SignalNode):
-                yield child
+                children.append(child)
             else:
                 # Optimization.
                 # children are sorted so signals are always first.
                 # If encountered a non-signal, no reason to continue iterating
                 break
+        return children
 
 
 
-    def fields(self, skip_not_present: bool=True) -> Iterator['FieldNode']:
+    def fields(self, skip_not_present: bool=True) -> List['FieldNode']:
         """
-        Returns an iterator that provides nodes for all immediate fields of
-        this component.
+        Returns a list of all immediate fields of this component.
 
         Parameters
         ----------
         skip_not_present : bool
             If True, skips children whose 'ispresent' property is set to False
 
-        Yields
-        ------
+        Returns
+        -------
         :class:`~FieldNode`
             All fields in this component
+
+
+        .. versionchanged:: 1.29
+            Returns list instead of generator
         """
+        children = []
         for child in self.children(skip_not_present=skip_not_present):
             if isinstance(child, FieldNode):
-                yield child
+                children.append(child)
+        return children
 
 
-    def registers(self, unroll: bool=False, skip_not_present: bool=True) -> Iterator['RegNode']:
+    def registers(self, unroll: bool=False, skip_not_present: bool=True) -> List['RegNode']:
         """
-        Returns an iterator that provides nodes for all immediate registers of
-        this component.
+        Returns a list of all immediate registers of this component.
 
         Parameters
         ----------
@@ -263,14 +277,20 @@ class Node:
         skip_not_present : bool
             If True, skips children whose 'ispresent' property is set to False
 
-        Yields
-        ------
+        Returns
+        -------
         :class:`~RegNode`
             All registers in this component
+
+
+        .. versionchanged:: 1.29
+            Returns list instead of generator
         """
+        children = []
         for child in self.children(unroll, skip_not_present):
             if isinstance(child, RegNode):
-                yield child
+                children.append(child)
+        return children
 
 
     @property
@@ -1841,9 +1861,9 @@ class FieldNode(VectorNode):
         return False
 
 
-    def aliases(self, skip_not_present: bool = True) -> Iterator['FieldNode']:
+    def aliases(self, skip_not_present: bool = True) -> List['FieldNode']:
         """
-        Returns an iterator of all the fields that are aliases of this primary field
+        Returns a list of all the fields that are aliases of this primary field.
 
         Parameters
         ----------
@@ -1852,7 +1872,11 @@ class FieldNode(VectorNode):
 
 
         .. versionadded:: 1.23
+
+        .. versionchanged:: 1.29
+            Returns list instead of generator
         """
+        fields = []
         for alias_reg in self.parent.aliases(skip_not_present=skip_not_present):
             alias_field = alias_reg.get_child_by_name(self.inst_name)
 
@@ -1863,8 +1887,8 @@ class FieldNode(VectorNode):
             if skip_not_present and not alias_field.get_property('ispresent'):
                 continue
 
-            yield alias_field
-
+            fields.append(alias_field)
+        return fields
 
 
 #===============================================================================
@@ -2085,9 +2109,9 @@ class RegNode(AddressableNode):
         return bool(self.inst._alias_names)
 
 
-    def aliases(self, skip_not_present: bool = True) -> Iterator['RegNode']:
+    def aliases(self, skip_not_present: bool = True) -> List['RegNode']:
         """
-        Returns an iterator of all the registers that are aliases of this primary register
+        Returns a listof all the registers that are aliases of this primary register
 
         Parameters
         ----------
@@ -2096,8 +2120,11 @@ class RegNode(AddressableNode):
 
 
         .. versionadded:: 1.23
-        """
 
+        .. versionchanged:: 1.29
+            Returns list instead of generator
+        """
+        regs = []
         for reg_name in self.inst._alias_names:
             alias_reg = self.parent.get_child_by_name(reg_name)
             assert isinstance(alias_reg, RegNode)
@@ -2110,7 +2137,8 @@ class RegNode(AddressableNode):
                 # Mirror the current index onto the alias that is returned
                 alias_reg.current_idx = copy(self.current_idx)
 
-            yield alias_reg
+            regs.append(alias_reg)
+        return regs
 
 
 
