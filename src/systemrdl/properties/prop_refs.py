@@ -122,7 +122,7 @@ class PropRef_incr(CounterPropRef):
 
 class PropRef_incrsaturate(CounterPropRef):
     """
-    referencing the counter’s saturate output, which is a single bit value
+    referencing the counter's saturate output, which is a single bit value
     indicating whether the saturation has occurred
     """
     allowed_inst_type = comp.Field

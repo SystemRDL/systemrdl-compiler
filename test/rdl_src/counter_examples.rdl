@@ -56,8 +56,8 @@ reg example_9_8_2_e1 {
     // count reaches 2 or lower
 
     counter_f count3[5]=0; // Defines a 5 bit counter from 11 down to 7
-    count3->incrsaturate;// Implies 5’h1F by default
-    count3->decrsaturate; // Implies 5’h00 by default
+    count3->incrsaturate;// Implies 5'h1F by default
+    count3->decrsaturate; // Implies 5'h00 by default
     count3->decrthreshold=5'h3;
 
     field {} count4_sat[4] = 4'ha; // define a field to control the saturate value

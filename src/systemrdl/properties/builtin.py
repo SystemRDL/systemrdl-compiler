@@ -359,7 +359,7 @@ class Prop_activehigh(PropertyRule):
 #-------------------------------------------------------------------------------
 class Prop_hw(PropertyRule):
     """
-    Design’s ability to sample/update a field.
+    Design's ability to sample/update a field.
     (9.4)
     """
     bindable_to = {comp.Field}
@@ -370,7 +370,7 @@ class Prop_hw(PropertyRule):
 
 class Prop_sw(PropertyRule):
     """
-    Programmer’s ability to read/write a field.
+    Programmer's ability to read/write a field.
     (9.4)
     """
     bindable_to = {comp.Field, comp.Mem}
@@ -532,7 +532,7 @@ class Prop_rclr(PropertyRule):
 
 class Prop_rset(PropertyRule):
     """
-    Set on read (field = all 1’s).
+    Set on read (field = all 1's).
     (9.6)
     """
     bindable_to = {comp.Field}
@@ -1320,7 +1320,7 @@ class Prop_intr_type(PropertyRule):
 
 class Prop_enable(PropertyRule):
     bindable_to = {comp.Field}
-    valid_types = (comp.Field, comp.Signal,)
+    valid_types = (comp.Field, comp.Signal, rdltypes.PropertyReference,)
     default = None
     dyn_assign_allowed = True
     mutex_group = "J"
@@ -1505,7 +1505,7 @@ class Prop_encode(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         assert isinstance(node, m_node.FieldNode)
-        # 9.10.1-b: The enumeration’s values shall fit inside the field width.
+        # 9.10.1-b: The enumeration's values shall fit inside the field width.
         enum_max = max(map(int, value))
         if enum_max >= (1 << node.width):
             self.env.msg.error(

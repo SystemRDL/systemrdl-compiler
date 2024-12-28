@@ -303,12 +303,12 @@ addrmap int_map_m {
     master_int_en_r     master_int_en   ;
     master_halt_en_r    master_halt_en  ;
 
-    // Associate the INT’s with the EN’s
+    // Associate the INT's with the EN's
     master_int.module_d_int->enable = master_int_en.module_d_int_en;
     master_int.module_c_int->enable = master_int_en.module_c_int_en;
     master_int.module_b_int->enable = master_int_en.module_b_int_en;
     master_int.module_a_int->enable = master_int_en.module_a_int_en;
-    // Associate the HALT’s with the EN’s
+    // Associate the HALT's with the EN's
     master_halt.module_d_int->haltenable = master_halt_en.module_d_halt_en;
     master_halt.module_c_int->haltenable = master_halt_en.module_c_halt_en;
     master_halt.module_b_int->haltenable = master_halt_en.module_b_halt_en;

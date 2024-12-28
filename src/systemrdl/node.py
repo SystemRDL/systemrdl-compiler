@@ -2,15 +2,18 @@ import re
 import itertools
 from copy import deepcopy, copy
 from collections import deque
-from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Dict, Union, overload
+from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Dict, Union, overload, TypeVar, Type
 
 from . import component as comp
 from . import rdltypes
 from .core import rdlformatcode, helpers
+from typing_extensions import Literal
 
 if TYPE_CHECKING:
     from .compiler import RDLEnvironment
     from markdown import Markdown
+
+T = TypeVar("T")
 
 class Node:
     """
@@ -58,43 +61,35 @@ class Node:
 
     @overload
     @staticmethod
-    def _factory(inst: comp.Field, env: 'RDLEnvironment', parent: Optional['Node']) -> 'FieldNode':
-        ...
+    def _factory(inst: comp.Field, env: 'RDLEnvironment', parent: Optional['Node']) -> 'FieldNode': ...
 
     @overload
     @staticmethod
-    def _factory(inst: comp.Reg, env: 'RDLEnvironment', parent: Optional['Node']) -> 'RegNode':
-        ...
+    def _factory(inst: comp.Reg, env: 'RDLEnvironment', parent: Optional['Node']) -> 'RegNode': ...
 
     @overload
     @staticmethod
-    def _factory(inst: comp.Regfile, env: 'RDLEnvironment', parent: Optional['Node']) -> 'RegfileNode':
-        ...
+    def _factory(inst: comp.Regfile, env: 'RDLEnvironment', parent: Optional['Node']) -> 'RegfileNode': ...
 
     @overload
     @staticmethod
-    def _factory(inst: comp.Addrmap, env: 'RDLEnvironment', parent: Optional['Node']) -> 'AddrmapNode':
-        ...
+    def _factory(inst: comp.Addrmap, env: 'RDLEnvironment', parent: Optional['Node']) -> 'AddrmapNode': ...
 
     @overload
     @staticmethod
-    def _factory(inst: comp.Mem, env: 'RDLEnvironment', parent: Optional['Node']) -> 'MemNode':
-        ...
+    def _factory(inst: comp.Mem, env: 'RDLEnvironment', parent: Optional['Node']) -> 'MemNode': ...
 
     @overload
     @staticmethod
-    def _factory(inst: comp.Signal, env: 'RDLEnvironment', parent: Optional['Node']) -> 'SignalNode':
-        ...
+    def _factory(inst: comp.Signal, env: 'RDLEnvironment', parent: Optional['Node']) -> 'SignalNode': ...
 
     @overload
     @staticmethod
-    def _factory(inst: comp.AddressableComponent, env: 'RDLEnvironment', parent: Optional['Node']) -> 'AddressableNode':
-        ...
+    def _factory(inst: comp.AddressableComponent, env: 'RDLEnvironment', parent: Optional['Node']) -> 'AddressableNode': ...
 
     @overload
     @staticmethod
-    def _factory(inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']) -> 'Node':
-        ...
+    def _factory(inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']) -> 'Node': ...
 
     @staticmethod
     def _factory(inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']=None) -> 'Node':
@@ -384,6 +379,29 @@ class Node:
 
         return current_node
 
+    @overload
+    def get_property(self, prop_name: Literal["name"], *, default: T)-> Union[str, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"])-> str: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: str, *, default: T)-> Union[Any, T]: ...
+
+    @overload
+    def get_property(self, prop_name: str)-> Any: ...
 
     def get_property(self, prop_name: str, **kwargs: Any)-> Any:
         """
@@ -813,6 +831,33 @@ class AddressableNode(Node):
     parent: Union['AddressableNode', 'RootNode']
     inst: comp.AddressableComponent
 
+    @overload
+    def get_property(self, prop_name: Literal["name"], *, default: T)-> Union[str, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"])-> str: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: str, *, default: T)-> Union[Any, T]: ...
+
+    @overload
+    def get_property(self, prop_name: str)-> Any: ...
+
+    def get_property(self, prop_name: str, **kwargs: Any)-> Any:
+        return super().get_property(prop_name, **kwargs)
+
     def __init__(self, inst: comp.AddressableComponent, env: 'RDLEnvironment', parent: Optional[Node]) -> None:
         super().__init__(inst, env, parent)
 
@@ -1026,6 +1071,33 @@ class VectorNode(Node):
     parent: Node
     inst: comp.VectorComponent
 
+    @overload
+    def get_property(self, prop_name: Literal["name"], *, default: T)-> Union[str, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"])-> str: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: str, *, default: T)-> Union[Any, T]: ...
+
+    @overload
+    def get_property(self, prop_name: str)-> Any: ...
+
+    def get_property(self, prop_name: str, **kwargs: Any)-> Any:
+        return super().get_property(prop_name, **kwargs)
+
     @property
     def width(self) -> int:
         """
@@ -1083,10 +1155,442 @@ class SignalNode(VectorNode):
     parent: Node
     inst: comp.Signal
 
+    @overload # type: ignore[override]
+    def get_property(self, prop_name: Literal["signalwidth"], *, default: T)-> Union[int, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["signalwidth"])-> int: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sync"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sync"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["async"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["async"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["cpuif_reset"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["cpuif_reset"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["field_reset"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["field_reset"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["activelow"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["activelow"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["activehigh"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["activehigh"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"], *, default: T)-> Union[str, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"])-> str: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: str, *, default: T)-> Union[Any, T]: ...
+
+    @overload
+    def get_property(self, prop_name: str)-> Any: ...
+
+    def get_property(self, prop_name: str, **kwargs: Any)-> Any:
+        return super().get_property(prop_name, **kwargs)
+
 #===============================================================================
 class FieldNode(VectorNode):
     parent: 'RegNode'
     inst: comp.Field
+
+    @overload # type: ignore[override]
+    def get_property(self, prop_name: Literal["dontcompare"], *, default: T)-> Union[Union[int, bool], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["dontcompare"])-> Union[int, bool]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["donttest"], *, default: T)-> Union[Union[int, bool], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["donttest"])-> Union[int, bool]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_slice"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_slice"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate_slice"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate_slice"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hw"], *, default: T)-> Union['rdltypes.AccessType', T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hw"])-> 'rdltypes.AccessType': ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sw"], *, default: T)-> Union['rdltypes.AccessType', T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sw"])-> 'rdltypes.AccessType': ...
+
+    @overload
+    def get_property(self, prop_name: Literal["next"], *, default: T)-> Union[Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["next"])-> Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["reset"], *, default: T)-> Union[Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["reset"])-> Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["resetsignal"], *, default: T)-> Union[Optional[SignalNode], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["resetsignal"])-> Optional[SignalNode]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["rclr"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["rclr"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["rset"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["rset"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["onread"], *, default: T)-> Union[Optional['rdltypes.OnReadType'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["onread"])-> Optional['rdltypes.OnReadType']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["woclr"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["woclr"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["woset"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["woset"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["onwrite"], *, default: T)-> Union[Optional['rdltypes.OnWriteType'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["onwrite"])-> Optional['rdltypes.OnWriteType']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["swwe"], *, default: T)-> Union[Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["swwe"])-> Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["swwel"], *, default: T)-> Union[Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["swwel"])-> Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["swmod"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["swmod"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["swacc"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["swacc"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["singlepulse"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["singlepulse"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["we"], *, default: T)-> Union[Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["we"])-> Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["wel"], *, default: T)-> Union[Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["wel"])-> Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["anded"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["anded"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ored"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ored"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["xored"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["xored"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["fieldwidth"], *, default: T)-> Union[int, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["fieldwidth"])-> int: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hwclr"], *, default: T)-> Union[Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hwclr"])-> Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hwset"], *, default: T)-> Union[Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hwset"])-> Union[bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hwenable"], *, default: T)-> Union[Optional[Union[SignalNode, 'FieldNode', 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hwenable"])-> Optional[Union[SignalNode, 'FieldNode', 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hwmask"], *, default: T)-> Union[Optional[Union[SignalNode, 'FieldNode', 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hwmask"])-> Optional[Union[SignalNode, 'FieldNode', 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["counter"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["counter"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["threshold"], *, default: T)-> Union[Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["threshold"])-> Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incrthreshold"], *, default: T)-> Union[Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incrthreshold"])-> Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["saturate"], *, default: T)-> Union[Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["saturate"])-> Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incrsaturate"], *, default: T)-> Union[Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incrsaturate"])-> Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["overflow"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["overflow"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["underflow"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["underflow"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incr"], *, default: T)-> Union[Optional[Union[SignalNode, 'FieldNode', 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incr"])-> Optional[Union[SignalNode, 'FieldNode', 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incrvalue"], *, default: T)-> Union[Optional[Union[int, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incrvalue"])-> Optional[Union[int, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incrwidth"], *, default: T)-> Union[Optional[int], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["incrwidth"])-> Optional[int]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decrvalue"], *, default: T)-> Union[Optional[Union[int, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decrvalue"])-> Optional[Union[int, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decr"], *, default: T)-> Union[Optional[Union[SignalNode, 'FieldNode', 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decr"])-> Optional[Union[SignalNode, 'FieldNode', 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decrwidth"], *, default: T)-> Union[Optional[int], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decrwidth"])-> Optional[int]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decrsaturate"], *, default: T)-> Union[Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decrsaturate"])-> Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decrthreshold"], *, default: T)-> Union[Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["decrthreshold"])-> Union[int, bool, SignalNode, 'FieldNode', 'rdltypes.PropertyReference']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["intr"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["intr"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["intr type"], *, default: T)-> Union[Optional['rdltypes.InterruptType'], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["intr type"])-> Optional['rdltypes.InterruptType']: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["enable"], *, default: T)-> Union[Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["enable"])-> Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["mask"], *, default: T)-> Union[Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["mask"])-> Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["haltenable"], *, default: T)-> Union[Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["haltenable"])-> Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["haltmask"], *, default: T)-> Union[Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["haltmask"])-> Optional[Union['FieldNode', SignalNode, 'rdltypes.PropertyReference']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sticky"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sticky"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["stickybit"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["stickybit"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["encode"], *, default: T)-> Union[Optional[Type['rdltypes.UserEnum']], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["encode"])-> Optional[Type['rdltypes.UserEnum']]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["precedence"], *, default: T)-> Union['rdltypes.PrecedenceType', T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["precedence"])-> 'rdltypes.PrecedenceType': ...
+
+    @overload
+    def get_property(self, prop_name: Literal["paritycheck"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["paritycheck"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"], *, default: T)-> Union[str, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"])-> str: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: str, *, default: T)-> Union[Any, T]: ...
+
+    @overload
+    def get_property(self, prop_name: str)-> Any: ...
+
+    def get_property(self, prop_name: str, **kwargs: Any)-> Any:
+        return super().get_property(prop_name, **kwargs)
 
     def get_global_type_name(self, separator: str = "__") -> Optional[str]:
         name = super().get_global_type_name(separator)
@@ -1368,6 +1872,81 @@ class RegNode(AddressableNode):
     parent: Union['AddrmapNode', 'RegNode', 'MemNode']
     inst: comp.Reg
 
+    @overload # type: ignore[override]
+    def get_property(self, prop_name: Literal["dontcompare"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["dontcompare"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["donttest"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["donttest"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["errextbus"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["errextbus"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["regwidth"], *, default: T)-> Union[int, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["regwidth"])-> int: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["accesswidth"], *, default: T)-> Union[int, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["accesswidth"])-> int: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["shared"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["shared"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"], *, default: T)-> Union[str, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"])-> str: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: str, *, default: T)-> Union[Any, T]: ...
+
+    @overload
+    def get_property(self, prop_name: str)-> Any: ...
+
+    def get_property(self, prop_name: str, **kwargs: Any)-> Any:
+        return super().get_property(prop_name, **kwargs)
+
     @property
     def size(self) -> int:
         return self.get_property('regwidth') // 8
@@ -1541,6 +2120,75 @@ class RegfileNode(AddressableNode):
     parent: 'AddrmapNode'
     inst: comp.Regfile
 
+    @overload # type: ignore[override]
+    def get_property(self, prop_name: Literal["dontcompare"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["dontcompare"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["donttest"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["donttest"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["errextbus"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["errextbus"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["alignment"], *, default: T)-> Union[Optional[int], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["alignment"])-> Optional[int]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sharedextbus"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sharedextbus"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"], *, default: T)-> Union[str, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"])-> str: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: str, *, default: T)-> Union[Any, T]: ...
+
+    @overload
+    def get_property(self, prop_name: str)-> Any: ...
+
+    def get_property(self, prop_name: str, **kwargs: Any)-> Any:
+        return super().get_property(prop_name, **kwargs)
+
     @property
     def size(self) -> int:
         return get_group_node_size(self)
@@ -1550,6 +2198,123 @@ class AddrmapNode(AddressableNode):
     parent: Union['AddrmapNode', RootNode]
     inst: comp.Addrmap
 
+    @overload # type: ignore[override]
+    def get_property(self, prop_name: Literal["dontcompare"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["dontcompare"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["donttest"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["donttest"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["errextbus"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["errextbus"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["alignment"], *, default: T)-> Union[Optional[int], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["alignment"])-> Optional[int]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sharedextbus"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sharedextbus"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["bigendian"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["bigendian"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["littleendian"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["littleendian"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["addressing"], *, default: T)-> Union[rdltypes.AddressingType, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["addressing"])-> rdltypes.AddressingType: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["rsvdset"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["rsvdset"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["rsvdsetX"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["rsvdsetX"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["msb0"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["msb0"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["lsb0"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["lsb0"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["bridge"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["bridge"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"], *, default: T)-> Union[str, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"])-> str: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: str, *, default: T)-> Union[Any, T]: ...
+
+    @overload
+    def get_property(self, prop_name: str)-> Any: ...
+
+    def get_property(self, prop_name: str, **kwargs: Any)-> Any:
+        return super().get_property(prop_name, **kwargs)
+
     @property
     def size(self) -> int:
         return get_group_node_size(self)
@@ -1558,6 +2323,63 @@ class AddrmapNode(AddressableNode):
 class MemNode(AddressableNode):
     parent: AddrmapNode
     inst: comp.Mem
+
+    @overload # type: ignore[override]
+    def get_property(self, prop_name: Literal["hdl_path_slice"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_slice"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate_slice"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["hdl_path_gate_slice"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sw"], *, default: T)-> Union[rdltypes.AccessType, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["sw"])-> rdltypes.AccessType: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["mementries"], *, default: T)-> Union[int, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["mementries"])-> int: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["memwidth"], *, default: T)-> Union[int, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["memwidth"])-> int: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"], *, default: T)-> Union[str, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["name"])-> str: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"], *, default: T)-> Union[Optional[str], T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["desc"])-> Optional[str]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"], *, default: T)-> Union[bool, T]: ...
+
+    @overload
+    def get_property(self, prop_name: Literal["ispresent"])-> bool: ...
+
+    @overload
+    def get_property(self, prop_name: str, *, default: T)-> Union[Any, T]: ...
+
+    @overload
+    def get_property(self, prop_name: str)-> Any: ...
+
+    def get_property(self, prop_name: str, **kwargs: Any)-> Any:
+        return super().get_property(prop_name, **kwargs)
 
     @property
     def size(self) -> int:

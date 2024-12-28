@@ -124,7 +124,7 @@ class AddressingType(BuiltinEnum):
     #: Components are packed tightly together
     compact = ()
 
-    #: Components are packed so each component’s start address is a multiple of its size
+    #: Components are packed so each component's start address is a multiple of its size
     regalign = ()
 
     #: Same as regalign, except arrays are aligned to their entire size

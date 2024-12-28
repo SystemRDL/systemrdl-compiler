@@ -112,7 +112,7 @@ def normalize_struct(value: rdltypes.UserStruct, owner_node: Optional[node.Node]
     5.1.1.4 - c.6:
         Structs shall be rendered by:
         1. generating the normalized value of each member,
-        2. joining each member’s name with its normalized value, separated by
+        2. joining each members' name with its normalized value, separated by
             a single underscore (_),
         3. joining the member character sequences with single underscores,
         4. using the first eight characters of the md5 checksum of this

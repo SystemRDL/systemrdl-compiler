@@ -189,7 +189,7 @@ class ValidateListener(walker.RDLListener):
         # 11.2-e: Virtual register width is limited to the minimum power of two
         # bytes, which can contain the memory width ...
         if node.is_virtual:
-            assert node.parent is not None # Reg always has a parent
+            assert isinstance(node.parent, MemNode) # Virtual reg's parent is always mem
             memwidth = node.parent.get_property('memwidth')
             memwidth_bytes = roundup_to(memwidth, 8) // 8
             max_regwidth = roundup_pow2(memwidth_bytes) * 8
@@ -425,7 +425,7 @@ class ValidateListener(walker.RDLListener):
 
         # 11.2-e: ... and all the virtual fields shall fit within the memory width.
         if node.is_virtual:
-            assert node.parent.parent is not None # fields are always enclosed by something.reg
+            assert isinstance(node.parent.parent, MemNode) # virtual fields are always enclosed by mem.reg
             memwidth = node.parent.parent.get_property('memwidth')
             if node.high >= memwidth:
                 self.msg.error(

@@ -98,7 +98,7 @@ Calculating stride
 By default, stride is assumed to be the size of the element.
 
 Is it rounded to any alignment?
-"Array elements are aligned according to the individual element’s size"
+"Array elements are aligned according to the individual element's size"
 I'm interpreting that as no. just to the size of the contents
 Again, rule-checks will catch situations where a register's accesswidth
 gets violated.
