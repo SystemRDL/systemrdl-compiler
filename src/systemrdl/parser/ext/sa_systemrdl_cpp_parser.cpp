@@ -45,6 +45,7 @@ antlr4::tree::ParseTree* get_parse_tree(SystemRDLParser *parser, const char *ent
  */
 PyObject* do_parse(PyObject *self, PyObject *args) {
     PyObject *strdata = NULL;
+    PyObject *strdata_as_bytes = NULL;
     PyObject *result = NULL;
     PyObject *token_module = NULL;
 
@@ -70,7 +71,6 @@ PyObject* do_parse(PyObject *self, PyObject *args) {
         // PyUnicode_AsUTF8AndSize is not part of the stable ABI until python3.10
         // To maximize backwards compatibility, Working around by converting to
         // bytes, then to char instead
-        PyObject *strdata_as_bytes;
         strdata_as_bytes = PyCodec_Encode(strdata, "utf-8", NULL);
         if(!strdata_as_bytes) throw speedy_antlr::PythonException();
         PyBytes_AsStringAndSize(strdata_as_bytes, &cstrdata, &bufsize);
@@ -109,14 +109,15 @@ PyObject* do_parse(PyObject *self, PyObject *args) {
 
         // Clean up data
         Py_XDECREF(token_module);
-        Py_XDECREF(strdata_as_bytes);
         Py_XDECREF(strdata);
+        Py_XDECREF(strdata_as_bytes);
 
         return result;
 
     } catch(speedy_antlr::PythonException &e) {
         Py_XDECREF(token_module);
         Py_XDECREF(strdata);
+        Py_XDECREF(strdata_as_bytes);
         Py_XDECREF(result);
 
         // Python exception already has error indicator set
@@ -124,6 +125,7 @@ PyObject* do_parse(PyObject *self, PyObject *args) {
     } catch(...) {
         Py_XDECREF(token_module);
         Py_XDECREF(strdata);
+        Py_XDECREF(strdata_as_bytes);
         Py_XDECREF(result);
 
         // An internal C++ exception was thrown.

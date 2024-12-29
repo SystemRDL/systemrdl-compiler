@@ -167,14 +167,22 @@ PyObject* Translator::convert_ctx(
             }
             Py_DECREF(py_token);
         } else if (antlrcpp::is<antlr4::ParserRuleContext *>(ctx->children[i])) {
+            std::any result;
             child_ref = static_cast<void*>(ctx->children[i]);
             try {
-                py_child = std::any_cast<PyObject *>(visitor->visit(ctx->children[i]));
+                result = visitor->visit(ctx->children[i]);
             } catch(PythonException &e) {
                 Py_XDECREF(py_ctx);
                 Py_XDECREF(py_children);
                 throw;
             }
+
+            if(!result.has_value()) {
+                py_child = Py_None;
+            } else {
+                py_child = std::any_cast<PyObject *>(result);
+            }
+
             PyObject_SetAttrString(py_child, "parentCtx", py_ctx);
             py_label_candidate = py_child;
             Py_INCREF(py_label_candidate);
