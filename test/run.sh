@@ -2,7 +2,7 @@
 
 set -e
 
-this_dir="$( cd "$(dirname "$0")" ; pwd -P )"
+cd "$(dirname "$0")"
 
 exists () {
     type "$1" >/dev/null 2>/dev/null
@@ -15,15 +15,12 @@ if exists ccache; then
 fi
 
 # Initialize venv
-venv_bin=$this_dir/.venv/bin
-python3 -m venv $this_dir/.venv
-source $this_dir/.venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 
 # Install
 export SYSTEMRDL_REQUIRE_BINARY_BUILD=1
-cd $this_dir/../
-python -m pip install .
-cd $this_dir
+python -m pip install ..
 python -m pip install -r requirements.txt pytest-parallel
 
 # Run unit tests while collecting coverage
@@ -32,15 +29,15 @@ export SYSTEMRDL_DISABLE_ACCELERATOR=1
 pytest
 
 # Generate coverage report
-coverage html -i -d $this_dir/htmlcov
+coverage html -i -d htmlcov
 
 # Also run examples in order to make sure output is up-to-date
-$this_dir/../examples/print_hierarchy.py $this_dir/../examples/atxmega_spi.rdl > $this_dir/../docs/examples/print_hierarchy_spi.stdout
-$this_dir/../examples/export_json.py $this_dir/../examples/tiny.rdl
-mv $this_dir/out.json $this_dir/../examples/tiny.json
+../examples/print_hierarchy.py ../examples/atxmega_spi.rdl > ../docs/examples/print_hierarchy_spi.stdout
+../examples/export_json.py ../examples/tiny.rdl
+mv out.json ../examples/tiny.json
 
 # Run lint
-pylint --rcfile $this_dir/pylint.rc -j 0 systemrdl
+pylint --rcfile pylint.rc -j 0 systemrdl
 
 # Run static type checking
-mypy $this_dir/../src/systemrdl
+mypy ../src/systemrdl
