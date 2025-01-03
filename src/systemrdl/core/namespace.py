@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Dict, List, Union, Type, Tuple, Optional
 from .parameter import Parameter
 
 from .. import component as comp
+from ..messages import RDLCompileError
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
@@ -12,11 +13,11 @@ if TYPE_CHECKING:
 
 TypeNSRef = Union[comp.Component, Type['rdltypes.UserEnum'], Type['rdltypes.UserStruct']]
 TypeNSEntry = TypeNSRef
-TypeNSScope = Dict[str, TypeNSEntry]
+TypeNSScope = Dict[str, Tuple[TypeNSEntry, Optional['SourceRefBase']]]
 
 ElementNSRef = Union[comp.Component, Parameter]
 ElementNSEntry = Tuple[ElementNSRef, Optional[comp.Component]]
-ElementNSScope = Dict[str, ElementNSEntry]
+ElementNSScope = Dict[str, Tuple[ElementNSEntry, Optional['SourceRefBase']]]
 
 DefaultNSRef = Union['ASTNode', bool, 'rdltypes.InterruptType']
 DefaultNSEntry = Tuple['SourceRefBase', DefaultNSRef]
@@ -37,34 +38,53 @@ class NamespaceRegistry():
 
     def register_type(self, name: str, ref: TypeNSRef, src_ref: Optional['SourceRefBase']) -> None:
         if name in self.type_ns_stack[-1]:
-            self.msg.fatal(
-                "Multiple declarations of type '%s'" % name,
+            other_src_ref = self.type_ns_stack[-1][name][1]
+            self.msg.error(
+                f"Multiple declarations of type '{name}'",
                 src_ref
             )
-        self.type_ns_stack[-1][name] = ref
+            self.msg.warning(
+                f"Previous declaration of '{name}' is here.",
+                other_src_ref
+            )
+            raise RDLCompileError("Namespace error")
+
+        self.type_ns_stack[-1][name] = (ref, src_ref)
 
     def register_element(self, name: str, ref: ElementNSRef, parent_comp_def: Optional[comp.Component], src_ref: Optional['SourceRefBase']) -> None:
         if name in self.element_ns_stack[-1]:
-            self.msg.fatal(
+            other_src_ref = self.element_ns_stack[-1][name][1]
+            self.msg.error(
                 "Multiple declarations of instance '%s'" % name,
                 src_ref
             )
-        self.element_ns_stack[-1][name] = (ref, parent_comp_def)
+            self.msg.warning(
+                f"Previous declaration of '{name}' is here.",
+                other_src_ref
+            )
+            raise RDLCompileError("Namespace error")
+        self.element_ns_stack[-1][name] = ((ref, parent_comp_def), src_ref)
 
     def register_default_property(self, name: str, ref: DefaultNSRef, src_ref: 'SourceRefBase', overwrite_ok: bool=False) -> None:
         if not overwrite_ok:
             if name in self.default_property_ns_stack[-1]:
-                self.msg.fatal(
+                other_src_ref = self.default_property_ns_stack[-1][name][0]
+                self.msg.error(
                     "Default property '%s' was already assigned in this scope" % name,
                     src_ref
                 )
+                self.msg.warning(
+                    f"Previous declaration of '{name}' is here.",
+                    other_src_ref
+                )
+                raise RDLCompileError("Namespace error")
 
         self.default_property_ns_stack[-1][name] = (src_ref, ref)
 
     def lookup_type(self, name: str) -> Optional[TypeNSEntry]:
         for scope in reversed(self.type_ns_stack):
             if name in scope:
-                return scope[name]
+                return scope[name][0]
         return None
 
     def lookup_element(self, name: str) -> Union[ElementNSEntry, Tuple[None, None]]:
@@ -80,7 +100,7 @@ class NamespaceRegistry():
         """
         for i, scope in enumerate(reversed(self.element_ns_stack)):
             if name in scope:
-                el, parent_def = scope[name]
+                el, parent_def = scope[name][0]
                 if i == 0:
                     # Return anything from local namespace
                     return (el, parent_def)
