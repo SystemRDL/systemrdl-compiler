@@ -240,32 +240,6 @@ class Node:
         return children
 
 
-
-    def fields(self, skip_not_present: bool=True) -> List['FieldNode']:
-        """
-        Returns a list of all immediate fields of this component.
-
-        Parameters
-        ----------
-        skip_not_present : bool
-            If True, skips children whose 'ispresent' property is set to False
-
-        Returns
-        -------
-        :class:`~FieldNode`
-            All fields in this component
-
-
-        .. versionchanged:: 1.29
-            Returns list instead of generator
-        """
-        children = []
-        for child in self.children(skip_not_present=skip_not_present):
-            if isinstance(child, FieldNode):
-                children.append(child)
-        return children
-
-
     def registers(self, unroll: bool=False, skip_not_present: bool=True) -> List['RegNode']:
         """
         Returns a list of all immediate registers of this component.
@@ -1971,6 +1945,32 @@ class RegNode(AddressableNode):
 
     def get_property(self, prop_name: str, **kwargs: Any)-> Any:
         return super().get_property(prop_name, **kwargs)
+
+
+    def fields(self, skip_not_present: bool=True) -> List['FieldNode']:
+        """
+        Returns a list of all immediate fields of this component.
+
+        Parameters
+        ----------
+        skip_not_present : bool
+            If True, skips children whose 'ispresent' property is set to False
+
+        Returns
+        -------
+        :class:`~FieldNode`
+            All fields in this component
+
+
+        .. versionchanged:: 1.29
+            Returns list instead of generator
+        """
+        children = []
+        for child in self.children(skip_not_present=skip_not_present):
+            if isinstance(child, FieldNode):
+                children.append(child)
+        return children
+
 
     @property
     def size(self) -> int:

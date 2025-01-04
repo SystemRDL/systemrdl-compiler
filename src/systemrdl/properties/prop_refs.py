@@ -318,6 +318,8 @@ class PropRef_intr(rdltypes.PropertyReference):
     any field enable and/or field mask logic has been applied.
     """
     allowed_inst_type = comp.Reg
+    node: m_node.RegNode
+
     def _validate(self) -> None:
         # validate reg contains at least one field that is intr
         for field in self.node.fields():
@@ -339,6 +341,8 @@ class PropRef_halt(rdltypes.PropertyReference):
     any field haltenable and/or field haltmask logic has been applied.
     """
     allowed_inst_type = comp.Reg
+    node: m_node.RegNode
+
     def _validate(self) -> None:
         # 10.8.1-c: shall only be present if haltmask or haltenable is
         # specified on at least one field in the register.

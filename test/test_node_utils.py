@@ -416,10 +416,7 @@ class TestNodeUtils(RDLSourceTestCase):
                 ]
             )
 
-        with self.subTest("registers"):
-            paths = [n.get_path() for n in x.fields()]
-            self.assertEqual(paths, [])
-
+        with self.subTest("fields"):
             paths = [n.get_path() for n in a.fields()]
             self.assertEqual(
                 paths,
