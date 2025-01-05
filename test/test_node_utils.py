@@ -1,5 +1,6 @@
 from unittest_utils import RDLSourceTestCase
 from systemrdl.rdltypes import PrecedenceType
+from systemrdl.node import RegNode, FieldNode
 
 class TestNodeUtils(RDLSourceTestCase):
 
@@ -505,3 +506,48 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertEqual(f7.get_property('precedence'), PrecedenceType.hw)
         self.assertEqual(f8.get_property('precedence'), PrecedenceType.sw)
         self.assertEqual(f9.get_property('precedence'), PrecedenceType.sw)
+
+    def test_field_gaps(self):
+        root = self.compile(
+            ["rdl_src/field_gaps.rdl"],
+            "top"
+        )
+        top = root.top
+
+        a: RegNode = top.get_child_by_name("a")
+        b: RegNode = top.get_child_by_name("b")
+        c: RegNode = top.get_child_by_name("c")
+        d: RegNode = top.get_child_by_name("d")
+
+        def tup(field: FieldNode):
+            return (field.high, field.low)
+
+        f = a.fields(include_gaps=True)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(tup(f[0]), (31, 0))
+
+        f = b.fields(include_gaps=True)
+        self.assertEqual(len(f), 3)
+        self.assertEqual(tup(f[0]), (7, 0))
+        self.assertEqual(tup(f[1]), (15, 8))
+        self.assertEqual(tup(f[2]), (31, 16))
+
+        f = c.fields(include_gaps=True)
+        self.assertEqual(len(f), 7)
+        self.assertEqual(    f[0],  (0, 0))
+        self.assertEqual(tup(f[1]), (7, 1))
+        self.assertEqual(    f[2],  (8, 8))
+        self.assertEqual(tup(f[3]), (15, 9))
+        self.assertEqual(    f[4],  (16, 16))
+        self.assertEqual(tup(f[5]), (30, 17))
+        self.assertEqual(    f[6],  (31, 31))
+
+        f = d.fields(include_gaps=True)
+        self.assertEqual(len(f), 7)
+        self.assertEqual(    f[0],  (1, 0))
+        self.assertEqual(tup(f[1]), (7, 2))
+        self.assertEqual(    f[2],  (9, 8))
+        self.assertEqual(tup(f[3]), (15, 10))
+        self.assertEqual(    f[4],  (17, 16))
+        self.assertEqual(tup(f[5]), (29, 18))
+        self.assertEqual(    f[6],  (31, 30))

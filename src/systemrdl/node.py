@@ -2,7 +2,8 @@ import re
 import itertools
 from copy import deepcopy, copy
 from collections import deque
-from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Dict, Union, overload, TypeVar, Type
+from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Tuple, Dict
+from typing import Sequence, Union, overload, TypeVar, Type
 
 from typing_extensions import Literal
 
@@ -1946,15 +1947,29 @@ class RegNode(AddressableNode):
     def get_property(self, prop_name: str, **kwargs: Any)-> Any:
         return super().get_property(prop_name, **kwargs)
 
+    @overload
+    def fields(self, skip_not_present: bool = True, include_gaps: Literal[False] = False) -> Sequence['FieldNode']: ...
 
-    def fields(self, skip_not_present: bool=True) -> List['FieldNode']:
+    @overload
+    def fields(self, skip_not_present: bool, include_gaps: Literal[True]) -> Sequence[Union['FieldNode', Tuple[int, int]]]: ...
+
+    @overload
+    def fields(self, skip_not_present: bool = True, *, include_gaps: Literal[True]) -> Sequence[Union['FieldNode', Tuple[int, int]]]: ...
+
+    @overload
+    def fields(self, skip_not_present: bool = True, include_gaps: bool = False) -> Sequence[Union['FieldNode', Tuple[int, int]]]: ...
+
+    def fields(self, skip_not_present: bool = True, include_gaps: bool = False) -> Sequence[Union['FieldNode', Tuple[int, int]]]:
         """
-        Returns a list of all immediate fields of this component.
+        Returns a list of all fields of this register.
 
         Parameters
         ----------
-        skip_not_present : bool
+        skip_not_present: bool
             If True, skips children whose 'ispresent' property is set to False
+        include_gaps: bool
+            If True, returned list also includes information about gaps between
+            fields. Gaps are represented as tuples in the form of: ``(high, low)``
 
         Returns
         -------
@@ -1963,13 +1978,33 @@ class RegNode(AddressableNode):
 
 
         .. versionchanged:: 1.29
-            Returns list instead of generator
+            Returns list instead of generator.
+
+            Added ``include_gaps`` argument
         """
-        children = []
-        for child in self.children(skip_not_present=skip_not_present):
-            if isinstance(child, FieldNode):
-                children.append(child)
-        return children
+        if include_gaps:
+            fields_with_gaps: List[Union['FieldNode', Tuple[int, int]]]
+            fields_with_gaps = []
+            current_bit = 0
+            for child in self.children(skip_not_present=skip_not_present):
+                if not isinstance(child, FieldNode):
+                    continue
+                if current_bit != child.low:
+                    # Add gap before this field
+                    fields_with_gaps.append((child.low - 1, current_bit))
+                fields_with_gaps.append(child)
+                current_bit = child.high + 1
+            regwidth = self.get_property('regwidth')
+            if current_bit != regwidth:
+                # Add gap at end of register
+                fields_with_gaps.append((regwidth - 1, current_bit))
+            return fields_with_gaps
+        else:
+            fields = []
+            for child in self.children(skip_not_present=skip_not_present):
+                if isinstance(child, FieldNode):
+                    fields.append(child)
+            return fields
 
 
     @property

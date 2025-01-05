@@ -1,0 +1,23 @@
+addrmap top {
+    reg {
+        field {} a[32];
+    } a;
+
+    reg {
+        field {} a[7:0];
+        field {} b[15:8];
+        field {} c[31:16];
+    } b;
+
+    reg {
+        field {} a[7:1];
+        field {} b[15:9];
+        field {} c[30:17];
+    } c;
+
+    reg {
+        field {} a[7:2];
+        field {} b[15:10];
+        field {} c[29:18];
+    } d;
+};
