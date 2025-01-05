@@ -151,7 +151,7 @@ class Node:
 
         Returns
         -------
-        :class:`~Node`
+        List of :class:`Node`
             All immediate children
 
 

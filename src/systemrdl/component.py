@@ -230,6 +230,7 @@ class AddressableComponent(Component):
     """
     Base class for all components that can have an address
     """
+    original_def: Optional['AddressableComponent']
 
     def __init__(self) -> None:
         super().__init__()
@@ -285,6 +286,7 @@ class VectorComponent(Component):
     """
     Base class for all components that are vector-like
     """
+    original_def: Optional['VectorComponent']
 
     def __init__(self) -> None:
         super().__init__()
@@ -330,7 +332,7 @@ class Root(Component):
         self.comp_defs: Dict[str, Component] = OrderedDict()
 
 class Signal(VectorComponent):
-    pass
+    original_def: Optional['Signal']
 
 class Signal_PreStructuralElab(Signal):
     """
@@ -344,7 +346,7 @@ class Signal_PreStructuralElab(Signal):
     low: Optional[int] # type: ignore
 
 class Field(VectorComponent):
-    pass
+    original_def: Optional['Field']
 
 class Field_PreStructuralElab(Field):
     """
@@ -358,6 +360,8 @@ class Field_PreStructuralElab(Field):
     low: Optional[int] # type: ignore
 
 class Reg(AddressableComponent):
+    original_def: Optional['Reg']
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -382,10 +386,10 @@ class Reg(AddressableComponent):
         self.alias_primary_inst: Optional[Reg] = None
 
 class Regfile(AddressableComponent):
-    pass
+    original_def: Optional['Regfile']
 
 class Addrmap(AddressableComponent):
-    pass
+    original_def: Optional['Addrmap']
 
 class Mem(AddressableComponent):
-    pass
+    original_def: Optional['Mem']
