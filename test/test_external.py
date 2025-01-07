@@ -24,14 +24,18 @@ class TestExternal(RDLSourceTestCase):
             "reg12" : False,
         }
 
-        for name,external in extern_map.items():
+        for name, external in extern_map.items():
             with self.subTest(name):
                 reg = root.find_by_path("extern_test.%s" % name)
-                self.assertEqual(reg.external, external)
+                self.assertIs(reg.external, external)
 
         with self.subTest("addrmap"):
             addrmap = root.find_by_path("extern_test")
-            self.assertEqual(addrmap.external, True)
+            self.assertIs(addrmap.external, True)
+
+        with self.subTest("signal"):
+            signal = root.find_by_path("test_signal")
+            self.assertIs(signal.external, False)
 
 
     def test_regfile(self):
@@ -55,10 +59,10 @@ class TestExternal(RDLSourceTestCase):
             "rf1c.regc"  : False,
         }
 
-        for name,external in extern_map.items():
+        for name, external in extern_map.items():
             with self.subTest(name):
                 reg = root.find_by_path("extern_test.%s" % name)
-                self.assertEqual(reg.inst.external, external)
+                self.assertIs(reg.inst.external, external)
 
     def test_nested_regfile(self):
         root = self.compile(
@@ -81,15 +85,15 @@ class TestExternal(RDLSourceTestCase):
             "rf1c.regc"  : False,
         }
 
-        for name,external in rf1_extern_map.items():
+        for name, external in rf1_extern_map.items():
             with self.subTest("rf2a.%s" % name):
                 reg = root.find_by_path("extern_test.rf2a.%s" % name)
-                self.assertEqual(reg.inst.external, True)
+                self.assertIs(reg.inst.external, True)
 
             with self.subTest("rf2b.%s" % name):
                 reg = root.find_by_path("extern_test.rf2b.%s" % name)
-                self.assertEqual(reg.inst.external, False)
+                self.assertIs(reg.inst.external, False)
 
             with self.subTest("rf2c.%s" % name):
                 reg = root.find_by_path("extern_test.rf2c.%s" % name)
-                self.assertEqual(reg.inst.external, external)
+                self.assertIs(reg.inst.external, external)

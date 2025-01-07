@@ -564,6 +564,13 @@ class LateElabListener(walker.RDLListener):
         assert node.parent is not None
         node.inst.external = node.parent.inst.external
 
+    def enter_Signal(self, node: SignalNode) -> None:
+        if isinstance(node.parent, RootNode):
+            # In root scope. External is meaningless, so assign it to False
+            node.inst.external = False
+        else:
+            assert node.parent is not None
+            node.inst.external = node.parent.inst.external
 
     def enter_Regfile(self, node: RegfileNode) -> None:
         if self.coerce_external_to is not None:

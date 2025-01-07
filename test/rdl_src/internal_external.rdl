@@ -1,3 +1,4 @@
+signal {} test_signal;
 
 addrmap extern_test {
     reg rega_t {field {} x;} external reg1, reg2;
