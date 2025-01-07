@@ -12,14 +12,16 @@ on:
       - published
 
 jobs:
+  # Build test wheel using oldest supported version
   build_test_wheel:
-    runs-on: ubuntu-latest
+    # 3.8 requires older os
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.7"
 
       - name: build
         env:
