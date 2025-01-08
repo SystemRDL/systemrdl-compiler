@@ -2181,7 +2181,7 @@ class RegNode(AddressableNode):
 
 #===============================================================================
 class RegfileNode(AddressableNode):
-    parent: 'AddrmapNode'
+    parent: Union['AddrmapNode', 'RegfileNode']
     inst: comp.Regfile
 
     @overload # type: ignore[override]

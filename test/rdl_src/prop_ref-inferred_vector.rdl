@@ -1,0 +1,13 @@
+addrmap inferred_vector {
+    reg {
+        default sw=rw;
+        default hw=rw;
+        field {
+            sw=rw; hw=w; we;
+        } a;
+        field {} b;
+        field {} c;
+        b->next = a->we;
+        c->next = a->wel;
+    }y;
+};

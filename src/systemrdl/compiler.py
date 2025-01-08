@@ -369,6 +369,7 @@ class RDLCompiler:
         root_inst.is_instance = True
         root_inst.original_def = self.root
         root_inst.inst_name = "$root"
+        root_inst.external = False # meaningless, but must not be None
 
         # Create a top-level instance
         top_inst = top_def._copy_for_inst({})

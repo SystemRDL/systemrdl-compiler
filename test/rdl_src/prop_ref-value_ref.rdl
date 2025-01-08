@@ -1,0 +1,16 @@
+
+addrmap prop_value_ref {
+    reg {
+        default sw=rw;
+        default hw=rw;
+        field {} a = 0;
+        field {} b;
+        field {} c;
+        field {} d;
+        field {} e;
+        b->next = a->reset;
+        c->next = a->reset;
+        d->next = a->anded;
+        e->next = b->anded;
+    }y;
+};
