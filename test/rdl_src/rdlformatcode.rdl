@@ -36,6 +36,11 @@ addrmap rdlformatcode {
     r20->desc = "[index]";
     r21->desc = "[index_parent]";
 
+    reg_t r22,r23,r24;
+    r22->desc = "string with a \"quote\" in it";
+    r23->desc = "tag to be escaped <h1> h1";
+    r24->desc = "signal &lt";
+
 
     r1->name = "[b]asdf[/b]";
     r2->name = "[i]asdf[/i]";
@@ -52,4 +57,7 @@ addrmap rdlformatcode {
     r16->name = "";
     r17->name = "
     ";
+    r22->name = "string with a \"quote\" in it";
+    r23->name = "tag to be escaped <h1> h1";
+    r24->name = "signal &lt";
 };
