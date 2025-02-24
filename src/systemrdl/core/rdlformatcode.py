@@ -1,5 +1,6 @@
 import re
 from typing import TYPE_CHECKING, Optional
+import html
 
 from . import helpers
 from ..node import Node, AddressableNode
@@ -13,9 +14,15 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
     """
 
     # --------------------------------------------------------------------------
+    # Escape any characters which may cause problems when HTML is interpreted
+    # --------------------------------------------------------------------------
+    text = html.escape(text, quote=True)
+
+    # --------------------------------------------------------------------------
     # Remove any common indentation
     # --------------------------------------------------------------------------
     text = helpers.dedent_text(text)
+
 
     # --------------------------------------------------------------------------
     # Parse and replace RDLFormatCode Tags
@@ -160,9 +167,9 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
                 list_end_tag.pop()
 
         elif m.lastgroup == 'quote':
-            text_segs.append('"')
+            text_segs.append('&quot;')
         elif m.lastgroup == 'xquote':
-            text_segs.append('"')
+            text_segs.append('&quot;')
         elif m.lastgroup == 'br':
             text_segs.append("<br>")
         elif m.lastgroup == 'lb':

@@ -1,5 +1,6 @@
 from unittest_utils import RDLSourceTestCase
 
+
 class TestRDLFormatCode(RDLSourceTestCase):
 
     def test_desc_tags(self):
@@ -11,7 +12,7 @@ class TestRDLFormatCode(RDLSourceTestCase):
         self.assertIs(root.top.get_html_desc(), None)
 
         html = []
-        for i in range(0,22):
+        for i in range(0,25):
             reg = root.find_by_path("rdlformatcode.r%d" % i)
             html.append(reg.get_html_desc())
 
@@ -29,7 +30,7 @@ class TestRDLFormatCode(RDLSourceTestCase):
         self.assertEqual(html[8], p('<a href="mailto:asdf@example.com">asdf@example.com</a>'))
         self.assertEqual(html[9], p('<img src="image.png">'))
         self.assertEqual(html[10], p('<code>asdf</code>'))
-        self.assertEqual(html[11], p('"asdf"'))
+        self.assertEqual(html[11], p('&quot;asdf&quot;'))
         self.assertEqual(html[12], p('<br>[]&nbsp;'))
         self.assertEqual(html[13], p("r13"))
         self.assertEqual(html[14], p("r14"))
@@ -49,6 +50,10 @@ class TestRDLFormatCode(RDLSourceTestCase):
         self.assertEqual(html[20], p("[index]"))
         self.assertEqual(html[21], p("[index_parent]"))
 
+        self.assertEqual(html[22], p("string with a &quot;quote&quot; in it"))
+        self.assertEqual(html[23], p("tag to be escaped &lt;h1&gt; h1"))
+        self.assertEqual(html[24], p("signal &amp;lt"))
+
 
     def test_name_tags(self):
         root = self.compile(
@@ -59,7 +64,7 @@ class TestRDLFormatCode(RDLSourceTestCase):
         self.assertIs(root.top.get_html_name(), None)
 
         html = []
-        for i in range(0,20):
+        for i in range(0,25):
             reg = root.find_by_path("rdlformatcode.r%d" % i)
             html.append(reg.get_html_name())
 
@@ -72,9 +77,13 @@ class TestRDLFormatCode(RDLSourceTestCase):
         self.assertEqual(html[7], '<a href="github.com">asdf</a>')
         self.assertEqual(html[8], '<a href="mailto:asdf@example.com">asdf@example.com</a>')
         self.assertEqual(html[10], '<code>asdf</code>')
-        self.assertEqual(html[11], '"asdf"')
+        self.assertEqual(html[11], '&quot;asdf&quot;')
         self.assertEqual(html[12], '[]&nbsp;')
         self.assertEqual(html[14], "r14")
 
         self.assertEqual(html[16], "")
         self.assertEqual(html[17], "")
+
+        self.assertEqual(html[22], "string with a &quot;quote&quot; in it")
+        self.assertEqual(html[23], "tag to be escaped &lt;h1&gt; h1")
+        self.assertEqual(html[24], "signal &amp;lt")
