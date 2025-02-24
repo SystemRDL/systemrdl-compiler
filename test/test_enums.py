@@ -30,7 +30,7 @@ class TestEnums(RDLSourceTestCase):
         self.assertIsNone(f_default_enum['four'].get_html_name())
         self.assertIsNone(f_default_enum['four'].get_html_desc())
 
-        self.assertEqual(f_default_enum['five'].get_html_name(), "five's <b>name</b>")
+        self.assertEqual(f_default_enum['five'].get_html_name(), "five&#x27;s <b>name</b>")
         self.assertEqual(f_default_enum['five'].get_html_desc(), "<p>this is five</p>")
 
         f0 = root.find_by_path("enum_test1.reg2.f0")
