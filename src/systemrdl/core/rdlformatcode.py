@@ -8,7 +8,8 @@ from ..node import Node, AddressableNode
 if TYPE_CHECKING:
     from markdown import Markdown
 
-def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']=None, is_desc: bool=True) -> str:
+def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']=None,
+                  is_desc: bool=True, escape_html: bool=False) -> str:
     """
     Convert an RDLFormatCode string to HTML
     """
@@ -16,7 +17,8 @@ def rdlfc_to_html(text: str, node: Optional[Node]=None, md: Optional['Markdown']
     # --------------------------------------------------------------------------
     # Escape any characters which may cause problems when HTML is interpreted
     # --------------------------------------------------------------------------
-    text = html.escape(text, quote=True)
+    if escape_html:
+        text = html.escape(text, quote=True)
 
     # --------------------------------------------------------------------------
     # Remove any common indentation
