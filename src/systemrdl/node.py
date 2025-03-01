@@ -648,7 +648,7 @@ class Node:
         return hier_separator.join(self_segs_fmt)
 
 
-    def get_html_desc(self, markdown_inst: Optional['Markdown']=None) -> Optional[str]:
+    def get_html_desc(self, markdown_inst: Optional['Markdown']=None, escape_html: bool=False) -> Optional[str]:
         """
         Translates the node's 'desc' property into HTML.
 
@@ -665,6 +665,11 @@ class Node:
             Override the class instance of the Markdown processor.
             See the `Markdown module <https://python-markdown.github.io/reference/#Markdown>`_
             for more details.
+        escape_html:
+            The desc property from the SystemRDL is passed through the python `html.escape`
+            function before processing. This can help avoid cases where plain text inadvertently
+            contains syntax that will result in undesirable behaviour when rendered. This option
+            should not be turned on if html tags are intentionally included in the `desc` property
 
         Returns
         -------
@@ -679,14 +684,22 @@ class Node:
         desc_str = self.get_property('desc')
         if desc_str is None:
             return None
-        return rdlformatcode.rdlfc_to_html(desc_str, self, md=markdown_inst)
+        return rdlformatcode.rdlfc_to_html(desc_str, self, md=markdown_inst, escape_html=escape_html)
 
 
-    def get_html_name(self) -> Optional[str]:
+    def get_html_name(self, escape_html: bool=False) -> Optional[str]:
         """
         Translates the node's 'name' property into HTML.
 
         Any RDLFormatCode tags used are converted to HTML.
+
+        Parameters
+        ----------
+        escape_html:
+            The desc property from the SystemRDL is passed through the python `html.escape`
+            function before processing. This can help avoid cases where plain text inadvertently
+            contains syntax that will result in undesirable behaviour when rendered. This option
+            should not be turned on if html tags are intentionally included in the `name` property
 
         Returns
         -------
@@ -700,7 +713,7 @@ class Node:
         name_str = self.get_property('name', default=None)
         if name_str is None:
             return None
-        return rdlformatcode.rdlfc_to_html(name_str, self, is_desc=False)
+        return rdlformatcode.rdlfc_to_html(name_str, self, is_desc=False, escape_html=escape_html)
 
 
     @property
