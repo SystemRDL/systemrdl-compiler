@@ -142,8 +142,6 @@ class PureUserProperty(UserProperty):
     def constr_componentwidth(self) -> bool:
         return self._constr_componentwidth
 
-class LegacyExternalUserProperty(PureUserProperty):
-    pass
 
 class ExternalUserProperty(UserProperty):
     """

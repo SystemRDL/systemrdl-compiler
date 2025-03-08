@@ -1,15 +1,14 @@
-from typing import Set, Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING
-import warnings as py_warnings
+from typing import Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING
 
 from antlr4 import InputStream
 
 from . import messages
-from . import warnings # pylint: disable=reimported
+from . import warnings
 from .parser import sa_systemrdl
 from .core.ComponentVisitor import RootVisitor
 from .core.ExprVisitor import ExprVisitor
 from .properties.rulebook import PropertyRuleBook
-from .properties.user_defined import ExternalUserProperty, LegacyExternalUserProperty
+from .properties.user_defined import ExternalUserProperty
 from .core.namespace import NamespaceRegistry
 from .core.elaborate import ElabExpressionsListener, PrePlacementValidateListener, LateElabListener
 from .core.elaborate import StructuralPlacementListener, LateElabRevisitor
@@ -113,41 +112,6 @@ class RDLCompiler:
         self.visitor: RootVisitor = RootVisitor(self)
         self.root = self.visitor.component
 
-
-    def define_udp(
-            self, name: str, valid_type: Any,
-            valid_components: Optional[Set[Type[comp.Component]]]=None,
-            default: Any=None
-        ) -> None:
-
-        py_warnings.warn(
-            "Use of RDLCompiler.define_udp() is deprecated. Use RDLCompiler.register_udp() instead.",
-            DeprecationWarning, stacklevel=2
-        )
-
-        if name in self.env.property_rules.rdl_properties:
-            raise ValueError(f"UDP definition's name '{name}' conflicts with existing built-in RDL property")
-        if name in self.env.property_rules.user_properties:
-            raise ValueError(f"UDP '{name}' has already been defined")
-        if valid_components is None:
-            valid_components = {
-                comp.Field,
-                comp.Reg,
-                comp.Regfile,
-                comp.Addrmap,
-                comp.Mem,
-                comp.Signal,
-            }
-
-        udp = LegacyExternalUserProperty(
-            self.env,
-            name,
-            valid_components,
-            valid_type,
-            default_assignment=default,
-            constr_componentwidth=False
-        )
-        self.env.property_rules.user_properties[udp.name] = udp
 
     def register_udp(self, definition_cls: 'Type[UDPDefinition]', soft: bool=True) -> None:
         """
