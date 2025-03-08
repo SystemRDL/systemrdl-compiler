@@ -53,7 +53,7 @@ class ValidateListener(walker.RDLListener):
         if node.get_property('cpuif_reset'):
             # 8.2.1-f: cpuif_reset property can only be set true for one
             # instantiated signal within a lexical scope.
-            # (spec authors repeately misuse the word 'lexical', they mean hierarchical)
+            # (spec authors repeatedly misuse the word 'lexical', they mean hierarchical)
             if self.has_cpuif_reset_stack[-1]:
                 self.msg.error(
                     "Only one 'cpuif_reset' signal is allowed per hierarchy. Signal '%s' is redundant."
@@ -65,7 +65,7 @@ class ValidateListener(walker.RDLListener):
         if node.get_property('field_reset'):
             # 8.2.1-g: field_reset property can only be set true for one
             # instantiated signal within a lexical scope.
-            # (spec authors repeately misuse the word 'lexical', they mean hierarchical)
+            # (spec authors repeatedly misuse the word 'lexical', they mean hierarchical)
             if self.has_field_reset_stack[-1]:
                 self.msg.error(
                     "Only one 'field_reset' signal is allowed per hierarchy. Signal '%s' is redundant."
@@ -346,7 +346,7 @@ class ValidateListener(walker.RDLListener):
         elif this_f_sw == rdltypes.AccessType.na:
             self.msg.error(
                 "Field '%s' sw access property is 'na' ... a field defined in a SOFTWARE "
-                "register map ... is not accessable by software ... whats the point? "
+                "register map ... is not accessible by software ... whats the point? "
                 "What does it mean? What does anything mean? Am I just a machine "
                 "in a Python interpreter? Or can I dream dreams? So many questions..."
                 % (node.inst_name),

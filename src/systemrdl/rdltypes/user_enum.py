@@ -277,7 +277,7 @@ def _reduce_user_enum(c: Type[UserEnum]) -> Any:
         # Reached base class. Return string so pickle can look up the actual object
         return 'UserEnum'
 
-    assert len(c.__bases__) == 1 # Only supporting single-inheritence
+    assert len(c.__bases__) == 1 # Only supporting single-inheritance
     base_cls: Type[UserEnum] = c.__bases__[0]
 
     # decompose members back into factory containers

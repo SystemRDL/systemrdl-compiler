@@ -80,7 +80,7 @@ class UDPDefinition:
 
         This function is called after design elaboration on every assignment
         of the user defined property. This provides a mechanism to further
-        validate the value assigend to your user-defined property.
+        validate the value assigned to your user-defined property.
 
         If the user-assigned value fails your validation test, be sure to flag
         it as an error as follows:
@@ -99,7 +99,7 @@ class UDPDefinition:
         For convenience to developers, this callback allows you to specify an implied
         default value if the UDP was never explicitly assigned.
         This only affects the behavior of :meth:`Node.get_property()` and does not
-        change the semantics of how SystemRDL is interpreted during compilaton.
+        change the semantics of how SystemRDL is interpreted during compilation.
         """
 
         # If a user-defined property is not explicitly assigned, then it

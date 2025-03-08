@@ -53,11 +53,11 @@ class AccessType(BuiltinEnum):
         if len(pair) == 1:
             return self
 
-        # rw superscedes all others
+        # rw supersedes all others
         if AccessType.rw in pair:
             return AccessType.rw
 
-        # na is supersceded by all others
+        # na is superseded by all others
         if self == AccessType.na:
             return other
         if other == AccessType.na:

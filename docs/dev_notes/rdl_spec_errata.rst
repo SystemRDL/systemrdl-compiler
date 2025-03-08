@@ -847,5 +847,5 @@ investigation of this topic has concluded that this should not be allowed.
 
 * Since SystemRDL has been co-designed with IP-XACT, cross-compatibility with
   IP-XACT semantics should be preserved. `IP-XACT disallows this <https://github.com/SystemRDL/systemrdl-compiler/issues/160#issuecomment-1504697766>`_.
-* Richard Weber (SystemRDL standards comittee member) `confirms array interleaving
+* Richard Weber (SystemRDL standards committee member) `confirms array interleaving
   would cause compatibility issues and should not be allowed <https://forums.accellera.org/topic/7513-interleaved-registers>`_.

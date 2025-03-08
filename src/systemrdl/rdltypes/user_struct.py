@@ -194,7 +194,7 @@ def _reduce_user_struct(c: Type[UserStruct]) -> Any:
         # Reached base class. Return string so pickle can look up the actual object
         return 'UserStruct'
 
-    assert len(c.__bases__) == 1 # Only supporting single-inheritence
+    assert len(c.__bases__) == 1 # Only supporting single-inheritance
     base_cls: Type[UserStruct] = c.__bases__[0]
 
     # remove members that exist in base class
