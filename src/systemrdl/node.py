@@ -1691,6 +1691,9 @@ class FieldNode(VectorNode):
             Alias fields never implement storage.
             A primary field may inherit a storage element depending on the access
             modes of aliases that augment access to it.
+
+        .. versionchanged:: 1.30
+            All variants of software-writable access now imply a storage element.
         """
         if self.is_alias:
             # A field that is an alias never implements storage.
@@ -1709,14 +1712,12 @@ class FieldNode(VectorNode):
             onread = onread or alias_field.get_property('onread')
 
         # 9.4.1, Table 12
-        if sw in (rdltypes.AccessType.rw, rdltypes.AccessType.rw1):
-            # Software can read and write, implying a storage element
+        if sw in (rdltypes.AccessType.w, rdltypes.AccessType.rw, rdltypes.AccessType.w1, rdltypes.AccessType.rw1):
+            # Software can write, implying a storage element
+            # Intentionally including sw=w;hw=na case as this is useful for internal references.
             return True
         if hw == rdltypes.AccessType.rw:
             # Hardware can read and write, implying a storage element
-            return True
-        if (sw in (rdltypes.AccessType.w, rdltypes.AccessType.w1)) and (hw == rdltypes.AccessType.r):
-            # Write-only register visible to hardware is stored
             return True
 
 
