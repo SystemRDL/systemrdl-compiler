@@ -1694,6 +1694,8 @@ class FieldNode(VectorNode):
 
         .. versionchanged:: 1.30
             All variants of software-writable access now imply a storage element.
+
+            All hardware-writable fields that are qualified by ``we`` or ``wel`` imply storage.
         """
         if self.is_alias:
             # A field that is an alias never implements storage.
@@ -1726,6 +1728,10 @@ class FieldNode(VectorNode):
             # or not the field is writable by sw
             return True
 
+
+        if self.get_property('we') or self.get_property('wel'):
+            # Any write-enable implies a storage element
+            return True
 
         if self.get_property('hwset') or self.get_property('hwclr'):
             # Not in spec, but these imply that a storage element exists

@@ -38,6 +38,17 @@ addrmap top {
             sw=rw;hw=rw;
             we;
         } f9 = 0;
+        field {
+            sw=r;hw=w;
+            we;
+        } f10 = 0;
+        field {
+            sw=r;hw=w;
+            wel;
+        } f11 = 0;
+        field {
+            sw=w; hw=na;
+        } f12 = 0;
     } r1;
 
     reg {

@@ -441,6 +441,9 @@ class TestNodeUtils(RDLSourceTestCase):
         f7 = root.find_by_path("top.r1.f7")
         f8 = root.find_by_path("top.r1.f8")
         f9 = root.find_by_path("top.r1.f9")
+        f10 = root.find_by_path("top.r1.f10")
+        f11 = root.find_by_path("top.r1.f11")
+        f12 = root.find_by_path("top.r1.f12")
 
         r1 = root.find_by_path("top.r1")
         r2 = root.find_by_path("top.r2")
@@ -457,6 +460,9 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertTrue(f7.implements_storage)
         self.assertTrue(f8.implements_storage)
         self.assertTrue(f9.implements_storage)
+        self.assertTrue(f10.implements_storage)
+        self.assertTrue(f11.implements_storage)
+        self.assertTrue(f12.implements_storage)
 
         self.assertTrue(f1.is_sw_writable)
         self.assertFalse(f2.is_sw_writable)
