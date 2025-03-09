@@ -299,6 +299,12 @@ Numerous uses of "bool". Keyword should be "boolean" as required by the grammar.
 Illegal integer literal ``4'3``.
 
 
+10.5.2
+^^^^^^
+Example defines a register with type name ``some_intr_r`` but later, attempts
+to instantiate non-existent types ``some_intr`` and ``some_intr_rw``.
+
+
 
 14.2.3
 ^^^^^^

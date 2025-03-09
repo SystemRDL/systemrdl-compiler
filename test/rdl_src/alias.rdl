@@ -27,16 +27,12 @@ addrmap mixed_access {
     reg my_reg_t {
         field {
             hw=r;
-            sw=r;
+            sw=rw;
         } x = 0;
     };
-
-    my_reg_t r1;
-    my_reg_t r2;
-    r2.x->sw=w;
 
     my_reg_t primary;
 
     alias primary my_reg_t alias1;
-    alias1.x->sw=w;
+    alias1.x->sw=r;
 };

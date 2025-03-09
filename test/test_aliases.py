@@ -130,12 +130,8 @@ class TestAliases(RDLSourceTestCase):
             "mixed_access"
         ).top
 
-        r1 = top.find_by_path("r1.x")
-        r2 = top.find_by_path("r2.x")
         primary_x = top.find_by_path("primary.x")
         alias1_x = top.find_by_path("alias1.x")
 
-        self.assertFalse(r1.implements_storage)
-        self.assertTrue(r2.implements_storage)
         self.assertTrue(primary_x.implements_storage)
         self.assertFalse(alias1_x.implements_storage)

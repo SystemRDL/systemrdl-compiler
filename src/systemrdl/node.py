@@ -1025,7 +1025,7 @@ class AddressableNode(Node):
             # should include any additional trailing padding implied by the stride.
             # This makes it consistent with IP-XACT.
             # See discussion here: https://forums.accellera.org/topic/7529-interpretation-of-total-array-size-implicit-address-allocation/
-            return self.array_stride * self.inst.n_elements
+            return self.array_stride * self.n_elements
 
         else:
             return self.size
@@ -1048,6 +1048,18 @@ class AddressableNode(Node):
         If node is not an array (``is_array == False``), then this is ``None``
         """
         return self.inst.array_dimensions
+
+
+    @property
+    def n_elements(self) -> int:
+        """
+        Total number of array elements.
+        If array is multidimensional, array is flattened.
+        Returns 1 if not an array.
+
+        .. versionadded:: 1.30
+        """
+        return self.inst.n_elements
 
 
     @property
@@ -1714,7 +1726,7 @@ class FieldNode(VectorNode):
             onread = onread or alias_field.get_property('onread')
 
         # 9.4.1, Table 12
-        if sw in (rdltypes.AccessType.w, rdltypes.AccessType.rw, rdltypes.AccessType.w1, rdltypes.AccessType.rw1):
+        if self.is_sw_writable:
             # Software can write, implying a storage element
             # Intentionally including sw=w;hw=na case as this is useful for internal references.
             return True
@@ -1729,7 +1741,7 @@ class FieldNode(VectorNode):
             return True
 
 
-        if self.get_property('we') or self.get_property('wel'):
+        if self.is_hw_writable and (self.get_property('we') or self.get_property('wel')):
             # Any write-enable implies a storage element
             return True
 
