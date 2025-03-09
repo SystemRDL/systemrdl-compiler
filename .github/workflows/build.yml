@@ -14,7 +14,7 @@ on:
 jobs:
   # Build test wheel using oldest supported version
   build_test_wheel:
-    # 3.8 requires older os
+    # 3.7 requires older os
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +49,7 @@ jobs:
           - "3.11"
           - "3.12"
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
 
           # older versions need older OS
           - python-version: "3.7"
@@ -189,10 +189,10 @@ jobs:
     strategy:
       matrix:
         os:
-          - windows-latest
+          - windows-2019
           - macos-13 # intel-based macos
-          - macos-latest # Apple silicon
-          - ubuntu-latest
+          - macos-14 # Apple silicon
+          - ubuntu-22.04
         include:
           # Only build CPython 3.x targets
           - cibw_build: "cp3*"
@@ -235,7 +235,7 @@ jobs:
       - lint
       - mypy
     name: Build source distribution
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
