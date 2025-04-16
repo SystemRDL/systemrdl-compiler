@@ -153,14 +153,14 @@ class PerlPreprocessor:
             )
 
         # Capture include contents
-        inc_regex = re.compile(r'`include\s+("([^\r\n]+)"|<([^\r\n]+)>)')
+        inc_regex = re.compile(r'`include\s+("([^\r\n]+)"|<([^\r\n]+)>|([^\r\n]+))')
         m_inc = inc_regex.match(self.text, start)
         if m_inc is None:
             self.env.msg.fatal(
                 "Invalid usage of include directive",
                 DirectSourceRef(self.path, start, start+7)
             )
-        incl_path_raw = m_inc.group(2) or m_inc.group(3)
+        incl_path_raw = m_inc.group(2) or m_inc.group(3) or m_inc.group(4)
         end = m_inc.end(0)-1
         path_start = m_inc.start(1)
 
