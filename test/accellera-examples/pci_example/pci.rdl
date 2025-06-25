@@ -1,0 +1,845 @@
+// ============================================================================
+//
+// Program  : pci.rdl
+// Language : Register Description Language (RDL)
+// Purpose  : This is an example of a PCI 3.0 device type 0 config Space
+//
+// ============================================================================
+
+//  Revision:    $Revision:$
+//  Date:        $Date:$
+//
+//  Copyright (c) 2009 The SPIRIT Consortium.
+//
+//  This work forms part of a deliverable of The SPIRIT Consortium.
+//
+//  Use of these materials are governed by the legal terms and conditions
+//  outlined in the disclaimer available from www.spiritconsortium.org.
+//
+//  This source file is provided on an AS IS basis.  The SPIRIT
+//  Consortium disclaims any warranty express or implied including
+//  any warranty of merchantability and fitness for use for a
+//  particular purpose.
+//
+//  The user of the source file shall indemnify and hold The SPIRIT
+//  Consortium and its members harmless from any damages or liability.
+//  Users are requested to provide feedback to The SPIRIT Consortium
+//  using either mailto:feedback@lists.spiritconsortium.org or the forms at
+//  http://www.spiritconsortium.org/about/contact_us/
+//
+//  This file may be copied, and distributed, with or without
+//  modifications; this notice must be included on any copy.
+//
+`include "pci_enums.rdl"                                   // Include all the PCI Enumerations
+`include "pci_bar.rdl"                                     // Include the definitions for a PCI Bar register
+
+addrmap pci_map {                                          // Define the Address Map for PCI and PCI Express
+
+  // Define the reset signals used by the PCI
+
+  signal  {
+     name="PCI Soft Reset";
+     desc="This signal is used to issue a soft reset to the PCI(E) device";
+     activelow;                                            // Define this signal is active low
+     async;                                                // define this reset type is asynchronous
+     field_reset;                                          // define this signal to reset the field and cpu if
+     // This signal will be hooked to registers PCI defines as NOT Sticky. This means they will
+     // be reset by this signal.
+  } pci_soft_reset;
+
+  signal  {
+     name="PCI Hard Reset";
+     desc="This signal the primary hard reset signal for the PCI(E) device";
+     async;                                                // define this reset type is asynchronous
+     activelow;                                            // Define ths signal as active low
+     cpuif_reset;
+     // This signal will be or'd with the PCI Soft Reset Signal to form the master hard reset
+     // which will reset all flops.  The soft reset signal above will not reset flops that PCI
+     // defines as STICKY.
+
+  } pci_hard_reset;
+
+  // The First Five Registers define the device configuration section of the PCI
+  // header.  Please refer to Section 6.2.1 for more detail
+  //
+
+  reg {                                                    // PCIE_REG_VENDOR_ID
+    name = "Vendor ID";
+    desc = "This field identifies the manufacturer of the device. Valid vendor
+            identifiers are allocated by the PCI SIG to ensure uniqueness.
+            0 FFFFh is an invalid value for Vendor ID.";
+    regwidth = 16;
+    // cap.id = "CFG_HDR";
+
+    field {
+      hw = rw; sw = rw;                                    // Typically end user would probably define the POR value and define the attributes
+      resetsignal = pci_hard_reset;                        // This field is sticky and not effected by pci_soft_reset
+//    } value [14:0] =0;
+    } value [15:0] =0;
+
+  } PCIE_REG_VENDOR_ID;                                    // @0x00
+
+
+  reg {                                                    // PCIE_REG_DEVICE_ID
+    name = "Device ID";
+    desc = "This field identifies the particular device. This identifier is allocated
+            by the vendor.";
+    regwidth = 16;
+    // cap.id = "CFG_HDR";
+
+    field {
+      hw = rw; sw = rw;                                    // Typically end user would probably define the POR value and define the attributes
+      fieldwidth = 16;                                     // hw=r;sw=r ;
+      resetsignal = pci_hard_reset;                        // This field is sticky and not effected by pci_soft_reset
+    } value [15:0]=0;
+
+
+  } PCIE_REG_DEVICE_ID;                                    // @0x02
+
+
+  reg {                                                    // PCIE_REG_COMMAND
+    name = "Command";
+    desc = "The Command register provides coarse control over a device's ability to generate and
+            respond to PCI cycles. When a 0 is written to this register, the device is logically
+            disconnected from the PCI bus for all accesses except configuration accesses. All devices
+            are required to support this base level of functionality. Individual bits in the Command
+            register may or may not be implemented depending on a device's functionality. For instance,
+            devices that do not implement an I/O Space will not implement a writable element at bit
+            location 0 of the Command register. Devices typically power up with all 0's in this register,
+            but Section 6.6 explains some exceptions. Figure 6-2 shows the layout of the register and
+            Table 6-1 explains the meanings of the different bits in the Command register.";
+
+    regwidth = 16;
+    // cap.id = "CFG_HDR";
+
+    field {
+      name = "IOen";
+      desc = "Controls a device's response to I/O Space accesses. A value of 0
+              disables the device response. A value of 1 allows the device to
+              respond to I/O Space accesses. State after RST# is 0.";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 1;
+    } IOen [0:0] = 0;
+
+    field {
+      name = "MEMen";
+      desc = "Controls a device's response to Memory Space accesses. A value of
+              0 disables the device response. A value of 1 allows the device to
+              respond to Memory Space accesses. State after RST# is 0.";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 1;
+    } MEMen [1:1] = 0;
+
+    field {
+      name = "MasEn";
+      desc = "Controls a device's ability to act as a master on the PCI bus. A value
+              of 0 disables the device from generating PCI accesses. A value of 1
+              allows the device to behave as a bus master. State after RST# is 0.";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 1;
+    } MasEn [2:2] = 0;
+
+    field {
+      name = "speCylEn";
+      desc = "Controls a device's action on Special Cycle operations. A value of 0
+              causes the device to ignore all Special Cycle operations. A value of 1
+              allows the device to monitor Special Cycle operations. State after
+              RST# is 0.";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } speCylEn [3:3] = 0;
+
+    field {
+      name = "MwrInv";
+      desc = "This is an enable bit for using the Memory Write and Invalidate
+              command. When this bit is 1, masters may generate the command.
+              When it is 0, Memory Write must be used instead. State after RST#
+              is 0. This bit must be implemented by master devices that can
+              generate the Memory Write and Invalidate command.";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 1;
+    } MwrInv [4:4] = 0;
+
+    field {
+      name = "VGA";
+      desc = "This bit controls how VGA compatible and graphics devices handle
+              accesses to VGA palette registers. When this bit is 1, palette
+              snooping is enabled (i.e., the device does not respond to palette
+              register writes and snoops the data). When the bit is 0, the device
+              should treat palette write accesses like all other accesses. VGA
+              compatible devices should implement this bit. Refer to Section 3.10.
+              for more details on VGA palette snooping.";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } VGA [5:5] = 0;
+
+    field {
+      name = "PERRen";
+      desc = "This bit controls the device's response to parity errors. When the bit
+              is set, the device must take its normal action when a parity error is
+              detected. When the bit is 0, the device sets its Detected Parity Error
+              status bit (bit 15 in the Status register) when an error is detected, but
+              does not assert PERR# and continues normal operation. This bit's
+              state after RST# is 0. Devices that check parity must implement this
+              bit. Devices are still required to generate parity even if parity
+              checking is disabled.";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 1;
+    } PERRen [6:6] = 0;
+
+    field {
+      name = "IDSEL";
+      desc = "Deprecated: Hardwire this bit to 0";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+//    } IDSEL [7:7] = 1'b1;
+    } IDSEL [7:7] = 1'b0;
+
+    field {
+      name = "SERRen";
+      desc = "This bit is an enable bit for the SERR# driver. A value of 0 disables
+              the SERR# driver. A value of 1 enables the SERR# driver. This bit's
+              state after RST# is 0. All devices that have an SERR# pin must
+              implement this bit. Address parity errors are reported only if this bit
+              and bit 6 are 1.";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 1;
+    } SERRen [8:8] = 0;
+
+    field {
+      name = "FastB2B";
+      desc = "This optional read/write bit controls whether or not a master can do
+              fast back-to-back transactions to different devices. Initialization
+              software will set the bit if all targets are fast back-to-back capable. A
+              value of 1 means the master is allowed to generate fast back-to-back
+              transactions to different agents as described in Section 3.4.2. A
+              value of 0 means fast back-to-back transactions are only allowed to
+              the same agent. This bit's state after RST# is 0";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } FastB2B [9:9] = 0;
+
+    field {
+      name = "IntrDis";
+      desc = "This bit disables the device/function from asserting INTx#. A value of
+              0 enables the assertion of its INTx# signal. A value of 1 disables the
+              assertion of its INTx# signal. This bit's state after RST# is 0. Refer to
+              Section 6.8.1.3 for control of MSI.";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 1;
+    } IntrDis [10:10] = 0;
+
+    field {                                                //
+      name = "RsvdP";
+      hw = na; sw = r;                                     // RSVDP sw always read zero
+      reset = 0;
+      fieldwidth = 5;
+    } RsvdP [15:11];
+
+  } PCIE_REG_COMMAND;                                      // @0x04
+
+  reg {                                                    // PCIE_REG_STATUS
+
+    name = "Status";
+    desc = "The Status register is used to record status information for PCI bus related events. The
+            definition of each of the bits is given in Table 6-2 and the layout of the register is shown in
+            Figure 6-3. Devices may not need to implement all bits, depending on device functionality.
+            For instance, a device that acts as a target, but will never signal Target-Abort, would not
+            implement bit 11. Reserved bits should be read-only and return zero when read.
+            Reads to this register behave normally. Writes are slightly different in that bits can be reset,
+            but not set. A one bit is reset (if it is not read-only) whenever the register is written, and the
+            write data in the corresponding bit location is a 1. For instance, to clear bit 14 and not affect
+            any other bits, write the value 0100_0000_0000_0000b to the register.";
+
+    regwidth = 16;
+    // cap.id = "CFG_HDR";
+
+
+    field {
+      name = "IntrStatus";
+      desc = "This read-only bit reflects the state of the interrupt in the
+              device/function. Only when the Interrupt Disable bit in the command
+              register is a 0 and this Interrupt Status bit is a 1, will the
+              device's/function's INTx# signal be asserted. Setting the Interrupt
+              Disable bit to a 1 has no effect on the state of this bit.";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } IntrStatus [3:3];
+
+    field {
+      name = "hasCapList";
+      desc = "This optional read-only bit indicates whether or not this device
+              implements the pointer for a New Capabilities linked list at offset 34h.
+              A value of zero indicates that no New Capabilities linked list is
+              available. A value of one indicates that the value read at offset 34h is
+              a pointer in Configuration Space to a linked list of new capabilities.
+              Refer to Section 6.7. for details on New Capabilities.";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } hasCapList [4:4] = 1'h1;                             //
+
+    field {
+      name = "capable_66Mhz";
+      desc = "This optional read-only bit indicates whether or not this device is
+              capable of running at 66 MHz as defined in Chapter 7. A value of zero
+              indicates 33 MHz. A value of 1 indicates that the device is 66 MHz
+              capable.";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } capable_66Mhz [5:5];
+
+    field {
+      name = "FastB2B";
+      desc = "This optional read-only bit indicates whether or not the target is
+              capable of accepting fast back-to-back transactions when the
+              transactions are not to the same agent. This bit can be set to 1 if the
+              device can accept these transactions and must be set to 0 otherwise.
+              Refer to Section 3.4.2. for a complete description of requirements for
+              setting this bit.";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } FastB2B [7:7];
+
+    field {
+      name = "MasDParErr";
+      desc = "This bit is only implemented by bus masters. It is set when three
+              conditions are met: 1) the bus agent asserted PERR# itself (on a
+              read) or observed PERR# asserted (on a write); 2) the agent setting
+              the bit acted as the bus master for the operation in which the error
+              occurred; and 3) the Parity Error Response bit (Command register) is
+              set.";
+      hw = rw; sw = rw; woclr;                             // RW1C
+      fieldwidth = 1;
+      dontcompare;
+    } MasDParErr [8:8];
+
+    field {
+      name = "DEVSEL";
+      desc = "These bits encode the timing of DEVSEL#. Section 3.6.1 specifies
+              three allowable timings for assertion of DEVSEL#. These are
+              encoded as 00b for fast, 01b for medium, and 10b for slow (11b is
+              reserved). These bits are read-only and must indicate the slowest
+              time that a device asserts DEVSEL# for any bus command except
+              Configuration Read and Configuration Write.";
+      hw = rw; sw = r;                                     // RO
+      encode = devsel_timing_enum;
+      fieldwidth = 2;
+    } DEVSEL [10:9];
+
+    field {
+      name = "SigTarAb";
+      desc = "This bit must be set by a target device whenever it terminates a
+              transaction with Target-Abort. Devices that will never signal Target-
+              Abort do not need to implement this bit.";
+      hw = rw; sw = rw; woclr;                             // RW1C
+      dontcompare;
+      fieldwidth = 1;
+    } SigTarAb [11:11];
+
+    field {
+      name = "RcdTarAb";
+      desc = "This bit must be set by a master device whenever its transaction is
+              terminated with Target-Abort. All master devices must implement this
+              bit.";
+      hw = rw; sw = rw; woclr;                             // RW1C
+      dontcompare;
+      fieldwidth = 1;
+    } RcdTarAb [12:12];
+
+    field {
+      name = "RcdMasAb";
+      desc = "This bit must be set by a master device whenever its transaction
+              (except for Special Cycle) is terminated with Master-Abort. All master
+              devices must implement this bit.";
+      hw = rw; sw = rw; woclr;                             // RW1C
+      dontcompare;
+      fieldwidth = 1;
+    } RcdMasAb [13:13];
+
+    field {
+      name = "SigSysErr";
+      desc = "This bit must be set whenever the device asserts SERR#. Devices
+              who will never assert SERR# do not need to implement this bit.";
+      hw = rw; sw = rw; woclr;                             // RW1C
+      dontcompare;
+      fieldwidth = 1;
+    } SigSysErr [14:14];
+
+    field {
+      name = "DetParErr";
+      desc = "This bit must be set by the device whenever it detects a parity error,
+              even if parity error handling is disabled (as controlled by bit 6 in the
+              Command register).";
+      hw = rw; sw = rw; woclr;                             // RW1C
+      dontcompare;
+      fieldwidth = 1;
+    } DetParErr [15:15];
+
+  } PCIE_REG_STATUS;                                       // @0x06
+
+  reg {                                                    // PCIE_REG_REVISION_ID
+    // cap.id = "CFG_HDR";
+
+    desc = "This register contains two primary fields. Revision ID and Class Code.
+            The revision ID field specifies a device specific revision identifier.
+            The value is chosen by the vendor. Zero is an acceptable value.
+            The Class Code field is read-only and is used to identify the
+            generic function of the device and, in some cases, a specific registerlevel
+            programming interface. The register is broken into three bytesize
+            fields.";
+
+    field {
+      hw = rw; sw = rw;
+      resetsignal = pci_hard_reset;
+      fieldwidth = 8;
+      name = "Revision ID";
+      desc = "This register specifies a device specific revision identifier. The value
+              is chosen by the vendor. Zero is an acceptable value. This field
+              should be viewed as a vendor defined extension to the Device ID.";
+    } rev_id [7:0] =0;
+
+    name = "Class Code";
+
+
+    // cap.id = "CFG_HDR";
+
+    field {
+      name = "Interface";
+
+      desc = "The Class Code register is read-only and is used to identify the
+            generic function of the device and, in some cases, a specific registerlevel
+            programming interface. The register is broken into three bytesize
+            fields. The upper byte (at offset 0Bh) is a base class code which
+            broadly classifies the type of function the device performs. The
+            middle byte (at offset 0Ah) is a sub-class code which identifies more
+            specifically the function of the device. The lower byte (at offset
+            09h) identifies a specific register-level programming interface (if any)
+            so that device independent software can interact with the device.
+            Encodings for base class, sub-class, and programming interface are
+            provided in Appendix D. All unspecified encodings are reserved.";
+      hw = rw; sw = rw;
+      // pos = "0";
+      fieldwidth = 8;
+      resetsignal = pci_hard_reset;
+    } Interface [8]=0;
+
+    field {
+      name = "subClass";
+      hw = rw; sw = rw;
+      // pos = "8";
+      fieldwidth = 8;
+      resetsignal = pci_hard_reset;
+    } subClass [8]=0;
+
+    field {
+      name = "baseClass";
+      hw = rw; sw = rw;
+      // pos = "16";
+      fieldwidth = 8;
+      encode = base_class_enum;
+      resetsignal = pci_hard_reset;
+    } baseClass [8]=0;
+
+  } PCIE_REG_REV_ID_CLASS_CODE;                            // @0x09
+
+  reg {                                                    // PCIE_REG_CACHE_L_SIZE
+    name = "Cache Line Size";
+    desc = "This read/write register specifies the system cacheline size in units of DWORDs. This
+            register must be implemented by master devices that can generate the Memory Write and
+            Invalidate command (refer to Section 3.1.1). The value in this register is also used by master
+            devices to determine whether to use Read, Read Line, or Read Multiple commands for
+            accessing memory (refer to Section 3.1.2).
+            Slave devices that want to allow memory bursting using cacheline wrap addressing mode
+            (refer to Section 3.2.2.2) must implement this register to know when a burst sequence wraps
+            to the beginning of the cacheline.
+            This field must be initialized to 0 at RST#.
+            A device may limit the number of cacheline sizes that it can support. For example, it may
+            accept only powers of 2 less than 128. If an unsupported value is written to the CacheLine
+            Size register, the device should behave as if a value of 0 was written.";
+    regwidth = 8;
+    // cap.id = "CFG_HDR";
+
+    field {
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 8;
+    } value [7:0] = 0;
+
+  } PCIE_REG_CACHE_L_SIZE;
+
+  reg {                                                    // PCIE_REG_MASTER_LAT_TIMER
+    name = "Master Latency Timer";
+    desc = "This register specifies, in units of PCI bus clocks, the value of the Latency Timer for this
+            PCI bus master (refer to Section 3.5.4). This register must be implemented as writable by
+            any master that can burst more than two data phases. This register may be implemented as
+            read-only for devices that burst two or fewer data phases, but the hardwired value must be
+            limited to 16 or less. A typical implementation would be to build the five high-order bits
+            (leaving the bottom three as read-only), resulting in a timer granularity of eight clocks. At
+            RST#, the register must be initialized to 0 (if programmable).";
+    regwidth = 8;
+    // cap.id = "CFG_HDR";
+    field {
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 8;
+    } value [7:0] = 0;
+  } PCIE_REG_MASTER_LAT_TIMER;
+
+  reg {                                                    // PCIE_REG_HEADER_TYPE
+    name = "Header Type";
+    desc = "This byte identifies the layout of the second part of the predefined
+            header (beginning at byte 10h in Configuration Space) and also
+            whether or not the device contains multiple functions. Bit 7 in this
+            register is used to identify a multi-function device. If the bit is 0,
+            then the device is single function. If the bit is 1, then the device has
+            multiple functions. Bits 6 through 0 identify the layout of the
+            second part of the predefined header. The encoding 00h specifies
+            the layout shown in Figure 6-1. The encoding 01h is
+            defined for PCI-to-PCI bridges and is defined in the document PCI
+            to PCI Bridge Architecture Specification. The encoding 02h is defined for
+            a CardBus bridge and is documented in the PC Card Standard. All
+            other encodings are reserved. ";
+
+    regwidth = 8;
+    // cap.id = "CFG_HDR";
+
+    field {
+      name = "hdrType";
+      hw = rw; sw = rw;
+      fieldwidth = 7;
+      encode = cfg_header_type_enum;
+      resetsignal = pci_hard_reset;
+    } hdrType [6:0]=0;
+
+    field {
+      name = "isMulFunc";
+      hw = rw; sw = rw;
+      fieldwidth = 1;
+      resetsignal = pci_hard_reset;
+    } isMulFunc [7:7]=0;
+
+  } PCIE_REG_HEADER_TYPE;
+
+  reg {                                                    // PCIE_REG_BIST
+    name = "BIST";
+    desc = "This optional register is used for control and status of BIST. Devices that do not support
+            BIST must always return a value of 0 (i.e., treat it as a reserved register). A device whose
+            BIST is invoked must not prevent normal operation of the PCI bus. Figure 6-4 shows the
+            register layout and Table 6-3 describes the bits in the register.";
+
+    regwidth = 8;
+    // cap.id = "CFG_HDR";
+
+    field {
+      name = "cplCode";
+      desc = "A value of 0 means the device has passed its test. Non-zero values
+              mean the device failed. Device-specific failure codes can be encoded
+              in the non-zero value.";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 4;
+    } cplCode [3:0];
+
+    field {
+      name = "start";
+      desc = "Write a 1 to invoke BIST. Device resets the bit when BIST is
+              complete. Software should fail the device if BIST is not complete after
+              2 seconds.";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 1;
+    } start [6:6];
+
+    field {
+      name = "capable";
+      desc = "Return 1 if device supports BIST. Return 0 if the device is not BIST
+              capable.";
+      hw = rw; sw = rw;
+      fieldwidth = 1;
+      resetsignal = pci_hard_reset;
+    } capable [7:7]=0;
+
+  } PCIE_REG_BIST;
+
+  //
+  // Bar Registers are defined seprately in the pci_bar.rdl file
+  //
+  pci_mem32_bar_r bar0;                                    // @0x10 Define an Example 32 bit Mem bar
+  pci_mem64_bar_r bar1;                                    // @0x10,0x14 Define an Example 64 bit bar. This uses both bar1 and bar2
+  pci_io_bar_r    bar3;                                    // @0x18 Therefore this next IO bar is bar3
+
+  bar1.address->donttest=60'hFF0000000000000;
+  bar0->donttest=true;
+  bar3->donttest=true;
+
+
+  // Bars at 0x1C, 0x20, 0x24 are not defined
+
+  reg {                                                    // PCIE_REG_CARDBUS
+    name = "Cardbus CIS Pointer";
+    desc = "This optional register is used by those devices that want to share silicon between CardBus
+            and PCI. The field is used to point to the Card Information Structure (CIS) for the CardBus
+            card.
+            For a detailed explanation of the CIS, refer to the PCMCIA v2.10 specification. The subject
+            is covered under the heading Card Metaformat and describes the types of information
+            provided and the organization of this information.";
+
+    regwidth = 32;
+
+    // id = "CARDBUS";
+    // cap.id = "CFG0_HDR";
+
+    field {
+      resetsignal = pci_hard_reset;
+      hw = rw; sw = rw;
+      // pos = "0";
+      fieldwidth = 32;
+    } value [31:0]=0;
+
+  } PCIE_REG_CARDBUS @0x28;                                // All bar registers may not be defined to set the correct offset here.
+
+  reg {                                                    // PCIE_REG_SUBSYS_VENDOR_ID
+    name = "Subsystem ID and Vendor ID";
+    desc = "These registers are used to uniquely identify the add-in card or subsystem where the PCI
+            device resides. They provide a mechanism for add-in card vendors to distinguish their add-
+            in cards from one another even though the add-in cards may have the same PCI controller
+            on them (and, therefore, the same Vendor ID and Device ID).
+            Implementation of these registers is required for all PCI devices except those that have a
+            base class 6 with sub class 0-4 (0, 1, 2, 3, 4), or a base class 8 with sub class 0-3 (0, 1, 2, 3).
+            Subsystem Vendor IDs can be obtained from the PCI SIG and are used to identify the
+            vendor of the add-in card or subsystem.  Values for the Subsystem ID are vendor specific.
+            Values in these registers must be loaded and valid prior to the system firmware or any
+            system software accessing the PCI Configuration Space. How these values are loaded is not
+            specified but could be done during the manufacturing process or loaded from external logic
+            (e.g., strapping options, serial ROMs, etc.). These values must not be loaded using
+            expansion ROM software because expansion ROM software is not guaranteed to be run
+            during POST in all systems. Devices are responsible for guaranteeing the data is valid before
+            allowing reads to these registers to complete. This can be done by responding to any
+            accesses with Retry until the data is valid.
+            If a device is designed to be used exclusively on the system board, the system vendor may
+            use system specific software to initialize these registers after each power-on.";
+
+    regwidth = 32;
+
+    // id = "SUBSYS_ID";
+    // cap.id = "CFG0_HDR";
+
+    field {
+      resetsignal = pci_hard_reset;
+      hw = rw; sw = rw;
+      // pos = "0";
+      fieldwidth = 16;
+    } subsys_id[15:0]=0;
+
+    // id = "SUBSYS_VENDOR_ID";
+    // cap.id = "CFG0_HDR";
+
+    field {
+      resetsignal = pci_hard_reset;
+      hw = rw; sw = rw;
+      // pos = "0";
+      fieldwidth = 16;
+    } vendor_id[31:16]=0;
+  } PCIE_REG_SUBSYS_VENDOR_ID @0x2C;
+
+
+  reg {                                                    // PCIE_REG_EROM_BASE
+    name = "Expansion ROM Base Address";
+    desc = "Some PCI devices, especially those that are intended for use on add-in cards in PC
+            architectures, require local EPROMs for expansion ROM (refer to the PCI Firmware
+            Specification, Revision 3.0 Section 6.3 for a definition of ROM contents). The four-byte
+            register at offset 30h in a type 00h predefined header is defined to handle the base address
+            and size information for this expansion ROM. Figure 6-7 shows how this word is
+            organized. The register functions exactly like a 32-bit Base Address register except that the
+            encoding (and usage) of the bottom bits is different. The upper 21 bits correspond to the
+            upper 21 bits of the Expansion ROM base address. The number of bits (out of these 21)
+            that a device actually implements depends on how much address space the device requires.
+            For instance, a device that requires a 64 KB area to map its expansion ROM would
+            implement the top 16 bits in the register, leaving the bottom 5 (out of these 21) hardwired to
+            0. Devices that support an expansion ROM must implement this register.
+            Device independent configuration software can determine how much address space the
+            device requires by writing a value of all 1's to the address portion of the register and then
+            reading the value back. The device will return 0's in all don't-care bits, effectively specifying
+            the size and alignment requirements. The amount of address space a device requests must
+            not be greater than 16 MB.
+            Bit 0 in the register is used to control whether or not the device accepts accesses to its
+            expansion ROM. When this bit is 0, the device's expansion ROM address space is disabled.
+            When the bit is 1, address decoding is enabled using the parameters in the other part of the
+            base register. This allows a device to be used with or without an expansion ROM depending
+            on system configuration. The Memory Space bit in the Command register has precedence
+            over the Expansion ROM enable bit. A device must respond to accesses to its expansion
+            ROM only if both the Memory Space bit and the Expansion ROM Base Address Enable bit
+            are set to 1. This bit's state after RST# is 0.
+            In order to minimize the number of address decoders needed, a device may share a decoder
+            between the Expansion ROM Base Address register and other Base Address registers.47
+            When expansion ROM decode is enabled, the decoder is used for accesses to the expansion
+            ROM and device independent software must not access the device through any other Base
+            Address registers.";
+
+    regwidth = 32;
+
+    // id = "EROM_BASE";
+    // cap.id = "CFG0_HDR";
+
+    field {
+      name = "Enable";
+      hw = rw; sw = rw;                                    // RW
+      // pos = "0";
+      fieldwidth = 1;
+    } Enable [0:0];
+
+    field {
+      name = "RsvdP";
+      hw = na; sw = r;                                     // RSVDP sw always read zero
+      reset = 0x0;                                         // reserved field - add default reset value 0x0.
+
+      // pos = "1";
+      fieldwidth = 10;
+    } RsvdP [10:1];
+
+    field {
+      name = "addr";
+      hw = rw; sw = rw;                                    // RW
+      // pos = "11";
+      fieldwidth = 21;
+    } addr [31:11];
+
+  } PCIE_REG_EROM_BASE @0x30;
+
+/*
+
+  reg {                                                    // PCIE_REG_CAP_POINTER
+    name = "Capabilities Pointer";
+    desc = "This optional register is used to point to a linked list of new capabilities implemented by this
+            device. This register is only valid if the "Capabilities List" bit in the Status Register is set. If
+            implemented, the bottom two bits are reserved and should be set to 00b. Software should
+            mask these bits off before using this register as a pointer in Configuration Space to the first
+            entry of a linked list of new capabilities. Refer to Section 6.7 for a description of this data
+            structure.";
+
+    regwidth = 32;
+
+    // id = "CAP_POINTER";
+    // cap.id = "CFG_HDR";
+
+    field {
+      name = "nextPtr";
+      hw = rw; sw = r;                                     // RO
+      // pos = "0";
+      fieldwidth = 8;
+    } nextPtr [7:0];
+
+  } PCIE_REG_CAP_POINTER @0x34;
+
+*/
+
+  reg {                                                    // PCIE_REG_INTR_LINE
+    name = "Interrupt Line";
+    desc = "The Interrupt Line register is an eight-bit register used to communicate interrupt line routing
+            information. The register is read/write and must be implemented by any device (or device
+            function) that uses an interrupt pin. POST software will write the routing information into
+            this register as it initializes and configures the system.
+            The value in this register tells which input of the system interrupt controller(s) the device's
+            interrupt pin is connected to. The device itself does not use this value, rather it is used by
+            device drivers and operating systems. Device drivers and operating systems can use this
+            information to determine priority and vector information. Values in this register are system
+            architecture specific.";
+    regwidth = 8;
+
+    // id = "INTR_LINE";
+    // cap.id = "CFG_HDR";
+
+    field {
+            hw = rw; sw = rw;                              // RW
+      // pos = "0";
+      fieldwidth = 8;
+    } unspecified [7:0];
+
+  } PCIE_REG_INTR_LINE @0x3C;
+
+  reg {                                                    // PCIE_REG_INTR_PIN
+    name = "Interrupt Pin";
+    desc = "The Interrupt Pin register tells which interrupt pin the device (or device function) uses.
+            Devices (or device functions) that do not use an interrupt pin must put a 0 in this register.
+            The values 05h through FFh
+            are reserved. This register is read-only. Refer to Section 2.2.6 for further description of the
+            usage of the INTx# pins.";
+
+    regwidth = 8;
+
+    // id = "INTR_PIN";
+    // cap.id = "CFG_HDR";
+
+    field {
+      name = "intx";
+      hw = rw; sw = r;                                     // RO
+      // pos = "0";
+      fieldwidth = 8;
+      encode = int_pin_enum;
+    } intx [7:0];
+
+  } PCIE_REG_INTR_PIN @0x3D;
+
+  reg {                                                    // PCIE_REG0_MIN_GNT
+    name = "Min_Gnt";
+    desc = "MIN_GNT is used for specifying how long a burst period the device needs assuming a clock
+            rate of 33 MHz.
+            The value specifies a period of time in units of 1/4
+            microsecond. Values of 0 indicate that the device has no major requirements for the settings
+            of Latency Timers.
+            Devices should specify values that will allow them to most effectively use the PCI bus as
+            well as their internal resources. Values should be chosen assuming that the target does not
+            insert any wait-states.
+
+            Implimentation Note: A fast Ethernet controller (100 Mbs) has a 64-byte buffer for each transfer direction.
+            Optimal usage of these internal resources is achieved when the device treats each buffer as
+            two 32-byte ping-pong buffers. Each 32-byte buffer has eight DWORDS of data to be
+            transferred, resulting in eight data phases on the PCI bus. These eight data phases translate
+            to . microsecond at 33 MHz, so the MIN_GNT value for this device is '1'. When moving
+            data, the device will need to empty or fill a 32-byte buffer every 3.2 us (assuming a
+            throughput of 10 MB/s). This would correspond to a MAX_LAT value of 12.
+           ";
+
+    regwidth = 8;
+
+    // id = "MIN_GNT";
+    // cap.id = "CFG0_HDR";
+
+    field {
+            hw = rw; sw = r;                               // RO
+      // pos = "0";
+      fieldwidth = 8;
+    } value[7:0];
+
+  } PCIE_REG_MIN_GNT @0x3E;
+
+  reg {                                                    // PCIE_REG0_MAX_LAT
+    name = "Max_Lat";
+    desc = "MAX_LAT is used for specifying how often the device needs to gain
+            access to the PCI bus.
+            The value specifies a period of time in units of 1/4
+            microsecond. Values of 0 indicate that the device has no major requirements for the settings
+            of Latency Timers.
+            Devices should specify values that will allow them to most effectively use the PCI bus as
+            well as their internal resources. Values should be chosen assuming that the target does not
+            insert any wait-states.
+
+            Implimentation Note: A fast Ethernet controller (100 Mbs) has a 64-byte buffer for each transfer direction.
+            Optimal usage of these internal resources is achieved when the device treats each buffer as
+            two 32-byte ping-pong buffers. Each 32-byte buffer has eight DWORDS of data to be
+            transferred, resulting in eight data phases on the PCI bus. These eight data phases translate
+            to . microsecond at 33 MHz, so the MIN_GNT value for this device is '1'. When moving
+            data, the device will need to empty or fill a 32-byte buffer every 3.2 us (assuming a
+            throughput of 10 MB/s). This would correspond to a MAX_LAT value of 12.
+            ";
+    regwidth = 8;
+
+    // id = "MAX_LAT";
+    // cap.id = "CFG0_HDR";
+
+    field {
+            hw = rw; sw = r;                               // RO
+      // pos = "0";
+      fieldwidth = 8;
+    } value[7:0];
+
+  } PCIE_REG_MAX_LAT @0x3F;
+
+};                                                         // end of Address Map
+

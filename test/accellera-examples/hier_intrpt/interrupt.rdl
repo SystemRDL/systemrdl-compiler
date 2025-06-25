@@ -1,0 +1,407 @@
+//
+//  The following is an example of a hierarchical interrupt structure.
+//  Typically, the highest order of the interrupt tree wants to pass
+//  along (ie non sticky) interrupt. By defining a "nonsticky intr",
+//  Blueprint will generate the interrupt port/pin (myMasterInt), as
+//  well as the internal combinatorial logic that handles the interrupt
+//  and the specific mask. Assigning a mask bit to a interrupt bit is
+//  handled in the
+//  instancing of the register.
+//
+
+//  Revision:    $Revision:$
+//  Date:        $Date:$
+//
+//  Copyright (c) 2009 The SPIRIT Consortium.
+//
+//  This work forms part of a deliverable of The SPIRIT Consortium.
+//
+//  Use of these materials are governed by the legal terms and conditions
+//  outlined in the disclaimer available from www.spiritconsortium.org.
+//
+//  This source file is provided on an AS IS basis.  The SPIRIT
+//  Consortium disclaims any warranty express or implied including
+//  any warranty of merchantability and fitness for use for a
+//  particular purpose.
+//
+//  The user of the source file shall indemnify and hold The SPIRIT
+//  Consortium and its members harmless from any damages or liability.
+//  Users are requested to provide feedback to The SPIRIT Consortium
+//  using either mailto:feedback@lists.spiritconsortium.org or the forms at
+//  http://www.spiritconsortium.org/about/contact_us/
+//
+//  This file may be copied, and distributed, with or without
+//  modifications; this notice must be included on any copy.
+//
+//------------------------------------------------------------
+// Block Level Interrupt Register
+//------------------------------------------------------------
+
+reg block_int_r {
+        name = "Example Block Interrupt Register";
+        desc = "This is an example of an IP Block with 3 int events. 2 of these events are non fatal
+                and the third event multi_bit_ecc_error is fatal";
+
+        default hw=w;                                      // HW can Set int only
+        default sw=rw;                                     // SW can clear
+        default woclr;                                     // Clear is via writing a 1
+
+
+
+        field {
+          desc = "A Packet with a CRC Error has been received";
+          level intr;
+        } crc_error = 0x0;
+        field {
+          desc = "A Packet with an invalid length has been received";
+          level intr;
+        } len_error = 0x0;
+
+        field {
+          desc="An uncorrectable multi-bit ECC error has been received";
+          level intr;
+        } multi_bit_ecc_error = 0 ;
+
+        field {
+          desc="Master who was active when ECC Error Occurred";
+          sticky;
+        } active_ecc_master[7:4] = 0;
+
+};                                                         // End of Reg: block_int
+
+reg block_int_en_r {
+        name = "Example Block Interrupt Enable Register";
+        desc = "This is an example of an IP Block with 3 int events";
+
+        default hw=na;                                     // HW can't access the enables
+        default sw=rw;                                     // SW can control them
+
+        field {
+                desc = "Enable: A Packet with a CRC Error has been received";      // Enable
+        } crc_error = 0x1;
+        field {
+                desc = "Enable: A Packet with an invalid length has been received";// Enable
+        } len_error = 0x1;
+        field {
+                desc = "Enable: A Packet with an invalid length has been received";// Mas this off as its a fatal interrupt
+        } multi_bit_ecc_error = 0x0;
+};                                                         // End of Reg: block_int_en_r
+
+reg block_halt_en_r {
+        name = "Example Block Halt Enable Register";
+        desc = "This is an example of an IP Block with 3 int events";
+
+        default hw=na;                                     // HW can't access the enables
+        default sw=rw;                                     // SW can control them
+
+        field {
+          desc = "Enable: A Packet with a CRC Error has been received";
+        } crc_error = 0x0;                                 // not a fatal error do not halt
+        field {
+          desc = "Enable: A Packet with an invalid length has been received";
+        } len_error = 0x0;                                 // not a fatal error do not halt
+        field {
+          desc = "Enable: A Packet with an invalid length has been received";
+        } multi_bit_ecc_error = 0x1;                       // fatal error that will cause device to halt
+};                                                         // End of Reg: block_halt_en_r
+
+
+//------------------------------------------------------------
+// Master Interrupt Status Register
+//------------------------------------------------------------
+
+reg master_int_r {
+        name = "Master Interrupt Status Register";
+        desc = "This register contains the status of the 4 lower Module interrupts.
+                Also an interrupt signal (myMasterInt) is generated which is the 'OR'
+                of the four Module interrupts. A Halt signal is also generated which
+                represents the bitwise or the masked/enabled halt bits";
+
+        default nonsticky intr;                            // Unless we want to have to clear this separately from the leaf intr this should be non sticky
+        default hw=w;                                     // HW normally won't want to access this but it could
+        default sw=r;                                      // Software can just read this. It clears the leaf intr's to clear this
+
+        field {
+                desc = "An interrupt has occurred with ModuleD.
+                        Software ust read the ModuleD Master Interrupt Register
+                        in order to determine the source of the interrupt.";
+        } module_d_int[3:3] = 0x0;
+
+        field {
+                desc = "An interrupt has occurred with ModuleC.
+                        Software must read the ModuleC Master Interrupt Regsiter
+                        in order to determine the source of the interrupt.";
+        } module_c_int[2:2] = 0x0;
+
+        field {
+                desc = "An interrupt has occurred with ModuleB.
+                        Software must read the ModuleB Interrupt Register
+                        in order to determine the source of the interrupt.";
+        } module_b_int[1:1] = 0x0;
+
+        field {
+                desc = "An interrupt has occurred with ModuleA.
+                        Software must read the ModuleA Master Interrupt Register
+                        in order to determine the source of the interrupt.";
+        } module_a_int[0:0] = 0x0;
+};
+
+
+//
+// The following is the accompanying enable register. Since the combinatorial
+// logic for processing the interrupt is internal to the generated verilog,
+// there's no need for an external port - which is realized by assigning "na"
+// to the hw attribute of the specific field.  This could have been defined as
+// a mask register just as easily...
+//
+
+//------------------------------------------------------------
+// Interrupt Enable Register
+//------------------------------------------------------------
+reg master_int_en_r {
+        name = "Master Interrupt Enable Register";
+        desc = "Configurable register used in order to enable the corresponding
+                interrupts found in myMasterInt register.";
+
+        default hw = na;
+        default sw = rw;
+
+        field {
+          desc = "Interrupt enable for ModuleD Interrupts. 1 = enable, 0 = disable";
+        } module_d_int_en[3:3] = 0x0;
+
+        field {
+          desc = "Interrupt enable for ModuleC Interrupts. 1 = enable, 0 = disable";
+        } module_c_int_en[2:2] = 0x0;
+
+        field {
+          desc = "Interrupt enable for ModuleB Interrupts. 1 = enable, 0 = disable";
+        } module_b_int_en[1:1] = 0x0;
+
+        field {
+          desc = "Interrupt enable for ModuelA Interrupts. 1 = enable, 0 = disable";
+        } module_a_int_en[0:0] = 0x0;
+};
+
+
+//------------------------------------------------------------
+// Halt Enable Register
+//------------------------------------------------------------
+
+// The halt en is another enable or mask that could be used to generate an alternate
+// signal like a halt that represents a fatal error in the system or some other event.
+// NOTE: It does not have to mean fatal as the name implies its just another priority level
+//       for interrupts...
+
+reg master_halt_en_r {
+        name = "Master Halt Enable Register";
+        desc = "Configurable register used in order to enable the corresponding
+                interrupts found in myMasterInt register.";
+
+        default hw = na;
+        default sw = rw;
+
+        field {
+          desc = "Halt enable for ModuleD Interrupts. 1 = enable, 0 = disable";
+        } module_d_halt_en[3:3] = 0x0;
+
+        field {
+          desc = "Halt enable for ModuleC Interrupts. 1 = enable, 0 = disable";
+        } module_c_halt_en[2:2] = 0x0;
+
+        field {
+          desc = "Halt enable for ModuleB Interrupts. 1 = enable, 0 = disable";
+        } module_b_halt_en[1:1] = 0x0;
+
+        field {
+          desc = "Halt enable for ModuelA Interrupts. 1 = enable, 0 = disable";
+        } module_a_halt_en[0:0] = 0x0;
+};
+
+
+//------------------------------------------------------------
+// Global Interrupt Status Register
+//------------------------------------------------------------
+
+// This takes the block int which feeds the master int and then distills it down one
+// more level so we end up with a single bit int and single bit halt...
+
+//------------------------------------------------------------
+// Global Interrupt/Halt  Enable Register
+//------------------------------------------------------------
+
+reg final_en_r {
+        name = "My Final Enable Register";
+        desc = "This enable allows all interrupts/halts to be suppressed with a single bit";
+
+        default hw = na;
+        default sw = rw;
+
+        field {
+                desc = "Global Interrupt Enable. 1 = enable, 0 = disable";
+        } global_int_en = 0x0;
+
+        field {
+                desc = "Global Halt Enable. 1 = enable, 0 = disable";
+        } global_halt_en = 0x0;
+
+};
+
+reg final_int_r {
+        name = "My Final Int/Halt Register";
+        desc = "This distills a lower level interrupts into a final bit than can me masked";
+        default sw = r; // sw does not need to clear global_int (global_int is of type final_int_r)
+                        // instead it clears itself when all master_int intr bits get serviced
+
+        default nonsticky intr;
+        default hw = w; // w needed since dyn assign below implies interconnect to hw
+                        //   global_int.global_int->next = master_int->intr;
+
+        field {
+                desc = "Global Interrupt";
+        } global_int = 0x0;
+
+        field {
+                desc = "Global Halt";
+        } global_halt = 0x0;
+};
+
+
+addrmap int_map_m {
+    <% my $pwd = $ENV{PWD};  %>
+
+  name = "Sample ASIC Interrupt Registers";
+  desc = "This register map is designed how one can use interrupt concepts effectively in RDL [url=file://<%=$pwd%>/output/intr_hier.jpg/] interrupt hier tree [/url]";
+
+
+  //
+  // Leaf Interrupts
+  //
+
+  // Block A Registers
+
+  block_int_r      block_a_int;                            // Instance the Leaf Int Register
+  block_int_en_r   block_a_int_en;                         // Instance the corresponding Int Enable Register
+  block_halt_en_r  block_a_halt_en;                        // Instance the corresponding halt enable register
+
+  //
+  // This block connects the int bits to their corresponding int enableds and halt enables
+  //
+  block_a_int.crc_error->enable = block_a_int_en.crc_error;
+  block_a_int.len_error->enable = block_a_int_en.len_error;
+  block_a_int.multi_bit_ecc_error->enable = block_a_int_en.multi_bit_ecc_error;
+
+  block_a_int.crc_error->haltenable = block_a_halt_en.crc_error;
+  block_a_int.len_error->haltenable = block_a_halt_en.len_error;
+  block_a_int.multi_bit_ecc_error->haltenable = block_a_halt_en.multi_bit_ecc_error;
+
+  // Block B Registers
+
+  block_int_r      block_b_int  @0x100;
+  block_int_en_r   block_b_int_en;
+  block_halt_en_r  block_b_halt_en;
+
+  block_b_int.crc_error->enable = block_b_int_en.crc_error;
+  block_b_int.len_error->enable = block_b_int_en.len_error;
+  block_b_int.multi_bit_ecc_error->enable = block_b_int_en.multi_bit_ecc_error;
+
+  block_b_int.crc_error->haltenable = block_b_halt_en.crc_error;
+  block_b_int.len_error->haltenable = block_b_halt_en.len_error;
+  block_b_int.multi_bit_ecc_error->haltenable = block_b_halt_en.multi_bit_ecc_error;
+
+
+  // Block C Registers
+
+  block_int_r      block_c_int @0x200;
+  block_int_en_r   block_c_int_en;
+  block_halt_en_r  block_c_halt_en;
+
+  block_c_int.crc_error->enable = block_c_int_en.crc_error;
+  block_c_int.len_error->enable = block_c_int_en.len_error;
+  block_c_int.multi_bit_ecc_error->enable = block_c_int_en.multi_bit_ecc_error;
+
+  block_c_int.crc_error->haltenable = block_c_halt_en.crc_error;
+  block_c_int.len_error->haltenable = block_c_halt_en.len_error;
+  block_c_int.multi_bit_ecc_error->haltenable = block_c_halt_en.multi_bit_ecc_error;
+
+
+  // Block D Registers
+
+  block_int_r     block_d_int @0x300;
+  block_int_en_r  block_d_int_en;
+  block_halt_en_r block_d_halt_en;
+
+  block_d_int.crc_error->enable = block_d_int_en.crc_error;
+  block_d_int.len_error->enable = block_d_int_en.len_error;
+  block_d_int.multi_bit_ecc_error->enable = block_d_int_en.multi_bit_ecc_error;
+
+  block_d_int.crc_error->haltenable = block_d_halt_en.crc_error;
+  block_d_int.len_error->haltenable = block_d_halt_en.len_error;
+  block_d_int.multi_bit_ecc_error->haltenable = block_d_halt_en.multi_bit_ecc_error;
+
+
+  //
+  // Master Interrupts
+  //
+
+
+  master_int_r               master_int               @0x01000;
+  master_int_r               master_halt                      ;
+  master_int_en_r            master_int_en                    ;
+  master_halt_en_r           master_halt_en                   ;
+
+
+  master_int.module_d_int->enable = master_int_en.module_d_int_en; // Associate the INT with the EN
+  master_int.module_c_int->enable = master_int_en.module_c_int_en; // Associate the INT with the EN
+  master_int.module_b_int->enable = master_int_en.module_b_int_en; // Associate the INT with the EN
+  master_int.module_a_int->enable = master_int_en.module_a_int_en; // Associate the INT with the EN
+
+  master_halt.module_d_int->haltenable = master_halt_en.module_d_halt_en;  // Associate the HALT with the EN
+  master_halt.module_c_int->haltenable = master_halt_en.module_c_halt_en;  // Associate the HALT with the EN
+  master_halt.module_b_int->haltenable = master_halt_en.module_b_halt_en;  // Associate the HALT with the EN
+  master_halt.module_a_int->haltenable = master_halt_en.module_a_halt_en;  // Associate the HALT with the EN
+
+
+  // Now hook the lower level leaf interrupts to the higher level interrupts
+
+  master_int.module_a_int->next = block_a_int->intr;       // This connects the Implicit Or from Block A's INT reg after
+                                                           // masking/enable to the next level up (master)
+
+  master_int.module_b_int->next = block_b_int->intr;       // This connects the Implicit Or from Block B's INT reg after
+                                                           // masking/enable to the next level up (master)
+
+  master_int.module_c_int->next = block_c_int->intr;       // This connects the Implicit Or from Block C's INT reg after
+                                                           // masking/enable to the next level up (master)
+
+  master_int.module_d_int->next = block_d_int->intr;       // This connects the Implicit Or from Block D's INT reg after
+                                                           // masking/enable to the next level up (master)
+
+
+  master_halt.module_a_int->next = block_a_int->halt;      // This connects the Implicit Or from Block A's HALT reg after
+                                                           // masking/enable to the next level up (master)
+
+  master_halt.module_b_int->next = block_b_int->halt;      // This connects the Implicit Or from Block B's HALT reg after
+                                                           // masking/enable to the next level up (master)
+
+  master_halt.module_c_int->next = block_c_int->halt;      // This connects the Implicit Or from Block C's HALT reg after
+                                                           // masking/enable to the next level up (master)
+
+  master_halt.module_d_int->next = block_d_int->halt;      // This connects the Implicit Or from Block D's HALT reg after
+                                                           // masking/enable to the next level up (master)
+
+
+
+  final_int_r     global_int    @0x1010;                   // Inst the global int/halt register
+  final_en_r      global_int_en @0x1014;                   // Inst the global int/halt enable register
+
+  global_int.global_int->enable      = global_int_en.global_int_en;// Associate the INT with the EN
+  global_int.global_halt->haltenable = global_int_en.global_halt_en;       // Associate the HALT with the EN
+
+
+  global_int.global_int->next = master_int->intr;          // Take the or of the 4 blocks in the master
+                                                           // Int and create one final interrupt
+
+  global_int.global_halt->next = master_halt->halt;        // Take the or of the 4 blocks in the master
+                                                           // Int and create one final halt
+
+};

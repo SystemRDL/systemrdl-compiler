@@ -1,0 +1,1130 @@
+// ============================================================================
+//
+// Program  : generic_example.rdl
+// Language : Register Description Language (RDL)
+// Purpose  : This is a generic example designed to show a number of the
+//            RDL Language Features...
+//
+// ============================================================================
+
+//  Revision:    $Revision:$
+//  Date:        $Date:$
+//
+//  Copyright (c) 2009 The SPIRIT Consortium.
+//
+//  This work forms part of a deliverable of The SPIRIT Consortium.
+//
+//  Use of these materials are governed by the legal terms and conditions
+//  outlined in the disclaimer available from www.spiritconsortium.org.
+//
+//  This source file is provided on an AS IS basis.  The SPIRIT
+//  Consortium disclaims any warranty express or implied including
+//  any warranty of merchantability and fitness for use for a
+//  particular purpose.
+//
+//  The user of the source file shall indemnify and hold The SPIRIT
+//  Consortium and its members harmless from any damages or liability.
+//  Users are requested to provide feedback to The SPIRIT Consortium
+//  using either mailto:feedback@lists.spiritconsortium.org or the forms at
+//  http://www.spiritconsortium.org/about/contact_us/
+//
+//  This file may be copied, and distributed, with or without
+//  modifications; this notice must be included on any copy.
+//
+`include "sata_constants.rdl"
+// Enums have to be defined before being used!
+//
+enum ISS_ENUM {
+  RESERVED = 4'd0  { desc = "Currently Reserved"; };
+  GEN_1    = 4'd1  { desc = "1.5 Gbps Link Speed Only!"; };
+  GEN_2    = 4'd2  { desc = "1.5 Gbps and 3.0 Gbps Support"; };
+};                                                                   // End of enum: Inteface_Speed_Support
+
+
+//============================================================================
+//
+// SATA AHCI General Purpose Registers
+// These are not replicated per Port
+//
+//============================================================================
+
+reg HBA_CAP_REG {
+   name = "CAP - HBA Capabilities";
+   desc = "This register indicates basic capabilities of the HBA to driver software.";
+
+   default hw=na;                                                    // All the fields in the this register have the same properties
+   default sw=r;                                                     // So define them global for this register
+
+   field {
+       desc = "Number of Ports (NP): 0's based value indicating the maximum number of ports
+               supported by the HBA silicon. A maximum of 32 ports can be supported. A value of
+               '0h', indicating one port, is the minimum requirement. Note that the number of ports
+               indicated in this field may be more than the number of ports indicated in the GHC.PI
+               register.";
+   } NP[5] = 5'b0_00_01;
+
+  field {
+    desc = "Supports External SATA (SXS): When set to '1', indicates that the HBA has one or
+            more Serial ATA ports that has a signal only connector that is externally accessible. If
+            this bit is set to '1', software may refer to the PxCMD.ESP bit to determine whether a
+            specific port has its signal connector externally accessible as a signal only connector
+            (i.e. power is not part of that connector). When the bit is cleared to '0', indicates that
+            the HBA has no Serial ATA ports that have a signal only connector externally
+            accessible.";
+  } SXS = 1'b1;                                                      // Since no offset was specified this is automatically bits[5:5]
+
+  field {
+    desc="Enclosure Management Supported (EMS): When set to '1', indicates that the HBA
+          supports enclosure management as defined in section 12. When enclosure
+          management is supported, the HBA has implemented the EM_LOC and EM_CTL
+          global HBA registers. When cleared to '0', indicates that the HBA does not support
+          enclosure management and the EM_LOC and EM_CTL global HBA registers are not
+          implemented.";
+  } EMS = 0;
+
+  field {
+    desc="Command Completion Coalescing Supported (CCCS): When set to '1', indicates
+          that the HBA supports command completion coalescing as defined in section 11. When
+          command completion coalescing is supported, the HBA has implemented the
+          CCC_CTL and the CCC_PORTS global HBA registers. When cleared to '0', indicates
+          that the HBA does not support command completion coalescing and the CCC_CTL and
+          CCC_PORTS global HBA registers are not implemented.";
+  } CCCS = 1'b1;
+
+  field {
+    desc="Number of Command Slots (NCS): 0's based value indicating the number of
+          command slots per port supported by this HBA. A minimum of 1 and maximum of 32
+          slots per port can be supported. The same number of command slots is available on
+          each implemented port.";
+  } NCS[5]  = 5'h1f;                                                 // This should map to bits [12:8]
+
+
+  field {
+    desc="Partial State Capable (PSC): Indicates whether the HBA can support transitions to the
+          Partial state. When cleared to '0', software must not allow the HBA to initiate transitions
+          to the Partial state via agressive link power management nor the PxCMD.ICC field in
+          each port, and the PxSCTL.IPM field in each port must be programmed to disallow
+          device initiated Partial requests. When set to '1', HBA and device initiated Partial
+          requests can be supported.";
+  } PSC = 1'b1;
+
+  field {
+    desc="Slumber State Capable (SSC): Indicates whether the HBA can support transitions to
+          the Slumber state. When cleared to '0', software must not allow the HBA to initiate
+          transitions to the Slumber state via agressive link power management nor the
+          PxCMD.ICC field in each port, and the PxSCTL.IPM field in each port must be
+          programmed to disallow device initiated Slumber requests. When set to '1', HBA and
+          device initiated Slumber requests can be supported.";
+  } SSC = 1'b1;
+
+  field {
+    desc="PIO Multiple DRQ Block (PMD): If set to '1', the HBA supports multiple DRQ block
+          data transfers for the PIO command protocol. If cleared to '0' the HBA only supports
+          single DRQ block data transfers for the PIO command protocol.";
+  } PMD = 1'b1;
+
+  field {
+    desc="FIS-based Switching Supported (FBSS): When set to '1', indicates that the HBA
+          supports Port Multiplier FIS-based switching. When cleared to '0', indicates that the
+          HBA does not support FIS-based switching. AHCI 1.0 and 1.1 HBAs shall have this bit
+          cleared to '0'.";
+  } FBSS = 0;
+
+  field {
+    desc="Supports Port Multiplier (SPM): Indicates whether the HBA can support a Port
+          Multiplier. When set, a Port Multiplier using command-based switching is supported.
+          When cleared to '0', a Port Multiplier is not supported, and a Port Multiplier may not be
+          attached to this HBA.";
+
+  } SPM = 0;
+
+  field {
+    desc="Supports AHCI mode only (SAM): The SATA controller may optionally support AHCI
+          access mechanisms only. A value of '0' indicates that in addition to the native AHCI
+          mechanism (via ABAR), the SATA controller implements a legacy, task-file based
+          register interface such as SFF-8038i. A value of '1' indicates that the SATA controller
+          does not implement a legacy, task-file based register interface.";
+  } SAM = 1'b1;
+
+  field {
+    desc="Supports Non-Zero DMA Offsets (SNZO): When set to '1', indicates that the HBA
+          can support non-zero DMA offsets for DMA Setup FISes. This bit is reserved for future
+          AHCI enhancements. AHCI 1.0 and 1.1 HBAs shall have this bit cleared to '0'";
+  } SNZO = 0;
+
+
+  field {
+    desc="Interface Speed Support (ISS): Indicates the maximum speed the HBA can support
+          on its ports. These encodings match the system software programmable
+          PxSCTL.DET.SPD field.";
+
+    encode = ISS_ENUM;
+
+  } ISS[4] = 4'b0011;
+
+  field {
+    desc="Supports Command List Override (SCLO): When set to '1', the HBA supports the
+          PxCMD.CLO bit and its associated function. When cleared to '0', the HBA is not
+          capable of clearing the BSY and DRQ bits in the Status register in order to issue a
+          software reset if these bits are still set from a previous operation.";
+  } SCLO = 1'b1;
+
+  field {
+    desc="Supports Activity LED (SAL): When set to '1', the HBA supports a single activity
+          indication output pin. This pin can be connected to an LED on the platform to indicate
+          device activity on any drive. When cleared to '0', this function is not supported. See
+          section 10.10 for more information.";
+  } SAL = 0 ;
+
+  field {
+    desc="Supports Aggressive Link Power Management (SALP): When set to '1', the HBA
+          can support auto-generating link requests to the Partial or Slumber states when there
+          are no commands to process. When cleared to '0', this function is not supported and
+          software shall treat the PxCMD.ALPE and PxCMD.ASP bits as reserved. Refer to
+          section 8.3.1.3.";
+  } SALP = 1'b1;
+
+  field {
+    desc="Supports Staggered Spin-up (SSS): When set to '1', the HBA supports staggered
+          spin-up on its ports, for use in balancing power spikes. When cleared to '0', this
+          function is not supported. This value is loaded by the BIOS prior to OS initiallization.";
+  } SSS = 0;
+
+  field {
+    desc="Supports Mechanical Presence Switch (SMPS): When set to '1', the HBA supports
+          mechanical presence switches on its ports for use in hot plug operations. When
+          cleared to '0', this function is not supported. This value is loaded by the BIOS prior to
+          OS initialization.";
+  } SMPS = 0;
+
+  field {
+    desc="Supports SNotification Register (SSNTF): When set to '1', the
+          HBA supports the PxSNTF (SNotification) register and its associated functionality.
+          When cleared to '0', the HBA does not support the PxSNTF (SNotification) register and
+          its associated functionality. Refer to section 10.10.1.";
+  } SSNTF = 1'b1;
+
+  field {
+    desc="Supports Native Command Queuing (SNCQ): Indicates whether the HBA supports
+          Serial ATA native command queuing. If set to '1', an HBA shall handle DMA Setup
+          FISes natively, and shall handle the auto-activate optimization through that FIS. If
+          cleared to '0', native command queuing is not supported and software should not issue
+          any native command queuing commands.";
+  } SNCQ = 1'b1;
+
+  field {
+    desc="Supports 64-bit Addressing (S64A): Indicates whether the HBA can access 64-bit
+          data structures. When set to '1', the HBA shall make the 32-bit upper bits of the port
+          DMA Descriptor, the PRD Base, and each PRD entry read/write. When cleared to '0',
+          these are read-only and treated as '0' by the HBA.";
+  } S64A = 0;
+
+};                                                                   // end reg definition HBA_CAP_REG
+
+reg GHC_REG {
+  desc = "This register controls various global actions of the HBA.";
+
+  field {
+    woset;                                                           // Write 1 to Set
+    desc="HBA Reset (HR): When set by SW, this bit causes an internal reset of the HBA. All
+          state machines that relate to data transfers and queuing shall return to an idle
+          condition, and all ports shall be re-initialized via COMRESET (if staggered spin-up is
+          not supported). If staggered spin-up is supported, then it is the responsibility of
+          software to spin-up each port after the reset has completed.
+          When the HBA has performed the reset action, it shall reset this bit to '0'. A software
+          write of '0' shall have no effect. For a description on which bits are reset when this bit is
+          set, see section 10.4.3.";
+  } HR = 0 ;
+
+  field {
+    // Default Attr is: hw=rw sw=rw
+    desc = "Interrupt Enable (IE): This global bit enables interrupts from the HBA. When cleared
+            (reset default), all interrupt sources from all ports are disabled. When set, interrupts are
+            enabled.";
+  } IE = 0;
+
+  field {
+    sw = r;
+    desc="MSI Revert to Single Message (MRSM): When set to '1' by hardware, indicates that
+          the HBA requested more than one MSI vector but has reverted to using the first vector
+          only. When this bit is cleared to '0', the HBA has not reverted to single MSI mode (i.e.
+          hardware is already in single MSI mode, software has allocated the number of
+          messages requested, or hardware is sharing interrupt vectors if MC.MME < MC.MMC).
+          The HBA may revert to single MSI mode when the number of vectors allocated by the
+          host is less than the number requested. This bit shall only be set to '1' when the
+          following conditions hold:
+          * MC.MSIE = '1' (MSI is enabled)
+          * MC.MMC > 0 (multiple messages requested)
+          * MC.MME > 0 (more than one message allocated)
+          * MC.MME != MC.MMC (messages allocated not equal to number requested)
+          When this bit is set to '1', single MSI mode operation is in use and software is
+          responsible for clearing bits in the IS register to clear interrupts.
+          This bit shall be cleared to '0' by hardware when any of the four conditions stated is
+          false. This bit is also cleared to '0' when MC.MSIE = '1' and MC.MME = 0h. In this
+          case, the hardware has been programmed to use single MSI mode, and is not
+          reverting to that mode.";
+  } MRSM = 0 ;
+
+  field {
+    hw=na;
+    sw=r;
+    desc="AHCI Enable (AE): When set, indicates that communication to the HBA shall be via
+          AHCI mechanisms. This can be used by an HBA that supports both legacy
+          mechanisms (such as SFF-8038i) and AHCI to know when the HBA is running under an
+          AHCI driver.
+          When set, software shall only communicate with the HBA using AHCI. When cleared,
+          software shall only communicate with the HBA using legacy mechanisms. When
+          cleared FISes are not posted to memory and no commands are sent via AHCI
+          mechanisms.
+          Software shall set this bit to '1' before accessing other AHCI registers.
+          The implementation of this bit is dependent upon the value of the CAP.SAM bit. If
+          CAP.SAM is '0', then GHC.AE shall be read-write and shall have a reset value of '0'. If
+          CAP.SAM is '1', then AE shall be read-only and shall have a reset value of '1'.";
+  } AE[31:31] = 1'b1;
+
+
+};                                                                   // End of Reg: GHC_REG
+
+reg IS_REG {
+  desc = "This register indicates which of the ports within the controller have an interrupt pending and require
+          service.";
+
+  field {
+    intr;                                                            // Define this register an interrupt register. See RDL Guide 4.11
+    stickybit;                                                       // Define each bit of this vector as sticky. See RDL Guide 4.11
+
+    desc="Interrupt Pending Status (IPS): If set, indicates that the corresponding port has an
+          interrupt pending. Software can use this information to determine which ports require
+          service after an interrupt.
+          The IPS[x] bit is only defined for ports that are implemented or for the command
+          completion coalescing interrupt defined by CCC_CTL.INT. All other bits are reserved.";
+  } IPS[<%=$NUM_SATA_PORTS%>] = <%=$NUM_SATA_PORTS%>'b1;
+
+};                                                                   // End of Reg: IS_REG
+
+reg PI_REG {
+  desc = "This register indicates which ports are exposed by the HBA. It is loaded by the BIOS. It indicates which
+          ports that the HBA supports are available for software to use. For example, on an HBA that supports 6
+          ports as indicated in CAP.NP, only ports 1 and 3 could be available, with ports 0, 2, 4, and 5 being
+          unavailable.
+          Software must not read or write to registers within unavailable ports.
+          The intent of this register is to allow system vendors to build platforms that support less than the full
+          number of ports implemented on the HBA silicon.";
+
+  field {
+    hw=rw;
+    sw=r;
+    desc="Port Implemented (PI): This register is bit significant. If a bit is set to '1', the
+          corresponding port is available for software to use. If a bit is cleared to '0', the port is
+          not available for software to use. The maximum number of bits set to '1' shall not
+          exceed CAP.NP + 1, although the number of bits set in this register may be fewer than
+          CAP.NP + 1. At least one bit shall be set to '1'.";
+  } PI[<%=$NUM_SATA_PORTS%>] = <%=$NUM_SATA_PORTS%>'b1;
+
+  // The Literal value 32 should be replaced with a const or PERL Value...
+
+};                                                                   // End of Reg: PI_REG
+
+reg VS_REG {
+  default hw=na;
+  default sw=r;
+  desc="This register indicates the major and minor version of the AHCI specification that the HBA implementation
+        supports. The upper two bytes represent the major version number, and the lower two bytes represent
+        the minor version number. Example: Version 3.12 would be represented as 00030102h. Three versions
+        of the specification are valid: 0.95, 1.0, and 1.1.";
+
+  field {
+    desc="Minor Version Number (MNR)";
+  } MNR[16] = 16'h0100;
+
+  field {
+    desc="Major Version Number (MJR)";
+  } MJR[16] = 16'b1;
+
+};                                                                   // End of Reg: VS_REG
+
+reg CCC_CTL_REG {
+
+  desc = "CCC_CTL - Command Completion Coalescing Control
+          The command completion coalescing control register is used to configure the command completion
+          coalescing feature for the entire HBA.
+          Implementation Note: HBA state variables (examples include hCccComplete and hCccTimer) are used
+          to describe the required externally visible behavior. Implementations are not required to have internal
+          state values that directly correspond to these variables.";
+
+  field {
+    desc="Enable (EN): When cleared to '0', the command completion coalescing feature is
+          disabled and no CCC interrupts are generated. When set to '1', the command
+          completion coalescing feature is enabled and CCC interrupts may be generated based
+          on timeout or command completion conditions. Software shall only change the contents
+          of the TV and CC fields when EN is cleared to '0'. On transition of this bit from '0' to '1',
+          any updated values for the TV and CC fields shall take effect.";
+  } EN = 0;
+
+  field {
+     desc="Interrupt (INT): Specifies the interrupt used by the CCC feature. This interrupt must be
+           marked as unused in the Ports Implemented (PI) register by the corresponding bit being
+           set to '0'. Thus, the CCC interrupt corresponds to the interrupt for an unimplemented
+           port on the controller. When a CCC interrupt occurs, the IS.IPS[INT] bit shall be
+           asserted to '1'. This field also specifies the interrupt vector used for MSI.";
+     sw = r;
+  } INT[7:3] = 5'd<%=$NUM_SATA_PORTS+1%>;                  // Use The First Int at the End of implimented ports.
+  field {
+    desc="Command Completions (CC): Specifies the number of command completions that are
+          necessary to cause a CCC interrupt. The HBA has an internal command completion
+          counter, hCccComplete. hCccComplete is incremented by one each time a selected
+          port has a command completion. When hCccComplete is equal to the command
+          completions value, a CCC interrupt is signaled. The internal command completion
+          counter is reset to '0' on the assertion of each CCC interrupt. A value of '0' for this field
+          shall disable CCC interrupts being generated based on the number of commands
+          completed, i.e. CCC interrupts are only generated based on the timer in this case.";
+  } CC[8] = 8'b1;
+
+  field {
+    desc="Timeout Value (TV): The timeout value is specified in 1 millisecond intervals. The timer
+          accuracy shall be within 5%. hCccTimer is loaded with this timeout value. hCccTimer is
+          only decremented when commands are outstanding on selected ports, as defined in
+          section 11.2. The HBA will signal a CCC interrupt when hCccTimer has decremented to
+          '0'. hCccTimer is reset to the timeout value on the assertion of each CCC interrupt. A
+          timeout value of '0' is reserved.";
+    counter;
+    underflow;
+    we;
+    decrvalue = 0x1;
+  } TV[16] = 16'h1;
+};                                                                   // End of Reg: CCC_CTL_REG
+
+reg CCC_PORTS_REG {
+
+  desc="The command completion coalescing ports register is used to specify the ports that are coalesced as part
+        of the CCC feature when CCC_CTL.EN = '1'.";
+
+  field {
+    desc="Ports (PRT): This register is bit significant. Each bit corresponds to a particular port,
+          where bit 0 corresponds to port 0. If a bit is set to '1', the corresponding port is part of
+          the command completion coalescing feature. If a bit is cleared to '0', the port is not part
+          of the command completion coalescing feature. Bits set to '1' in this register must also
+          have the corresponding bit set to '1' in the Ports Implemented register. An updated
+          value for this field shall take effect within one timer increment (1 millisecond).";
+  } PRT[32] = 32'h0 ;
+};                                                                   // End of Reg: CCC_PORTS
+
+reg EM_LOC_REG {
+
+  default hw=na;                                                     // These are wires. Denali SATA Core does not support this funtion
+  default sw=r;
+
+  desc = "The enclosure management location register identifies the location and size of the enclosure
+          management message buffer.";
+
+  field {
+    desc="Buffer Size (SZ): Specifies the size of the transmit message buffer area in Dwords. If
+          both transmit and receive buffers are supported, then the transmit buffer begins at
+          ABAR[EM_LOC.OFST*4] and the receive buffer directly follows it. If both transmit and
+          receive buffers are supported, both buffers are of the size indicated in the Buffer Size
+          field. A value of '0' is invalid.";
+
+  } SZ[16] = 16'h0 ;
+
+  field {
+    desc="Offset (OFST): The offset of the message buffer in Dwords from the beginning of the
+          ABAR.";
+  } OFST[16] = 16'h0;
+
+};                                                                   // End of Reg: EM_LOC_REGr
+
+reg EM_CTL_REG {
+
+  desc="This register is used to control and obtain status for the enclosure management interface. The register
+        includes information on the attributes of the implementation, enclosure management messages
+        supported, the status of the interface, whether any messages are pending, and is used to initiate sending
+        messages";
+
+  default hw = na;
+  default sw = r;
+
+  field {
+    desc="Single Message Buffer (ATTR.SMB): If set to '1', the HBA has one message buffer
+          that is shared for messages to transmit and messages received. In this case,
+          unsolicited receive messages are not supported and it is software's responsibility to
+          manage access to this buffer. If cleared to '0', there are separate receive and transmit
+          buffers such that unsolicited messages could be supported.";
+  } ATTR_SMB[24:24] = 1'b1;
+
+};                                                                   // End of Reg: EM_CTL_REG
+
+
+//============================================================================
+//
+// Vendor Specific Registers:
+// Registers at Offset A0h to FFh are reserved for vendor specific capabilities
+//
+//============================================================================
+
+reg den_sata_config_reg {
+
+  field {
+    desc="Foo";
+  } bar[32] = 32'h0;
+
+};                                                                   // End of Reg: den_sata_config_reg
+
+regfile PORT_REGFILE {
+
+  desc="the same register mapping. Port 1 starts at 180h, port 2 starts at 200h, port 3 at 280h, etc. The algorithm
+        for software to determine the offset is as follows:
+        * Port offset = 100h + (PI Asserted Bit Position * 80h)";
+
+  reg CLB_REG {
+    desc="Port N Command List Base Address";
+
+    field {
+      desc="Command List Base Address (CLB): Indicates the 32-bit base physical address for
+            the command list for this port. This base is used when fetching commands to execute.
+            The structure pointed to by this address range is 1K-bytes in length. This address must
+            be 1K-byte aligned as indicated by bits 09:00 being read only.";
+    } CLB[31:20] = 0 ;
+  };                                                                 // End of Reg: CLB_REG
+
+  reg CLBU_REG {
+    desc="Port N Command List Base Address Upper 32-bits";
+
+    field {
+      hw=na;                                                         // Read Only since Denali SATA Does not impliment 64 bit Addressing
+      sw=r;
+      desc="FIS Base Address Upper (FBU): Indicates the upper 32-bits for the received FIS base
+            physical address for this port.
+            This register shall be read only '0' for HBAs that do not support 64-bit addressing.";
+    } CLBU[32] = 32'h0;
+  };                                                                 // End of Reg: CLBU
+
+  reg FB_REG {
+    desc="Port N FIS Base Address";
+
+    field {
+      desc="FIS Base Address (FB): Indicates the 32-bit base physical address for received
+            FISes. The structure pointed to by this address range is 256 bytes in length. This
+            address must be 256-byte aligned as indicated by bits 07:00 being read only.";
+    } FB[31:8] = 24'h0;
+  };                                                                 // End of Reg: FB
+
+  reg FBU_REG {
+    desc="Port N FIS Base Address Upper 32-bits";
+
+    field {
+      hw=na;                                                         // Read Only since Denali SATA Does not impliment 64 bit Addressing
+      sw=r;
+      desc="FIS Base Address Upper (FBU): Indicates the upper 32-bits for the received FIS base
+            physical address for this port.
+            This register shall be read only '0' for HBAs that do not support 64-bit addressing.";
+    } FBU[32] = 32'h0;
+  };
+
+    reg IS_REG {
+      default intr;                                                  // Interrupt Register
+      default woclr;                                                 // Write 1 to Clear
+      default stickybit;                                             // Each Bit is Sticky (Default)
+
+      field {
+        desc="Device to Host Register FIS Interrupt (DHRS): A D2H Register FIS has been
+              received with the 'I' bit set, and has been copied into system memory.";
+      } DHRS = 0;
+      field {
+        desc="PIO Setup FIS Interrupt (PSS): A PIO Setup FIS has been received with the 'I' bit set,
+              it has been copied into system memory, and the data related to that FIS has been
+              transferred. This bit shall be set even if the data transfer resulted in an error.";
+      } PSS = 0;
+      field {
+        desc="DMA Setup FIS Interrupt (DSS): A DMA Setup FIS has been received with the 'I' bit
+              set and has been copied into system memory.";
+      } DSS = 0;
+
+      field {
+        desc="Set Device Bits Interrupt (SDBS): A Set Device Bits FIS has been received with the
+              'I' bit set and has been copied into system memory.";
+      } SBDS = 0;
+
+      field {
+        desc="Unknown FIS Interrupt (UFS): When set to '1', indicates that an unknown FIS was
+              received and has been copied into system memory. This bit is cleared to '0' by
+              software clearing the PxSERR.DIAG.F bit to '0'. Note that this bit does not directly
+              reflect the PxSERR.DIAG.F bit. PxSERR.DIAG.F is set immediately when an unknown
+              FIS is detected, whereas this bit is set when that FIS is posted to memory. Software
+              should wait to act on an unknown FIS until this bit is set to '1' or the two bits may
+              become out of sync.";
+      } UFS = 0;
+
+      field {
+        desc="Descriptor Processed (DPS): A PRD with the 'I' bit set has transferred all of its data.
+              Refer to section 5.4.2.";
+      } DPS = 0;
+
+      field {
+        desc="Port Connect Change Status (PCS): 1=Change in Current Connect Status. 0=No
+              change in Current Connect Status. This bit reflects the state of PxSERR.DIAG.X. This
+              bit is only cleared when PxSERR.DIAG.X is cleared.";
+      } PCS = 0 ;
+
+      field {
+        desc="Device Mechanical Presence Status (DMPS): When set, indicates that a mechanical
+              presence switch attached to this port has been opened or closed, which may lead to a
+              change in the connection state of the device. This bit is only valid if both CAP.SMPS
+              and P0CMD.MPSP are set to '1'.";
+      } DMPS = 0;
+
+      field {
+        desc="PhyRdy Change Status (PRCS): When set to '1' indicates the internal PhyRdy signal
+              changed state. This bit reflects the state of P0SERR.DIAG.N. To clear this bit,
+              software must clear P0SERR.DIAG.N to '0'";
+      } PRCS[22:22] = 0;
+
+
+      field {
+        desc="Incorrect Port Multiplier Status (IPMS): Indicates that the HBA received a FIS from a
+              device whose Port Multiplier field did not match what was expected. The IPMS bit may
+              be set during enumeration of devices on a Port Multiplier due to the normal Port
+              Multiplier enumeration process. It is recommended that IPMS only be used after
+              enumeration is complete on the Port Multiplier.";
+      } IPMS = 0;
+
+      field {
+        desc="Overflow Status (OFS): Indicates that the HBA received more bytes from a device
+              than was specified in the PRD table for the command.";
+      } OFS = 0;
+
+      field {
+        desc="Interface Non-fatal Error Status (INFS): Indicates that the HBA encountered an error
+              on the Serial ATA interface but was able to continue operation. Refer to section 6.1.2.";
+      } IONFS[26:26] = 0 ;
+
+      field {
+        desc="Interface Fatal Error Status (IFS): Indicates that the HBA encountered an error on
+              the Serial ATA interface which caused the transfer to stop. Refer to section 6.1.2.";
+      } IFS = 0;
+
+      field {
+        desc="Host Bus Data Error Status (HBDS): Indicates that the HBA encountered a data error
+              (uncorrectable ECC / parity) when reading from or writing to system memory.";
+      } HBDS = 0;
+
+      field {
+        desc="Host Bus Fatal Error Status (HBFS): Indicates that the HBA encountered a host bus
+              error that it cannot recover from, such as a bad software pointer. In PCI, such an
+              indication would be a target or master abort.";
+      } HBFS = 0;
+
+      field {
+        desc="Task File Error Status (TFES): This bit is set whenever the status register is updated
+              by the device and the error bit (bit 0) is set.";
+      } TFES = 0;
+
+      field {
+        desc="Cold Port Detect Status (CPDS): When set, a device status has changed as detected
+              by the cold presence detect logic. This bit can either be set due to a non-connected
+              port receiving a device, or a connected port having its device removed. This bit is only
+              valid if the port supports cold presence detect as indicated by PxCMD.CPD set to '1'.";
+      } CPDS = 0;
+
+    };                                                               // End of Reg: IS_REG
+
+    reg IE_REG {
+      default hw=r;
+
+      field {
+        desc="Device to Host Register FIS Interrupt (DHRS): A D2H Register FIS has been
+              received with the 'I' bit set, and has been copied into system memory.";
+      } DHRE = 0;
+      field {
+        desc="PIO Setup FIS Interrupt (PSS): A PIO Setup FIS has been received with the 'I' bit set,
+              it has been copied into system memory, and the data related to that FIS has been
+              transferred. This bit shall be set even if the data transfer resulted in an error.";
+      } PSE = 0;
+      field {
+        desc="DMA Setup FIS Interrupt (DSS): A DMA Setup FIS has been received with the 'I' bit
+              set and has been copied into system memory.";
+      } DSE = 0;
+
+      field {
+        desc="Set Device Bits Interrupt (SDBS): A Set Device Bits FIS has been received with the
+              'I' bit set and has been copied into system memory.";
+      } SBDE = 0;
+
+      field {
+        desc="Unknown FIS Interrupt (UFS): When set to '1', indicates that an unknown FIS was
+              received and has been copied into system memory. This bit is cleared to '0' by
+              software clearing the PxSERR.DIAG.F bit to '0'. Note that this bit does not directly
+              reflect the PxSERR.DIAG.F bit. PxSERR.DIAG.F is set immediately when an unknown
+              FIS is detected, whereas this bit is set when that FIS is posted to memory. Software
+              should wait to act on an unknown FIS until this bit is set to '1' or the two bits may
+              become out of sync.";
+      } UFS = 0;
+
+      field {
+        desc="Descriptor Processed (DPS): A PRD with the 'I' bit set has transferred all of its data.
+              Refer to section 5.4.2.";
+      } DPE = 0;
+
+      field {
+        desc="Port Connect Change Status (PCS): 1=Change in Current Connect Status. 0=No
+              change in Current Connect Status. This bit reflects the state of PxSERR.DIAG.X. This
+              bit is only cleared when PxSERR.DIAG.X is cleared.";
+      } PCE = 0 ;
+
+      field {
+        desc="Device Mechanical Presence Status (DMPS): When set, indicates that a mechanical
+              presence switch attached to this port has been opened or closed, which may lead to a
+              change in the connection state of the device. This bit is only valid if both CAP.SMPS
+              and P0CMD.MPSP are set to '1'.";
+      } DMPE = 0;
+
+      field {
+        desc="PhyRdy Change Status (PRCS): When set to '1' indicates the internal PhyRdy signal
+              changed state. This bit reflects the state of P0SERR.DIAG.N. To clear this bit,
+              software must clear P0SERR.DIAG.N to '0'";
+      } PRCE[22:22] = 0;
+
+
+      field {
+        desc="Incorrect Port Multiplier Status (IPMS): Indicates that the HBA received a FIS from a
+              device whose Port Multiplier field did not match what was expected. The IPMS bit may
+              be set during enumeration of devices on a Port Multiplier due to the normal Port
+              Multiplier enumeration process. It is recommended that IPMS only be used after
+              enumeration is complete on the Port Multiplier.";
+      } IPME = 0;
+
+      field {
+        desc="Overflow Status (OFS): Indicates that the HBA received more bytes from a device
+              than was specified in the PRD table for the command.";
+      } OFE = 0;
+
+      field {
+        desc="Interface Non-fatal Error Status (INFS): Indicates that the HBA encountered an error
+              on the Serial ATA interface but was able to continue operation. Refer to section 6.1.2.";
+      } IONFE[26:26] = 0 ;
+
+      field {
+        desc="Interface Fatal Error Status (IFS): Indicates that the HBA encountered an error on
+              the Serial ATA interface which caused the transfer to stop. Refer to section 6.1.2.";
+      } IFE = 0;
+
+      field {
+        desc="Host Bus Data Error Status (HBDS): Indicates that the HBA encountered a data error
+              (uncorrectable ECC / parity) when reading from or writing to system memory.";
+      } HBDE = 0;
+
+      field {
+        desc="Host Bus Fatal Error Status (HBFS): Indicates that the HBA encountered a host bus
+              error that it cannot recover from, such as a bad software pointer. In PCI, such an
+              indication would be a target or master abort.";
+      } HBFE = 0;
+
+      field {
+        desc="Task File Error Status (TFES): This bit is set whenever the status register is updated
+              by the device and the error bit (bit 0) is set.";
+      } TFEE = 0;
+
+      field {
+        desc="Cold Port Detect Status (CPDS): When set, a device status has changed as detected
+              by the cold presence detect logic. This bit can either be set due to a non-connected
+              port receiving a device, or a connected port having its device removed. This bit is only
+              valid if the port supports cold presence detect as indicated by PxCMD.CPD set to '1'.";
+      } CPDE = 0;
+
+    };                                                               // End of Reg: IE_REG
+
+
+  enum ICC_ENUM {
+    Slumber = 4'h6 { desc = "This shall cause the HBA to request a transition of the
+                             interface to the Slumber state. The SATA device may reject the
+                             request and the interface shall remain in its current state.
+                             5h - 3h Reserved"; };
+
+    PARTIAL = 4'h2 { desc = "This shall cause the HBA to request a transition of the
+                             interface to the Partial state. The SATA device may reject the
+                             request and the interface shall remain in its current state."; };
+
+
+    ACTIVE  = 4'h1 { desc = "This shall cause the HBA to request a transition of the
+                             interface into the active state.";  };
+
+    NO_OP_IDLE = 4'h0 { desc ="When software reads this value, it indicates the HBA is
+                               ready to accept a new interface control command, although the
+                               transition to the previously selected state may not yet have occurred."; };
+
+  };                                                /* End of enum: ICC_E {*/
+
+  reg ICC_REG {
+
+
+    field {
+      desc="Start (ST): When set, the HBA may process the command list. When cleared, the
+            HBA may not process the command list. Whenever this bit is changed from a '0' to a
+            '1', the HBA starts processing the command list at entry '0'. Whenever this bit is
+            changed from a '1' to a '0', the PxCI register is cleared by the HBA upon the HBA
+            putting the controller into an idle state. This bit shall only be set to '1' by software after
+            PxCMD.FRE has been set to '1'. Refer to section 10.3.1 for important restrictions on
+            when ST can be set to '1'. ";
+    } ST = 0;
+
+    field {
+      desc="Spin-Up Device (SUD): This bit is read/write for HBAs that support staggered spin-up
+            via CAP.SSS. This bit is read only '1' for HBAs that do not support staggered spin-up.
+            On an edge detect from '0' to '1', the HBA shall start a COMRESET initializatoin
+            sequence to the device. Clearing this bit to '0' does not cause any OOB signal to be
+            sent on the interface. When this bit is cleared to '0' and PxSCTL.DET=0h, the HBA will
+            enter listen mode as detailed in section 10.9.1.";
+    } SUD = 0 ;
+
+    field {
+      desc="Power On Device (POD): This bit is read/write for HBAs that support cold presence
+            detection on this port as indicated by PxCMD.CPD set to '1'. This bit is read only '1' for
+            HBAs that do not support cold presence detect. When set, the HBA sets the state of a
+            pin on the HBA to '1' so that it may be used to provide power to a cold-presence
+            detectable port.";
+    } POD = 0 ;
+
+    field {
+      desc="Command List Override (CLO): Setting this bit to '1' causes PxTFD.STS.BSY and
+            PxTFD.STS.DRQ to be cleared to '0'. This allows a software reset to be transmitted to
+            the device regardless of whether the BSY and DRQ bits are still set in the PxTFD.STS
+            register. The HBA sets this bit to '0' when PxTFD.STS.BSY and PxTFD.STS.DRQ
+            have been cleared to '0'. A write to this register with a value of '0' shall have no effect.
+            This bit shall only be set to '1' immediately prior to setting the PxCMD.ST bit to '1' from
+            a previous value of '0'. Setting this bit to '1' at any other time is not supported and will
+            result in indeterminate behavior. Software must wait for CLO to be cleared to '0' before
+            setting PxCMD.ST to '1'.";
+    } CLO = 0 ;
+
+
+    field {
+      desc="FIS Receive Enable (FRE): When set, the HBA may post received FISes into the FIS
+            receive area pointed to by PxFB (and for 64-bit HBAs, PxFBU). When cleared,
+            received FISes are not accepted by the HBA, except for the first D2H register FIS after
+            the initialization sequence, and no FISes are posted to the FIS receive area.
+            System software must not set this bit until PxFB (PxFBU) have been programmed with
+            a valid pointer to the FIS receive area, and if software wishes to move the base, this
+            must first be cleared, and software must wait for the FR bit in this register to be cle
+            Refer to section 10.3.2 for important restrictions on when FRE can be set and cleared.";
+    } FRE = 0;
+
+    field {
+      desc="Current Command Slot (CCS): This field is valid when P0CMD.ST is set to '1' and
+            shall be set to the command slot value of the command that is currently being issued by
+            the HBA. When P0CMD.ST transitions from '1' to '0', this field shall be reset to '0'.
+            After P0CMD.ST transitions from '0' to '1', the highest priority slot to issue from next is
+            command slot 0. After the first command has been issued, the highest priority slot to
+            issue from next is P0CMD.CCS + 1. For example, after the HBA has issued its first
+            command, if CCS = 0h and P0CI is set to 3h, the next command that will be issued is
+            from command slot 1.";
+    } CCS[12:8] = 0;
+
+    field {
+      desc="Mechanical Presence Switch State (MPSS): The MPSS bit reports the state of a
+            mechanical presence switch attached to this port. If CAP.SMPS is set to '1' and the
+            mechanical presence switch is closed then this bit is cleared to '0'. If CAP.SMPS is set
+            to '1' and the mechanical presence switch is open then this bit is set to '1'. If
+            CAP.SMPS is set to '0' then this bit is cleared to '0'. Software should only use this bit if
+            both CAP.SMPS and P0CMD.MPSP are set to '1'.";
+    } MPSS = 0;
+
+    field {
+      desc="FIS Receive Running (FR): When set, the FIS Receive DMA engine for the port is
+            running. See section 10.3.2 for details on when this bit is set and cleared by the HBA.";
+    } FR = 0 ;
+
+    field {
+      desc="Command List Running (CR): When this bit is set, the command list DMA engine for
+            the port is running. See the AHCI state machine in section 5.3.2 for details on when
+            this bit is set and cleared by the HBA.";
+    } CR = 0;
+
+    field {
+      desc="Cold Presence State (CPS): The CPS bit reports whether a device is currently
+            detected on this port via cold presence detection. If CPS is set to '1', then the HBA
+            detects via cold presence that a device is attached to this port. If CPS is cleared to '0' ,
+            then the HBA detects via cold presence that there is no device attached to this port.";
+    } CPS = 0;
+
+    field {
+      desc="Port Multiplier Attached (PMA): This bit is read/write for HBAs that support a Port
+            Multiplier (CAP.SPM = '1'). This bit is read-only for HBAs that do not support a port
+            Multiplier (CAP.SPM = '0'). When set to '1' by software, a Port Multiplier is attached to
+            the HBA for this port. When cleared to '0' by software, a Port Multiplier is not attached
+            to the HBA for this port. Software is responsible for detecting whether a Port Multiplier
+            is present; hardware does not auto-detect the presence of a Port Multiplier.";
+    } PMA = 0;
+
+    field {
+      sw=r;
+      desc="Hot Plug Capable Port (HPCP): When set to '1', indicates that this port's signal and
+            power connectors are externally accessible via a joint signal and power connector for
+            blindmate device hot plug. When cleared to '0', indicates that this port's signal and
+            power connectors are not externally accessible via a joint signal and power connector.";
+    } HPCP = 0;
+
+    field {
+      desc="Mechanical Presence Switch Attached to Port (MPSP): If set to '1', the platform
+            supports an mechanical presence switch attached to this port. If cleared to '0', the
+            platform does not support a mechanical presence switch attached to this port. When
+            this bit is set to '1', P0CMD.HPCP should also be set to '1'.";
+    } MPSP = 0;
+
+    field {
+      sw = r;
+      desc="Cold Presence Detection (CPD): If set to '1', the platform supports cold presence
+            detection on this port. If cleared to '0', the platform does not support cold presence
+            detection on this port. When this bit is set to '1', P0CMD.HPCP should also be set to
+            '1'.";
+    } CPD = 0 ;
+
+    field {
+      desc="External SATA Port (ESP): When set to '1', indicates that this port's signal connector
+            is externally accessible on a signal only connector. When set to '1', CAP.SXS shall be
+            set to '1'. When cleared to '0', indicates that this port's signal connector is not externally
+            accessible on a signal only connector. ESP is mutually exclusive with the HPCP bit in
+            this register.";
+    } ESP = 0;
+
+    field {
+      desc="Device is ATAPI (ATAPI): When set to '1', the connected device is an ATAPI device.
+            This bit is used by the HBA to control whether or not to generate the desktop LED when
+            commands are active. See section 10.10 for details on the activity LED.";
+    } ATAPI[24:24] = 0;
+
+    field {
+      desc="Drive LED on ATAPI Enable (DLAE): When set to '1', the HBA shall drive the LED
+            pin active for commands regardless of the state of P0CMD.ATAPI. When cleared, the
+            HBA shall only drive the LED pin active for commands if P0CMD.ATAPI set to '0'. See
+            section 10.10 for details on the activity LED.";
+    } DLAE = 0;
+
+    field {
+      desc="Aggressive Link Power Management Enable (ALPE): When set to '1', the HBA shall
+            aggressively enter a lower link power state (Partial or Slumber) based upon the setting
+            of the ASP bit. Software shall only set this bit to '1' if CAP.SALP is set to '1' if
+            CAP.SALP is cleared to '0' software shall treat this bit as reserved. See section 8.3.1.3
+            for details.";
+    } ALPE = 0;
+
+    field {
+      desc="Aggressive Slumber / Partial (ASP): When set to '1', and ALPE is set, the HBA shall
+            aggressively enter the Slumber state when it clears the PxCI register and the PxSACT
+            register is cleared or when it clears the PxSACT register and PxCI is cleared. When
+            cleared, and ALPE is set, the HBA shall aggressively enter the Partial state when it
+            clears the PxCI register and the PxSACT register is cleared or when it clears the
+            PxSACT register and PxCI is cleared. If CAP.SALP is cleared to '0' software shall treat
+            this bit as reserved. See section 8.3.1.3 for details.";
+    } ASP = 1'b0;                                                    // End of field: ASP
+
+
+    field {
+
+      encode = ICC_ENUM;
+      desc="Interface Communication Control (ICC): This field is used to control power
+            management states of the interface. If the Link layer is currently in the L_IDLE state,
+            writes to this field shall cause the HBA to initiate a transition to the interface power
+            management state requested. If the Link layer is not currently in the L_IDLE state,
+            writes to this field shall have no effect.
+
+            When system software writes a non-reserved value other than No-Op (0h), the HBA
+            shall perform the action and update this field back to Idle (0h).
+            If software writes to this field to change the state to a state the link is already in (i.e.
+            interface is in the active state and a request is made to go to the active state), the HBA
+            shall take no action and return this field to Idle. If the interface is in a low power state
+            and software wants to transition to a different low power state, software must first bring
+            the link to active and then initiate the transition to the desired low power state.";
+
+    } ICC[4] = 4'h0;
+
+  };                                                                 // End of Reg: ICC_REG
+
+  reg TFD_REG {
+    desc = "This is a 32-bit register that copies specific fields of the task file when FISes are received. The FISes that
+            contain this information are:
+            * D2H Register FIS
+            * PIO Setup FIS
+            * Set Device Bits FIS (BSY and DRQ are not updated with this FIS)";
+
+    field {
+      sw=r;
+      desc="Error (ERR): Contains the latest copy of the task file error register.";
+    } ERR[8] = 8'b0;
+
+    field {
+      desc="Status (STS): Contains the latest copy of the task file status register. Fields of note in
+            this register that affect AHCI hardware operation are:
+            Bit Field Definition
+            7 BSY Indicates the interface is busy
+            6:4 cs Command specific
+            3 DRQ Indicates a data transfer is requested
+            2:1 cs Command specific
+            0 ERR Indicates an error during the transfer.
+            The HBA shall update the entire 8-bit field, not just the bits noted above. ";
+    } STS[8]=8'h7f;
+
+  }; // End of Reg: TFD_REG
+
+  reg SIGNATURE {
+
+    desc = "This is a 32-bit register which contains the initial signature of an attached device when the first D2H
+            Register FIS is received from that device. It is updated once after a reset sequence.
+            Signature (SIG): Contains the signature received from a device on the first
+            D2H Register FIS. The bit order is as follows: ";
+
+    default sw = r;
+
+    field {
+      desc="Sector Count Register";
+    } SECTOR_COUNT = 8'hff;
+    field {
+      desc="LBA Low Register";
+    } LBAL[8] = 8'hff;
+    field {
+      desc="LBA Mid Register";
+    } LBAM[8] = 8'hff;
+    field {
+      desc="LBA High Register";
+    } LBAH[8] = 8'hff;
+
+  }; // End of Reg: SIGNATURE
+
+  /*
+  enum IPM_ENUM {
+    not_present = 4'd0  { desc = "No link peer is currently detected"; };
+
+    0h Device not present or communication not established
+    1h Interface in active state
+    2h Interface in Partial power management state
+    6h Interface in Slumber power management state
+
+  };
+
+  enum SPD_ENUM {
+    not_present = 4'd0  { desc = "No link peer is currently detected"; };
+
+    0h Device not present or communication not established
+    1h Generation 1 communication rate negotiated
+    2h Generation 2 communication rate negotiated
+
+
+  };
+
+  enum DET_ENUM {
+    not_present = 4'd0  { desc = "No link peer is currently detected"; };
+
+    0h No device detected and Phy communication not established
+    1h Device presence detected but Phy communication not established
+    3h Device presence detected and Phy communication established
+    4h Phy in offline mode as a result of the interface being disabled or running in a
+    BIST loopback mode
+
+  };
+
+  */
+
+
+
+
+
+  reg SCR0_SSTATUS {
+    desc = "This 32-bit register conveys the current state of the interface and host. The HBA updates it continuously
+            and asynchronously. When the HBA transmits a COMRESET to the device, this register is updated to its
+            reset values.";
+
+    default sw = r;
+
+
+    field {
+      desc="Device Detection (DET): Indicates the interface device detection and Phy state.";
+    } DET = 0; // End of field: DET
+
+    field {
+      desc="Current Interface Speed (SPD): Indicates the negotiated interface communication
+            speed.";
+    } SPD = 0 ;
+
+    field {
+      desc="Interface Power Management (IPM): Indicates the current interface state:";
+    } IPM = 0 ;
+
+
+  }; // End of Reg: SCR0_SSTATUS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  CLB_REG                      CLB;                                  // Command List Base Address
+  CLBU_REG                     CLBU;                                 // Command List Base Addres Upper (NA)
+  FB_REG                       FB;                                   // FIS Base Address
+  FBU_REG                      FBU;                                  // FIS Base Address Uppper
+  IS_REG                       IS;                                   // Interrupt Status Register
+  IE_REG                       IE;
+
+  ICC_REG                      ICC;
+  TFD_REG                      TFD;                                  // This really cool!
+
+
+};                                                         // End of Regfile: PORT_REGFILE
+
+
+addrmap den_sata_ahci_map {
+
+  name = "Denali SATA Core Register Map";
+  desc = "This Map contains the complete register set for
+          Denali SATA Core (Host Controller).  There are variables
+          here to control the addressing for num_ports > 1";
+
+
+  // Generic Host Control Registers
+  // There is only one set of these regardless of the numer of SATA Ports
+  //
+  HBA_CAP_REG        HBA_CAP @0x0000;                      // HBA Capabilities Register
+  GHC_REG            GHC;                                  // General Host Controller Register
+  IS_REG             IS;                                   // Interupt Status Register
+  PI_REG             PI;                                   // Port Implimented Register
+  VS_REG             VS;                                   // AHCI Version Number Register
+  CCC_CTL_REG        CCC_CTL;                              // Command Coalescing Control Register
+  CCC_PORTS_REG      CCC_PORTS;                            // Command Coaslescing Port Control Register
+  EM_LOC_REG         EM_LOC;                               // Enclosure Managment Location
+  EM_CTL_REG         EM_CTL;                               // Enclosure Managment Control
+
+  // Generic Host Control Registers
+  // There is only one set of these regardless of the numer of SATA Ports
+  //
+  den_sata_config_reg foo   @0xA0;                         // Place Holder for Denali Regs
+
+  // Port Specific Control Registers
+  // There is one set of these for each sata port on the host controller.
+  //
+  external PORT_REGFILE       PORT[<%=$NUM_SATA_PORTS%>]   @0x100 += 0x80;  // Instance all the Port Specific Regs
+
+
+};                                                         // End addrmap: den_sata_ahci_map

@@ -1,0 +1,79 @@
+// ============================================================================
+//
+// Program  : pci_enums.rdl
+// Language : Register Description Language (RDL)
+// Purpose  : This defines all the enums used in the PCIE rdl definition
+//
+//
+// ============================================================================
+
+//  Revision:    $Revision:$
+//  Date:        $Date:$
+//
+//  Copyright (c) 2009 The SPIRIT Consortium.
+//
+//  This work forms part of a deliverable of The SPIRIT Consortium.
+//
+//  Use of these materials are governed by the legal terms and conditions
+//  outlined in the disclaimer available from www.spiritconsortium.org.
+//
+//  This source file is provided on an AS IS basis.  The SPIRIT
+//  Consortium disclaims any warranty express or implied including
+//  any warranty of merchantability and fitness for use for a
+//  particular purpose.
+//
+//  The user of the source file shall indemnify and hold The SPIRIT
+//  Consortium and its members harmless from any damages or liability.
+//  Users are requested to provide feedback to The SPIRIT Consortium
+//  using either mailto:feedback@lists.spiritconsortium.org or the forms at
+//  http://www.spiritconsortium.org/about/contact_us/
+//
+//  This file may be copied, and distributed, with or without
+//  modifications; this notice must be included on any copy.
+//
+
+  enum devsel_timing_enum {
+    fast      = 2'b00  { desc = "Fast devsel timings see section 3.6.1"; };
+    medium    = 2'b01  { desc = "Medium devsel timings see section 3.6.1"; };
+    slow      = 2'b10  { desc = "Slow devsel timings see section 3.6.1"; };
+  };
+
+  //
+  // These enums come from Appendix D of the PCI 3.0 Specification
+  //
+  enum base_class_enum {
+    legacy           = 8'h00 { desc = "Device was built before Class Code definitions were finalized"; };
+    storage_cntlr    = 8'h01 { desc = "Mass storage controller"; };
+    network_cntlr    = 8'h02 { desc = "Network Controller"; };
+    disp_cntlr       = 8'h03 { desc = "Display Controller"; };
+    multimedia_dev   = 8'h04 { desc = "Multimedia device"; };
+    mem_cntlr        = 8'h05 { desc = "Memory Controller"; };
+    pci_bridge       = 8'h06 { desc = "Bridge device"; };
+    simpl_comm_cntrl = 8'h07 { desc = "Simple Communications Controllers"; };
+    base_acc         = 8'h08 { desc = "Base System Peripherals"; };
+    input_dev        = 8'h09 { desc = "Input Devices"; };
+    dock             = 8'h0A { desc = "Docking Stations"; };
+    processor        = 8'h0B { desc = "Processors"; };
+    serial_cntlr     = 8'h0C { desc = "Serial Controllers"; };
+    wireless_cntlr   = 8'h0D { desc = "Wireless Controllers"; };
+    smart_io_cntlr   = 8'h0E { desc = "Intelligent I/O Controller"; };
+    sat_comm_cntlr   = 8'h0F { desc = "Satellite Communication Controller"; };
+    crypto_cntlr     = 8'h10 { desc = "Crytography Controller (Encryption/Decryption"; };
+    data_acq_cntlr   = 8'h11 { desc = "Data Acquisition or Signal Processing Controller"; };
+    other            = 8'hFF { desc = "Device does not fit in any defined classes"; };
+  };                                                       // End of enum: base_class_enum
+
+  enum cfg_header_type_enum {
+    normal         = 7'h00  { desc = "Type 0 Configuration Space Header"; };
+    pci_bridge     = 7'h01  { desc = "PCI to PCI Bridge"; };
+    cardbus_bridge = 7'h10  { desc = "PCI to CardBus Bridge"; };
+  };
+
+  enum int_pin_enum {
+      NO_INT = 8'd0  { desc = "Interrupt Pin not being Used"; };
+      INTA   = 8'd1  { desc = "Device Function used INTA"; };
+      INTB   = 8'd2  { desc = "Device Function used INTB"; };
+      INTC   = 8'd3  { desc = "Device Function uses INTC"; };
+      INTD   = 8'd4  { desc = "Device Function uses INTD"; };
+  };                                                       // End of enum: int_pin_enum
+

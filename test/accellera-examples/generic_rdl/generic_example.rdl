@@ -1,0 +1,190 @@
+// ============================================================================
+//
+// Program  : generic_example.rdl
+// Language : Register Description Language (RDL)
+// Purpose  : This is a generic example designed to show a number of the
+//            RDL Language Features...
+//
+// ============================================================================
+
+//  Revision:    $Revision:$
+//  Date:        $Date:$
+//
+//  Copyright (c) 2009 The SPIRIT Consortium.
+//
+//  This work forms part of a deliverable of The SPIRIT Consortium.
+//
+//  Use of these materials are governed by the legal terms and conditions
+//  outlined in the disclaimer available from www.spiritconsortium.org.
+//
+//  This source file is provided on an AS IS basis.  The SPIRIT
+//  Consortium disclaims any warranty express or implied including
+//  any warranty of merchantability and fitness for use for a
+//  particular purpose.
+//
+//  The user of the source file shall indemnify and hold The SPIRIT
+//  Consortium and its members harmless from any damages or liability.
+//  Users are requested to provide feedback to The SPIRIT Consortium
+//  using either mailto:feedback@lists.spiritconsortium.org or the forms at
+//  http://www.spiritconsortium.org/about/contact_us/
+//
+//  This file may be copied, and distributed, with or without
+//  modifications; this notice must be included on any copy.
+//
+signal gen_reset_signal_type { activehigh; // Define a generic reset signal type
+   name="Generic Reset Signal";
+   desc="This is a generic reset signal used to reset";
+};
+
+gen_reset_signal_type generic_reset;                       // Instance the Generic Reset Signal
+
+//
+// This example shows the concept of a register file
+// A register file is a group of registers that belong together...
+// Now we can easily instance multiple fifo status registers very easily...
+//
+
+regfile fifoRfile {
+  reg pointerReg { field { we; /*hwmask;*/} data[31:0]; };
+
+  reg fifoStatusReg {
+    field {} full;
+    field {} empty;
+    field {} almost_empty[4:4];
+    field {} almost_full[5:5];
+
+    full->reset  = 1'b0;
+    full->resetsignal = generic_reset;                     // Just the full signal uses generic reset. Others use reset...
+    empty->reset = 1'b1;
+    almost_empty->reset = 1'b1;
+    almost_full ->reset = 1'b0;
+  };
+
+  pointerReg head;                                         // Define a register pointing to the head of the fifo
+  head.data->resetsignal = generic_reset;                       // Assign an alternate reset to register head
+
+  pointerReg tail;                                         // Define a register pointing to the tail of a fifo
+  fifoStatusReg status;                                    // Define a register for the Fifo's Status
+};
+
+
+//
+// This example shows using perl to do anything you desire
+//
+
+field myField {
+  desc = "My example 2bit status field";
+  rclr;                                                    // Read to Clear
+};
+
+
+// An example of Apache's ASP standard for embedding Perl
+reg myReg {
+  <% $num_fields = 16;
+     for( $i = 0; $i < $num_fields*2; $i += 2 ) { %>
+    myField data<%=$i/2%> [<%=$i+1%>:<%=$i%>];
+    data<%=$i/2%>->reset = 2'd<%=$i/2%4%>;
+  <% } %>
+};
+
+
+//
+// Enumeration Example
+//
+enum link_status_enum {
+  not_present = 4'd0  { desc = "No link peer is currently detected"; };
+  training    = 4'd1  { desc = "Link is currently training"; };
+  snooze      = 4'd5  { desc = "Link is in a partial low power state"; };
+  sleep       = 4'd6  { desc = "Link is a Full low power state"; };
+  wake        = 4'd7  { desc = "Link is waking up from snooze or sleep state"; };
+  active      = 4'd10 { desc = "Link is opertating normally"; };
+};
+
+field link_status_field {
+     hw     = rw;
+     sw     = r;
+     desc   = "Status of a Serdes Link";
+     encode = link_status_enum;
+     fieldwidth = 4;
+};
+
+reg serdes_link_status_reg {
+  link_status_field port0;                                 // Instance 4 ports of Link Status
+  link_status_field port1;
+  link_status_field port2;
+  link_status_field port3;
+};
+
+
+//
+// Counter Example
+//
+
+field count_field {                                        // Anonymous Generic Counter definition.
+     hw   = r; sw = rw; rclr; counter;
+     desc = "Number of certain packet type seen";
+};
+
+reg gige_pkt_count_reg {
+  count_field port0[31:24];
+  count_field port1[23:16];
+  count_field port2[15:8];
+  count_field port3[7:0];
+};
+
+reg spi4_pkt_count_reg {
+  count_field port0[31:16];
+  count_field port1[15:0];
+  port0->threshold = 16'hCFFF;
+  port1->threshold = 16'hCFFF;
+};
+
+reg vc_pkt_count_reg {
+  count_field vc_count[30:0];
+  field { desc="VC is Active"; stickybit; } active;
+  active->reset = 1'b1;
+  vc_count->reset = 31'h0;
+};
+
+
+addrmap some_register_map {
+
+  name = "RDL Example Registers";
+  desc = "This address map contains some example registers to show
+          how RDL can be utilized in various situations.";
+
+  //
+  // This register is a inline register definition.
+  // It defines a simple ID register.  No flip-flop is implimented
+  //
+  reg chip_id {
+     name = "This chip part number and revision #";
+     desc = "This register cotains the part # and revision # for XYZ ASIC";
+
+     field {
+       hw   = w;                                           // This combination of attributes creates an input port for
+       sw   = r;                                           // hardware to set the part num external to the reg block
+       desc = "This field represents the chips part number";
+     } part_num[31:4] = 28'h12_34_56_7; // Verilog Style number with _'s
+
+     field {
+       hw   = na;                                          // This combination creates the ID num as a constant interal
+       sw   = r;                                           // to the reg block
+       desc = "This field represents the chips revision number";
+     } rev_num[3:0] = 4'b00_01; // Verilog Style number with _'s
+  };                                                       // End chip_id register definition
+
+
+  external chip_id chip_id_reg @0x0000;                    // Create an Instance of CHIP_ID type called chip_id_reg at Addr=0;
+
+  serdes_link_status_reg link_status;                      // Instance a reg. Auto Address
+
+  myReg              myRegInst           @0x0010;            // This instance starts at 0x10
+
+  spi4_pkt_count_reg spi4_pkt_count      @0x0020;
+  gige_pkt_count_reg gige_pkt_count_reg;
+
+  fifoRfile          fifo_port[8]        @0x100 += 0x10;     // Create 8 Instances of Fifo Reg File Starting at Address=0x100
+  vc_pkt_count_reg   vc_pkt_count[256]   @0x1000 +=0x10;
+
+};                                                         // End some_register_map

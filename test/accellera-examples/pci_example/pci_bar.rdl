@@ -1,0 +1,156 @@
+// ============================================================================
+//
+// Program  : pci_bar.rdl
+// Language : Register Description Language (RDL)
+// Purpose  : This defines the BAR registers types for PCI
+//
+// ============================================================================
+
+//  Revision:    $Revision:$
+//  Date:        $Date:$
+//
+//  Copyright (c) 2009 The SPIRIT Consortium.
+//
+//  This work forms part of a deliverable of The SPIRIT Consortium.
+//
+//  Use of these materials are governed by the legal terms and conditions
+//  outlined in the disclaimer available from www.spiritconsortium.org.
+//
+//  This source file is provided on an AS IS basis.  The SPIRIT
+//  Consortium disclaims any warranty express or implied including
+//  any warranty of merchantability and fitness for use for a
+//  particular purpose.
+//
+//  The user of the source file shall indemnify and hold The SPIRIT
+//  Consortium and its members harmless from any damages or liability.
+//  Users are requested to provide feedback to The SPIRIT Consortium
+//  using either mailto:feedback@lists.spiritconsortium.org or the forms at
+//  http://www.spiritconsortium.org/about/contact_us/
+//
+//  This file may be copied, and distributed, with or without
+//  modifications; this notice must be included on any copy.
+//
+  enum pci_mem_bar_enum {
+    mem_32      = 2'b00  { desc = "Base register is 32 bits wide and mapping can be
+                                   done anywhere in the 32-bit Memory Space. "; };
+
+    mem_64      = 2'b10  { desc = "Base register is 64 bits wide and can be mapped
+                                   anywhere in the 64-bit address space."; };
+  };
+
+
+  // NOTE: All these should be handled by soft reset......
+
+
+reg pci_mem32_bar_r {
+    name = "PCI Memory Space: Base Address Register";
+    desc = "support mapping into a 64-bit address space) with bit 0 hardwired to a 0. For Memory Base
+            Address registers, bits 2 and 1 have an encoded meaning as shown in Table 6-4. Bit 3
+            should be set to 1 if the data is prefetchable and reset to 0 otherwise. A device can mark a
+            range as prefetchable if there are no side effects on reads, the device returns all bytes on
+            reads regardless of the byte enables, and host bridges can merge processor writes (refer to
+            Section 3.2.3) into this range45 without causing errors. Bits 0-3 are read-only.";
+
+
+    // cap.id = "CFG_HDR";
+
+    field {
+      name = "isIO";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } isIO [0:0] = 0;                                      // Tied to 0 means mem bar
+
+    field {
+      name = "memType";
+      hw = rw; sw = r;                                     // RO
+      // pos = "1";
+      fieldwidth = 2;
+      encode = pci_mem_bar_enum;
+    } memType [2:1]  = 2'b00;                              // 32 bit Bar (RDL currently does not allow enum to be used here. fix is planned
+
+    field {
+      name = "prefetchable";
+      desc = "Set to one. If there are no side effects on reads, the device returns all
+              bytes on reads regardless of the byte enables, and host bridges can
+              merge processor writes into this range without causing errors.
+              Bit must be set to zero otherwise.";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } prefetchable [3:3];
+
+    field {
+      name = "Address";
+      hw = rw; sw = rw;                                    // RW
+      // pos = "4";
+      fieldwidth = 28;
+    } address [31:4];
+
+};
+
+reg pci_mem64_bar_r {
+    name = "PCI Memory Space: Base Address Register";
+    desc = "support mapping into a 64-bit address space) with bit 0 hardwired to a 0. For Memory Base
+            Address registers, bits 2 and 1 have an encoded meaning as shown in Table 6-4. Bit 3
+            should be set to 1 if the data is prefetchable and reset to 0 otherwise. A device can mark a
+            range as prefetchable if there are no side effects on reads, the device returns all bytes on
+            reads regardless of the byte enables, and host bridges can merge processor writes (refer to
+            Section 3.2.3) into this range45 without causing errors. Bits 0-3 are read-only.";
+
+    regwidth = 64;
+
+    // cap.id = "CFG_HDR";
+
+    field {
+      name = "isIO";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } isIO [0:0] = 0;                                      // Tied to 0 means mem bar
+
+    field {
+      name = "memType";
+      hw = rw; sw = r;                                     // RO
+      // pos = "1";
+      fieldwidth = 2;
+      encode = pci_mem_bar_enum;
+    } memType [2:1]  = 2'b10;                              // 64 bit Bar (RDL currently does not allow enum to be used here. fix is planned
+
+    field {
+      name = "prefetchable";
+      desc = "Set to one. If there are no side effects on reads, the device returns all
+              bytes on reads regardless of the byte enables, and host bridges can
+              merge processor writes into this range without causing errors.
+              Bit must be set to zero otherwise.";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } prefetchable [3:3]=0;
+
+    field {
+      name = "Address";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 60;
+    } address [63:4]=0;
+};
+
+
+reg pci_io_bar_r {
+    name = "PCI I/O Space: Base Address Register";
+    desc = "Base Address registers that map into I/O Space are always 32 bits wide with bit 0 hardwired
+            to a 1. Bit 1 is reserved and must return 0 on reads and the other bits are used to map the
+            device into I/O Space.";
+
+    // cap.id = "CFG_HDR";
+
+    field {
+      name = "isIO";
+      hw = rw; sw = r;                                     // RO
+      fieldwidth = 1;
+    } isIO [0:0] = 1'b1;                                   // Tied to 0 means mem bar
+
+
+    field {
+      name = "Address";
+      hw = rw; sw = rw;                                    // RW
+      fieldwidth = 30;
+    } address [31:2];
+
+};

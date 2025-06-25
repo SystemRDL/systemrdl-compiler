@@ -1,0 +1,60 @@
+// ============================================================================
+//
+// Program  : lock_and_key.rdl
+// Language : SystemRDL
+// Purpose  : This is a generic example showing how to control SW access
+//            properties of a field with another field.
+//
+// ============================================================================
+
+//  Revision:    $Revision:$
+//  Date:        $Date:$
+//
+//  Copyright (c) 2009 The SPIRIT Consortium.
+//
+//  This work forms part of a deliverable of The SPIRIT Consortium.
+//
+//  Use of these materials are governed by the legal terms and conditions
+//  outlined in the disclaimer available from www.spiritconsortium.org.
+//
+//  This source file is provided on an AS IS basis.  The SPIRIT
+//  Consortium disclaims any warranty express or implied including
+//  any warranty of merchantability and fitness for use for a
+//  particular purpose.
+//
+//  The user of the source file shall indemnify and hold The SPIRIT
+//  Consortium and its members harmless from any damages or liability.
+//  Users are requested to provide feedback to The SPIRIT Consortium
+//  using either mailto:feedback@lists.spiritconsortium.org or the forms at
+//  http://www.spiritconsortium.org/about/contact_us/
+//
+//  This file may be copied, and distributed, with or without
+//  modifications; this notice must be included on any copy.
+//
+addrmap my_map {
+
+  littleendian;
+
+  reg {
+     field {
+       hw   = r;
+       sw   = rw;
+       swwe;                                               // This field has active high write enable
+     } data1[16]=0;
+     field {
+       hw   = rw;
+       sw   = rw;
+     } data2[16]=0;
+  } lock;
+
+  reg {
+     field {
+       hw   = na;
+       sw   = rw;
+     } value=0;                                            // The value of this field will be used
+  } key;                                                   // to control the whether we can write to
+                                                           // the lock.data1 field
+
+  lock.data1->swwe  = key.value;                           // Assign the key field to the Write Enable of data1
+
+};                                                         // End some_register_map
