@@ -270,6 +270,20 @@ same field.
 
 Ignore the mutex mark in Table G1 in favor of the semantics in 5.2.2.1-c.
 
+
+Signals without explicit ``activehigh`` or ``activelow`` are ambiguous when used in ``resetsignal``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8.2.1-d: "A signal that does specify activehigh or activelow has no formal specified active state."
+
+Example 9.5.2 uses a signal as a ``resetsignal`` without explicitly defining its active state.
+
+**Resolution:**
+
+It is considered an error if a signal with undefined active state is referenced by the ``resetsignal`` property.
+For similar reasons, this is also an error for signals defined with ``field_reset`` or ``cpuif_reset`` properties.
+
+
+
 --------------------------------------------------------------------------------
 
 Compilation issues in examples
@@ -440,7 +454,7 @@ Interaction of Verilog-style ``include`` with Perl tags needs clarification
 
 Interaction between ``include`` directives and Perl-style preprocessor variable
 scope needs clarification. Using a strict interpretation of the spec would result in
-surprising behavior that does not seem desireable.
+surprising behavior that does not seem desirable.
 
 See :ref:`dev_notes-include_preprocessor` implementation notes for more
 details.
