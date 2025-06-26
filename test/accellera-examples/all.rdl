@@ -35,7 +35,7 @@ addrmap top {
 
 addrmap top2 {
     top top1;
-//    //top top2;
-//    //top top3;
-//    //top top4;
+    top top2;
+    top top3;
+    top top4;
 };

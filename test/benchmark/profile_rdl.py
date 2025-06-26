@@ -1,8 +1,8 @@
-import cProfile
-import pstats
 import os
 
 from systemrdl import RDLCompiler
+
+from function_profiler import Profiler
 
 # Collect list of files
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -13,36 +13,25 @@ with open(os.path.join(this_dir, "../accellera-examples/all.f"), 'r') as f:
         path = os.path.join(this_dir, "../accellera-examples", line)
         files.append(path)
 
-# Run profiler
-profiler = cProfile.Profile()
-with profiler:
+def code_to_profile():
     rdlc = RDLCompiler()
     for input_file in files:
         rdlc.compile_file(input_file)
     root = rdlc.elaborate()
 
-# Extract stats
-stats = pstats.Stats(profiler)
-stats.sort_stats("cumtime")
-stats_profile = stats.get_stats_profile()
+# Bind profiling timers to specific parts of the compiler
+profiler = Profiler()
+profiler.bind_timer(__name__, "code_to_profile", "Total")
+profiler.bind_timer("systemrdl.preprocessor", "preprocess_file", "preprocess")
+profiler.bind_timer("systemrdl.parser.sa_systemrdl", "parse", "lex/parse")
+profiler.bind_timer("systemrdl.core.ComponentVisitor", "RootVisitor.visitRoot", "compile")
+profiler.bind_timer("systemrdl.compiler", "RDLCompiler.elaborate", "elaborate")
 
-# Get stats for notable parts of the compile flow
-t_total = stats_profile.total_tt
-for func_name, func_profile in stats_profile.func_profiles.items():
-    #print(f"{func_profile.cumtime:3.4f} {func_name:10s} - {func_profile.file_name}")
-    if func_profile.file_name.endswith("preprocessor/__init__.py") and func_name == "preprocess_file":
-        t_preprocess = func_profile.cumtime
-    elif func_profile.file_name.endswith("sa_systemrdl.py") and func_name == "_cpp_parse":
-        t_parse = func_profile.cumtime
-    elif func_profile.file_name.endswith("ComponentVisitor.py") and func_name == "visitRoot":
-        t_compile = func_profile.cumtime
-    elif func_profile.file_name.endswith("systemrdl/component.py") and func_name == "_copy_for_inst":
-        t_copy_for_inst = func_profile.cumtime
-    elif func_profile.file_name.endswith("systemrdl/compiler.py") and func_name == "elaborate":
-        t_elaborate = func_profile.cumtime
+profiler.bind_timer("systemrdl.component", "Component._copy_for_inst", "comp deepcopies")
+profiler.bind_timer("systemrdl.ast.ast_node", "ASTNode.__deepcopy__", "ast deepcopies")
 
-print(f"preprocess:      {100 * t_preprocess / t_total:.1f}%")
-print(f"parse:           {100 * t_parse / t_total:.1f}%")
-print(f"compile:         {100 * t_compile / t_total:.1f}%")
-print(f"elaborate:       {100 * t_elaborate / t_total:.1f}%")
-print(f"inst deepcopies: {100 * t_copy_for_inst / t_total:.1f}%")
+# Run!
+code_to_profile()
+
+# Display results
+profiler.print_result()
