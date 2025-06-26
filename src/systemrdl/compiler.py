@@ -349,11 +349,8 @@ class RDLCompiler:
         # Override parameters as needed
         for param_name, value in parameters.items():
             # Find the parameter to override
-            parameter = None
-            for p in top_inst.parameters:
-                if p.name == param_name:
-                    parameter = p
-                    break
+            if param_name in top_inst.parameters_dict:
+                parameter = top_inst.parameters_dict[param_name]
             else:
                 self.msg.fatal(f"Elaboration top does not have a parameter '{param_name}' that is available for override")
 

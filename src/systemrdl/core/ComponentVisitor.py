@@ -33,10 +33,9 @@ class ComponentVisitor(BaseVisitor):
 
         self.component = self.comp_type() #pylint: disable=not-callable
         self.component.type_name = def_name
-        if param_defs is None:
-            self.component.parameters = []
-        else:
-            self.component.parameters = param_defs
+        if param_defs is not None:
+            for param_def in param_defs:
+                self.component.parameters_dict[param_def.name] = param_def
 
         # Scratchpad of local property assignments encountered in body of component
         # format is:
@@ -69,7 +68,7 @@ class ComponentVisitor(BaseVisitor):
         self.component.def_src_ref = src_ref_from_antlr(ctx)
 
         # Re-Load any parameters into the local scope
-        for param in self.component.parameters:
+        for param in self.component.parameters_dict.values():
             self.compiler.namespace.register_element(param.name, param, None, None)
 
         # Visit all component elements.
@@ -260,10 +259,8 @@ class ComponentVisitor(BaseVisitor):
     def assign_inst_parameters(self, comp_inst: comp.Component, param_assigns: Dict[str, Tuple[ast.ASTNode, SourceRefBase]]) -> None:
         for param_name, (assign_expr, src_ref) in param_assigns.items():
             # Lookup corresponding parameter in component
-            for comp_param in comp_inst.parameters:
-                if comp_param.name == param_name:
-                    param = comp_param
-                    break
+            if param_name in comp_inst.parameters_dict:
+                param = comp_inst.parameters_dict[param_name]
             else:
                 self.msg.fatal(
                     "Parameter '%s' not found in definition for component '%s'"
@@ -276,7 +273,7 @@ class ComponentVisitor(BaseVisitor):
                 self.compiler.env,
                 src_ref,
                 assign_expr,
-                param.param_type
+                param.param_type #pylint: disable=possibly-used-before-assignment
             )
             assign_expr.predict_type()
             param.expr = assign_expr

@@ -13,6 +13,9 @@ from .core import rdlformatcode, helpers
 
 if TYPE_CHECKING:
     from .compiler import RDLEnvironment
+    from .source_ref import SourceRefBase
+    from .core.parameter import Parameter
+    from collections import OrderedDict
     from markdown import Markdown
 
 T = TypeVar("T")
@@ -588,6 +591,51 @@ class Node:
         segs = self.get_path_segments(array_suffix, empty_array_suffix)
         return hier_separator.join(segs)
 
+    def get_scope_path(self, scope_separator: str="::") -> Optional[str]:
+        """
+        Generate a string that represents this component's declaration namespace
+        scope.
+
+        Returns ``None`` if scope is not known or not applicable.
+
+        For example, the following SystemRDL snippet:
+
+        .. code-block:: systemrdl
+
+            reg my_reg_t {
+                field {} x;
+            };
+
+            addrmap top {
+                my_reg_t foo;
+                reg my_other_reg_t {
+                    field {} y;
+                } bar;
+                reg {
+                    field {} z;
+                } baz, xyz;
+            };
+
+        ... results in:
+
+        * Field ``x`` of hierarchical path ``top.foo.x`` was declared in the
+          lexical scope ``my_reg_t``
+        * Field ``y`` of hierarchical path ``top.bar.y`` was declared in the
+          lexical scope ``top::my_other_reg_t``
+        * Both fields ``z`` of hierarchical paths ``top.baz.z`` and ``top.xyz.z``
+          were declared in the same lexical scope ``top::baz``
+        * Register ``foo`` was declared in the root scope which is represented
+          by an empty string.
+
+        Parameters
+        ----------
+        scope_separator: str
+            Override the separator between namespace scopes
+
+        .. versionadded:: 1.30
+        """
+        return self.inst.get_scope_path(scope_separator)
+
 
     def get_rel_path(self, ref: 'Node', uplevel: str="^", hier_separator: str=".", array_suffix: str="[{index:d}]", empty_array_suffix: str="[]") -> str:
         """
@@ -777,6 +825,43 @@ class Node:
 
         # Failed to find the path
         return None
+
+    @property
+    def inst_src_ref(self) -> Optional['SourceRefBase']:
+        """
+        :ref:`api_src_ref` for the component instantiation.
+
+        .. versionadded:: 1.30
+        """
+        return self.inst.inst_src_ref
+
+    @property
+    def def_src_ref(self) -> Optional['SourceRefBase']:
+        """
+        :ref:`api_src_ref` for the component definition.
+
+        .. versionadded:: 1.30
+        """
+        return self.inst.def_src_ref
+
+    @property
+    def property_src_ref(self) -> Dict[str, 'SourceRefBase']:
+        """
+        :ref:`api_src_ref` for each explicit property assignment (if available)
+
+        .. versionadded:: 1.30
+        """
+        return self.inst.property_src_ref
+
+    @property
+    def parameters(self) -> 'OrderedDict[str, Parameter]':
+        """
+        Parameters of this component
+        These are stored in the order that they were defined
+
+        .. versionadded:: 1.30
+        """
+        return self.inst.parameters_dict
 
     @property
     def external(self) -> bool:
@@ -2029,6 +2114,15 @@ class RegNode(AddressableNode):
     @property
     def size(self) -> int:
         return self.get_property('regwidth') // 8
+
+    @property
+    def is_msb0_order(self) -> bool:
+        """
+        If true, fields are arranged in msb0 order.
+
+        .. versionadded:: 1.30
+        """
+        return self.inst.is_msb0_order
 
     @property
     def is_virtual(self) -> bool:

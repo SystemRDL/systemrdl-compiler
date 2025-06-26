@@ -24,7 +24,7 @@ def convert_reg(rdlc: RDLCompiler, obj: node.RegNode) -> dict:
         # fatal() raises RDLCompileError
         rdlc.msg.fatal(
             "JSON export does not support arrays",
-            obj.inst.inst_src_ref
+            obj.inst_src_ref
         )
 
     # Convert information about the register
@@ -46,7 +46,7 @@ def convert_addrmap_or_regfile(rdlc: RDLCompiler, obj: Union[node.AddrmapNode, n
     if obj.is_array:
         rdlc.msg.fatal(
             "JSON export does not support arrays",
-            obj.inst.inst_src_ref
+            obj.inst_src_ref
         )
 
     json_obj = dict()

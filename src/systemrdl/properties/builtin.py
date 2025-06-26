@@ -103,7 +103,7 @@ class Prop_dontcompare(PropertyRule):
             if value & donttest:
                 self.env.msg.error(
                     "A field's bit cannot have both 'dontcompare' and 'donttest' properties enabled",
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
         else:
@@ -117,7 +117,7 @@ class Prop_dontcompare(PropertyRule):
                 self.env.msg.error(
                     "Property 'dontcompare' expects a boolean for non-field types. Got an integer in '%s'"
                     % (node.inst_name),
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
             # 5.2.2.1-c.1: dontcompare/donttest cannot both be set to true
@@ -125,7 +125,7 @@ class Prop_dontcompare(PropertyRule):
                 self.env.msg.error(
                     "Properties dontcompare/donttest cannot both be set to true in '%s'"
                     % (node.inst_name),
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
 
@@ -197,11 +197,11 @@ class Prop_errextbus(PropertyRule):
 
     def validate(self, node: m_node.Node, value: Any) -> None:
         # 10.6.1-h: errextbus is only valid for external registers
-        if (node.inst.external is False) and (value is True):
+        if (node.external is False) and (value is True):
             self.env.msg.error(
                 "The 'errextbus' property is set to 'true', but instance '%s' is not external"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst_src_ref
             )
 
 
@@ -595,11 +595,11 @@ class Prop_onread(PropertyRule):
             )
 
         # 9.6.1-j A field with an onread value of ruser shall be external
-        if (node.inst.external is False) and (value == rdltypes.OnReadType.ruser):
+        if (node.external is False) and (value == rdltypes.OnReadType.ruser):
             self.env.msg.error(
                 "The 'onread' property is set to 'ruser', but instance '%s' is not external"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst_src_ref
             )
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -699,11 +699,11 @@ class Prop_onwrite(PropertyRule):
             )
 
         # 9.6.1-m A field with an onwrite value of wuser shall be external
-        if (node.inst.external is False) and (value == rdltypes.OnWriteType.wuser):
+        if (node.external is False) and (value == rdltypes.OnWriteType.wuser):
             self.env.msg.error(
                 "The 'onwrite' property is set to 'wuser', but instance '%s' is not external"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst_src_ref
             )
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -728,13 +728,13 @@ def _validate_swwe_writable(env: "RDLEnvironment", node: m_node.Node, prop_name:
             env.msg.error(
                 "Field's software access is 'sw=r' but property '%s' implies it can be written in some situations during runtime."
                 % prop_name,
-                node.inst.property_src_ref.get(prop_name, node.inst.inst_src_ref)
+                node.property_src_ref.get(prop_name, node.inst_src_ref)
             )
         elif this_f_sw == rdltypes.AccessType.na:
             env.msg.error(
                 "Field's software access is 'sw=na' but property '%s' implies it can be written in some situations during runtime."
                 % prop_name,
-                node.inst.property_src_ref.get(prop_name, node.inst.inst_src_ref)
+                node.property_src_ref.get(prop_name, node.inst_src_ref)
             )
 
 
@@ -1426,7 +1426,7 @@ class Prop_sticky(PropertyRule):
                     "sense because it is defined as 'sticky'. Sticky fields already "
                     "implicitly control their hardware write-enable behavior based on the input value."
                     % (node.inst_name),
-                    node.inst.property_src_ref.get('we', node.inst.inst_src_ref)
+                    node.property_src_ref.get('we', node.inst_src_ref)
                 )
             if node.get_property('wel'):
                 self.env.msg.error(
@@ -1434,7 +1434,7 @@ class Prop_sticky(PropertyRule):
                     "sense because it is defined as 'sticky'. Sticky fields already "
                     "implicitly control their hardware write-enable behavior based on the input value."
                     % (node.inst_name),
-                    node.inst.property_src_ref.get('wel', node.inst.inst_src_ref)
+                    node.property_src_ref.get('wel', node.inst_src_ref)
                 )
 
             if not node.is_hw_writable:
@@ -1476,7 +1476,7 @@ class Prop_stickybit(PropertyRule):
                     "sense because it is defined as 'stickybit'. Stickybit fields already "
                     "implicitly control their hardware write-enable behavior based on the input value."
                     % (node.inst_name),
-                    node.inst.property_src_ref.get('we', node.inst.inst_src_ref)
+                    node.property_src_ref.get('we', node.inst_src_ref)
                 )
             if node.get_property('wel'):
                 self.env.msg.error(
@@ -1484,7 +1484,7 @@ class Prop_stickybit(PropertyRule):
                     "sense because it is defined as 'stickybit'. Stickybit fields already "
                     "implicitly control their hardware write-enable behavior based on the input value."
                     % (node.inst_name),
-                    node.inst.property_src_ref.get('wel', node.inst.inst_src_ref)
+                    node.property_src_ref.get('wel', node.inst_src_ref)
                 )
 
             if not node.is_hw_writable:

@@ -248,7 +248,7 @@ class PropertyRule:
                 )
 
     def get_src_ref(self, node: m_node.Node) -> Optional['SourceRefBase']:
-        return node.inst.property_src_ref.get(self.get_name(), node.inst.inst_src_ref)
+        return node.property_src_ref.get(self.get_name(), node.inst_src_ref)
 
 
 #===============================================================================

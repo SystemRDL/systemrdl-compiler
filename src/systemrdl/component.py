@@ -68,17 +68,17 @@ class Component:
         self.children: List[Component] = []
 
         # Parameters of this component definition.
-        # These are listed in the order that they were defined
-        self.parameters: List[Parameter] = []
+        # These are stored in the order that they were defined
+        self.parameters_dict: 'OrderedDict[str, Parameter]' = OrderedDict()
 
         # Properties applied to this component
         self.properties: Dict[str, Any] = {}
 
         #: :ref:`api_src_ref` for each explicit property assignment (if available)
-        self.property_src_ref: Dict[str, SourceRefBase] = {}
+        self.property_src_ref: Dict[str, 'SourceRefBase'] = {}
 
         #: :ref:`api_src_ref` for the component definition
-        self.def_src_ref: Optional[SourceRefBase] = None
+        self.def_src_ref: Optional['SourceRefBase'] = None
 
         #------------------------------
         # Component instantiation
@@ -99,7 +99,7 @@ class Component:
         self.external: Optional[bool] = None
 
         #: :ref:`api_src_ref` for the component instantiation.
-        self.inst_src_ref: Optional[SourceRefBase] = None
+        self.inst_src_ref: Optional['SourceRefBase'] = None
 
         #------------------------------
         # List of property names that were assigned via a dynamic property
@@ -109,6 +109,11 @@ class Component:
         # List of child instances that were assigned "through" this component,
         # from outside this component's scope.
         self._dyn_assigned_children: List[str] = []
+
+    @property
+    def parameters(self) -> List['Parameter']:
+        # TODO: Add deprecation warning?
+        return list(self.parameters_dict.values())
 
 
     def _copy_for_inst(self: 'ComponentClass', memo: Dict[int, Any]) -> 'ComponentClass':
@@ -124,7 +129,9 @@ class Component:
         memo[id(self)] = result
 
         # First, explicitly copy all parameter objects
-        result.parameters = [param._copy_for_inst(memo) for param in self.parameters]
+        result.parameters_dict = OrderedDict()
+        for name, param in self.parameters_dict.items():
+            result.parameters_dict[name] = param._copy_for_inst(memo)
 
         # Ensure child components get copied first
         result.children = [child._copy_for_inst(memo) for child in self.children]

@@ -95,7 +95,7 @@ class UserProperty(PropertyRule):
                     self.env.msg.error(
                         "Value (%d) of the '%s' property cannot fit within the width (%d) of component '%s'"
                         % (value, self.name, node.width, node.inst_name),
-                        node.inst.property_src_ref.get(self.name, node.inst.inst_src_ref)
+                        node.property_src_ref.get(self.name, node.inst_src_ref)
                     )
 
         self._validate_ref_is_present(node, value)

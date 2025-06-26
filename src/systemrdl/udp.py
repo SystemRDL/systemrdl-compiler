@@ -72,7 +72,7 @@ class UDPDefinition:
 
         This function is useful when emitting error messages from within :meth:`validate()`.
         """
-        return node.inst.property_src_ref.get(self.name, node.inst.inst_src_ref)
+        return node.property_src_ref.get(self.name, node.inst_src_ref)
 
     def validate(self, node: 'Node', value: Any) -> None:
         """

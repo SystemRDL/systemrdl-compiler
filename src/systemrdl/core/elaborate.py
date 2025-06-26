@@ -621,8 +621,8 @@ class LateElabListener(walker.RDLListener):
 
             # Augment based on parameter overrides as per 5.1.1.4
             if node.inst.original_def is not None:
-                for i, inst_parameter in enumerate(node.inst.parameters):
-                    orig_param_value = node.inst.original_def.parameters[i].get_value()
+                for param_name, inst_parameter in node.inst.parameters_dict.items():
+                    orig_param_value = node.inst.original_def.parameters_dict[param_name].get_value()
                     new_param_value = inst_parameter.get_value()
                     if new_param_value != orig_param_value:
                         try:

@@ -58,7 +58,7 @@ class ValidateListener(walker.RDLListener):
                 self.msg.error(
                     "Only one 'cpuif_reset' signal is allowed per hierarchy. Signal '%s' is redundant."
                     % (node.inst_name),
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
             self.has_cpuif_reset_stack[-1] = True
 
@@ -70,7 +70,7 @@ class ValidateListener(walker.RDLListener):
                 self.msg.error(
                     "Only one 'field_reset' signal is allowed per hierarchy. Signal '%s' is redundant."
                     % (node.inst_name),
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
             self.has_field_reset_stack[-1] = True
 
@@ -107,7 +107,7 @@ class ValidateListener(walker.RDLListener):
                             node.inst_name, node.raw_address_offset, node.raw_address_offset + node.total_size - 1,
                             prev_addressable.inst_name, prev_addressable.raw_address_offset, prev_addressable.raw_address_offset + prev_addressable.total_size - 1,
                         ),
-                        node.inst.inst_src_ref
+                        node.inst_src_ref
                     )
 
                 # Keep it in the list since it could collide again
@@ -123,7 +123,7 @@ class ValidateListener(walker.RDLListener):
                     % (
                         node.inst_name, node.array_stride, node.size
                     ),
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
             if self.env.chk_stride_not_pow2:
@@ -132,7 +132,7 @@ class ValidateListener(walker.RDLListener):
                         self.env.chk_stride_not_pow2,
                         "Address stride of instance array '%s' is not a power of 2"
                         % node.inst_name,
-                        node.inst.inst_src_ref
+                        node.inst_src_ref
                     )
 
         if self.env.chk_strict_self_align:
@@ -142,7 +142,7 @@ class ValidateListener(walker.RDLListener):
                     self.env.chk_strict_self_align,
                     "Address offset +0x%x of instance '%s' is not a power of 2 multiple of its size 0x%x"
                     % (node.raw_address_offset, node.inst_name, node.size),
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
 
@@ -162,14 +162,14 @@ class ValidateListener(walker.RDLListener):
                     self.msg.error(
                         "Addrmap '%s' is a bridge which can only contain other addrmaps. Contains a child instance '%s' which is a %s"
                         % (node.inst_name, child.inst_name, type(child.inst).__name__.lower()),
-                        child.inst.inst_src_ref
+                        child.inst_src_ref
                     )
 
             if n_child_addrmaps < 2:
                 self.msg.error(
                     "Addrmap '%s' is a bridge and shall contain 2 or more sub-addrmaps"
                     % node.inst_name,
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
 
@@ -183,7 +183,7 @@ class ValidateListener(walker.RDLListener):
                     self.env.chk_sparse_reg_stride,
                     "Address stride (+= %d) of register array '%s' is not equal to its width (regwidth/8 = %d)"
                     % (node.array_stride, node.inst_name, (node.get_property('regwidth') // 8)),
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
         # 11.2-e: Virtual register width is limited to the minimum power of two
@@ -198,7 +198,7 @@ class ValidateListener(walker.RDLListener):
                     "regwidth (%d) of virtual register '%s' is too wide for this memory."
                     % (node.get_property('regwidth'), node.inst_name)
                     + " Virtual register width is limited to the minimum power of two bytes which can contain the memory width.",
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
         # Validate alias register
@@ -210,20 +210,20 @@ class ValidateListener(walker.RDLListener):
                 self.msg.error(
                     "Register '%s' is an alias of register '%s' which is not present (ispresent=false)"
                     % (node.inst_name, primary_reg.inst_name),
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
             # 10.5.1-f: The alias register shall have the same width as the primary register.
             if node.get_property('regwidth') != primary_reg.get_property('regwidth'):
                 self.msg.error(
                     "Primary register shall have the same regwidth as the alias register.",
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
             if primary_reg.is_alias:
                 self.msg.error(
                     "Primary register of an alias cannot also be an alias",
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
             # 10.5.1-f: Instance type shall be the same (internal/external)
@@ -231,14 +231,14 @@ class ValidateListener(walker.RDLListener):
                 self.msg.error(
                     "Instance types of alias register and its primary mismatch. "
                     "Both shall be either internal or external.",
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
             if primary_reg.is_array and not node.is_array :
                 self.msg.error(
                     "Single alias register references a primary register array. "
                     "It is ambiguous which array element is actually the primary register.",
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
             if primary_reg.is_array and node.is_array:
@@ -246,7 +246,7 @@ class ValidateListener(walker.RDLListener):
                     self.msg.error(
                         "Array of alias registers references an array of registers as its primary, "
                         "but the array dimensions do not match.",
-                        node.inst.inst_src_ref
+                        node.inst_src_ref
                     )
 
             for field in node.fields():
@@ -256,7 +256,7 @@ class ValidateListener(walker.RDLListener):
                     self.msg.error(
                         "Alias register '%s' contains field '%s' that does not exist in the primary register."
                         % (node.inst_name, field.inst_name),
-                        field.inst.inst_src_ref
+                        field.inst_src_ref
                     )
 
                     # Cannot validate this field any further
@@ -267,14 +267,14 @@ class ValidateListener(walker.RDLListener):
                     self.msg.error(
                         "Field '%s' is an alias of register '%s' which is not present (ispresent=false)"
                         % (field.inst_name, primary_field.inst_name),
-                        field.inst.inst_src_ref
+                        field.inst_src_ref
                     )
 
                 # 10.5.1-b: Validate field is the same width and bit position
                 if (primary_field.lsb != field.lsb) or (primary_field.width != field.width):
                     self.msg.error(
                         "Alias field and its primary shall have the same position and size",
-                        field.inst.inst_src_ref
+                        field.inst_src_ref
                     )
 
                 # 10.5.1-e: Only the following SystemRDL properties may be
@@ -293,7 +293,7 @@ class ValidateListener(walker.RDLListener):
                     self.msg.error(
                         "Alias field '%s' is incompatible with its primary '%s'. The following properties differ: %s"
                         % (field.inst_name, primary_field.inst_name, ", ".join(xor_props)),
-                        field.inst.inst_src_ref
+                        field.inst_src_ref
                     )
                     continue
 
@@ -303,7 +303,7 @@ class ValidateListener(walker.RDLListener):
                         self.msg.error(
                             "Alias field '%s' is incompatible with its primary '%s'. Values of property '%s' differ"
                             % (field.inst_name, primary_field.inst_name, prop_name),
-                            field.inst.inst_src_ref
+                            field.inst_src_ref
                         )
                         # no sense in going further
                         break
@@ -317,7 +317,7 @@ class ValidateListener(walker.RDLListener):
         if not self.field_check_buffer:
             self.msg.error(
                 "Register '%s' does not contain any fields" % node.inst_name,
-                node.inst.inst_src_ref
+                node.inst_src_ref
             )
 
 
@@ -333,7 +333,7 @@ class ValidateListener(walker.RDLListener):
             self.msg.error(
                 "Field '%s' hw access property value of %s is meaningless"
                 % (node.inst_name, this_f_hw.name),
-                node.inst.property_src_ref.get('hw', node.inst.inst_src_ref)
+                node.property_src_ref.get('hw', node.inst_src_ref)
             )
 
         # 9.4.1-Table 12: Check for bad sw/hw combinations
@@ -341,7 +341,7 @@ class ValidateListener(walker.RDLListener):
             self.msg.error(
                 "Field '%s' access property combination is meaningless: sw=w; hw=w;"
                 % (node.inst_name),
-                node.inst.inst_src_ref
+                node.inst_src_ref
             )
         elif this_f_sw == rdltypes.AccessType.na:
             self.msg.error(
@@ -350,7 +350,7 @@ class ValidateListener(walker.RDLListener):
                 "What does it mean? What does anything mean? Am I just a machine "
                 "in a Python interpreter? Or can I dream dreams? So many questions..."
                 % (node.inst_name),
-                node.inst.property_src_ref.get('sw', node.inst.inst_src_ref)
+                node.property_src_ref.get('sw', node.inst_src_ref)
             )
 
         # 10.1-d: Two field instances shall not occupy overlapping bit positions
@@ -380,7 +380,7 @@ class ValidateListener(walker.RDLListener):
                         "Field '%s[%d:%d]' overlaps with field '%s[%d:%d]'"
                         % (node.inst_name, node.msb, node.lsb,
                             prev_field.inst_name, prev_field.msb, prev_field.lsb),
-                        node.inst.inst_src_ref
+                        node.inst_src_ref
                     )
                 # Keep it in the list since it could collide again
                 new_field_check_buffer.append(prev_field)
@@ -393,7 +393,7 @@ class ValidateListener(walker.RDLListener):
             self.msg.error(
                 "High bit (%d) of field '%s' exceeds MSb of parent register"
                 % (node.high, node.inst_name),
-                node.inst.inst_src_ref
+                node.inst_src_ref
             )
 
         # Optional warning if a field is missing a reset assignment
@@ -404,7 +404,7 @@ class ValidateListener(walker.RDLListener):
                     node.env.chk_missing_reset,
                     "Field '%s' implements storage but is missing a reset value. Initial state is undefined"
                     % node.inst_name,
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
             # Field is a static tie-off (no storage element, no hardware update path),
@@ -419,7 +419,7 @@ class ValidateListener(walker.RDLListener):
                     node.env.chk_missing_reset,
                     "Field '%s' is a constant at runtime but does not have a known value. Recommend assigning it a reset value."
                     % node.inst_name,
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
 
@@ -431,7 +431,7 @@ class ValidateListener(walker.RDLListener):
                 self.msg.error(
                     "Virtual field '%s' does not fit within the parent memory's width"
                     % node.inst_name,
-                    node.inst.inst_src_ref
+                    node.inst_src_ref
                 )
 
 
@@ -445,7 +445,7 @@ class ValidateListener(walker.RDLListener):
             self.msg.error(
                 "Register file '%s' must contain at least one reg or regfile."
                 % node.inst_name,
-                node.inst.inst_src_ref
+                node.inst_src_ref
             )
 
 
@@ -456,7 +456,7 @@ class ValidateListener(walker.RDLListener):
             self.msg.error(
                 "Address map '%s' must contain at least one reg, regfile, mem, or addrmap."
                 % node.inst_name,
-                node.inst.inst_src_ref
+                node.inst_src_ref
             )
 
 
@@ -471,7 +471,7 @@ class ValidateListener(walker.RDLListener):
                     self.msg.error(
                         "Address space occupied by registers (0x%X) exceeds size of mem '%s' (0x%X)"
                         % (end_addr, node.inst_name, node.size),
-                        node.inst.inst_src_ref
+                        node.inst_src_ref
                     )
 
 

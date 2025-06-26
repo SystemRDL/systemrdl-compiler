@@ -10,31 +10,31 @@ class TestScopes(RDLSourceTestCase):
         )
 
         self.assertEqual(
-            root.find_by_path("scope_test").inst.get_scope_path(),
+            root.find_by_path("scope_test").get_scope_path(),
             ""
         )
         self.assertEqual(
-            root.find_by_path("scope_test.r1").inst.get_scope_path(),
+            root.find_by_path("scope_test.r1").get_scope_path(),
             ""
         )
         self.assertEqual(
-            root.find_by_path("scope_test.r1.f1").inst.get_scope_path(),
+            root.find_by_path("scope_test.r1.f1").get_scope_path(),
             "root_reg_t"
         )
         self.assertEqual(
-            root.find_by_path("scope_test.r1.f2").inst.get_scope_path(),
+            root.find_by_path("scope_test.r1.f2").get_scope_path(),
             "root_reg_t"
         )
         self.assertEqual(
-            root.find_by_path("scope_test.r2").inst.get_scope_path(),
+            root.find_by_path("scope_test.r2").get_scope_path(),
             "scope_test"
         )
         self.assertEqual(
-            root.find_by_path("scope_test.r2.f1").inst.get_scope_path(),
+            root.find_by_path("scope_test.r2.f1").get_scope_path(),
             "scope_test::r2_t"
         )
         self.assertEqual(
-            root.find_by_path("scope_test.r2.f2").inst.get_scope_path(),
+            root.find_by_path("scope_test.r2.f2").get_scope_path(),
             "scope_test::r2_t"
         )
 

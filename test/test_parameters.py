@@ -70,21 +70,21 @@ class TestParameters(RDLSourceTestCase):
         reg3 = root.find_by_path("amap2.reg3")
 
         with self.subTest("reg1"):
-            self.assertEqual(reg1.inst.type_name, "param_reg")
+            self.assertEqual(reg1.type_name, "param_reg")
             self.assertEqual(reg1.get_property('name'), "myname")
             self.assertEqual(reg1.get_property('shared'), False)
             data = reg1.get_child_by_name("data")
             self.assertEqual(data.get_property('hdl_path_slice'), ["dat"])
 
         with self.subTest("reg2"):
-            self.assertEqual(reg2.inst.type_name, "param_reg")
+            self.assertEqual(reg2.type_name, "param_reg")
             self.assertEqual(reg2.get_property('name'), "myname")
             self.assertEqual(reg2.get_property('shared'), False)
             data = reg2.get_child_by_name("data")
             self.assertEqual(data.get_property('hdl_path_slice'), ["dat"])
 
         with self.subTest("reg3"):
-            self.assertEqual(reg3.inst.type_name, "param_reg_NAME_a36638b4_SHARED_t_FIELD_SLICES_184d423e")
+            self.assertEqual(reg3.type_name, "param_reg_NAME_a36638b4_SHARED_t_FIELD_SLICES_184d423e")
             self.assertEqual(reg3.get_property('name'), "othername")
             self.assertEqual(reg3.get_property('shared'), True)
             data = reg3.get_child_by_name("data")
