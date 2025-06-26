@@ -38,9 +38,7 @@ reg simple_reg {
 } ;
 
 
-addrmap some_register_map {
+addrmap some_register_map2 {
   simple_reg     simple2;
   simple2.cntr->incrvalue = 32'h1; //counter logic incrementes cntr by 1 each time hardware's incr signal is toggled
 };
-
-

@@ -1,0 +1,41 @@
+addrmap all_examples {
+    some_register_map some_register_map_inst;
+    int_map_m int_map_m_inst;
+    some_register_map2 some_register_map2_inst;
+    ahbstatMaster ahbstatMaster_inst;
+    ahbstatMirroredMaster ahbstatMirroredMaster_inst;
+    ahbstatMirroredSlave ahbstatMirroredSlave_inst;
+    ahbstatSlave ahbstatSlave_inst;
+    cgu cgu_inst;
+    dma dma_inst;
+    gpio gpio_inst;
+    i2c_gpio_addr i2c_gpio_addr_inst;
+    irqctrl irqctrl_inst;
+    irqctrlvec irqctrlvec_inst;
+    ambaAPB ambaAPB_inst;
+    timers timers_inst;
+    uart uart_inst;
+    uartSpirit uartSpirit_inst;
+    my_map my_map_inst;
+    pci_map pci_map_inst;
+    den_sata_ahci_map den_sata_ahci_map_inst;
+};
+
+addrmap top {
+    all_examples all1;
+    all_examples all2;
+    all_examples all3;
+    all_examples all4;
+    all_examples all5;
+    all_examples all6;
+    all_examples all7;
+    all_examples all8;
+    all_examples all9;
+};
+
+addrmap top2 {
+    top top1;
+//    //top top2;
+//    //top top3;
+//    //top top4;
+};
