@@ -21,7 +21,7 @@ class ASTNode:
         """
         Deepcopy all members except for ones that should be copied by reference
         """
-        copy_by_ref = ["env", "msg"]
+        copy_by_ref = {"env", "msg"}
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result

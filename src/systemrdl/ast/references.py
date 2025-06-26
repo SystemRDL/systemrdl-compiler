@@ -143,7 +143,7 @@ class InstRef(ASTNode):
         """
         Copy any Source Ref by ref within the ref_elements list when deepcopying
         """
-        copy_by_ref = ["env", "msg", "ref_root"]
+        copy_by_ref = {"env", "msg", "ref_root"}
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result

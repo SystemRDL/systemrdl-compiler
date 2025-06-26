@@ -257,10 +257,10 @@ class VerilogPreprocessor:
 
         identifier = m.group(m.lastindex + 2)
 
-        reserved_macro_names = (
+        reserved_macro_names = {
             "include", "ifdef", "ifndef", "elsif", "else", "endif", "define",
             "undef", "line", "__LINE__", "__FILE__"
-        )
+        }
         if identifier in reserved_macro_names:
             self.env.msg.fatal(
                 "Macro name '%s' is a reserved keyword" % identifier,
@@ -318,10 +318,10 @@ class VerilogPreprocessor:
         # Preprocessor can end up here if the user did not provide the expected
         # args to a directive. The parser will instead fall back to thinking it
         # is a macro expansion
-        reserved_macro_names = (
+        reserved_macro_names = {
             "include", "ifdef", "ifndef", "elsif", "define",
             "undef", "line"
-        )
+        }
         if identifier in reserved_macro_names:
             self.env.msg.fatal(
                 "Preprocessor directive '`%s' is incomplete" % identifier,

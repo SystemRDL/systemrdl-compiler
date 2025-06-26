@@ -53,7 +53,7 @@ class Node:
 
         .. versionadded:: 1.8
         """
-        copy_by_ref = ["inst", "env"]
+        copy_by_ref = {"inst", "env"}
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
