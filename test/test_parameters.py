@@ -191,6 +191,33 @@ class TestParameters(RDLSourceTestCase):
         self.assertEqual(ffY.width, 3)
         self.assertEqual(ffZ.width, 1)
 
+    def test_param_dpa_scopes(self):
+        root = self.compile(
+            ["rdl_src/parameters.rdl"],
+            "param_dpa_scopes"
+        )
+        top = root.top
+        d = top.find_by_path("reg_default")
+        df = top.find_by_path("reg_default.f")
+        o1 = top.find_by_path("reg_override1")
+        o1f = top.find_by_path("reg_override1.f")
+        o2 = top.find_by_path("reg_override2")
+        o2f = top.find_by_path("reg_override2.f")
+
+        self.assertEqual(d.get_property("desc"), "reg default")
+        self.assertEqual(df.get_property("desc"), "reg default")
+        self.assertEqual(o1.get_property("desc"), "top default")
+        self.assertEqual(o1f.get_property("desc"), "top default")
+        self.assertEqual(o2.get_property("desc"), "from inst")
+        self.assertEqual(o2f.get_property("desc"), "from inst")
+
+        self.assertEqual(d.get_property("name"), "dpa1")
+        self.assertEqual(df.get_property("name"), "dpa2")
+        self.assertEqual(o1.get_property("name"), "top default")
+        self.assertEqual(o1f.get_property("name"), "top default")
+        self.assertEqual(o2.get_property("name"), "top default")
+        self.assertEqual(o2f.get_property("name"), "top default")
+
     def test_err_ref_in_parameter(self):
         self.assertRDLCompileError(
             ["rdl_err_src/err_ref_in_parameter.rdl"],

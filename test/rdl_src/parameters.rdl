@@ -122,3 +122,33 @@ addrmap param_scope {
     rf_t #(.N(3)) rfY;
     rf_t rfZ;
 };
+
+
+//------------------------------------------------------------------------------
+
+addrmap param_dpa_scopes #(
+    string X = "top default"
+) {
+
+    reg param_reg #(
+        string X = "reg default"
+    ) {
+        desc = X;
+        name = X;
+        field {
+            desc = X;
+            name = X;
+        } f;
+    };
+
+    param_reg reg_default;
+    param_reg #(.X(X)) reg_override1;
+    param_reg #(.X("from inst")) reg_override2;
+
+    reg_default->name = "dpa1";
+    reg_default.f->name = "dpa2";
+    reg_override1->name = X;
+    reg_override1.f->name = X;
+    reg_override2->name = X;
+    reg_override2.f->name = X;
+};
