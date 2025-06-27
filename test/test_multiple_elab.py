@@ -54,3 +54,15 @@ class TestMultipleElab(unittest.TestCase):
 
         self.assertEqual(default_root.top.find_by_path("r1.f").width, 1)
         self.assertEqual(W10_root.top.find_by_path("r1.f").width, 10)
+
+    def test_illegal_multi_elab(self):
+        rdlc = RDLCompiler(
+            message_printer=TestPrinter(),
+            single_elaborate_optimization=True,
+        )
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/parameters.rdl"))
+
+        rdlc.elaborate("nested", "inst1")
+        with self.assertRaises(RuntimeError):
+            # Calling elaborate a second time is not allowed if single_elaborate_optimization=True
+            rdlc.elaborate("nested", "inst2")

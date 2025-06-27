@@ -1,8 +1,12 @@
-
+from parameterized import parameterized_class
 from unittest_utils import RDLSourceTestCase
 import systemrdl.rdltypes as rdlt
 from systemrdl import RDLCompiler
 
+@parameterized_class([
+   {"single_elaborate_optimization": True},
+   {"single_elaborate_optimization": False},
+])
 class TestParameters(RDLSourceTestCase):
 
     def test_spec_examples(self):

@@ -1,7 +1,12 @@
+from parameterized import parameterized_class
 
 from unittest_utils import RDLSourceTestCase
 from systemrdl import warnings
 
+@parameterized_class([
+   {"single_elaborate_optimization": True},
+   {"single_elaborate_optimization": False},
+])
 class TestErrors(RDLSourceTestCase):
 
     def test_syntax_error(self):

@@ -1,7 +1,12 @@
+from parameterized import parameterized_class
 from unittest_utils import RDLSourceTestCase
 
 from systemrdl import rdltypes
 
+@parameterized_class([
+   {"single_elaborate_optimization": True},
+   {"single_elaborate_optimization": False},
+])
 class TestPropSideEffects(RDLSourceTestCase):
 
     def test_property_side_effects(self):

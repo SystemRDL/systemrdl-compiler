@@ -1,4 +1,5 @@
 import os
+from parameterized import parameterized_class
 from unittest_utils import RDLSourceTestCase
 from systemrdl import RDLCompiler
 from systemrdl.messages import RDLCompileError
@@ -8,6 +9,10 @@ from systemrdl.rdltypes import NoValue, ArrayedType, RefType
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
+@parameterized_class([
+   {"single_elaborate_optimization": True},
+   {"single_elaborate_optimization": False},
+])
 class TestUDP(RDLSourceTestCase):
 
     def test_15_2_2_ex1(self):

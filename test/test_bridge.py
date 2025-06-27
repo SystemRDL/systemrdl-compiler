@@ -1,5 +1,11 @@
+from parameterized import parameterized_class
+
 from unittest_utils import RDLSourceTestCase
 
+@parameterized_class([
+   {"single_elaborate_optimization": True},
+   {"single_elaborate_optimization": False},
+])
 class TestBridge(RDLSourceTestCase):
 
     def test_bridge(self):
