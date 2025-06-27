@@ -8,6 +8,7 @@ from ..core.helpers import truncate_int
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -35,33 +36,33 @@ class _ExpShiftExpr(ASTNode):
             )
         return int
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         # Righthand op has no influence in evaluation context
-        return self.l.get_min_eval_width()
+        return self.l.get_min_eval_width(assignee_node)
 
 class Exponent(_ExpShiftExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.l.get_min_eval_width()
+            eval_width = self.l.get_min_eval_width(assignee_node)
         # Right operand is self-determined
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value())
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(assignee_node=assignee_node))
         return truncate_int(int(l ** r), eval_width)
 
 class LShift(_ExpShiftExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.l.get_min_eval_width()
+            eval_width = self.l.get_min_eval_width(assignee_node)
         # Right operand is self-determined
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value())
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(assignee_node=assignee_node))
         return truncate_int(l << r, eval_width)
 
 class RShift(_ExpShiftExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.l.get_min_eval_width()
+            eval_width = self.l.get_min_eval_width(assignee_node)
         # Right operand is self-determined
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value())
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(assignee_node=assignee_node))
         return truncate_int(l >> r, eval_width)

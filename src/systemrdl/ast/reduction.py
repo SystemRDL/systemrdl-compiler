@@ -8,6 +8,7 @@ from ..core.helpers import truncate_int
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -29,36 +30,36 @@ class _ReductionExpr(ASTNode):
             )
         return int
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         return 1
 
 class AndReduce(_ReductionExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
-        eval_width = self.n.get_min_eval_width()
-        n = int(self.n.get_value(eval_width))
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
+        eval_width = self.n.get_min_eval_width(assignee_node)
+        n = int(self.n.get_value(eval_width, assignee_node))
         n = truncate_int(~n, eval_width)
         return int(n == 0)
 
 class NandReduce(_ReductionExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
-        eval_width = self.n.get_min_eval_width()
-        n = int(self.n.get_value(eval_width))
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
+        eval_width = self.n.get_min_eval_width(assignee_node)
+        n = int(self.n.get_value(eval_width, assignee_node))
         n = truncate_int(~n, eval_width)
         return int(n != 0)
 
 class OrReduce(_ReductionExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
-        n = int(self.n.get_value())
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
+        n = int(self.n.get_value(assignee_node=assignee_node))
         return int(n != 0)
 
 class NorReduce(_ReductionExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
-        n = int(self.n.get_value())
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
+        n = int(self.n.get_value(assignee_node=assignee_node))
         return int(n == 0)
 
 class XorReduce(_ReductionExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
-        n = int(self.n.get_value())
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
+        n = int(self.n.get_value(assignee_node=assignee_node))
         v = 0
         while n:
             if n & 1:
@@ -67,8 +68,8 @@ class XorReduce(_ReductionExpr):
         return v
 
 class XnorReduce(_ReductionExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
-        n = int(self.n.get_value())
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
+        n = int(self.n.get_value(assignee_node=assignee_node))
         v = 1
         while n:
             if n & 1:
@@ -81,6 +82,6 @@ class BoolNot(_ReductionExpr):
         super().predict_type()
         return bool
 
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        n = int(self.n.get_value())
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        n = int(self.n.get_value(assignee_node=assignee_node))
         return not n

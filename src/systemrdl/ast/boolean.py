@@ -6,6 +6,7 @@ from .conditional import is_castable
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -33,17 +34,17 @@ class _BoolExpr(ASTNode):
             )
         return bool
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         return 1
 
 class BoolAnd(_BoolExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        l = bool(self.l.get_value())
-        r = bool(self.r.get_value())
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        l = bool(self.l.get_value(assignee_node=assignee_node))
+        r = bool(self.r.get_value(assignee_node=assignee_node))
         return l and r
 
 class BoolOr(_BoolExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        l = bool(self.l.get_value())
-        r = bool(self.r.get_value())
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        l = bool(self.l.get_value(assignee_node=assignee_node))
+        r = bool(self.r.get_value(assignee_node=assignee_node))
         return l or r

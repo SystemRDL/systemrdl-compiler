@@ -6,6 +6,7 @@ from .conditional import is_castable
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -41,23 +42,23 @@ class _RelationalExpr(ASTNode):
             )
         return bool
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         return 1
 
-    def get_ops(self) -> Tuple[Any, Any]:
+    def get_ops(self, assignee_node: Optional['Node']=None) -> Tuple[Any, Any]:
 
         if self.is_numeric:
             # New width context. Determine eval_width here
             eval_width = max(
-                self.l.get_min_eval_width(),
-                self.r.get_min_eval_width()
+                self.l.get_min_eval_width(assignee_node),
+                self.r.get_min_eval_width(assignee_node)
             )
 
-            l = int(self.l.get_value(eval_width))
-            r = int(self.r.get_value(eval_width))
+            l = int(self.l.get_value(eval_width, assignee_node))
+            r = int(self.r.get_value(eval_width, assignee_node))
         elif not self.is_numeric:
-            l = self.l.get_value()
-            r = self.r.get_value()
+            l = self.l.get_value(assignee_node=assignee_node)
+            r = self.r.get_value(assignee_node=assignee_node)
         else:
             raise RuntimeError
 
@@ -86,31 +87,31 @@ class _NumericRelationalExpr(_RelationalExpr):
 
 
 class Eq(_RelationalExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        l, r = self.get_ops()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        l, r = self.get_ops(assignee_node)
         return l == r
 
 class Neq(_RelationalExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        l, r = self.get_ops()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        l, r = self.get_ops(assignee_node)
         return l != r
 
 class Lt(_NumericRelationalExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        l, r = self.get_ops()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        l, r = self.get_ops(assignee_node)
         return l < r
 
 class Gt(_NumericRelationalExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        l, r = self.get_ops()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        l, r = self.get_ops(assignee_node)
         return l > r
 
 class Leq(_NumericRelationalExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        l, r = self.get_ops()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        l, r = self.get_ops(assignee_node)
         return l <= r
 
 class Geq(_NumericRelationalExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        l, r = self.get_ops()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        l, r = self.get_ops(assignee_node)
         return l >= r

@@ -16,7 +16,7 @@ TypeNSEntry = TypeNSRef
 TypeNSScope = Dict[str, Tuple[TypeNSEntry, Optional['SourceRefBase']]]
 
 ElementNSRef = Union[comp.Component, Parameter]
-ElementNSEntry = Tuple[ElementNSRef, Optional[comp.Component]]
+ElementNSEntry = Tuple[ElementNSRef, comp.Component]
 ElementNSScope = Dict[str, Tuple[ElementNSEntry, Optional['SourceRefBase']]]
 
 DefaultNSRef = Union['ASTNode', bool, 'rdltypes.InterruptType']
@@ -51,7 +51,7 @@ class NamespaceRegistry():
 
         self.type_ns_stack[-1][name] = (ref, src_ref)
 
-    def register_element(self, name: str, ref: ElementNSRef, parent_comp_def: Optional[comp.Component], src_ref: Optional['SourceRefBase']) -> None:
+    def register_element(self, name: str, ref: ElementNSRef, parent_comp_def: comp.Component, src_ref: Optional['SourceRefBase']) -> None:
         if name in self.element_ns_stack[-1]:
             other_src_ref = self.element_ns_stack[-1][name][1]
             self.msg.error(

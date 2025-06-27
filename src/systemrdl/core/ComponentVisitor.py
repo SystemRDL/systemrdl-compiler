@@ -28,14 +28,11 @@ class ComponentVisitor(BaseVisitor):
     comp_type = comp.Component
     component: comp.Component
 
-    def __init__(self, compiler: 'RDLCompiler', comp_def: comp.Component, def_name: Optional[str]=None, param_defs: Optional[List[Parameter]]=None):
+    def __init__(self, compiler: 'RDLCompiler', comp_def: comp.Component, def_name: Optional[str]=None):
         super().__init__(compiler)
 
         self.component = comp_def
         self.component.type_name = def_name
-        if param_defs is not None:
-            for param_def in param_defs:
-                self.component.parameters_dict[param_def.name] = param_def
 
         # Scratchpad of local property assignments encountered in body of component
         # format is:
@@ -69,7 +66,12 @@ class ComponentVisitor(BaseVisitor):
 
         # Re-Load any parameters into the local scope
         for param in self.component.parameters_dict.values():
-            self.compiler.namespace.register_element(param.name, param, None, None)
+            self.compiler.namespace.register_element(
+                param.name,
+                param,
+                self.component,
+                None
+            )
 
         # Visit all component elements.
         # Their visitors will apply changes to the current component
@@ -121,15 +123,15 @@ class ComponentVisitor(BaseVisitor):
         comp_def = self.create_new_component(type_token)
 
         def_name = get_ID_text(ctx.ID())
-        # Get any parameters for the component
+
+        # Process any parameters for the component
         if ctx.param_def() is not None:
-            param_defs = self.visit(ctx.param_def())
-        else:
-            param_defs = []
+            self._tmp_comp_def = comp_def
+            self.visit(ctx.param_def())
 
         # Recurse into the component definition body
         body = ctx.component_body()
-        self.process_component_body(comp_def, body, type_token, def_name, param_defs)
+        self.process_component_body(comp_def, body, type_token, def_name)
 
         # Since the definition is named, register it with the namespace
         self.compiler.namespace.register_type(def_name, comp_def, src_ref_from_antlr(ctx.ID()))
@@ -146,7 +148,7 @@ class ComponentVisitor(BaseVisitor):
         comp_def = self.create_new_component(type_token)
 
         body = ctx.component_body()
-        self.process_component_body(comp_def, body, type_token, None, [])
+        self.process_component_body(comp_def, body, type_token, None)
 
         return comp_def
 
@@ -162,13 +164,13 @@ class ComponentVisitor(BaseVisitor):
         return visitor_cls.comp_type()
 
 
-    def process_component_body(self, comp_def: comp.Component, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: Optional[str], param_defs: List[Parameter]) -> None:
+    def process_component_body(self, comp_def: comp.Component, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: Optional[str]) -> None:
         """
         Given initial component definition info, recurse to another visitor to
         process the body of the component definition
         """
         visitor_cls = KW_TO_VISITOR_MAP[type_token.type]
-        visitor = visitor_cls(self.compiler, comp_def, def_name, param_defs)
+        visitor = visitor_cls(self.compiler, comp_def, def_name)
         visitor.visit(body)
 
     #---------------------------------------------------------------------------
@@ -487,24 +489,20 @@ class ComponentVisitor(BaseVisitor):
     #---------------------------------------------------------------------------
     # Parameters
     #---------------------------------------------------------------------------
-    def visitParam_def(self, ctx: SystemRDLParser.Param_defContext) -> List[Parameter]:
+    def visitParam_def(self, ctx: SystemRDLParser.Param_defContext) -> None:
         """
         Parameter Definition block
         """
         self.compiler.namespace.enter_scope()
-
-        param_defs = []
         for elem in ctx.getTypedRuleContexts(SystemRDLParser.Param_def_elemContext):
-            param_def = self.visit(elem)
-            param_defs.append(param_def)
-
+            self.visit(elem)
         self.compiler.namespace.exit_scope()
-        return param_defs
 
-    def visitParam_def_elem(self, ctx: SystemRDLParser.Param_def_elemContext) -> Parameter:
+    def visitParam_def_elem(self, ctx: SystemRDLParser.Param_def_elemContext) -> None:
         """
         Individual parameter definition elements
         """
+        comp_def = self._tmp_comp_def # component definition of incoming component
 
         # Construct parameter type
         data_type_token = self.visit(ctx.data_type())
@@ -538,9 +536,15 @@ class ComponentVisitor(BaseVisitor):
         param = Parameter(param_type, param_name, default_expr)
 
         # Register it in the parameter def namespace scope
-        self.compiler.namespace.register_element(param_name, param, None, src_ref_from_antlr(ctx.ID()))
+        self.compiler.namespace.register_element(
+            param_name,
+            param,
+            comp_def,
+            src_ref_from_antlr(ctx.ID())
+        )
 
-        return param
+        # Add it to the new component's definition
+        comp_def.parameters_dict[param_name] = param
 
     def visitParam_inst(self, ctx: SystemRDLParser.Param_instContext) -> Dict[str, Tuple[ast.ASTNode, Optional[SourceRefBase]]]:
         param_assigns = {}
@@ -920,8 +924,8 @@ class RootVisitor(ComponentVisitor):
         super().visitLocal_property_assignment(ctx)
 
 
-    def process_component_body(self, comp_def: comp.Component, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: Optional[str], param_defs: List[Parameter]) -> None:
-        super().process_component_body(comp_def, body, type_token, def_name, param_defs)
+    def process_component_body(self, comp_def: comp.Component, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: Optional[str]) -> None:
+        super().process_component_body(comp_def, body, type_token, def_name)
 
         if def_name is not None:
             self.component.comp_defs[def_name] = comp_def

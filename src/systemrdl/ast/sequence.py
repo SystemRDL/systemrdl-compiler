@@ -6,6 +6,7 @@ from .conditional import is_castable
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -39,29 +40,29 @@ class Concatenate(ASTNode):
                 )
         return self.type
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         if self.type == int:
             width = 0
             for element in self.elements:
-                width = width + element.get_min_eval_width()
+                width = width + element.get_min_eval_width(assignee_node)
 
             return width
         else:
             raise RuntimeError
 
-    def get_value(self, eval_width: Optional[int]=None) -> Union[int, str]:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> Union[int, str]:
         if self.type == int:
             int_result = 0
             for element in self.elements:
-                width = element.get_min_eval_width()
+                width = element.get_min_eval_width(assignee_node)
                 int_result <<= width
-                int_result |= int(element.get_value())
+                int_result |= int(element.get_value(assignee_node=assignee_node))
             return int_result
 
         elif self.type == str:
             str_result = ""
             for element in self.elements:
-                str_result += element.get_value()
+                str_result += element.get_value(assignee_node=assignee_node)
             return str_result
 
         else:
@@ -97,27 +98,27 @@ class Replicate(ASTNode):
             # Type check for invalid type is already handled there
             raise RuntimeError
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         # Evaluate number of repetitions
         if self.reps_value is None:
-            self.reps_value = self.reps.get_value()
+            self.reps_value = self.reps.get_value(assignee_node=assignee_node)
 
         if self.type == int:
             # Get width of single contents
-            width = self.concat.get_min_eval_width()
+            width = self.concat.get_min_eval_width(assignee_node)
             width *= self.reps_value
             return width
         else:
             raise RuntimeError
 
-    def get_value(self, eval_width: Optional[int]=None) -> Union[int, str]:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> Union[int, str]:
         # Evaluate number of repetitions
         if self.reps_value is None:
-            self.reps_value = self.reps.get_value()
+            self.reps_value = self.reps.get_value(assignee_node=assignee_node)
 
         if self.type == int:
-            width = self.concat.get_min_eval_width()
-            val = int(self.concat.get_value())
+            width = self.concat.get_min_eval_width(assignee_node)
+            val = int(self.concat.get_value(assignee_node=assignee_node))
 
             int_result = 0
             for _ in range(self.reps_value):
@@ -127,7 +128,7 @@ class Replicate(ASTNode):
             return int_result
 
         elif self.type == str:
-            str_result = self.concat.get_value()
+            str_result = self.concat.get_value(assignee_node=assignee_node)
             str_result *= self.reps_value
             return str_result
 

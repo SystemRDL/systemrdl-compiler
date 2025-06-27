@@ -49,17 +49,22 @@ class Parameter:
         return result
 
 
-    def get_value(self) -> Any:
+    def get_value(self, assignee_node: 'Node') -> Any:
         """
         Evaluate self.expr to get the parameter's value
         """
-        if (self._value is None) and (self.expr is not None):
-            self._value = self.expr.get_value()
+        if self.expr is None:
+            # No expression was assigned
+            return None
+
+        # First time evaluating. Update cached value
+        if self._value is None:
+            self._value = self.expr.get_value(assignee_node=assignee_node)
 
         return self._value
 
 
-    def get_normalized_parameter(self) -> str:
+    def get_normalized_parameter(self, assignee_node: 'Node') -> str:
         """
         Converts the parameter to the normalized type name segment as defined in
         SystemRDL 2.0 Section 5.1.1.4-c
@@ -67,4 +72,4 @@ class Parameter:
         Returns the whole parameter string:
             <parameter name> + "_" + <normalized value>
         """
-        return self.name + "_" + normalize(self.get_value())
+        return self.name + "_" + normalize(self.get_value(assignee_node))

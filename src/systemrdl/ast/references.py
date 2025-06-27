@@ -12,32 +12,69 @@ if TYPE_CHECKING:
     from ..core.parameter import Parameter
     from ..source_ref import SourceRefBase
     from ..rdltypes.typing import PreElabRDLType
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
 class ParameterRef(ASTNode):
-    def __init__(self, env: 'RDLEnvironment', src_ref: 'OptionalSourceRef', param: 'Parameter'):
+    def __init__(self, env: 'RDLEnvironment', src_ref: 'OptionalSourceRef', ref_root: comp.Component, param_name: str):
         super().__init__(env, src_ref)
-        self.param = param
+
+        # Handle to the component definition that owns the parameter
+        # This is the original_def, and NOT the actual instance
+        # When deepcopying, this is copied by reference in order to preserve
+        # the original def object
+        self.ref_root = ref_root
+
+        self.param_name = param_name
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> 'ParameterRef':
+        copy_by_ref = {"env", "msg", "ref_root"}
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if k in copy_by_ref:
+                setattr(result, k, v)
+            else:
+                setattr(result, k, deepcopy(v, memo))
+        return result
 
     def predict_type(self) -> 'PreElabRDLType':
-        return self.param.param_type
+        return self.ref_root.parameters_dict[self.param_name].param_type
 
-    def get_min_eval_width(self) -> int:
-        if self.param.expr is None:
+
+    def _lookup_inst_parameter(self, assignee_node: Optional['Node']) -> 'Parameter':
+        assert assignee_node is not None
+
+        # Traverse up from assignee until ref_root is reached
+        current_node = assignee_node
+        while True:
+            if current_node.inst.original_def is self.ref_root:
+                break
+            if current_node.parent is None:
+                raise RuntimeError("Upwards traverse to ref_root failed")
+            current_node = current_node.parent
+
+        return current_node.inst.parameters_dict[self.param_name]
+
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
+        param = self._lookup_inst_parameter(assignee_node)
+        if param.expr is None:
             self.msg.fatal(
-                "Value for parameter '%s' was never assigned" % self.param.name,
+                "Value for parameter '%s' was never assigned" % self.param_name,
                 self.src_ref
             )
-        return self.param.expr.get_min_eval_width()
+        return param.expr.get_min_eval_width(assignee_node)
 
-    def get_value(self, eval_width: Optional[int]=None) -> Any:
-        if self.param.expr is None:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> Any:
+        param = self._lookup_inst_parameter(assignee_node)
+        if param.expr is None:
             self.msg.fatal(
-                "Value for parameter '%s' was never assigned" % self.param.name,
+                "Value for parameter '%s' was never assigned" % self.param_name,
                 self.src_ref
             )
-        return self.param.expr.get_value(eval_width)
+        return param.expr.get_value(eval_width, assignee_node)
 
 
 class ArrayIndex(ASTNode):
@@ -68,13 +105,13 @@ class ArrayIndex(ASTNode):
 
         return array_type.element_type
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         # TODO: Need to actually reach in and get eval width of array element
         return 64
 
-    def get_value(self, eval_width: Optional[int]=None) -> Any:
-        index = self.index.get_value()
-        array = self.array.get_value()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> Any:
+        index = self.index.get_value(assignee_node=assignee_node)
+        array = self.array.get_value(assignee_node=assignee_node)
         if index >= len(array):
             self.msg.fatal(
                 "Array index '%d' is out of range" % index,
@@ -107,12 +144,12 @@ class MemberRef(ASTNode):
 
         return struct_type._members[self.member_name]
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         # TODO: Need to actually reach in and get eval width of struct member
         return 64
 
-    def get_value(self, eval_width: Optional[int]=None) -> Any:
-        struct = self.struct.get_value()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> Any:
+        struct = self.struct.get_value(assignee_node=assignee_node)
         return struct._values[self.member_name]
 
 
@@ -202,7 +239,7 @@ class InstRef(ASTNode):
 
         return type(current_comp)
 
-    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.ComponentRef:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> rdltypes.ComponentRef:
         """
         Build a resolved ComponentRef container that describes the relative path
         """
@@ -210,7 +247,7 @@ class InstRef(ASTNode):
         resolved_ref_elements = []
 
         for name, array_suffixes, name_src_ref in self.ref_elements:
-            idx_list = [suffix.get_value() for suffix in array_suffixes]
+            idx_list = [suffix.get_value(assignee_node=assignee_node) for suffix in array_suffixes]
             resolved_ref_elements.append((name, idx_list, name_src_ref))
 
         # Create container
@@ -243,6 +280,6 @@ class PropRef(ASTNode):
 
         return self.prop_ref_type
 
-    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.PropertyReference:
-        cref = self.inst_ref.get_value()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> rdltypes.PropertyReference:
+        cref = self.inst_ref.get_value(assignee_node=assignee_node)
         return self.prop_ref_type(self.src_ref, self.env, cref)

@@ -39,7 +39,7 @@ class ElabExpressionsListener(walker.RDLListener):
         # Evaluate component properties
         for prop_name, prop_value in node.inst.properties.items():
             if isinstance(prop_value, ASTNode):
-                node.inst.properties[prop_name] = prop_value.get_value()
+                node.inst.properties[prop_name] = prop_value.get_value(assignee_node=node)
 
 
     def enter_AddressableComponent(self, node: AddressableNode) -> None:
@@ -48,10 +48,10 @@ class ElabExpressionsListener(walker.RDLListener):
 
         # Evaluate instance object expressions
         if isinstance(node.inst.addr_offset, ASTNode):
-            node.inst.addr_offset = node.inst.addr_offset.get_value()
+            node.inst.addr_offset = node.inst.addr_offset.get_value(assignee_node=node)
 
         if isinstance(node.inst.addr_align, ASTNode):
-            node.inst.addr_align = node.inst.addr_align.get_value()
+            node.inst.addr_align = node.inst.addr_align.get_value(assignee_node=node)
             if node.inst.addr_align == 0:
                 self.msg.fatal(
                     "Alignment allocator '%=' must be greater than zero",
@@ -61,7 +61,7 @@ class ElabExpressionsListener(walker.RDLListener):
         if node.inst.array_dimensions:
             for i, dim in enumerate(node.inst.array_dimensions):
                 if isinstance(dim, ASTNode):
-                    node.inst.array_dimensions[i] = dim.get_value()
+                    node.inst.array_dimensions[i] = dim.get_value(assignee_node=node)
                     if node.inst.array_dimensions[i] == 0:
                         self.msg.fatal(
                             "Array dimension must be greater than zero",
@@ -69,7 +69,7 @@ class ElabExpressionsListener(walker.RDLListener):
                         )
 
         if isinstance(node.inst.array_stride, ASTNode):
-            node.inst.array_stride = node.inst.array_stride.get_value()
+            node.inst.array_stride = node.inst.array_stride.get_value(assignee_node=node)
             if node.inst.array_stride == 0:
                 self.msg.fatal(
                     "Array stride allocator '+=' must be greater than zero",
@@ -83,7 +83,7 @@ class ElabExpressionsListener(walker.RDLListener):
 
         # Evaluate instance object expressions
         if isinstance(node.inst.width, ASTNode):
-            node.inst.width = node.inst.width.get_value()
+            node.inst.width = node.inst.width.get_value(assignee_node=node)
             if node.inst.width == 0:
                 self.msg.fatal(
                     "Vector width must be greater than zero",
@@ -91,10 +91,10 @@ class ElabExpressionsListener(walker.RDLListener):
                 )
 
         if isinstance(node.inst.msb, ASTNode):
-            node.inst.msb = node.inst.msb.get_value()
+            node.inst.msb = node.inst.msb.get_value(assignee_node=node)
 
         if isinstance(node.inst.lsb, ASTNode):
-            node.inst.lsb = node.inst.lsb.get_value()
+            node.inst.lsb = node.inst.lsb.get_value(assignee_node=node)
 
 
 
@@ -622,11 +622,11 @@ class LateElabListener(walker.RDLListener):
             # Augment based on parameter overrides as per 5.1.1.4
             if node.inst.original_def is not None:
                 for param_name, inst_parameter in node.inst.parameters_dict.items():
-                    orig_param_value = node.inst.original_def.parameters_dict[param_name].get_value()
-                    new_param_value = inst_parameter.get_value()
+                    orig_param_value = node.inst.original_def.parameters_dict[param_name].get_value(node)
+                    new_param_value = inst_parameter.get_value(node)
                     if new_param_value != orig_param_value:
                         try:
-                            segment = inst_parameter.get_normalized_parameter()
+                            segment = inst_parameter.get_normalized_parameter(node)
                             extra_type_name_segments.append(segment)
                         except RefInParameterError:
                             self.msg.error(

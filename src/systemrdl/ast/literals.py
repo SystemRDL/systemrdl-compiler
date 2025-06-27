@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
     from ..rdltypes.typing import PreElabRDLType, RDLValue
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -22,10 +23,10 @@ class BoolLiteral(ASTNode):
     def predict_type(self) -> Type[bool]:
         return bool
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         return 1
 
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
         return self.val
 
 
@@ -38,10 +39,10 @@ class IntLiteral(ASTNode):
     def predict_type(self) -> Type[int]:
         return int
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         return self.width
 
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         return self.val
 
 
@@ -57,7 +58,7 @@ class BuiltinEnumLiteral(ASTNode):
     def predict_type(self) -> Type[rdltypes.BuiltinEnum]:
         return type(self.val)
 
-    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.BuiltinEnum:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> rdltypes.BuiltinEnum:
         return self.val
 
 
@@ -69,10 +70,10 @@ class EnumLiteral(ASTNode):
     def predict_type(self) -> Type[rdltypes.UserEnum]:
         return type(self.val)
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         return 64
 
-    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.UserEnum:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> rdltypes.UserEnum:
         return self.val
 
 
@@ -95,10 +96,10 @@ class StructLiteral(ASTNode):
 
         return self.struct_type
 
-    def get_value(self, eval_width: Optional[int]=None) -> rdltypes.UserStruct:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> rdltypes.UserStruct:
         resolved_values = OrderedDict()
         for member_name, (member_expr, member_name_src_ref) in self.values.items():
-            resolved_values[member_name] = member_expr.get_value()
+            resolved_values[member_name] = member_expr.get_value(assignee_node=assignee_node)
 
         return self.struct_type(resolved_values)
 
@@ -111,7 +112,7 @@ class StringLiteral(ASTNode):
     def predict_type(self) -> Type[str]:
         return str
 
-    def get_value(self, eval_width: Optional[int]=None) -> str:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> str:
         return self.val
 
 
@@ -178,10 +179,10 @@ class ArrayLiteral(ASTNode):
 
         return rdltypes.ArrayedType(uniform_type)
 
-    def get_value(self, eval_width: Optional[int]=None) -> List[Any]:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> List[Any]:
         result = []
         for element in self.elements:
-            result.append(element.get_value())
+            result.append(element.get_value(assignee_node=assignee_node))
         return result
 
 
@@ -197,7 +198,7 @@ class ExternalLiteral(ASTNode):
     def predict_type(self) -> 'PreElabRDLType':
         return rdltypes.get_rdltype(self.value)
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         if isinstance(self.value, bool):
             return 1
         elif isinstance(self.value, int):
@@ -207,5 +208,5 @@ class ExternalLiteral(ASTNode):
         else:
             raise RuntimeError
 
-    def get_value(self, eval_width: Optional[int]=None) -> 'RDLValue':
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> 'RDLValue':
         return self.value

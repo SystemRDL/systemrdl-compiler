@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
     from ..rdltypes.typing import PreElabRDLType
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -51,28 +52,28 @@ class Conditional(ASTNode):
             )
         return typ
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         # Truth operand has no influence in evaluation context
         return(max(
-            self.j.get_min_eval_width(),
-            self.k.get_min_eval_width()
+            self.j.get_min_eval_width(assignee_node),
+            self.k.get_min_eval_width(assignee_node)
         ))
 
-    def get_value(self, eval_width: Optional[int]=None) -> Any:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> Any:
         # i is self-determined
-        i = bool(self.i.get_value())
+        i = bool(self.i.get_value(assignee_node=assignee_node))
 
         if self.is_numeric:
             if eval_width is None:
                 eval_width = max(
-                    self.j.get_min_eval_width(),
-                    self.k.get_min_eval_width()
+                    self.j.get_min_eval_width(assignee_node),
+                    self.k.get_min_eval_width(assignee_node)
                 )
-            j = self.j.get_value(eval_width)
-            k = self.k.get_value(eval_width)
+            j = self.j.get_value(eval_width, assignee_node)
+            k = self.k.get_value(eval_width, assignee_node)
         elif not self.is_numeric:
-            j = self.j.get_value()
-            k = self.k.get_value()
+            j = self.j.get_value(assignee_node=assignee_node)
+            k = self.k.get_value(assignee_node=assignee_node)
         else:
             raise RuntimeError
 

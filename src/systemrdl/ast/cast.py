@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
     from ..rdltypes.typing import PreElabRDLType
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -48,26 +49,26 @@ class WidthCast(ASTNode):
 
         return int
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         if self.cast_width is None:
             assert self.w_expr is not None # mutually exclusive
-            self.cast_width = int(self.w_expr.get_value())
+            self.cast_width = int(self.w_expr.get_value(assignee_node=assignee_node))
         return self.cast_width
 
 
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         # Truncate to cast width instead of eval width
         if self.cast_width is None:
             assert self.w_expr is not None # mutually exclusive
-            self.cast_width = int(self.w_expr.get_value())
+            self.cast_width = int(self.w_expr.get_value(assignee_node=assignee_node))
         if self.cast_width == 0:
             self.msg.fatal(
                 "Cannot cast to width of zero",
                 self.src_ref
             )
 
-        eval_width = max(self.cast_width, self.v.get_min_eval_width())
-        n = int(self.v.get_value(eval_width))
+        eval_width = max(self.cast_width, self.v.get_min_eval_width(assignee_node))
+        n = int(self.v.get_value(eval_width, assignee_node))
 
         return truncate_int(n, self.cast_width)
 
@@ -87,11 +88,11 @@ class BoolCast(ASTNode):
             )
         return bool
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         return 1
 
-    def get_value(self, eval_width: Optional[int]=None) -> bool:
-        n = int(self.n.get_value())
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> bool:
+        n = int(self.n.get_value(assignee_node=assignee_node))
         return n != 0
 
 #-------------------------------------------------------------------------------
@@ -123,11 +124,11 @@ class AssignmentCast(ASTNode):
 
         return self.dest_type
 
-    def get_min_eval_width(self) -> int:
-        return self.v.get_min_eval_width()
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
+        return self.v.get_min_eval_width(assignee_node)
 
-    def get_value(self, eval_width: Optional[int]=None) -> Any:
-        v = self.v.get_value()
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> Any:
+        v = self.v.get_value(assignee_node=assignee_node)
 
         if self.dest_type == bool:
             return bool(v)

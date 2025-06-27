@@ -8,6 +8,7 @@ from ..core.helpers import truncate_int
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -28,26 +29,26 @@ class _UnaryIntExpr(ASTNode):
             )
         return int
 
-    def get_min_eval_width(self) -> int:
-        return self.n.get_min_eval_width()
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
+        return self.n.get_min_eval_width(assignee_node)
 
 class UnaryPlus(_UnaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        n = int(self.n.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        n = int(self.n.get_value(eval_width, assignee_node))
         return truncate_int(n, eval_width)
 
 class UnaryMinus(_UnaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        n = int(self.n.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        n = int(self.n.get_value(eval_width, assignee_node))
         return truncate_int(-n, eval_width)
 
 class BitwiseInvert(_UnaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        n = int(self.n.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        n = int(self.n.get_value(eval_width, assignee_node))
         return truncate_int(~n, eval_width)

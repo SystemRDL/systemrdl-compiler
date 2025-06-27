@@ -8,6 +8,7 @@ from ..core.helpers import truncate_int
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
     from ..source_ref import SourceRefBase
+    from ..node import Node
 
     OptionalSourceRef = Optional[SourceRefBase]
 
@@ -35,42 +36,42 @@ class _BinaryIntExpr(ASTNode):
             )
         return int
 
-    def get_min_eval_width(self) -> int:
+    def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         return(max(
-            self.l.get_min_eval_width(),
-            self.r.get_min_eval_width()
+            self.l.get_min_eval_width(assignee_node),
+            self.r.get_min_eval_width(assignee_node)
         ))
 
 class Add(_BinaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(eval_width, assignee_node))
         return truncate_int(l + r, eval_width)
 
 class Sub(_BinaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(eval_width, assignee_node))
         return truncate_int(l - r, eval_width)
 
 class Mult(_BinaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(eval_width, assignee_node))
         return truncate_int(l * r, eval_width)
 
 class Div(_BinaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(eval_width, assignee_node))
 
         if r == 0:
             self.msg.fatal(
@@ -80,11 +81,11 @@ class Div(_BinaryIntExpr):
         return truncate_int(l // r, eval_width)
 
 class Mod(_BinaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(eval_width, assignee_node))
 
         if r == 0:
             self.msg.fatal(
@@ -94,33 +95,33 @@ class Mod(_BinaryIntExpr):
         return truncate_int(l % r, eval_width)
 
 class BitwiseAnd(_BinaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(eval_width, assignee_node))
         return truncate_int(l & r, eval_width)
 
 class BitwiseOr(_BinaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(eval_width, assignee_node))
         return truncate_int(l | r, eval_width)
 
 class BitwiseXor(_BinaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(eval_width, assignee_node))
         return truncate_int(l ^ r, eval_width)
 
 class BitwiseXnor(_BinaryIntExpr):
-    def get_value(self, eval_width: Optional[int]=None) -> int:
+    def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
         if eval_width is None:
-            eval_width = self.get_min_eval_width()
-        l = int(self.l.get_value(eval_width))
-        r = int(self.r.get_value(eval_width))
+            eval_width = self.get_min_eval_width(assignee_node)
+        l = int(self.l.get_value(eval_width, assignee_node))
+        r = int(self.r.get_value(eval_width, assignee_node))
         return truncate_int(l ^~ r, eval_width)
