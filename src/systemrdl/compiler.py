@@ -109,7 +109,7 @@ class RDLCompiler:
         self.msg = self.env.msg
 
         self.namespace: NamespaceRegistry = NamespaceRegistry(self.env)
-        self.visitor: RootVisitor = RootVisitor(self)
+        self.visitor: RootVisitor = RootVisitor(self, comp.Root())
         self.root = self.visitor.component
 
 
