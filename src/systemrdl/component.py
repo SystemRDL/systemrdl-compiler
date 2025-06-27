@@ -1,6 +1,6 @@
 import operator
 import functools
-from copy import deepcopy
+from copy import deepcopy, copy
 from collections import OrderedDict
 from typing import Optional, List, Dict, TYPE_CHECKING, Any, Union
 
@@ -128,17 +128,28 @@ class Component:
         result = cls.__new__(cls)
         memo[id(self)] = result
 
-        # First, explicitly copy all parameter objects
+        # Copy all parameter objects so that they can accept value overrides
         result.parameters_dict = OrderedDict()
         for name, param in self.parameters_dict.items():
-            result.parameters_dict[name] = param._copy_for_inst(memo)
+            result.parameters_dict[name] = copy(param)
 
-        # Ensure child components get copied first
+        # Shallow-copy the properties dict so that values can get overridden by DPAs
+        result.properties = self.properties.copy()
+
+        # Recurse this special copy method for children
         result.children = [child._copy_for_inst(memo) for child in self.children]
 
-        # Finally, continue deepcopying everything else
-        copy_by_ref = {"original_def", "parent_scope", "comp_defs"}
-        skip = {"parameters", "children"}
+        # Finally, deepcopy everything else
+        copy_by_ref = {
+            "original_def", "parent_scope", "comp_defs",
+
+            # Hack: these exist in sub-classes, but easier to just list them here
+            # rather than extending this function
+            "width", "msb", "lsb", "high", "low",
+            "addr_offset", "addr_align",
+            "array_dimensions", "array_stride",
+        }
+        skip = {"parameters_dict", "properties", "children"}
         for k, v in self.__dict__.items():
             if k in skip:
                 continue
@@ -146,10 +157,9 @@ class Component:
                 setattr(result, k, v)
             else:
                 setattr(result, k, deepcopy(v, memo))
+
         return result
 
-    def __deepcopy__(self: 'ComponentClass', memo: Dict[int, Any]) -> 'ComponentClass':
-        return self._copy_for_inst(memo)
 
     def __repr__(self) -> str:
         if self.is_instance:

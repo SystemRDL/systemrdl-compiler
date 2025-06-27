@@ -1,5 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Any, List, Tuple, Dict, Type
-from copy import deepcopy
+from typing import TYPE_CHECKING, Optional, Any, List, Tuple, Type
 
 from .. import rdltypes
 from .. import component as comp
@@ -28,21 +27,8 @@ class ParameterRef(ASTNode):
 
         self.param_name = param_name
 
-    def __deepcopy__(self, memo: Dict[int, Any]) -> 'ParameterRef':
-        copy_by_ref = {"env", "msg", "ref_root"}
-        cls = self.__class__
-        result = cls.__new__(cls)
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            if k in copy_by_ref:
-                setattr(result, k, v)
-            else:
-                setattr(result, k, deepcopy(v, memo))
-        return result
-
     def predict_type(self) -> 'PreElabRDLType':
         return self.ref_root.parameters_dict[self.param_name].param_type
-
 
     def _lookup_inst_parameter(self, assignee_node: Optional['Node']) -> 'Parameter':
         assert assignee_node is not None
@@ -175,28 +161,6 @@ class InstRef(ASTNode):
         #   ( str , [ <Index ASTNode> , ... ] , SourceRefBase)
         # ]
         self.ref_elements = ref_elements
-
-    def __deepcopy__(self, memo: Dict[int, Any]) -> 'InstRef':
-        """
-        Copy any Source Ref by ref within the ref_elements list when deepcopying
-        """
-        copy_by_ref = {"env", "msg", "ref_root"}
-        cls = self.__class__
-        result = cls.__new__(cls)
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            if k in copy_by_ref:
-                setattr(result, k, v)
-            elif k == "ref_elements":
-                # Manually deepcopy the ref_elements list
-                new_ref_elements = []
-                for src_name, src_array_suffixes, src_src_ref in v:
-                    new_array_suffixes = deepcopy(src_array_suffixes, memo)
-                    new_ref_elements.append((src_name, new_array_suffixes, src_src_ref))
-                setattr(result, k, new_ref_elements)
-            else:
-                setattr(result, k, deepcopy(v, memo))
-        return result
 
     def predict_type(self) -> Type[comp.Component]:
         """

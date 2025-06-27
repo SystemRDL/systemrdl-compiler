@@ -28,7 +28,6 @@ profiler.bind_timer("systemrdl.core.ComponentVisitor", "RootVisitor.visitRoot", 
 profiler.bind_timer("systemrdl.compiler", "RDLCompiler.elaborate", "elaborate")
 
 profiler.bind_timer("systemrdl.component", "Component._copy_for_inst", "comp deepcopies")
-profiler.bind_timer("systemrdl.ast.ast_node", "ASTNode.__deepcopy__", "ast deepcopies")
 
 # Run!
 code_to_profile()

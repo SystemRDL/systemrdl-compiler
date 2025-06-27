@@ -1,5 +1,4 @@
-from copy import deepcopy
-from typing import TYPE_CHECKING, Optional, Any, Dict
+from typing import TYPE_CHECKING, Optional, Any
 
 
 if TYPE_CHECKING:
@@ -17,21 +16,6 @@ class ASTNode:
 
         # Source Ref to use for error context
         self.src_ref = src_ref
-
-    def __deepcopy__(self, memo: Dict[int, Any]) -> 'ASTNode':
-        """
-        Deepcopy all members except for ones that should be copied by reference
-        """
-        copy_by_ref = {"env", "msg"}
-        cls = self.__class__
-        result = cls.__new__(cls)
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            if k in copy_by_ref:
-                setattr(result, k, v)
-            else:
-                setattr(result, k, deepcopy(v, memo))
-        return result
 
     def predict_type(self) -> 'PreElabRDLType':
         """
