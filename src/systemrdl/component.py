@@ -136,12 +136,16 @@ class Component:
         # Shallow-copy the properties dict so that values can get overridden by DPAs
         result.properties = self.properties.copy()
 
+        # Shallow copy property_src_ref since otherwise is unnecessary
+        result.property_src_ref = self.property_src_ref.copy()
+
         # Recurse this special copy method for children
         result.children = [child._copy_for_inst(memo) for child in self.children]
 
         # Finally, deepcopy everything else
         copy_by_ref = {
             "original_def", "parent_scope", "comp_defs",
+            "def_src_ref", "inst_src_ref",
 
             # Hack: these exist in sub-classes, but easier to just list them here
             # rather than extending this function
@@ -149,7 +153,7 @@ class Component:
             "addr_offset", "addr_align",
             "array_dimensions", "array_stride",
         }
-        skip = {"parameters_dict", "properties", "children"}
+        skip = {"parameters_dict", "properties", "children", "property_src_ref"}
         for k, v in self.__dict__.items():
             if k in skip:
                 continue
