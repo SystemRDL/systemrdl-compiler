@@ -55,6 +55,22 @@ class TestMultipleElab(unittest.TestCase):
         self.assertEqual(default_root.top.find_by_path("r1.f").width, 1)
         self.assertEqual(W10_root.top.find_by_path("r1.f").width, 10)
 
+    def test_multi_elab_common_dpa(self):
+        rdlc = RDLCompiler(message_printer=TestPrinter())
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/shared_dpa.rdl"))
+
+        top_root = rdlc.elaborate("top")
+        top_a_root = rdlc.elaborate("top_a")
+        top_b_root = rdlc.elaborate("top_b")
+
+        self.assertEqual(top_root.top.find_by_path("myreg").get_property("desc"), "reg default")
+        self.assertEqual(top_root.top.find_by_path("myreg.f").get_property("desc"), "field default")
+        self.assertEqual(top_a_root.top.find_by_path("myreg").get_property("desc"), "reg a")
+        self.assertEqual(top_a_root.top.find_by_path("myreg.f").get_property("desc"), "field a")
+        self.assertEqual(top_b_root.top.find_by_path("myreg").get_property("desc"), "reg b")
+        self.assertEqual(top_b_root.top.find_by_path("myreg.f").get_property("desc"), "field b")
+
+
     def test_illegal_multi_elab(self):
         rdlc = RDLCompiler(
             message_printer=TestPrinter(),

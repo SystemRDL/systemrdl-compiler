@@ -1,0 +1,24 @@
+reg shared_reg {
+    desc = "reg default";
+    field {
+        desc = "field default";
+    } f;
+};
+
+addrmap top {
+    shared_reg myreg;
+};
+
+addrmap top_a {
+    shared_reg myreg;
+
+    myreg->desc = "reg a";
+    myreg.f->desc = "field a";
+};
+
+addrmap top_b {
+    shared_reg myreg;
+
+    myreg->desc = "reg b";
+    myreg.f->desc = "field b";
+};
