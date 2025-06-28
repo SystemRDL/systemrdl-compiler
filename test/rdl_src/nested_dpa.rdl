@@ -1,0 +1,28 @@
+reg a {
+    desc = "a";
+    field {} f;
+};
+
+addrmap b {
+    a a1;
+    a a2;
+    a2->desc = "b";
+};
+
+addrmap c {
+    b b1;
+    b b2;
+    b2.a2->desc = "c";
+};
+
+addrmap d {
+    c c1;
+    c c2;
+    c2.b2.a2->desc = "d";
+};
+
+addrmap e {
+    d d1;
+    d d2;
+    d2.c2.b2.a2->desc = "e";
+};
