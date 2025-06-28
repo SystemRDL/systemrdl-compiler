@@ -6,6 +6,11 @@ property ref_prop {
 
 signal {activehigh;} glbl_sig;
 
+glbl_sig->desc = "root dpa";
+
+signal {} glbl_sig2;
+glbl_sig2->ref_prop = glbl_sig;
+
 reg my_reg {
     field {} x;
     field {} y;
