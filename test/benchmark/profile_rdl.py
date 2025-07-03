@@ -14,7 +14,7 @@ with open(os.path.join(this_dir, "../accellera-examples/all.f"), 'r') as f:
         files.append(path)
 
 def code_to_profile():
-    rdlc = RDLCompiler(single_elaborate_optimization=True)
+    rdlc = RDLCompiler()
     for input_file in files:
         rdlc.compile_file(input_file)
     root = rdlc.elaborate()

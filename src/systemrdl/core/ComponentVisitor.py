@@ -51,6 +51,9 @@ class ComponentVisitor(BaseVisitor):
         #   }
         self.assigned_properties_dynamic: Dict[str, Tuple[Set[str], Dict[str, str]]] = {}
 
+        self.dpa_children_list_copied: Set[str] = set()
+        self.dpa_children_copied: Set[str] = set()
+
         # Scratchpad to pass stuff down between visitor functions
         self._tmp_comp_def: comp.Component
         self._tmp_comp_inst: comp.Component
@@ -160,8 +163,8 @@ class ComponentVisitor(BaseVisitor):
         Given the component type keyword token (eg, ADDRMAP_kw), create an
         instance of the corresponding component class.
         """
-        visitor_cls = KW_TO_VISITOR_MAP[type_token.type]
-        return visitor_cls.comp_type()
+        comp_cls = KW_TO_COMPONENT_MAP[type_token.type]
+        return comp_cls()
 
 
     def process_component_body(self, comp_def: comp.Component, body: SystemRDLParser.Component_bodyContext, type_token: 'CommonToken', def_name: Optional[str]) -> None:
@@ -634,11 +637,11 @@ class ComponentVisitor(BaseVisitor):
 
         # Lookup component instance being assigned
         current_component = self.component
-        current_component_idx: Optional[int] = None
         is_first_lvl = True
         target_path: str = ""
         for name_token in name_tokens:
             inst_name = get_ID_text(name_token)
+            target_path += "." + inst_name # yes this result in a leading '.', i don't care
             child_idx = get_child_comp_index(current_component, inst_name)
             if child_idx is None:
                 # Not found!
@@ -648,16 +651,29 @@ class ComponentVisitor(BaseVisitor):
                 )
 
             if not is_first_lvl:
+                # Is not the first iteration of this loop
+
                 # Traversing deeper "through" an intermediate component.
                 # Mark the prior one, denoting that this happened
                 current_component._dyn_assigned_children.add(inst_name)
 
+                # DPA is going to modify one of the children. Make a copy of the child,
+                # as well as the list that contains it to ensure this lineage is
+                # distinct from others.
+                # This is not necessary for the first level (immediate children
+                # of self.component) since these were just recently instantiated,
+                # and therefore were already copied once for this scope.
+                # Also, it is possible to skip copies if they were already performed in this scope
+                if target_path not in self.dpa_children_list_copied:
+                    current_component.children = current_component.children.copy()
+                    self.dpa_children_list_copied.add(target_path)
+                if target_path not in self.dpa_children_copied:
+                    current_component.children[child_idx] = current_component.children[child_idx]._copy_for_inst({})
+                    self.dpa_children_copied.add(target_path)
+
             # Advance to next level
             current_component = current_component.children[child_idx]
-            current_component_idx = child_idx
-            target_path += "." + inst_name # yes this result in a leading '.', i don't care
             is_first_lvl = False
-        assert current_component_idx is not None
 
         # Path traversal is done. current_component is the assignment target
         rule = self.compiler.env.property_rules.lookup_property(prop_name)

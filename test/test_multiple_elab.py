@@ -69,16 +69,3 @@ class TestMultipleElab(unittest.TestCase):
         self.assertEqual(top_a_root.top.find_by_path("myreg.f").get_property("desc"), "field a")
         self.assertEqual(top_b_root.top.find_by_path("myreg").get_property("desc"), "reg b")
         self.assertEqual(top_b_root.top.find_by_path("myreg.f").get_property("desc"), "field b")
-
-
-    def test_illegal_multi_elab(self):
-        rdlc = RDLCompiler(
-            message_printer=TestPrinter(),
-            single_elaborate_optimization=True,
-        )
-        rdlc.compile_file(os.path.join(this_dir, "rdl_src/parameters.rdl"))
-
-        rdlc.elaborate("nested", "inst1")
-        with self.assertRaises(RuntimeError):
-            # Calling elaborate a second time is not allowed if single_elaborate_optimization=True
-            rdlc.elaborate("nested", "inst2")

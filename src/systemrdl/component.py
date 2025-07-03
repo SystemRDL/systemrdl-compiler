@@ -116,13 +116,9 @@ class Component:
         return list(self.parameters_dict.values())
 
 
-    def _copy_for_inst(self: 'ComponentClass', memo: Dict[int, Any]) -> 'ComponentClass':
+    def _copy_for_inst(self: 'ComponentClass', memo: Dict[int, Any], recursive: bool = False) -> 'ComponentClass':
         """
         Make a copy of the component tree in order to instantiate it.
-
-        This is subtly different from a normal deepcopy since it ensures that
-        references within the component tree are deepcopied, while references
-        to external parameters are copied by reference.
         """
         cls = self.__class__
         result = cls.__new__(cls)
@@ -133,14 +129,18 @@ class Component:
         for name, param in self.parameters_dict.items():
             result.parameters_dict[name] = copy(param)
 
-        # Shallow-copy the properties dict so that values can get overridden by DPAs
+        # Copy the dicts to ensure they remain distinct
         result.properties = self.properties.copy()
-
-        # Shallow copy property_src_ref since otherwise is unnecessary
         result.property_src_ref = self.property_src_ref.copy()
 
-        # Recurse this special copy method for children
-        result.children = [child._copy_for_inst(memo) for child in self.children]
+        if recursive:
+            # Recurse this special copy method for children
+            result.children = [child._copy_for_inst(memo, recursive=True) for child in self.children]
+        else:
+            # ... Otherwise, optimistically skip the copy during compilation.
+            # Copy the list and individual children later, only if needed due
+            # to a DPA assignment
+            result.children = self.children
 
         # Finally, deepcopy everything else
         copy_by_ref = {

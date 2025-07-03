@@ -1,12 +1,6 @@
-from parameterized import parameterized_class
-
 from systemrdl.node import RegNode, FieldNode
 from unittest_utils import RDLSourceTestCase
 
-@parameterized_class([
-   {"single_elaborate_optimization": True},
-   {"single_elaborate_optimization": False},
-])
 class TestDPAs(RDLSourceTestCase):
     def test_dpa_name_generation(self):
         top = self.compile(
@@ -62,6 +56,11 @@ class TestDPAs(RDLSourceTestCase):
                 else:
                     self.assertIsNone(node.get_property("desc"))
 
+    def test_nested_dpa_name_generation(self):
+        top = self.compile(
+            ["rdl_src/nested_dpa.rdl"],
+            "e"
+        )
 
         expected_type_name = {
             "e": "e",
@@ -101,5 +100,4 @@ class TestDPAs(RDLSourceTestCase):
             path = node.get_path()
             with self.subTest(path):
                 if not isinstance(node, FieldNode):
-                    print(path)
                     self.assertEqual(node.type_name, expected_type_name[path])
