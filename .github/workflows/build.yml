@@ -184,12 +184,12 @@ jobs:
       - lint
       - mypy
 
-    name: ${{ matrix.os }} ${{ matrix.name_suffix }}
+    name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os:
-          - windows-2019
+          - windows-2022
           - macos-13 # intel-based macos
           - macos-14 # Apple silicon
           - ubuntu-22.04
