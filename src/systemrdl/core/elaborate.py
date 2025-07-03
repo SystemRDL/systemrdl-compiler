@@ -637,12 +637,8 @@ class LateElabListener(walker.RDLListener):
 
             # Further augment type name as per extended type generation from DPAs
             if self.env.use_extended_type_name_gen:
-                # Strip duplicates and sort alphabetically
-                node.inst._dyn_assigned_props = sorted(set(node.inst._dyn_assigned_props))
-                node.inst._dyn_assigned_children = sorted(set(node.inst._dyn_assigned_children))
-
                 # assignments made 'through' the component
-                for child_name in node.inst._dyn_assigned_children:
+                for child_name in sorted(node.inst._dyn_assigned_children):
                     child = node.inst.get_child_by_name(child_name)
                     assert child is not None
                     assert child.inst_name is not None
@@ -657,7 +653,7 @@ class LateElabListener(walker.RDLListener):
                     extra_type_name_segments.append(child_name + "_" + norm_name)
 
                 # this component's DPAs
-                for prop_name in node.inst._dyn_assigned_props:
+                for prop_name in sorted(node.inst._dyn_assigned_props):
                     # <prop_name>_<norm prop value>
                     norm_name = normalize(node.get_property(prop_name), owner_node=node)
                     extra_type_name_segments.append(prop_name + "_" + norm_name)

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Optional, Any, cast, Type, Union
+from typing import TYPE_CHECKING, Dict, Tuple, List, Optional, Any, cast, Type, Union, Set
 from collections import OrderedDict
 
 from ..parser.SystemRDLParser import SystemRDLParser
@@ -44,11 +44,12 @@ class ComponentVisitor(BaseVisitor):
         # Scratchpad of dynamic property assignments encountered in body of component
         # format is:
         #   {
-        #       target_inst : {
-        #           prop_name : (prop_src_ref, prop_rhs)
-        #       }
+        #       target_path : (
+        #           {prop_name, ...},
+        #           {mutex_bin: prop_name, ...},
+        #       )
         #   }
-        self.dynamic_property_dict: Dict[comp.Component, Dict[str, Tuple[SourceRefBase, Any]]] = OrderedDict()
+        self.assigned_properties_dynamic: Dict[str, Tuple[Set[str], Dict[str, str]]] = {}
 
         # Scratchpad to pass stuff down between visitor functions
         self._tmp_comp_def: comp.Component
@@ -78,7 +79,6 @@ class ComponentVisitor(BaseVisitor):
         self.visitChildren(ctx)
 
         self.apply_local_properties()
-        self.apply_dynamic_properties()
 
         self.compiler.namespace.exit_scope()
         return self.component
@@ -582,26 +582,24 @@ class ComponentVisitor(BaseVisitor):
         elif ctx.encode_prop_assign() is not None:
             prop_src_ref, prop_name, rhs = self.visit(ctx.encode_prop_assign())
         elif ctx.prop_mod_assign() is not None:
-            prop_mod_src_ref, prop_mod = self.visit(ctx.prop_mod_assign())
+            prop_src_ref, prop_mod = self.visit(ctx.prop_mod_assign())
 
             # Implies assignment to intr=true
             # Do not check for multiple assignments to intr
             if default:
                 self.compiler.namespace.register_default_property(
-                    "intr", True, prop_mod_src_ref,
+                    "intr", True, prop_src_ref,
                     overwrite_ok=True
                 )
             else:
-                self.property_dict["intr"] = (prop_mod_src_ref, True)
+                self.property_dict["intr"] = (prop_src_ref, True)
 
             if prop_mod == "nonsticky":
                 # Implies assignment stickybit = false;
-                prop_src_ref = prop_mod_src_ref
                 prop_name = "stickybit"
                 rhs = False
             else:
                 # Assign interrupt type modifier
-                prop_src_ref = prop_mod_src_ref
                 prop_name = "intr type"
                 rhs = rdltypes.InterruptType[prop_mod]
 
@@ -619,8 +617,8 @@ class ComponentVisitor(BaseVisitor):
                     "Property '%s' was already assigned in this scope" % prop_name,
                     prop_src_ref
                 )
-            else:
-                self.property_dict[prop_name] = (prop_src_ref, rhs)
+
+            self.property_dict[prop_name] = (prop_src_ref, rhs)
 
     def visitDynamic_property_assignment(self, ctx: SystemRDLParser.Dynamic_property_assignmentContext) -> None:
 
@@ -635,41 +633,73 @@ class ComponentVisitor(BaseVisitor):
             raise RuntimeError
 
         # Lookup component instance being assigned
-        target_inst = self.component
+        current_component = self.component
+        current_component_idx: Optional[int] = None
+        is_first_lvl = True
+        target_path: str = ""
         for name_token in name_tokens:
             inst_name = get_ID_text(name_token)
-
-            if target_inst is not self.component:
-                # target_inst is an intermediate component in the hier path
-                # mark the child that is being modified
-                target_inst._dyn_assigned_children.append(inst_name)
-
-            # Traverse to next child in token list
-            next_target_inst = target_inst.get_child_by_name(inst_name)
-            if next_target_inst is None:
+            child_idx = get_child_comp_index(current_component, inst_name)
+            if child_idx is None:
                 # Not found!
                 self.msg.fatal(
                     "Could not resolve hierarchical reference to '%s'" % inst_name,
                     src_ref_from_antlr(name_token)
                 )
-            else:
-                target_inst = next_target_inst
 
-        # Add assignment to dynamic_property_dict
-        target_inst_dict = self.dynamic_property_dict.get(target_inst, OrderedDict())
-        if prop_name in target_inst_dict:
+            if not is_first_lvl:
+                # Traversing deeper "through" an intermediate component.
+                # Mark the prior one, denoting that this happened
+                current_component._dyn_assigned_children.add(inst_name)
+
+            # Advance to next level
+            current_component = current_component.children[child_idx]
+            current_component_idx = child_idx
+            target_path += "." + inst_name # yes this result in a leading '.', i don't care
+            is_first_lvl = False
+        assert current_component_idx is not None
+
+        # Path traversal is done. current_component is the assignment target
+        rule = self.compiler.env.property_rules.lookup_property(prop_name)
+        if rule is None:
+            self.msg.fatal(
+                "Unrecognized property '%s'" % prop_name,
+                prop_src_ref
+            )
+
+        # Is dynamic assignment allowed?
+        if not rule.dyn_assign_allowed:
+            self.msg.fatal(
+                "Dynamic assignment to property '%s' is not allowed" % prop_name,
+                prop_src_ref
+            )
+
+        assigned_props, assigned_mutex_bins = self.assigned_properties_dynamic.get(target_path, (set(), {}))
+
+        # Check for mutex collisions
+        if rule.mutex_group is not None and rule.mutex_group in assigned_mutex_bins:
+            # Already saw something in this mutex group
+            self.msg.fatal(
+                "Properties '%s' and '%s' cannot be assigned in the same component"
+                % (prop_name, assigned_mutex_bins[rule.mutex_group]),
+                prop_src_ref
+            )
+
+        # Check if property already assigned from this scope
+        if prop_name in assigned_props:
             self.msg.fatal(
                 "Property '%s' was already assigned to component '%s' from within this scope"
                 % (prop_name, get_ID_text(name_tokens[-1])),
                 prop_src_ref
             )
-        else:
-            target_inst_dict[prop_name] = (prop_src_ref, rhs)
-        self.dynamic_property_dict[target_inst] = target_inst_dict
 
-        # Mark the property as dynamically assigned
-        target_inst._dyn_assigned_props.append(prop_name)
-
+        # Apply property
+        rule.assign_value(current_component, rhs, prop_src_ref)
+        assigned_props.add(prop_name)
+        if rule.mutex_group is not None:
+            assigned_mutex_bins[rule.mutex_group] = prop_name
+        current_component._dyn_assigned_props.add(prop_name)
+        self.assigned_properties_dynamic[target_path] = (assigned_props, assigned_mutex_bins)
 
     def visitInstance_ref(self, ctx: SystemRDLParser.Instance_refContext) -> List['CommonToken']:
         name_tokens = []
@@ -800,44 +830,6 @@ class ComponentVisitor(BaseVisitor):
         # Clear out pending assignments now that they have been resolved
         self.property_dict = {}
 
-    def apply_dynamic_properties(self) -> None:
-
-        for target_inst, target_inst_dict in self.dynamic_property_dict.items():
-            mutex_bins: Dict[str, str] = {}
-            for prop_name, (prop_src_ref, prop_rhs) in target_inst_dict.items():
-                rule = self.compiler.env.property_rules.lookup_property(prop_name)
-                if rule is None:
-                    self.msg.fatal(
-                        "Unrecognized property '%s'" % prop_name,
-                        prop_src_ref
-                    )
-
-                # Is dynamic assignment allowed?
-                if not rule.dyn_assign_allowed:
-                    self.msg.fatal(
-                        "Dynamic assignment to property '%s' is not allowed" % prop_name,
-                        prop_src_ref
-                    )
-
-                # Check for mutex collisions
-                if rule.mutex_group is not None:
-                    # Is mutually exclusive with other props. Check for collision
-                    if rule.mutex_group in mutex_bins:
-                        # Already saw something in this mutex group
-                        self.msg.fatal(
-                            "Properties '%s' and '%s' cannot be assigned in the same component"
-                            % (prop_name, mutex_bins[rule.mutex_group]),
-                            prop_src_ref
-                        )
-                    else:
-                        mutex_bins[rule.mutex_group] = prop_name
-
-                # Apply property
-                rule.assign_value(target_inst, prop_rhs, prop_src_ref)
-
-        # Clear out pending assignments now that they have been resolved
-        self.dynamic_property_dict = {}
-
     #---------------------------------------------------------------------------
     # Array and Range suffixes
     #---------------------------------------------------------------------------
@@ -912,7 +904,6 @@ class RootVisitor(ComponentVisitor):
 
     def visitRoot(self, ctx: SystemRDLParser.RootContext) -> None:
         self.visitChildren(ctx)
-        self.apply_dynamic_properties()
 
     def visitLocal_property_assignment(self, ctx: SystemRDLParser.Local_property_assignmentContext) -> None:
         # The only local assignments allowed in Root are default assignments
@@ -1134,3 +1125,9 @@ KW_TO_VISITOR_MAP: Dict[int, Type[ComponentVisitor]] = {
     SystemRDLParser.SIGNAL_kw   : SignalComponentVisitor,
     SystemRDLParser.MEM_kw      : MemComponentVisitor,
 }
+
+def get_child_comp_index(parent: comp.Component, inst_name: str) -> Optional[int]:
+    for i, child in enumerate(parent.children):
+        if child.inst_name == inst_name:
+            return i
+    return None

@@ -7,7 +7,7 @@ The SystemRDL standard allows users to extend components with custom properties.
 These UDPs are declared within the user's SystemRDL source code prior to use.
 Inevitably, these UDPs are processed by a downstream tool that has some
 well-defined semantics for these language extensions.
-This compiler provides an API that allows tool develoers to define additional
+This compiler provides an API that allows tool developers to define additional
 validation for these properties.
 
 

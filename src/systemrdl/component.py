@@ -2,7 +2,7 @@ import operator
 import functools
 from copy import deepcopy, copy
 from collections import OrderedDict
-from typing import Optional, List, Dict, TYPE_CHECKING, Any, Union
+from typing import Optional, List, Dict, TYPE_CHECKING, Any, Union, Set
 
 if TYPE_CHECKING:
     from typing import TypeVar
@@ -104,11 +104,11 @@ class Component:
         #------------------------------
         # List of property names that were assigned via a dynamic property
         # assignment.
-        self._dyn_assigned_props: List[str] = []
+        self._dyn_assigned_props: Set[str] = set()
 
         # List of child instances that were assigned "through" this component,
         # from outside this component's scope.
-        self._dyn_assigned_children: List[str] = []
+        self._dyn_assigned_children: Set[str] = set()
 
     @property
     def parameters(self) -> List['Parameter']:
