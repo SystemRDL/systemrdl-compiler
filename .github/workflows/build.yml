@@ -206,7 +206,7 @@ jobs:
           # Only build CPython targets
           CIBW_BUILD: "cp3*"
           # Ensure full C++17 availability on macOS builds
-          MACOSX_DEPLOYMENT_TARGET: "10.13"
+          MACOSX_DEPLOYMENT_TARGET: "11.0"
           # Signal setup.py to fail if binary build fails
           SYSTEMRDL_REQUIRE_BINARY_BUILD: ~
 
