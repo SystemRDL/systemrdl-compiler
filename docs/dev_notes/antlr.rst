@@ -10,7 +10,7 @@ From: https://github.com/antlr/antlr4/blob/master/doc/getting-started.md
 Download antlr4::
 
     cd /usr/local/lib
-    sudo curl -O https://www.antlr.org/download/antlr-4.13.1-complete.jar
+    sudo curl -O https://www.antlr.org/download/antlr-4.13.2-complete.jar
 
 
 Antlr API reference: http://www.antlr.org/api/Java/index.html

@@ -1,5 +1,5 @@
 
-// Generated from SystemRDL.g4 by ANTLR 4.13.1
+// Generated from SystemRDL.g4 by ANTLR 4.13.2
 
 
 #include "SystemRDLLexer.h"
@@ -45,7 +45,7 @@ struct SystemRDLLexerStaticData final {
 #if ANTLR4_USE_THREAD_LOCAL_CACHE
 static thread_local
 #endif
-SystemRDLLexerStaticData *systemrdllexerLexerStaticData = nullptr;
+std::unique_ptr<SystemRDLLexerStaticData> systemrdllexerLexerStaticData = nullptr;
 
 void systemrdllexerLexerInitialize() {
 #if ANTLR4_USE_THREAD_LOCAL_CACHE
@@ -461,7 +461,7 @@ void systemrdllexerLexerInitialize() {
   for (size_t i = 0; i < count; i++) { 
     staticData->decisionToDFA.emplace_back(staticData->atn->getDecisionState(i), i);
   }
-  systemrdllexerLexerStaticData = staticData.release();
+  systemrdllexerLexerStaticData = std::move(staticData);
 }
 
 }
