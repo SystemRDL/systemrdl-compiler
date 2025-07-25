@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Iterable
 from enum import IntEnum
 
 from .node import AddressableNode, VectorNode, FieldNode, RegNode, RegfileNode
@@ -145,35 +145,42 @@ class RDLWalker:
             Added ``skip_top`` option.
         """
 
-        if not skip_top:
-            for listener in listeners:
-                self.current_action = self.do_enter(node, listener)
+        if skip_top or isinstance(node, RootNode):
+            # Do not visit current node. Only visit children
+            for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
+                self._walk(child, listeners)
                 if self.current_action == WalkerAction.StopNow:
                     return
+        else:
+            # Walk this node normally
+            self._walk(node, listeners)
+
+    def _walk(self, node: Node, listeners: Iterable[RDLListener]) -> None:
+        for listener in listeners:
+            self.current_action = self.do_enter(node, listener)
+            if self.current_action == WalkerAction.StopNow:
+                return
 
         if self.current_action == WalkerAction.SkipDescendants:
             # skip recursion into children, then reset action
             self.current_action = WalkerAction.Continue
         else:
             for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
-                self.walk(child, *listeners)
+                self._walk(child, listeners)
                 if self.current_action == WalkerAction.StopNow:
                     return
 
-        if not skip_top:
-            for listener in listeners:
-                self.current_action = self.do_exit(node, listener)
-                if self.current_action == WalkerAction.StopNow:
-                    return
+        for listener in listeners:
+            self.current_action = self.do_exit(node, listener)
+            if self.current_action == WalkerAction.StopNow:
+                return
 
 
     def do_enter(self, node: Node, listener: RDLListener) -> WalkerAction:
         action = WalkerAction.Continue
         new_action = WalkerAction.Continue
 
-        # Skip RootNode since it isn't really a component
-        if not isinstance(node, RootNode):
-            action = listener.enter_Component(node) or WalkerAction.Continue
+        action = listener.enter_Component(node) or WalkerAction.Continue
 
         if action == WalkerAction.StopNow:
             return action
@@ -234,9 +241,106 @@ class RDLWalker:
         if action == WalkerAction.StopNow:
             return action
 
-        # Skip RootNode since it isn't really a component
-        if not isinstance(node, RootNode):
-            new_action = listener.exit_Component(node) or WalkerAction.Continue
+        new_action = listener.exit_Component(node) or WalkerAction.Continue
 
         action = max(new_action, action)
         return action
+
+
+class RDLActionlessWalker:
+    def __init__(self, unroll: bool=False, skip_not_present: bool=True):
+        self.unroll = unroll
+        self.skip_not_present = skip_not_present
+
+    def walk(self, node: Node, *listeners: RDLListener, skip_top: bool=False) -> None:
+        if skip_top or isinstance(node, RootNode):
+            # Do not visit current node. Only visit children
+            for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
+                self._walk(child, listeners)
+        else:
+            # Walk this node normally
+            self._walk(node, listeners)
+
+    def _walk(self, node: Node, listeners: Iterable[RDLListener]) -> None:
+        for listener in listeners:
+            self.do_enter(node, listener)
+
+        for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
+            self._walk(child, listeners)
+
+        for listener in listeners:
+            self.do_exit(node, listener)
+
+    def do_enter(self, node: Node, listener: RDLListener) -> None:
+        listener.enter_Component(node)
+
+        if isinstance(node, FieldNode):
+            listener.enter_VectorComponent(node)
+            listener.enter_Field(node)
+        elif isinstance(node, RegNode):
+            listener.enter_AddressableComponent(node)
+            listener.enter_Reg(node)
+        elif isinstance(node, RegfileNode):
+            listener.enter_AddressableComponent(node)
+            listener.enter_Regfile(node)
+        elif isinstance(node, AddrmapNode):
+            listener.enter_AddressableComponent(node)
+            listener.enter_Addrmap(node)
+        elif isinstance(node, MemNode):
+            listener.enter_AddressableComponent(node)
+            listener.enter_Mem(node)
+        elif isinstance(node, SignalNode):
+            listener.enter_VectorComponent(node)
+            listener.enter_Signal(node)
+
+    def do_exit(self, node: Node, listener: RDLListener) -> None:
+        if isinstance(node, FieldNode):
+            listener.exit_Field(node)
+            listener.exit_VectorComponent(node)
+        elif isinstance(node, RegNode):
+            listener.exit_Reg(node)
+            listener.exit_AddressableComponent(node)
+        elif isinstance(node, RegfileNode):
+            listener.exit_Regfile(node)
+            listener.exit_AddressableComponent(node)
+        elif isinstance(node, AddrmapNode):
+            listener.exit_Addrmap(node)
+            listener.exit_AddressableComponent(node)
+        elif isinstance(node, MemNode):
+            listener.exit_Mem(node)
+            listener.exit_AddressableComponent(node)
+        elif isinstance(node, SignalNode):
+            listener.exit_Signal(node)
+            listener.exit_VectorComponent(node)
+
+        listener.exit_Component(node)
+
+
+"""
+ElabExpressionsListener
+    Baseline:
+        0.08795762062072754
+    Move check for RootNode and skip_top out of loop
+        0.08542799949645996
+    Actionless Walker
+        0.04661369323730469
+    Unroll vector/addressable calls
+        0.045589447021484375
+    Don't expand "listeners" arg
+        0.04258322715759277
+
+    Target: Ideal walker-less implementation
+        0.04015660285949707
+
+Placement and late-elab
+    Baseline:
+        0.29678869247436523
+    Actionless walker
+        0.17344260215759277
+
+Validate
+    Baseline:
+        0.3104894161224365
+    Actionless walker
+        0.2572901248931885
+"""
