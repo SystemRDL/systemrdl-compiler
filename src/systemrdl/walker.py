@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Iterable
 from enum import IntEnum
 
 from .node import AddressableNode, VectorNode, FieldNode, RegNode, RegfileNode
@@ -22,14 +22,6 @@ class WalkerAction(IntEnum):
 class RDLListener:
     """
     Base class for user-defined RDL traversal listeners.
-
-    From each callback, optionally return a :class:`WalkerAction` to
-    control how the walker should continue model traversal.
-    Returning ``None`` is equivalent to :attr:`WalkerAction.Continue`.
-
-
-    .. versionchanged:: 1.23
-        Added optional WalkerAction return value
     """
     def enter_Component(self, node: Node) -> Optional[WalkerAction]:
         pass
@@ -86,7 +78,7 @@ class RDLListener:
         pass
 
 #===============================================================================
-class RDLWalker:
+class RDLSimpleWalker:
     """
     Implements a walker instance that traverses the elaborated RDL instance tree
     Each node is visited exactly once.
@@ -117,8 +109,6 @@ class RDLWalker:
         """
         self.unroll = unroll
         self.skip_not_present = skip_not_present
-        self.current_action = WalkerAction.Continue
-
 
     def walk(self, node: Node, *listeners: RDLListener, skip_top: bool=False) -> None:
         """
@@ -139,41 +129,125 @@ class RDLWalker:
 
         skip_top : bool
             Skip callbacks for the top node specified by ``node``
-
-
-        .. versionchanged:: 1.21
-            Added ``skip_top`` option.
         """
+        if skip_top or isinstance(node, RootNode):
+            # Do not visit current node. Only visit children
+            for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
+                self._walk(child, listeners)
+        else:
+            # Walk this node normally
+            self._walk(node, listeners)
 
-        if not skip_top:
-            for listener in listeners:
-                self.current_action = self.do_enter(node, listener)
+    def _walk(self, node: Node, listeners: Iterable[RDLListener]) -> None:
+        for listener in listeners:
+            self.do_enter(node, listener)
+
+        for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
+            self._walk(child, listeners)
+
+        for listener in listeners:
+            self.do_exit(node, listener)
+
+    def do_enter(self, node: Node, listener: RDLListener) -> None:
+        listener.enter_Component(node)
+
+        if isinstance(node, FieldNode):
+            listener.enter_VectorComponent(node)
+            listener.enter_Field(node)
+        elif isinstance(node, RegNode):
+            listener.enter_AddressableComponent(node)
+            listener.enter_Reg(node)
+        elif isinstance(node, RegfileNode):
+            listener.enter_AddressableComponent(node)
+            listener.enter_Regfile(node)
+        elif isinstance(node, AddrmapNode):
+            listener.enter_AddressableComponent(node)
+            listener.enter_Addrmap(node)
+        elif isinstance(node, MemNode):
+            listener.enter_AddressableComponent(node)
+            listener.enter_Mem(node)
+        elif isinstance(node, SignalNode):
+            listener.enter_VectorComponent(node)
+            listener.enter_Signal(node)
+
+    def do_exit(self, node: Node, listener: RDLListener) -> None:
+        if isinstance(node, FieldNode):
+            listener.exit_Field(node)
+            listener.exit_VectorComponent(node)
+        elif isinstance(node, RegNode):
+            listener.exit_Reg(node)
+            listener.exit_AddressableComponent(node)
+        elif isinstance(node, RegfileNode):
+            listener.exit_Regfile(node)
+            listener.exit_AddressableComponent(node)
+        elif isinstance(node, AddrmapNode):
+            listener.exit_Addrmap(node)
+            listener.exit_AddressableComponent(node)
+        elif isinstance(node, MemNode):
+            listener.exit_Mem(node)
+            listener.exit_AddressableComponent(node)
+        elif isinstance(node, SignalNode):
+            listener.exit_Signal(node)
+            listener.exit_VectorComponent(node)
+
+        listener.exit_Component(node)
+
+
+class RDLSteerableWalker:
+    """
+    Identical to :class:`~RDLSimpleWalker`, except that this walker allows
+    listeners to steer the traversal of the design using "Walker Actions"
+
+    From each callback, the listener may optionally return a :class:`WalkerAction`
+    to control how the walker should continue model traversal.
+    Returning ``None`` is equivalent to :attr:`WalkerAction.Continue`.
+
+    If this feature is not necessary, it is recommended to use :class:`~RDLSimpleWalker`
+    as it has less traversal overhead.
+    """
+    def __init__(self, unroll: bool=False, skip_not_present: bool=True):
+        self.unroll = unroll
+        self.skip_not_present = skip_not_present
+        self.current_action = WalkerAction.Continue
+
+
+    def walk(self, node: Node, *listeners: RDLListener, skip_top: bool=False) -> None:
+        if skip_top or isinstance(node, RootNode):
+            # Do not visit current node. Only visit children
+            for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
+                self._walk(child, listeners)
                 if self.current_action == WalkerAction.StopNow:
                     return
+        else:
+            # Walk this node normally
+            self._walk(node, listeners)
+
+    def _walk(self, node: Node, listeners: Iterable[RDLListener]) -> None:
+        for listener in listeners:
+            self.current_action = self.do_enter(node, listener)
+            if self.current_action == WalkerAction.StopNow:
+                return
 
         if self.current_action == WalkerAction.SkipDescendants:
             # skip recursion into children, then reset action
             self.current_action = WalkerAction.Continue
         else:
             for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
-                self.walk(child, *listeners)
+                self._walk(child, listeners)
                 if self.current_action == WalkerAction.StopNow:
                     return
 
-        if not skip_top:
-            for listener in listeners:
-                self.current_action = self.do_exit(node, listener)
-                if self.current_action == WalkerAction.StopNow:
-                    return
+        for listener in listeners:
+            self.current_action = self.do_exit(node, listener)
+            if self.current_action == WalkerAction.StopNow:
+                return
 
 
     def do_enter(self, node: Node, listener: RDLListener) -> WalkerAction:
         action = WalkerAction.Continue
         new_action = WalkerAction.Continue
 
-        # Skip RootNode since it isn't really a component
-        if not isinstance(node, RootNode):
-            action = listener.enter_Component(node) or WalkerAction.Continue
+        action = listener.enter_Component(node) or WalkerAction.Continue
 
         if action == WalkerAction.StopNow:
             return action
@@ -234,9 +308,11 @@ class RDLWalker:
         if action == WalkerAction.StopNow:
             return action
 
-        # Skip RootNode since it isn't really a component
-        if not isinstance(node, RootNode):
-            new_action = listener.exit_Component(node) or WalkerAction.Continue
+        new_action = listener.exit_Component(node) or WalkerAction.Continue
 
         action = max(new_action, action)
         return action
+
+
+#: Alias to :class:`~RDLSteerableWalker` for backwards compatibility
+RDLWalker = RDLSteerableWalker

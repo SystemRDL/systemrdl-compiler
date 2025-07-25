@@ -12,7 +12,7 @@ from systemrdl.node import AddressableNode, FieldNode, MemNode, Node, AddrmapNod
 from systemrdl import component as comp
 from unittest_utils import RDLSourceTestCase
 
-from systemrdl.walker import RDLListener, RDLWalker, WalkerAction
+from systemrdl.walker import RDLListener, RDLSimpleWalker
 
 # Get all RDL sources
 rdl_src_files = glob.glob("rdl_src/*.rdl")
@@ -89,7 +89,7 @@ class TestTypeHints(RDLSourceTestCase):
             incl_search_paths=["rdl_src/incdir"]
         )
 
-        walker = RDLWalker(skip_not_present=False)
+        walker = RDLSimpleWalker(skip_not_present=False)
         listener = RDLTestListener(self)
         walker.walk(root, listener)
 

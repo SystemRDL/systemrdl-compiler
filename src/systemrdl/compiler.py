@@ -371,14 +371,14 @@ class RDLCompiler:
         root_node = RootNode(root_inst, self.env, None)
 
         # Resolve all expressions
-        walker.RDLWalker(skip_not_present=False).walk(
+        walker.RDLSimpleWalker(skip_not_present=False).walk(
             root_node,
             ElabExpressionsListener(self.msg)
         )
 
         # Resolve address and field placement
         late_elab_listener = LateElabListener(self.msg, self.env)
-        walker.RDLWalker(skip_not_present=False).walk(
+        walker.RDLSimpleWalker(skip_not_present=False).walk(
             root_node,
             PrePlacementValidateListener(self.msg),
             StructuralPlacementListener(self.msg),
@@ -390,7 +390,7 @@ class RDLCompiler:
 
         # Validate design
         # Only need to validate nodes that are present
-        walker.RDLWalker(skip_not_present=True).walk(root_node, ValidateListener(self.env))
+        walker.RDLSimpleWalker(skip_not_present=True).walk(root_node, ValidateListener(self.env))
 
         if self.msg.had_error:
             self.msg.fatal("Elaborate aborted due to previous errors")

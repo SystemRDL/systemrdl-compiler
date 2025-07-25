@@ -185,7 +185,8 @@ if __name__ == "__main__":
     import sys
     import os
 
-    from systemrdl import RDLCompiler, RDLCompileError, RDLWalker
+    from systemrdl import RDLCompiler, RDLCompileError
+    from systemrdl.walker import RDLSimpleWalker
     from systemrdl.messages import FileSourceRef
 
     # Create a compiler session, and an importer attached to it
@@ -214,6 +215,6 @@ if __name__ == "__main__":
 
     # Lets use the first example's listener to display the imported model
     from print_hierarchy import MyModelPrintingListener
-    walker = RDLWalker()
+    walker = RDLSimpleWalker()
     listener = MyModelPrintingListener()
     walker.walk(root, listener)

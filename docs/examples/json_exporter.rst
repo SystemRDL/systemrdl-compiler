@@ -58,7 +58,7 @@ A note on register model traversal
 ----------------------------------
 
 In the :ref:`previous example <example_print-hierarchy>`, we used the
-:class:`~systemrdl.RDLWalker` & :class:`~systemrdl.RDLListener`.
+:class:`~systemrdl.walker.RDLSimpleWalker` & :class:`~systemrdl.walker.RDLListener`.
 This let us automatically traverse the design, and trigger callbacks. This is an
 easy way to traverse the design, but only in situations where keeping track of
 the register model's hierarchical context is not needed.

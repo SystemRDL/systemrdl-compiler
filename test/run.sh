@@ -15,12 +15,12 @@ if exists ccache; then
 fi
 
 # Initialize venv
-python3.11 -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 
 # Install
 export SYSTEMRDL_REQUIRE_BINARY_BUILD=1
-python -m pip install -U ..
+python -m pip install -e ..
 python -m pip install -r requirements.txt pytest-parallel
 
 # Run unit tests while collecting coverage

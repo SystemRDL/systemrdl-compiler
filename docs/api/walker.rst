@@ -2,17 +2,23 @@
 Walker/Listener
 ===============
 
-Walker
-------
-.. autoclass:: systemrdl.RDLWalker
+Walkers
+-------
+.. autoclass:: systemrdl.walker.RDLSimpleWalker
+    :members:
+
+.. autoclass:: systemrdl.walker.RDLSteerableWalker
+    :members:
+
+.. autoclass:: systemrdl.walker.RDLWalker
     :members:
 
 Listener
 --------
-.. autoclass:: systemrdl.RDLListener
+.. autoclass:: systemrdl.walker.RDLListener
     :members:
     :undoc-members:
 
 
-.. autoclass:: systemrdl.WalkerAction
+.. autoclass:: systemrdl.walker.WalkerAction
     :members:

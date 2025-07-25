@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from systemrdl import RDLListener
+from systemrdl.walker import RDLListener
 from systemrdl.node import FieldNode
 
 # Define a listener that will print out the register model hierarchy
@@ -25,9 +25,9 @@ class MyModelPrintingListener(RDLListener):
 
 if __name__ == "__main__":
     import sys
-    import os
 
-    from systemrdl import RDLCompiler, RDLCompileError, RDLWalker
+    from systemrdl import RDLCompiler, RDLCompileError
+    from systemrdl.walker import RDLSimpleWalker
 
     # Collect input files from the command line arguments
     input_files = sys.argv[1:]
@@ -47,6 +47,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Traverse the register model!
-    walker = RDLWalker(unroll=True)
+    walker = RDLSimpleWalker(unroll=True)
     listener = MyModelPrintingListener()
     walker.walk(root, listener)
