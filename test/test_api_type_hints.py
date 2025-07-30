@@ -66,6 +66,7 @@ class TestTypeHints(RDLSourceTestCase):
             #print(f"Checking {node.get_path()}->{property_name}")
 
             value = node.get_property(property_name)
+            print(property_name, value)
             self.assertTrue(
                 value_is_compatible(value, hints["return"]),
                 f"Value '{value}' does not match expected type: {hints['return']}. "
@@ -84,6 +85,7 @@ class TestTypeHints(RDLSourceTestCase):
         )
 
     def test_all_nodes(self):
+        print(self.src)
         root = self.compile(
             [self.src],
             incl_search_paths=["rdl_src/incdir"]

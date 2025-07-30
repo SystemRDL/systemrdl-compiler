@@ -343,13 +343,13 @@ class TestNodeUtils(RDLSourceTestCase):
 
     def test_names(self):
         top = self.compile(
-            ["rdl_src/parameters.rdl"],
-            "nested"
+            ["rdl_src/nested_params.rdl"],
+            "nested_params"
         )
-        r1 = top.find_by_path("nested.r1_inst")
-        r1_2 = top.find_by_path("nested.r1_inst2")
-        f = top.find_by_path("nested.r1_inst.f")
-        f2 = top.find_by_path("nested.r1_inst.f2")
+        r1 = top.find_by_path("nested_params.r1_inst")
+        r1_2 = top.find_by_path("nested_params.r1_inst2")
+        f = top.find_by_path("nested_params.r1_inst.f")
+        f2 = top.find_by_path("nested_params.r1_inst.f2")
 
         self.assertEqual(r1.inst_name, "r1_inst")
         self.assertEqual(r1.type_name, "r1_WIDTH_5")

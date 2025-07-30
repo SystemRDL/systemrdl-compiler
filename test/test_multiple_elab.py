@@ -10,32 +10,32 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 class TestMultipleElab(unittest.TestCase):
     def test_multiple_different_elab(self):
         rdlc = RDLCompiler(message_printer=TestPrinter())
-        rdlc.compile_file(os.path.join(this_dir, "rdl_src/parameters.rdl"))
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/all_params.rdl"))
 
         myAmap_root = rdlc.elaborate("myAmap")
-        amap2_root = rdlc.elaborate("amap2")
-        nested_root = rdlc.elaborate("nested")
+        param_types_root = rdlc.elaborate("param_types")
+        nested_root = rdlc.elaborate("nested_params")
         param_scope_root = rdlc.elaborate("param_scope")
 
         # Test that each root only contains one top, and that it is the expected one
         self.assertListEqual(myAmap_root.children(), [myAmap_root.top])
         self.assertEqual(myAmap_root.top, myAmap_root.get_child_by_name("myAmap"))
 
-        self.assertListEqual(amap2_root.children(), [amap2_root.top])
-        self.assertEqual(amap2_root.top, amap2_root.get_child_by_name("amap2"))
+        self.assertListEqual(param_types_root.children(), [param_types_root.top])
+        self.assertEqual(param_types_root.top, param_types_root.get_child_by_name("param_types"))
 
         self.assertListEqual(nested_root.children(), [nested_root.top])
-        self.assertEqual(nested_root.top, nested_root.get_child_by_name("nested"))
+        self.assertEqual(nested_root.top, nested_root.get_child_by_name("nested_params"))
 
         self.assertListEqual(param_scope_root.children(), [param_scope_root.top])
         self.assertEqual(param_scope_root.top, param_scope_root.get_child_by_name("param_scope"))
 
     def test_repeat_elab(self):
         rdlc = RDLCompiler(message_printer=TestPrinter())
-        rdlc.compile_file(os.path.join(this_dir, "rdl_src/parameters.rdl"))
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/nested_params.rdl"))
 
-        inst1_root = rdlc.elaborate("nested", "inst1")
-        inst2_root = rdlc.elaborate("nested", "inst2")
+        inst1_root = rdlc.elaborate("nested_params", "inst1")
+        inst2_root = rdlc.elaborate("nested_params", "inst2")
 
         self.assertListEqual(inst1_root.children(), [inst1_root.top])
         self.assertEqual(inst1_root.top, inst1_root.get_child_by_name("inst1"))
@@ -45,7 +45,7 @@ class TestMultipleElab(unittest.TestCase):
 
     def test_multi_elab_params(self):
         rdlc = RDLCompiler(message_printer=TestPrinter())
-        rdlc.compile_file(os.path.join(this_dir, "rdl_src/parameters.rdl"))
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/elab_params.rdl"))
 
         default_root = rdlc.elaborate("elab_params")
         W10_root = rdlc.elaborate("elab_params", parameters={

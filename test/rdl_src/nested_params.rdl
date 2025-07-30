@@ -1,0 +1,18 @@
+// From issue #12
+addrmap nested_params {
+
+    reg r1 #(longint unsigned WIDTH=1)  {
+        field {} f[WIDTH], f2[WIDTH+1];
+    };
+
+    regfile rf1 #(longint unsigned WIDTH=2) {
+        reg r2 #(longint unsigned WIDTH=3)  {
+            field {} f[WIDTH];
+        } #(.WIDTH(WIDTH)) r_inst1;
+
+        r1 #(.WIDTH(WIDTH)) r_inst2;
+    };
+
+    rf1 #(.WIDTH(4)) rf_inst;
+    r1 #(.WIDTH(5)) r1_inst, r1_inst2;
+};

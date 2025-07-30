@@ -1,0 +1,6 @@
+`include "parameters.rdl"
+`include "param_types.rdl"
+`include "nested_params.rdl"
+`include "elab_params.rdl"
+`include "param_scope.rdl"
+`include "param_dpa_scopes.rdl"

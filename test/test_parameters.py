@@ -60,13 +60,13 @@ class TestParameters(RDLSourceTestCase):
 
     def test_more(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
-            "amap2"
+            ["rdl_src/param_types.rdl"],
+            "param_types"
         )
 
-        reg1 = root.find_by_path("amap2.reg1")
-        reg2 = root.find_by_path("amap2.reg2")
-        reg3 = root.find_by_path("amap2.reg3")
+        reg1 = root.find_by_path("param_types.reg1")
+        reg2 = root.find_by_path("param_types.reg2")
+        reg3 = root.find_by_path("param_types.reg3")
 
         with self.subTest("reg1"):
             self.assertEqual(reg1.type_name, "param_reg")
@@ -92,12 +92,12 @@ class TestParameters(RDLSourceTestCase):
 
     def test_nested(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
-            "nested"
+            ["rdl_src/nested_params.rdl"],
+            "nested_params"
         )
-        f1 = root.find_by_path("nested.rf_inst.r_inst1.f")
-        f2 = root.find_by_path("nested.rf_inst.r_inst2.f")
-        f3 = root.find_by_path("nested.r1_inst.f")
+        f1 = root.find_by_path("nested_params.rf_inst.r_inst1.f")
+        f2 = root.find_by_path("nested_params.rf_inst.r_inst2.f")
+        f3 = root.find_by_path("nested_params.r1_inst.f")
 
         with self.subTest("f1"):
             self.assertEqual(f1.width, 4)
@@ -111,7 +111,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_elab_defaults(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/elab_params.rdl"],
             "elab_params",
             parameters={}
         )
@@ -130,7 +130,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_elab_override(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/elab_params.rdl"],
             "elab_params",
             parameters={
                 "STR":"python!",
@@ -155,7 +155,7 @@ class TestParameters(RDLSourceTestCase):
     def test_elab_override_via_eval(self):
         rdlc = RDLCompiler()
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/elab_params.rdl"],
             "elab_params",
             parameters={
                 "STR": rdlc.eval('"python!"'),
@@ -179,7 +179,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_param_scope(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/param_scope.rdl"],
             "param_scope"
         )
         ffX = root.find_by_path("param_scope.rfX.rf3.rf2.rr.ff")
@@ -192,7 +192,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_param_dpa_scopes(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/param_dpa_scopes.rdl"],
             "param_dpa_scopes"
         )
         top = root.top
