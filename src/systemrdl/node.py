@@ -22,12 +22,7 @@ T = TypeVar("T")
 
 class Node:
     """
-    The Node object is a higher-level overlay that provides a more user-friendly
-    interface to query the compiled RDL object model.
-
-    .. inheritance-diagram:: systemrdl.node
-        :top-classes: ~Node
-
+    The Node class is the base for all Node overlay classes.
     """
 
     def __init__(self, inst: comp.Component, env: 'RDLEnvironment', parent: Optional['Node']) -> None:
@@ -907,6 +902,8 @@ class Node:
 #===============================================================================
 class AddressableNode(Node):
     """
+    Inherits: :class:`Node`
+
     Base-class for any kind of node that can have an address
     """
     parent: Union['AddressableNode', 'RootNode']
@@ -1159,6 +1156,8 @@ class AddressableNode(Node):
 #===============================================================================
 class VectorNode(Node):
     """
+    Inherits: :class:`Node`
+
     Base-class for any kind of node that is vector-like.
     """
     parent: Node
@@ -1229,7 +1228,22 @@ class VectorNode(Node):
 
 #===============================================================================
 class RootNode(Node):
+    """
+    Inherits: :class:`Node`
+
+    Pseudo-node that represents the root namespace of a compiled design.
+
+    This is does not represent any actual design hierarchy. It is merely a
+    convenient container for the following children:
+
+    * Zero or more :class:`SignalNode` that are instantiated in the root namespace
+    * Exactly one top-level :class:`AddrmapNode`.
+
+    """
+
+    #: RootNode never has a parent, so this attribute is always None
     parent: None
+
     inst: comp.Root
 
     @property
@@ -1245,6 +1259,11 @@ class RootNode(Node):
 
 #===============================================================================
 class SignalNode(VectorNode):
+    """
+    Inherits: :class:`VectorNode`
+
+    Represents an RDL ``signal``.
+    """
     parent: Node
     inst: comp.Signal
 
@@ -1319,6 +1338,11 @@ class SignalNode(VectorNode):
 
 #===============================================================================
 class FieldNode(VectorNode):
+    """
+    Inherits: :class:`VectorNode`
+
+    Represents an RDL ``field``
+    """
     parent: 'RegNode'
     inst: comp.Field
 
@@ -1973,6 +1997,11 @@ class FieldNode(VectorNode):
 
 #===============================================================================
 class RegNode(AddressableNode):
+    """
+    Inherits: :class:`AddressableNode`
+
+    Represents an RDL ``reg``
+    """
     parent: Union['AddrmapNode', 'RegNode', 'MemNode']
     inst: comp.Reg
 
@@ -2294,6 +2323,11 @@ class RegNode(AddressableNode):
 
 #===============================================================================
 class RegfileNode(AddressableNode):
+    """
+    Inherits: :class:`AddressableNode`
+
+    Represents an RDL ``regfile``
+    """
     parent: Union['AddrmapNode', 'RegfileNode']
     inst: comp.Regfile
 
@@ -2372,6 +2406,11 @@ class RegfileNode(AddressableNode):
 
 #===============================================================================
 class AddrmapNode(AddressableNode):
+    """
+    Inherits: :class:`AddressableNode`
+
+    Represents an RDL ``addrmap``
+    """
     parent: Union['AddrmapNode', RootNode]
     inst: comp.Addrmap
 
@@ -2498,6 +2537,11 @@ class AddrmapNode(AddressableNode):
 
 #===============================================================================
 class MemNode(AddressableNode):
+    """
+    Inherits: :class:`AddressableNode`
+
+    Represents an RDL ``mem``
+    """
     parent: AddrmapNode
     inst: comp.Mem
 

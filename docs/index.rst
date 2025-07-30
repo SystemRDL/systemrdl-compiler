@@ -73,9 +73,8 @@ Links
 
    api/compiler
    api/udp
-   api/node
+   api/node/index
    api/walker
-   api/component
    api/types
    api/messages
    api/source_ref

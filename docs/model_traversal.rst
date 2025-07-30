@@ -2,6 +2,8 @@
 Traversing the Register Model
 =============================
 
+There are several ways you can explore a register model via the API.
+
 Using Iterators
 ---------------
 
