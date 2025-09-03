@@ -234,3 +234,15 @@ class TestParameters(RDLSourceTestCase):
             "parameters2",
             r"Parameter 'PARAM' contains a reference. SystemRDL does not allow component references inside parameter values."
         )
+
+    def test_expr(self):
+        root = self.compile(['rdl_src/parameterized_expr.rdl'], 'top')
+
+        field = root.find_by_path('top.rf_default.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x1f);
+
+        field = root.find_by_path('top.rf_four.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0xf);
+
+        field = root.find_by_path('top.rf_six.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x3f);
