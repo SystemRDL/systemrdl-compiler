@@ -75,7 +75,6 @@ class Replicate(ASTNode):
         self.reps = reps
         self.concat = concat
         self.type: Union[Type[int], Type[str]] = int
-        self.reps_value: Optional[int] = None
 
     def predict_type(self) -> Union[Type[int], Type[str]]:
 
@@ -100,28 +99,26 @@ class Replicate(ASTNode):
 
     def get_min_eval_width(self, assignee_node: Optional['Node']) -> int:
         # Evaluate number of repetitions
-        if self.reps_value is None:
-            self.reps_value = self.reps.get_value(assignee_node=assignee_node)
+        reps_value = self.reps.get_value(assignee_node=assignee_node)
 
         if self.type == int:
             # Get width of single contents
             width = self.concat.get_min_eval_width(assignee_node)
-            width *= self.reps_value
+            width *= reps_value
             return width
         else:
             raise RuntimeError
 
     def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> Union[int, str]:
         # Evaluate number of repetitions
-        if self.reps_value is None:
-            self.reps_value = self.reps.get_value(assignee_node=assignee_node)
+        reps_value = self.reps.get_value(assignee_node=assignee_node)
 
         if self.type == int:
             width = self.concat.get_min_eval_width(assignee_node)
             val = int(self.concat.get_value(assignee_node=assignee_node))
 
             int_result = 0
-            for _ in range(self.reps_value):
+            for _ in range(reps_value):
                 int_result <<= width
                 int_result |= val
 
@@ -129,7 +126,7 @@ class Replicate(ASTNode):
 
         elif self.type == str:
             str_result = self.concat.get_value(assignee_node=assignee_node)
-            str_result *= self.reps_value
+            str_result *= reps_value
             return str_result
 
         else:
