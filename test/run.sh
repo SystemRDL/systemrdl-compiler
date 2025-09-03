@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Usage (from parent dir of this dir):
+#   [PY_VERSION=<python_version>] test/run.sh [optional pytest arg]
+#
+# Examples:
+#   Run all tests:
+#       test/run.sh
+#
+#   Run only tests in test_parameters.py
+#   Include INFO logging messages in the output, i.e. all compilation messages.
+#       test/run.sh --log-cli-level=INFO test_parameters.py
+#
+#   Same but use python 3.13
+#       PY_VERSION=3.13 test/run.sh --log-cli-level=INFO test_parameters.py
+
 set -e
 
 cd "$(dirname "$0")"
@@ -15,7 +29,8 @@ if exists ccache; then
 fi
 
 # Initialize venv
-python3.11 -m venv .venv
+_PYTHON="python${PY_VERSION:-3.11}"
+"$_PYTHON" -m venv .venv
 source .venv/bin/activate
 
 # Install
@@ -24,9 +39,9 @@ python -m pip install -U ..
 python -m pip install -r requirements.txt pytest-parallel
 
 # Run unit tests while collecting coverage
-pytest --cov=systemrdl
+pytest --cov=systemrdl "$@"
 export SYSTEMRDL_DISABLE_ACCELERATOR=1
-pytest
+pytest "$@"
 
 # Generate coverage report
 coverage html -i -d htmlcov
