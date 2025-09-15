@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from .ast import ASTNode
 
     ComponentClass = TypeVar('ComponentClass', bound='Component')
+    AddressableComponentClass = TypeVar('AddressableComponentClass', bound='AddressableComponent')
 
 class Component:
     """
@@ -151,9 +152,12 @@ class Component:
             # rather than extending this function
             "width", "msb", "lsb", "high", "low",
             "addr_offset", "addr_align",
-            "array_dimensions", "array_stride",
+            "array_stride",
         }
-        skip = {"parameters_dict", "properties", "children", "property_src_ref"}
+        skip = {
+            "parameters_dict", "properties", "children", "property_src_ref",
+            "array_dimensions",
+        }
         for k, v in self.__dict__.items():
             if k in skip:
                 continue
@@ -279,6 +283,13 @@ class AddressableComponent(Component):
         #: Address offset between array elements.
         #: If left as None, compiler will resolve with inferred value.
         self.array_stride: Optional[int] = None
+
+
+    def _copy_for_inst(self: 'AddressableComponentClass', memo: Dict[int, Any], recursive: bool = False) -> 'AddressableComponentClass':
+        result = super()._copy_for_inst(memo, recursive)
+
+        result.array_dimensions = copy(self.array_dimensions)
+        return result
 
 
     @property
