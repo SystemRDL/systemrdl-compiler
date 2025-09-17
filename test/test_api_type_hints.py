@@ -12,7 +12,7 @@ from systemrdl.node import AddressableNode, FieldNode, MemNode, Node, AddrmapNod
 from systemrdl import component as comp
 from unittest_utils import RDLSourceTestCase
 
-from systemrdl.walker import RDLListener, RDLWalker, WalkerAction
+from systemrdl.walker import RDLListener, RDLSimpleWalker
 
 # Get all RDL sources
 rdl_src_files = glob.glob("rdl_src/*.rdl")
@@ -66,6 +66,7 @@ class TestTypeHints(RDLSourceTestCase):
             #print(f"Checking {node.get_path()}->{property_name}")
 
             value = node.get_property(property_name)
+            print(property_name, value)
             self.assertTrue(
                 value_is_compatible(value, hints["return"]),
                 f"Value '{value}' does not match expected type: {hints['return']}. "
@@ -84,12 +85,13 @@ class TestTypeHints(RDLSourceTestCase):
         )
 
     def test_all_nodes(self):
+        print(self.src)
         root = self.compile(
             [self.src],
             incl_search_paths=["rdl_src/incdir"]
         )
 
-        walker = RDLWalker(skip_not_present=False)
+        walker = RDLSimpleWalker(skip_not_present=False)
         listener = RDLTestListener(self)
         walker.walk(root, listener)
 

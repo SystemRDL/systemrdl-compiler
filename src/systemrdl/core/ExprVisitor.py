@@ -255,7 +255,7 @@ class ExprVisitor(BaseVisitor):
             # TODO: Need to detect if type is bit, and not perform a width cast (only do an assign cast)
             # Current implementation will truncate integers larger than 64-bits
             if struct_type._members[member_name] == int:
-                member_expr = ast.WidthCast(self.compiler.env, member_name_src_ref, member_expr, w_int=64)
+                member_expr = ast.Width64Cast(self.compiler.env, member_name_src_ref, member_expr)
             elif struct_type._members[member_name] == bool:
                 member_expr = ast.BoolCast(self.compiler.env, member_name_src_ref, member_expr)
 
@@ -337,7 +337,7 @@ class ExprVisitor(BaseVisitor):
     def visitCastType(self, ctx: SystemRDLParser.CastTypeContext):
         if ctx.typ.type == SystemRDLParser.LONGINT_kw:
             # Longint gets truncated to 64-bits
-            return ast.WidthCast(self.compiler.env, src_ref_from_antlr(ctx.op), self.visit(ctx.expr()), w_int=64)
+            return ast.Width64Cast(self.compiler.env, src_ref_from_antlr(ctx.op), self.visit(ctx.expr()))
         elif ctx.typ.type == SystemRDLParser.BIT_kw:
             # Cast to bit remains unaffected, but in self-determined context
             # Use assignment cast to isolate evaluation
@@ -350,7 +350,7 @@ class ExprVisitor(BaseVisitor):
     # Visit a parse tree produced by SystemRDLParser#CastWidth.
     def visitCastWidth(self, ctx: SystemRDLParser.CastWidthContext):
         w = self.visit(ctx.cast_width_expr())
-        return ast.WidthCast(self.compiler.env, src_ref_from_antlr(ctx.op), self.visit(ctx.expr()), w_expr=w)
+        return ast.WidthCast(self.compiler.env, src_ref_from_antlr(ctx.op), self.visit(ctx.expr()), w)
 
     #---------------------------------------------------------------------------
     # References

@@ -1,0 +1,82 @@
+property udp1 {
+    type = longint;
+    component = all;
+};
+property udp2 {
+    type = longint;
+    component = all;
+};
+property udp3 {
+    type = longint;
+    component = all;
+};
+
+addrmap top #(
+    longint P1 = 1000,
+    longint P2 = 2000,
+    longint P3 = 3000
+) {
+    udp1 = P1;
+    udp2 = P2;
+    udp3 = P3;
+
+    regfile rf #(
+        longint P1 = 100,
+        longint P2 = 200,
+        longint P3 = 300
+    ) {
+        udp1 = P1;
+        udp2 = P2;
+        udp3 = P3;
+
+        reg rr #(
+            longint P1 = 10,
+            longint P2 = 20,
+            longint P3 = 30
+        ) {
+            udp1 = P1;
+            udp2 = P2;
+            udp3 = P3;
+
+            field f #(
+                longint P1 = 1,
+                longint P2 = 2,
+                longint P3 = 3
+            ) {
+                udp1 = P1;
+                udp2 = P2;
+                udp3 = P3;
+            };
+
+            f f1;
+            f #(
+                .P2(4),
+                .P3(5)
+            ) f2;
+            f f3;
+
+            f2->udp1 = P1;
+        };
+
+        rr r1;
+        rr #(
+            .P2(40),
+            .P3(50)
+        ) r2;
+        rr r3;
+
+        r2->udp1 = P1;
+        r2.f2->udp2 = P2;
+    };
+
+    rf rf1;
+    rf #(
+        .P2(400),
+        .P3(500)
+    ) rf2;
+    rf rf3;
+
+    rf2->udp1 = P1;
+    rf2.r2->udp2 = P2;
+    rf2.r2.f2->udp3 = P3;
+};

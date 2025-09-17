@@ -1,14 +1,8 @@
-from parameterized import parameterized_class
-
 from unittest_utils import RDLSourceTestCase
 
 #===============================================================================
 # Validate inferred field bit placement/packing
 #===============================================================================
-@parameterized_class([
-   {"single_elaborate_optimization": True},
-   {"single_elaborate_optimization": False},
-])
 class TestFieldPlacement(RDLSourceTestCase):
 
     def test_example_10_7_2_lsb(self):
@@ -220,10 +214,6 @@ class TestFieldPlacement(RDLSourceTestCase):
 #===============================================================================
 # Validate inferred address placement/packing
 #===============================================================================
-@parameterized_class([
-   {"single_elaborate_optimization": True},
-   {"single_elaborate_optimization": False},
-])
 class TestAddressingModes(RDLSourceTestCase):
 
     def test_example_5_1_2_2_2_ex1(self):
@@ -320,10 +310,6 @@ class TestAddressingModes(RDLSourceTestCase):
                 self.assertEqual(reg.absolute_address, 0x80 + i * 4)
 
 #-------------------------------------------------------------------------------
-@parameterized_class([
-   {"single_elaborate_optimization": True},
-   {"single_elaborate_optimization": False},
-])
 class TestAddressAllocators(RDLSourceTestCase):
 
     def test_example_5_1_2_5_ex1(self):
@@ -427,10 +413,6 @@ class TestAddressAllocators(RDLSourceTestCase):
             self.assertEqual(reg.size, 4)
 
 #-------------------------------------------------------------------------------
-@parameterized_class([
-   {"single_elaborate_optimization": True},
-   {"single_elaborate_optimization": False},
-])
 class TestHierarchicalAddressing(RDLSourceTestCase):
 
     def test_hier(self):

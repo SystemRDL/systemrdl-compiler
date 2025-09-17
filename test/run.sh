@@ -35,7 +35,7 @@ source .venv/bin/activate
 
 # Install
 export SYSTEMRDL_REQUIRE_BINARY_BUILD=1
-python -m pip install -U ..
+python -m pip install -e ..
 python -m pip install -r requirements.txt pytest-parallel
 
 # Run unit tests while collecting coverage

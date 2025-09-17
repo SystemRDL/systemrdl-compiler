@@ -2,6 +2,8 @@
 Traversing the Register Model
 =============================
 
+There are several ways you can explore a register model via the API.
+
 Using Iterators
 ---------------
 
@@ -50,29 +52,29 @@ Using the Walker/Listener
 -------------------------
 
 One easy way to fully traverse a compiled register model is using a register-tree
-listener interface, triggered by a :class:`~systemrdl.RDLWalker`.
+listener interface, triggered by a :class:`~systemrdl.walker.RDLSimpleWalker`.
 
 The listener interface is a collection of callback methods contained in a class
-extended from :class:`~systemrdl.RDLListener`. As the walker visits each
+extended from :class:`~systemrdl.walker.RDLListener`. As the walker visits each
 node, the type-specific callback method is triggered.
 
-The built-in :class:`~systemrdl.RDLWalker` performs a depth-first walk
+The built-in :class:`~systemrdl.walker.RDLSimpleWalker` performs a depth-first walk
 through the register model as shown in the diagram below:
 
 .. image:: img/walker-listener.svg
    :align: center
 
 .. note:: Since the :class:`~systemrdl.node.RootNode` does not actually
-        represent a register model component, the :class:`~systemrdl.RDLWalker`
+        represent a register model component, the :class:`~systemrdl.walker.RDLSimpleWalker`
         intentionally skips it during traversal.
 
-To create a listener, extend :class:`~systemrdl.RDLListener` and implement
+To create a listener, extend :class:`~systemrdl.walker.RDLListener` and implement
 your custom callback methods. In the example below, ``MyListener`` prints a
 message each time the walker enters and exits type-specific nodes:
 
 .. code-block:: python
 
-    from systemrdl import RDLListener, RDLWalker
+    from systemrdl.walker import RDLListener, RDLSimpleWalker
 
     class MyListener(RDLListener):
         def enter_Addrmap(self, node):
@@ -95,12 +97,12 @@ message each time the walker enters and exits type-specific nodes:
 
 
 Next, the walker can be started using an instance of
-:class:`~systemrdl.RDLWalker`. In this example, the input ``root_node`` is
+:class:`~systemrdl.walker.RDLSimpleWalker`. In this example, the input ``root_node`` is
 assumed to represent the top-level addrmap component called "top".
 
 .. code-block:: python
 
-    RDLWalker().walk(root_node, MyListener())
+    RDLSimpleWalker().walk(root_node, MyListener())
 
 
 Results in the following output:
@@ -122,7 +124,7 @@ enabled:
 
 .. code-block:: python
 
-    RDLWalker(unroll=True).walk(root_node, MyListener())
+    RDLSimpleWalker(unroll=True).walk(root_node, MyListener())
 
 .. code-block:: none
 

@@ -1,0 +1,35 @@
+property udp1 {
+    type = longint;
+    component = all;
+};
+property udp2 {
+    type = longint;
+    component = all;
+};
+property udp3 {
+    type = longint;
+    component = all;
+};
+property udp4 {
+    type = longint;
+    component = all;
+};
+property udp5 {
+    type = longint;
+    component = all;
+};
+
+addrmap top {
+    reg my_reg #(longint X = 8) {
+        udp1 = X * 2 + 10 - 2;
+        udp2 = 1 << X;
+        udp3 = 2 ** X;
+        udp4 = {X{4'hA}};
+        udp5 = (X)'(0xFFFFFFFF);
+        field {} f;
+    };
+
+    my_reg r1;
+    my_reg #(.X(4)) r2;
+    my_reg r3;
+};

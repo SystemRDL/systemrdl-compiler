@@ -121,7 +121,7 @@ formats.
 Here we detect the file type based on its extension:
 
 .. literalinclude:: ../../examples/import_json.py
-    :lines: 191-213
+    :lines: 192-214
     :emphasize-lines: 3,14
     :dedent: 4
 
@@ -135,7 +135,7 @@ We can use the model printing listener from :ref:`the first example <example_pri
 to dump the register model:
 
 .. literalinclude:: ../../examples/import_json.py
-    :lines: 216-219
+    :lines: 217-220
     :dedent: 4
 
 

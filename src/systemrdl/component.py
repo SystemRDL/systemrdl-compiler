@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from .ast import ASTNode
 
     ComponentClass = TypeVar('ComponentClass', bound='Component')
+    AddressableComponentClass = TypeVar('AddressableComponentClass', bound='AddressableComponent')
 
 class Component:
     """
@@ -116,13 +117,9 @@ class Component:
         return list(self.parameters_dict.values())
 
 
-    def _copy_for_inst(self: 'ComponentClass', memo: Dict[int, Any]) -> 'ComponentClass':
+    def _copy_for_inst(self: 'ComponentClass', memo: Dict[int, Any], recursive: bool = False) -> 'ComponentClass':
         """
         Make a copy of the component tree in order to instantiate it.
-
-        This is subtly different from a normal deepcopy since it ensures that
-        references within the component tree are deepcopied, while references
-        to external parameters are copied by reference.
         """
         cls = self.__class__
         result = cls.__new__(cls)
@@ -133,14 +130,18 @@ class Component:
         for name, param in self.parameters_dict.items():
             result.parameters_dict[name] = copy(param)
 
-        # Shallow-copy the properties dict so that values can get overridden by DPAs
+        # Copy the dicts to ensure they remain distinct
         result.properties = self.properties.copy()
-
-        # Shallow copy property_src_ref since otherwise is unnecessary
         result.property_src_ref = self.property_src_ref.copy()
 
-        # Recurse this special copy method for children
-        result.children = [child._copy_for_inst(memo) for child in self.children]
+        if recursive:
+            # Recurse this special copy method for children
+            result.children = [child._copy_for_inst(memo, recursive=True) for child in self.children]
+        else:
+            # ... Otherwise, optimistically skip the copy during compilation.
+            # Copy the list and individual children later, only if needed due
+            # to a DPA assignment
+            result.children = self.children
 
         # Finally, deepcopy everything else
         copy_by_ref = {
@@ -151,9 +152,12 @@ class Component:
             # rather than extending this function
             "width", "msb", "lsb", "high", "low",
             "addr_offset", "addr_align",
-            "array_dimensions", "array_stride",
+            "array_stride",
         }
-        skip = {"parameters_dict", "properties", "children", "property_src_ref"}
+        skip = {
+            "parameters_dict", "properties", "children", "property_src_ref",
+            "array_dimensions",
+        }
         for k, v in self.__dict__.items():
             if k in skip:
                 continue
@@ -279,6 +283,13 @@ class AddressableComponent(Component):
         #: Address offset between array elements.
         #: If left as None, compiler will resolve with inferred value.
         self.array_stride: Optional[int] = None
+
+
+    def _copy_for_inst(self: 'AddressableComponentClass', memo: Dict[int, Any], recursive: bool = False) -> 'AddressableComponentClass':
+        result = super()._copy_for_inst(memo, recursive)
+
+        result.array_dimensions = copy(self.array_dimensions)
+        return result
 
 
     @property

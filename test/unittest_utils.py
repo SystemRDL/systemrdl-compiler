@@ -26,7 +26,6 @@ class RDLSourceTestCase(unittest.TestCase):
     Base class for SystemRDL unittest TestCase
     Implements mechanisms and tests common to interpreting an RDL testcase file
     """
-    single_elaborate_optimization = False
 
     def setUp(self):
         self.compiler_warning_flags = 0
@@ -38,7 +37,6 @@ class RDLSourceTestCase(unittest.TestCase):
             message_printer=TestPrinter(),
             warning_flags=self.compiler_warning_flags,
             error_flags=self.compiler_error_flags,
-            single_elaborate_optimization=self.single_elaborate_optimization,
         )
         for file in files:
             rdlc.compile_file(os.path.join(this_dir, file), incl_search_paths, defines)

@@ -1,0 +1,99 @@
+/*
+Test parameter correctness.
+Focusing on the following types of local assignments:
+    - Property assignments
+    - Field reset Value
+    - Field bit-range
+    - Array dimensions
+    - Address assignment
+    - Default Parameter
+    - Parameter override
+
+Testcase permutes the following situations
+    - Parameter referenced from local vs parent lexical scope
+    - Parameter uses default vs overridden
+*/
+
+property udp1 {
+    type = longint;
+    component = all;
+};
+property udp2 {
+    type = longint;
+    component = all;
+};
+property udp3 {
+    type = longint;
+    component = all;
+};
+
+
+field f #(
+    longint P1 = 1,
+    longint P2 = 2,
+    longint P3 = P1 + P2 + 1
+) {
+    udp1 = P1;
+    udp2 = P2;
+    udp3 = P3;
+};
+
+reg rr #(
+    longint P1 = 10,
+    longint P2 = 20,
+    longint P3 = P2 + 10
+) {
+    udp1 = P1;
+    udp2 = P2;
+    udp3 = P3;
+
+    f #(
+        .P2(50)
+    ) f0 = 0;
+    f f1[10] = P1; // Uses all defaults
+    f #(
+        .P2(5),
+        .P3(P3)
+    ) f2[10] = P2;
+    f f3[P3 % 9 + 1] = 0; // Defaults again to ensure original is unaffected
+};
+
+regfile rf #(
+    longint P1 = 0x100,
+    longint P2 = 0x200,
+    longint P3 = P2 + 0x100
+) {
+    udp1 = P1;
+    udp2 = P2;
+    udp3 = P3;
+
+    rr #(
+        .P2(30)
+    ) r0 @ 0;
+    rr r1[P1 / 0x8] @ P1; // Uses all defaults
+    rr #(
+        .P2(6),
+        .P3(P3 / 0x8)
+    ) r2[P2 / 0x8] @ P2 + 0x1000;
+    rr r3[P3 / 0x8] @ P2 + P3; // Defaults again to ensure original is unaffected
+};
+
+addrmap top #(
+    longint P1 = 0x1000,
+    longint P2 = 0x2000,
+    longint P3 = P2 + 0x1000
+) {
+    udp1 = P1;
+    udp2 = P2;
+    udp3 = P3;
+
+    rf #(
+        .P2(0x180)
+    ) rf0 @ 0;
+    rf rf1[P1 / 0x100] @ P1 + 0x1000; // Uses all defaults
+    rf #(
+        .P2(0x1A0),
+        .P3(P3 / 0x80)
+    ) rf2[P2 / 0x100] @ P2 + 0x80_000;
+    rf rf3[P3 / 0x100] @ P2 + P3 + 0x100_000; // Defaults again to ensure original is unaffected
+};

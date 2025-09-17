@@ -1,0 +1,28 @@
+
+reg param_reg #(
+    string NAME = "myname",
+    boolean SHARED = false,
+    string FIELD_SLICES[] = '{"dat"}
+){
+    name = NAME;
+    shared = SHARED;
+    field {} data;
+
+    data->hdl_path_slice = FIELD_SLICES;
+};
+
+addrmap param_types {
+    param_reg reg1;
+
+    param_reg #(
+        .NAME("myname"),
+        .SHARED(false),
+        .FIELD_SLICES('{"dat"})
+    ) reg2;
+
+    param_reg #(
+        .NAME("othername"),
+        .SHARED(true),
+        .FIELD_SLICES('{"foo"})
+    ) reg3;
+};

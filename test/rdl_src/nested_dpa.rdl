@@ -7,22 +7,26 @@ addrmap b {
     a a1;
     a a2;
     a2->desc = "b";
+    a a3;
 };
 
 addrmap c {
     b b1;
     b b2;
     b2.a2->desc = "c";
+    b b3;
 };
 
 addrmap d {
     c c1;
     c c2;
     c2.b2.a2->desc = "d";
+    c c3;
 };
 
 addrmap e {
     d d1;
     d d2;
     d2.c2.b2.a2->desc = "e";
+    d d3;
 };

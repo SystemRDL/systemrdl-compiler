@@ -86,19 +86,6 @@ class RDLCompiler:
                     ':base_thread', ':filesys_read', ':sys_db', ':load',
                     'sort', 'tied', 'pack', 'unpack', 'reset'
                 ]
-        single_elaborate_optimization: bool
-            If set to True, enables some back-end optimizations that significantly
-            reduce the time taken to elaborate the design. The restriction is
-            that for a given instance of RDLCompiler, the ``elaborate()`` method
-            can only be called once.
-
-            This optimization essentially skips a design-tree copy operation that
-            preserves the un-elaborated design for subsequent re-elaborations.
-            If your application calls ``elaborate()`` multiple times, this
-            optimization would be unsafe, and will result in a ``RuntimeError`` exception.
-
-            By default, this is disabled (False)
-
 
         .. versionchanged:: 1.8
             Added ``dedent_desc`` option.
@@ -106,8 +93,6 @@ class RDLCompiler:
             Added ``extended_dpa_type_names`` option.
         .. versionchanged:: 1.10
             Added ``perl_safe_opcodes`` option.
-        .. versionchanged:: 1.30
-            Added ``single_elaborate_optimization`` option.
         """
         self.env = RDLEnvironment(kwargs)
 
@@ -320,9 +305,6 @@ class RDLCompiler:
         :class:`~systemrdl.node.RootNode`
             Elaborated root meta-component's Node object.
         """
-        if self.env.single_elaborate_optimization and self.env.elaborate_was_called:
-            raise RuntimeError("Multiple calls to 'elaborate()' are not allowed if 'single_elaborate_optimization' is enabled!")
-        self.env.elaborate_was_called = True
 
         if parameters is None:
             parameters = {}
@@ -347,20 +329,14 @@ class RDLCompiler:
                 self.msg.fatal("Could not find any 'addrmap' components to elaborate")
 
         # Create an instance of the root component
-        if self.env.single_elaborate_optimization:
-            root_inst = self.root
-        else:
-            root_inst = self.root._copy_for_inst({})
+        root_inst = self.root._copy_for_inst({}, recursive=True)
         root_inst.is_instance = True
         root_inst.original_def = self.root
         root_inst.inst_name = "$root"
         root_inst.external = False # meaningless, but must not be None
 
         # Create a top-level instance
-        if self.env.single_elaborate_optimization:
-            top_inst = top_def
-        else:
-            top_inst = top_def._copy_for_inst({})
+        top_inst = top_def._copy_for_inst({}, recursive=True)
         top_inst.is_instance = True
         top_inst.original_def = top_def
         top_inst.addr_offset = 0
@@ -395,14 +371,14 @@ class RDLCompiler:
         root_node = RootNode(root_inst, self.env, None)
 
         # Resolve all expressions
-        walker.RDLWalker(skip_not_present=False).walk(
+        walker.RDLSimpleWalker(skip_not_present=False).walk(
             root_node,
             ElabExpressionsListener(self.msg)
         )
 
         # Resolve address and field placement
         late_elab_listener = LateElabListener(self.msg, self.env)
-        walker.RDLWalker(skip_not_present=False).walk(
+        walker.RDLSimpleWalker(skip_not_present=False).walk(
             root_node,
             PrePlacementValidateListener(self.msg),
             StructuralPlacementListener(self.msg),
@@ -414,7 +390,7 @@ class RDLCompiler:
 
         # Validate design
         # Only need to validate nodes that are present
-        walker.RDLWalker(skip_not_present=True).walk(root_node, ValidateListener(self.env))
+        walker.RDLSimpleWalker(skip_not_present=True).walk(root_node, ValidateListener(self.env))
 
         if self.msg.had_error:
             self.msg.fatal("Elaborate aborted due to previous errors")
@@ -473,7 +449,6 @@ class RDLEnvironment:
     of source compilation
     """
     def __init__(self, args_dict: Dict[str, Any]):
-
         # Collect args
         message_printer = args_dict.pop('message_printer', messages.MessagePrinter())
         w_flags = args_dict.pop('warning_flags', 0)
@@ -485,8 +460,6 @@ class RDLEnvironment:
             ':base_thread', ':filesys_read', ':sys_db', ':load',
             'sort', 'tied', 'pack', 'unpack', 'reset'
         ])
-        self.single_elaborate_optimization = args_dict.pop('single_elaborate_optimization', False)
-
         self.chk_missing_reset = self.chk_flag_severity(warnings.MISSING_RESET, w_flags, e_flags)
         self.chk_implicit_field_pos = self.chk_flag_severity(warnings.IMPLICIT_FIELD_POS, w_flags, e_flags)
         self.chk_implicit_addr = self.chk_flag_severity(warnings.IMPLICIT_ADDR, w_flags, e_flags)
@@ -496,8 +469,6 @@ class RDLEnvironment:
 
         self.msg = messages.MessageHandler(message_printer)
         self.property_rules = PropertyRuleBook(self)
-
-        self.elaborate_was_called = False
 
     @staticmethod
     def chk_flag_severity(flag: int, w_flags: int, e_flags: int) -> messages.Severity:

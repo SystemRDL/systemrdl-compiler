@@ -1,12 +1,7 @@
-from parameterized import parameterized_class
 from unittest_utils import RDLSourceTestCase
 import systemrdl.rdltypes as rdlt
 from systemrdl import RDLCompiler
 
-@parameterized_class([
-   {"single_elaborate_optimization": True},
-   {"single_elaborate_optimization": False},
-])
 class TestParameters(RDLSourceTestCase):
 
     def test_spec_examples(self):
@@ -63,15 +58,15 @@ class TestParameters(RDLSourceTestCase):
             self.assertEqual(mem64.get_property('memwidth'), 64)
 
 
-    def test_more(self):
+    def test_param_types(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
-            "amap2"
+            ["rdl_src/param_types.rdl"],
+            "param_types"
         )
 
-        reg1 = root.find_by_path("amap2.reg1")
-        reg2 = root.find_by_path("amap2.reg2")
-        reg3 = root.find_by_path("amap2.reg3")
+        reg1 = root.find_by_path("param_types.reg1")
+        reg2 = root.find_by_path("param_types.reg2")
+        reg3 = root.find_by_path("param_types.reg3")
 
         with self.subTest("reg1"):
             self.assertEqual(reg1.type_name, "param_reg")
@@ -97,12 +92,12 @@ class TestParameters(RDLSourceTestCase):
 
     def test_nested(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
-            "nested"
+            ["rdl_src/nested_params.rdl"],
+            "nested_params"
         )
-        f1 = root.find_by_path("nested.rf_inst.r_inst1.f")
-        f2 = root.find_by_path("nested.rf_inst.r_inst2.f")
-        f3 = root.find_by_path("nested.r1_inst.f")
+        f1 = root.find_by_path("nested_params.rf_inst.r_inst1.f")
+        f2 = root.find_by_path("nested_params.rf_inst.r_inst2.f")
+        f3 = root.find_by_path("nested_params.r1_inst.f")
 
         with self.subTest("f1"):
             self.assertEqual(f1.width, 4)
@@ -116,7 +111,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_elab_defaults(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/elab_params.rdl"],
             "elab_params",
             parameters={}
         )
@@ -135,7 +130,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_elab_override(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/elab_params.rdl"],
             "elab_params",
             parameters={
                 "STR":"python!",
@@ -160,7 +155,7 @@ class TestParameters(RDLSourceTestCase):
     def test_elab_override_via_eval(self):
         rdlc = RDLCompiler()
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/elab_params.rdl"],
             "elab_params",
             parameters={
                 "STR": rdlc.eval('"python!"'),
@@ -184,7 +179,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_param_scope(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/param_scope.rdl"],
             "param_scope"
         )
         ffX = root.find_by_path("param_scope.rfX.rf3.rf2.rr.ff")
@@ -197,7 +192,7 @@ class TestParameters(RDLSourceTestCase):
 
     def test_param_dpa_scopes(self):
         root = self.compile(
-            ["rdl_src/parameters.rdl"],
+            ["rdl_src/param_dpa_scopes.rdl"],
             "param_dpa_scopes"
         )
         top = root.top
@@ -221,6 +216,86 @@ class TestParameters(RDLSourceTestCase):
         self.assertEqual(o1f.get_property("name"), "top default")
         self.assertEqual(o2.get_property("name"), "top default")
         self.assertEqual(o2f.get_property("name"), "top default")
+
+
+    def test_param_dpa_scopes2(self):
+        root = self.compile(
+            ["rdl_src/nested_params_dpa.rdl"]
+        )
+
+        value_map = {
+            "top": (1000, 2000, 3000),
+            "top.rf1": (100, 200, 300),
+            "top.rf1.r1": (10, 20, 30),
+            "top.rf1.r1.f1": (1, 2, 3),
+            "top.rf1.r1.f2": (10, 4, 5),
+            "top.rf1.r1.f3": (1, 2, 3),
+            "top.rf1.r2": (100, 40, 50),
+            "top.rf1.r2.f1": (1, 2, 3),
+            "top.rf1.r2.f2": (10, 200, 5),
+            "top.rf1.r2.f3": (1, 2, 3),
+            "top.rf1.r3": (10, 20, 30),
+            "top.rf1.r3.f1": (1, 2, 3),
+            "top.rf1.r3.f2": (10, 4, 5),
+            "top.rf1.r3.f3": (1, 2, 3),
+            "top.rf2": (1000, 400, 500),
+            "top.rf2.r1": (10, 20, 30),
+            "top.rf2.r1.f1": (1, 2, 3),
+            "top.rf2.r1.f2": (10, 4, 5),
+            "top.rf2.r1.f3": (1, 2, 3),
+            "top.rf2.r2": (100, 2000, 50),
+            "top.rf2.r2.f1": (1, 2, 3),
+            "top.rf2.r2.f2": (10, 400, 3000),
+            "top.rf2.r2.f3": (1, 2, 3),
+            "top.rf2.r3": (10, 20, 30),
+            "top.rf2.r3.f1": (1, 2, 3),
+            "top.rf2.r3.f2": (10, 4, 5),
+            "top.rf2.r3.f3": (1, 2, 3),
+            "top.rf3": (100, 200, 300),
+            "top.rf3.r1": (10, 20, 30),
+            "top.rf3.r1.f1": (1, 2, 3),
+            "top.rf3.r1.f2": (10, 4, 5),
+            "top.rf3.r1.f3": (1, 2, 3),
+            "top.rf3.r2": (100, 40, 50),
+            "top.rf3.r2.f1": (1, 2, 3),
+            "top.rf3.r2.f2": (10, 200, 5),
+            "top.rf3.r2.f3": (1, 2, 3),
+            "top.rf3.r3": (10, 20, 30),
+            "top.rf3.r3.f1": (1, 2, 3),
+            "top.rf3.r3.f2": (10, 4, 5),
+            "top.rf3.r3.f3": (1, 2, 3),
+        }
+
+        for node in root.descendants():
+            udp_values = value_map[node.get_path()]
+            self.assertEqual(node.get_property("udp1"), udp_values[0])
+            self.assertEqual(node.get_property("udp2"), udp_values[1])
+            self.assertEqual(node.get_property("udp3"), udp_values[2])
+
+    def test_param_expressions(self):
+        root = self.compile(
+            ["rdl_src/param_expressions.rdl"]
+        )
+
+        def checkme(r, X):
+            self.assertEqual(r.get_property("udp1"), X * 2 + 10 - 2)
+            self.assertEqual(r.get_property("udp2"), 1 << X)
+            self.assertEqual(r.get_property("udp3"), 2 ** X)
+            self.assertEqual(r.get_property("udp4"), int("0x" + "A" * X, 0))
+            self.assertEqual(r.get_property("udp5"), 0xFFFFFFFF & ((1 << X) - 1))
+
+        print("r1")
+        r1 = root.find_by_path("top.r1")
+        checkme(r1, 8)
+
+        print("r2")
+        r2 = root.find_by_path("top.r2")
+        checkme(r2, 4)
+
+        print("r3")
+        r3 = root.find_by_path("top.r3")
+        checkme(r3, 8)
+
 
     def test_err_ref_in_parameter(self):
         self.assertRDLCompileError(
