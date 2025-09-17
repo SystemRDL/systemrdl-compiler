@@ -23,4 +23,4 @@ from .boolean import BoolAnd, BoolOr
 
 from .conditional import Conditional
 
-from .cast import WidthCast, BoolCast, AssignmentCast, is_castable
+from .cast import WidthCast, Width64Cast, BoolCast, AssignmentCast, is_castable
