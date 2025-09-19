@@ -1,0 +1,29 @@
+property udp_string {
+    type = string;
+    component = all;
+};
+
+property udp_string_array {
+    type = string[];
+    component = all;
+};
+
+property udp_boolean {
+    type = boolean;
+    component = all;
+};
+
+property udp_boolean_array {
+    type = boolean[];
+    component = all;
+};
+
+property udp_longint {
+    type = longint;
+    component = all;
+};
+
+property udp_longint_array {
+    type = longint[];
+    component = all;
+};

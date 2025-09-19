@@ -1,10 +1,11 @@
 import unittest
+import os
 
 from systemrdl import RDLCompiler, FieldNode, AddressableNode
 from systemrdl.importer import RDLImporter
 
+#-------------------------------------------------------------------------------
 class MyImporter(RDLImporter):
-
     def import_file(self, path: str) -> None:
         super().import_file(path)
 
@@ -79,6 +80,7 @@ class InstNameErrorTestcaseImporter(RDLImporter):
                                     "reg1.some_signal", 0)
         self.add_child(my_rf, reg1)
 
+
 class TypeNameErrorTestcaseImporter(RDLImporter):
 
     def import_file(self, path: str) -> None:
@@ -89,6 +91,42 @@ class TypeNameErrorTestcaseImporter(RDLImporter):
 
         # Creates a register instance with an illegal name.
         reg_t = self.create_reg_definition("illegal.type.name")
+
+#-------------------------------------------------------------------------------
+class TypeTestImporter(RDLImporter):
+    def import_file(self, path: str) -> None:
+        super().import_file(path)
+
+        top = self.create_addrmap_definition("top")
+        self.register_root_component(top)
+
+        reg = self.instantiate_reg(
+            self.create_reg_definition(),
+            "r",
+            0x0,
+        )
+        self.add_child(top, reg)
+
+        field = self.instantiate_field(
+            self.create_field_definition(),
+            "f",
+            0,
+            32,
+        )
+        self.add_child(reg, field)
+
+        self.assign_property(top, "udp_string", "my string")
+        self.assign_property(top, "udp_string_array", ["str1", "str2", "str3"])
+        self.assign_property(top, "udp_boolean", True)
+        self.assign_property(top, "udp_boolean_array", [True, False, True])
+        self.assign_property(top, "udp_longint", 123)
+        self.assign_property(top, "udp_longint_array", [12, 34, 56])
+
+        self.assign_property(reg, "udp_string_array", [])
+        self.assign_property(reg, "udp_boolean_array", [])
+        self.assign_property(reg, "udp_longint_array", [])
+
+#-------------------------------------------------------------------------------
 
 class TestImporter(unittest.TestCase):
     def test_importer(self):
@@ -141,3 +179,28 @@ class TestImporter(unittest.TestCase):
         i = TypeNameErrorTestcaseImporter(rdlc)
         with self.assertRaisesRegex(ValueError, "Type name has invalid characters: 'illegal.type.name'"):
             i.import_file("asdf")
+
+
+    def test_importer_types(self):
+        rdlc = RDLCompiler()
+
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/incdir/importer_udps.rdl"))
+
+        i = TypeTestImporter(rdlc)
+        i.import_file("asdf")
+
+        root = rdlc.elaborate()
+
+        top = root.top
+        self.assertEqual(top.get_property("udp_string"), "my string")
+        self.assertListEqual(top.get_property("udp_string_array"), ["str1", "str2", "str3"])
+        self.assertIs(top.get_property("udp_boolean"), True)
+        self.assertListEqual(top.get_property("udp_boolean_array"), [True, False, True])
+        self.assertEqual(top.get_property("udp_longint"), 123)
+        self.assertListEqual(top.get_property("udp_longint_array"), [12, 34, 56])
+
+        reg = top.get_child_by_name("r")
+        self.assertListEqual(reg.get_property("udp_string_array"), [])
+        self.assertListEqual(reg.get_property("udp_boolean_array"), [])
+        self.assertListEqual(reg.get_property("udp_longint_array"), [])

@@ -80,7 +80,17 @@ class PropertyRule:
             assign_type = rdltypes.UserEnum
         else:
             # Value is already evaluated
-            assign_type = type(value)
+            if isinstance(value, list):
+                # Value is a list. Construct an arrayed type
+                if value:
+                    # List is not empty. Get member type
+                    member_type = type(value[0])
+                else:
+                    # List is empty. Member type is unknown
+                    member_type = None
+                assign_type = rdltypes.ArrayedType(member_type)
+            else:
+                assign_type = type(value)
 
         # First check if the value's type is already directly compatible
         for valid_type in self.valid_types:
