@@ -328,6 +328,21 @@ class RDLCompiler:
             else:
                 self.msg.fatal("Could not find any 'addrmap' components to elaborate")
 
+        # Create design instance
+        root_node = self._elab_create_root_inst(top_def, inst_name, top_def_name, parameters)
+
+        # Elaborate the design
+        self._elab_design(root_node)
+
+        # Validate design
+        self._elab_validate(root_node)
+
+        if self.msg.had_error:
+            self.msg.fatal("Elaborate aborted due to previous errors")
+
+        return root_node
+
+    def _elab_create_root_inst(self, top_def: comp.Addrmap, inst_name: Optional[str], top_def_name: Optional[str], parameters: Dict[str, 'RDLValue']) -> RootNode:
         # Create an instance of the root component
         root_inst = self.root._copy_for_inst({}, recursive=True)
         root_inst.is_instance = True
@@ -370,6 +385,9 @@ class RDLCompiler:
 
         root_node = RootNode(root_inst, self.env, None)
 
+        return root_node
+
+    def _elab_design(self, root_node: RootNode) -> None:
         # Resolve all expressions
         walker.RDLSimpleWalker(skip_not_present=False).walk(
             root_node,
@@ -388,14 +406,10 @@ class RDLCompiler:
         # re-visit nodes a 2nd time as-needed to complete elaboration
         LateElabRevisitor(late_elab_listener.node_needs_revisit)
 
-        # Validate design
+    def _elab_validate(self, root_node: RootNode) -> None:
         # Only need to validate nodes that are present
         walker.RDLSimpleWalker(skip_not_present=True).walk(root_node, ValidateListener(self.env))
 
-        if self.msg.had_error:
-            self.msg.fatal("Elaborate aborted due to previous errors")
-
-        return root_node
 
 
     def eval(self, expression: str) ->'RDLValue':
