@@ -51,13 +51,11 @@ Use of property or component references are only supported if the resulting
 assignment value can be determined during RDL elaboration-time.
 
 Supported:
-
     .. code-block:: systemrdl
 
             some_property = PARAMETER ? my_reg.my_field : my_reg.my_field->some_property;
 
 Not supported:
-
     .. code-block:: systemrdl
 
             some_property = my_signal ? my_field : my_field->some_property;

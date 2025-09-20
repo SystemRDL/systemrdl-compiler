@@ -31,26 +31,8 @@ author = "Alex Mykyta"
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
-    'sphinx.ext.inheritance_diagram',
     'crate.sphinx.csv',
 ]
-
-
-inheritance_graph_attrs = dict(
-    #rankdir = "TB",
-    #size = '"6.0, 8.0"',
-    #fontsize = 14,
-    #ratio = 'compress'
-)
-
-inheritance_node_attrs = dict(
-    #shape='ellipse',
-    #fontsize=14,
-    #height=0.75,
-    color='"#6AB0DE"',
-    fillcolor='"#E7F2FA"',
-    style='"rounded, filled"'
-)
 
 autoclass_content = 'both'
 
@@ -68,7 +50,16 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_book_theme"
+
+html_theme_options = {
+    "repository_url": "https://github.com/SystemRDL/systemrdl-compiler",
+    "path_to_docs": "docs",
+    "use_download_button": False,
+    "use_source_button": True,
+    "use_repository_button": True,
+    "use_issues_button": True,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
