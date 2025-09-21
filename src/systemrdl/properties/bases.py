@@ -1,4 +1,5 @@
 from typing import Any, Set, Type, Tuple, TYPE_CHECKING, Optional, Dict
+import sys
 
 from .. import node as m_node
 from ..ast.ast_node import ASTNode
@@ -33,15 +34,16 @@ class PropertyRule:
 
     def __init__(self, env: 'RDLEnvironment'):
         self.env = env
+        self._name = self.get_name_cls()
 
 
     @classmethod
     def get_name_cls(cls) -> str:
-        return cls.__name__.replace("Prop_", "")
+        return sys.intern(cls.__name__.replace("Prop_", ""))
 
 
     def get_name(self) -> str:
-        return self.get_name_cls()
+        return self._name
 
 
     def assign_value(self, comp_def: 'comp.Component', value: Any, src_ref: 'SourceRefBase') -> None:
@@ -286,7 +288,7 @@ def _get_mutex_properties(group_name: str) -> Set[str]:
             if prop_cls.__name__.startswith("Prop_"):
                 if prop_cls.mutex_group is not None:
                     if prop_cls.mutex_group not in _MUTEX_PROP_GROUPS:
-                        _MUTEX_PROP_GROUPS[prop_cls.mutex_group] = set()
-                    _MUTEX_PROP_GROUPS[prop_cls.mutex_group].add(prop_cls.get_name_cls())
+                        _MUTEX_PROP_GROUPS[sys.intern(prop_cls.mutex_group)] = set()
+                    _MUTEX_PROP_GROUPS[sys.intern(prop_cls.mutex_group)].add(prop_cls.get_name_cls())
 
     return _MUTEX_PROP_GROUPS[group_name]

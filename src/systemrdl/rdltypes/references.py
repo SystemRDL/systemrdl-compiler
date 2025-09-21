@@ -119,6 +119,8 @@ class PropertyReference:
         #: property is being referenced.
         self.node: Node
 
+        self._name = self.get_name()
+
     def __repr__(self) -> str:
         return f"<{self.__class__.__qualname__} {self.node.get_path()}->{self.name} at {id(self):#x}>"
 
@@ -139,7 +141,7 @@ class PropertyReference:
         """
         Name of the property being referenced
         """
-        return self.get_name()
+        return self._name
 
     @classmethod
     def get_name(cls) -> str:

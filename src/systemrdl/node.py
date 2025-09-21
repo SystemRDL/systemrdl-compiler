@@ -453,18 +453,19 @@ class Node:
         # Property WAS indeed assigned by the user
         prop_value = self.inst.properties[prop_name]
 
+        if isinstance(prop_value, (rdltypes.BuiltinEnum, str, int)):
+            # Optimization: Exit early to skip comparisons for popular simple return types
+            return prop_value
         if isinstance(prop_value, rdltypes.ComponentRef):
             # If this is a hierarchical component reference, convert it to a Node reference
-            prop_value = prop_value.build_node_ref(self)
-        elif isinstance(prop_value, rdltypes.PropertyReference):
-            prop_value = prop_value.get_resolved_ref(self)
-        elif isinstance(prop_value, list):
+            return prop_value.build_node_ref(self)
+        if isinstance(prop_value, rdltypes.PropertyReference):
+            return prop_value.get_resolved_ref(self)
+        if isinstance(prop_value, list):
             # Inspect array and resolve any references
-            prop_value = rdltypes.references.resolve_node_refs_in_array(self, prop_value)
-        elif rdltypes.is_user_struct(type(prop_value)):
-            prop_value = rdltypes.references.resolve_node_refs_in_struct(self, prop_value)
-        elif (prop_name == "desc") and self.env.dedent_desc:
-            prop_value = helpers.dedent_text(prop_value)
+            return rdltypes.references.resolve_node_refs_in_array(self, prop_value)
+        if rdltypes.is_user_struct(type(prop_value)):
+            return rdltypes.references.resolve_node_refs_in_struct(self, prop_value)
 
         return prop_value
 

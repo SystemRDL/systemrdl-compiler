@@ -2,7 +2,7 @@ import hashlib
 from typing import TYPE_CHECKING, List, Optional, cast
 
 from ..ast import ASTNode
-from .helpers import is_pow2, roundup_pow2, roundup_to
+from .helpers import is_pow2, roundup_pow2, roundup_to, dedent_text
 from .value_normalization import normalize, RefInParameterError
 
 from .. import component as comp
@@ -39,7 +39,10 @@ class ElabExpressionsListener(walker.RDLListener):
         # Evaluate component properties
         for prop_name, prop_value in node.inst.properties.items():
             if isinstance(prop_value, ASTNode):
-                node.inst.properties[prop_name] = prop_value.get_value(assignee_node=node)
+                v = prop_value.get_value(assignee_node=node)
+                if prop_name == "desc" and node.env.dedent_desc:
+                    v = dedent_text(v)
+                node.inst.properties[prop_name] = v
 
 
     def enter_AddressableComponent(self, node: AddressableNode) -> None:
