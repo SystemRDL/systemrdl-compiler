@@ -102,14 +102,14 @@ addrmap misc {
 
         field {
             sw = rw;
-            hw=rw;
+            hw = rw;
             hwset;
         } f1;
         f1->hwmask = fx;
 
         field {
             sw = rw;
-            hw=rw;
+            hw = rw;
             hwclr;
         } f2;
         f2->hwenable = fx;
@@ -117,14 +117,14 @@ addrmap misc {
 
     reg {
         field {
-            sw=r;
-            hw=w;
+            sw = r;
+            hw = w;
             posedge intr;
             sticky = false;
         } irq;
 
         field {
-            sw=rw; hw=na;
+            sw = rw; hw = na;
         } f1, f2;
         irq->mask = f1;
         irq->haltmask = f2;

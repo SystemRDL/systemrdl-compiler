@@ -14,7 +14,7 @@ addrmap enum_test1 {
     field my_field_t #(
         my_enum FOO = my_enum::four
     ) {
-        fieldwidth=4;
+        fieldwidth = 4;
         reset = FOO + 1;
         encode = my_enum;
     };

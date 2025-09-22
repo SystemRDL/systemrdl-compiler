@@ -1,5 +1,5 @@
-default sw=rw;
-default hw=r;
+default sw = rw;
+default hw = r;
 
 addrmap field_resets {
     signal {activehigh;} reset_x;

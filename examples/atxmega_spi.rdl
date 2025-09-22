@@ -26,7 +26,7 @@ addrmap atxmega_spi {
             written to zero. If SS is configured as an input and driven low while
             master mode is set, master mode will be cleared";
 
-            hw=rw; we;
+            hw = rw; we;
         } MASTER[4:4] = 0;
 
         field {
@@ -58,11 +58,11 @@ addrmap atxmega_spi {
 
     reg {
         field {
-            sw=r; hw=rw; we;
+            sw = r; hw = rw; we;
         } WRCOL[6:6] = 0;
 
         field {
-            sw=r; hw=rw; we;
+            sw = r; hw = rw; we;
         } IF[7:7] = 0;
     } STATUS @ 0x2;
 
@@ -74,11 +74,11 @@ addrmap atxmega_spi {
         returning the last byte successfully received";
 
         field {
-            sw=w; hw=r;
+            sw = w; hw = r;
         } WDATA[7:0];
 
         field {
-            sw=r; hw=w;
+            sw = r; hw = w;
         } RDATA[7:0];
 
     } DATA @ 0x3;

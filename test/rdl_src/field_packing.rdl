@@ -33,16 +33,16 @@ addrmap lsb_packing {
         field {} x;
         field {} y[9:6];
         field {} z[3];
-        field {fieldwidth=2;} zz;
+        field {fieldwidth = 2;} zz;
     };
 
     reg test_reg16_t {
-        regwidth=16;
+        regwidth = 16;
 
         field {} x;
         field {} y[9:6];
         field {} z[3];
-        field {fieldwidth=2;} zz;
+        field {fieldwidth = 2;} zz;
     };
 
     lsb0;
@@ -55,16 +55,16 @@ addrmap msb_packing {
         field {} x;
         field {} y[6:9];
         field {} z[3];
-        field {fieldwidth=2;} zz;
+        field {fieldwidth = 2;} zz;
     };
 
     reg test_reg16_t {
-        regwidth=16;
+        regwidth = 16;
 
         field {} x;
         field {} y[6:9];
         field {} z[3];
-        field {fieldwidth=2;} zz;
+        field {fieldwidth = 2;} zz;
     };
 
     msb0;

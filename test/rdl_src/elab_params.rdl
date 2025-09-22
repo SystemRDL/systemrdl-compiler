@@ -1,10 +1,10 @@
 
 addrmap elab_params #(
-    string STR="default",
-    longint unsigned INT=1,
-    longint unsigned INTARR[]= '{2,3},
-    onwritetype ONWR=woset,
-    boolean BOOL=true
+    string STR = "default",
+    longint unsigned INT = 1,
+    longint unsigned INTARR[]= '{2, 3},
+    onwritetype ONWR = woset,
+    boolean BOOL = true
 ) {
     reg reg_t #(
         longint unsigned WIDTH = 4

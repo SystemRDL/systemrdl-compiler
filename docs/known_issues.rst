@@ -35,12 +35,12 @@ For example:
     my_reg my_inst[16];
 
     // Modifying all instances in the array is supported
-    my_inst -> some_property = 1234;
+    my_inst->some_property = 1234;
 
     // Modifying a subset is not supported
-    my_inst[2] -> some_property = 1234;
-    my_inst[1:4] -> some_property = 1234;
-    my_inst[0:15] -> some_property = 1234;
+    my_inst[2]->some_property = 1234;
+    my_inst[1:4]->some_property = 1234;
+    my_inst[0:15]->some_property = 1234;
 
 
 

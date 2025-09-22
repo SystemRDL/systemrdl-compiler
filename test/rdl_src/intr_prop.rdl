@@ -6,8 +6,8 @@ reg block_int_r {
     desc = "This is an example of an IP Block with 3 int events. 2 of these
             are non-fatal and the third event multi_bit_ecc_error is fatal";
 
-    default hw=w;  // HW can Set int only
-    default sw=rw; // SW can clear
+    default hw = w;  // HW can Set int only
+    default sw = rw; // SW can clear
     default woclr; // Clear is via writing a 1
 
     field {
@@ -21,12 +21,12 @@ reg block_int_r {
     } len_error = 0x0;
 
     field {
-        desc="An uncorrectable multi-bit ECC error has been received";
+        desc = "An uncorrectable multi-bit ECC error has been received";
         level intr;
     } multi_bit_ecc_error = 0 ;
 
     field {
-        desc="Master who was active when ECC Error Occurred";
+        desc = "Master who was active when ECC Error Occurred";
         sticky;
     } active_ecc_master[7:4] = 0; // Example of multi-bit sticky field
                                   // This field is not an intr
@@ -40,8 +40,8 @@ reg block_int_en_r {
     name = "Example Block Interrupt Enable Register";
     desc = "This is an example of an IP Block with 3 int events";
 
-    default hw=na; // HW can't access the enables
-    default sw=rw; // SW can control them
+    default hw = na; // HW can't access the enables
+    default sw = rw; // SW can control them
 
     field {
         desc = "Enable: A Packet with a CRC Error has been received";
@@ -63,8 +63,8 @@ reg block_halt_en_r {
     name = "Example Block Halt Enable Register";
     desc = "This is an example of an IP Block with 3 int events";
 
-    default hw=na; // HW can't access the enables
-    default sw=rw; // SW can control them
+    default hw = na; // HW can't access the enables
+    default sw = rw; // SW can control them
 
     field {
         desc = "Enable: A Packet with a CRC Error has been received";
@@ -93,8 +93,8 @@ reg master_int_r {
 
     default nonsticky intr; // Unless we want to have to clear this separately
                             // from the leaf intr this should be non sticky
-    default hw=w; // HW normally won't want to access this but it could
-    default sw=r; // Software can just read this. It clears the leaf intr's
+    default hw = w; // HW normally won't want to access this but it could
+    default sw = r; // Software can just read this. It clears the leaf intr's
                   // to clear this
 
     field {

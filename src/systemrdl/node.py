@@ -639,20 +639,20 @@ class Node:
 
         A reference to a descendant node::
 
-            foo.bar -> foo.bar.baz.abcd = "baz.abcd"
+            foo.bar->foo.bar.baz.abcd = "baz.abcd"
 
         Relative path that traverses upwards::
 
-            foo.bar.baz -> foo.abc.def = "^.^.abc.def"
+            foo.bar.baz->foo.abc.def = "^.^.abc.def"
 
         Relative path to self results in an empty string::
 
-            foo.bar.baz -> foo.bar.baz = ""
+            foo.bar.baz->foo.bar.baz = ""
 
         Paths between array nodes with/without indexes will result in upwards paths::
 
-            foo.array[].baz -> foo.array[0].baz = "^.^.array[0].baz"
-            foo.array[0].baz -> foo.array[].baz = "^.^.array[].baz"
+            foo.array[].baz->foo.array[0].baz = "^.^.array[0].baz"
+            foo.array[0].baz->foo.array[].baz = "^.^.array[].baz"
 
         Parameters
         ----------

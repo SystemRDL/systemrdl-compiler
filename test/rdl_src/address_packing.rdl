@@ -4,32 +4,32 @@
 //------------------------------------------------------------------------------
 
 addrmap example_5_1_2_2_2_ex1 {
-    default accesswidth=32;
-    addressing=compact;
-    reg { field {} a; } a;              // Address 0
-    reg { regwidth=64; field {} a; } b; // Address 4
-    reg { field {} a; } c[20];          // Address 0x0C - Element 0
-                                        // Address 0x10 - Element 1
-                                        // Address 0x14 - Element 2
+    default accesswidth = 32;
+    addressing = compact;
+    reg { field {} a; } a;                // Address 0
+    reg { regwidth = 64; field {} a; } b; // Address 4
+    reg { field {} a; } c[20];            // Address 0x0C - Element 0
+                                          // Address 0x10 - Element 1
+                                          // Address 0x14 - Element 2
 };
 
 addrmap example_5_1_2_2_2_ex3 {
     addressing = regalign;
-    reg { field {} a; } a;              // Address 0
-    reg { regwidth=64; field {} a; } b; // Address 8
-    reg { field {} a; } c[20];          // Address 0x10 - Element 0
-                                        // Address 0x14 - Element 1
-                                        // Address 0x18 - Element 2
+    reg { field {} a; } a;                // Address 0
+    reg { regwidth = 64; field {} a; } b; // Address 8
+    reg { field {} a; } c[20];            // Address 0x10 - Element 0
+                                          // Address 0x14 - Element 1
+                                          // Address 0x18 - Element 2
 };
 
 
 addrmap example_5_1_2_2_2_ex4 {
     addressing = fullalign;
-    reg { field {} a; } a;              // Address 0
-    reg { regwidth=64; field {} a; } b; // Address 8
-    reg { field {} a; } c[20];          // Address 0x80 - Element 0
-                                        // Address 0x84 - Element 1
-                                        // Address 0x88 - Element 2
+    reg { field {} a; } a;                // Address 0
+    reg { regwidth = 64; field {} a; } b; // Address 8
+    reg { field {} a; } c[20];            // Address 0x80 - Element 0
+                                          // Address 0x84 - Element 1
+                                          // Address 0x88 - Element 2
 };
 
 //------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ addrmap hier {
     y[4]; // @0x100 size=148*4=592
 
     external mem {
-        mementries=256;
+        mementries = 256;
         some_reg x[256];
     } z_mem;
 

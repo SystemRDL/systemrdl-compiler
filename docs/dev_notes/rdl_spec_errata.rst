@@ -565,11 +565,11 @@ AND-reduction of the field's value at *runtime*.
 .. code-block:: systemrdl
 
     field {
-        sw=rw; hw=r;
+        sw = rw; hw = r;
     } my_field[7:0];
 
     field {
-        sw=rw; hw=r;
+        sw = rw; hw = r;
     } my_anded_field[8:8];
     my_anded_field->next = my_field->anded;
 

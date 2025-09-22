@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------
 addrmap foo {
     reg { field {} a[8]=0; } reg1;
-    signal { signalwidth=8;} mySig[8];
+    signal { signalwidth = 8;} mySig[8];
     reg1.a->reset = mySig;  // Instead of resetting this field to a constant
                             // we connect it to a signal to provide an
                             // External reset value
@@ -15,12 +15,12 @@ addrmap foo {
 addrmap top{
     signal { activelow; async; } reset_l; // Define a single bit signal
     reg {
-        field {} field1=0; // This field is reset by the default IMPLIED reset
+        field {} field1 = 0; // This field is reset by the default IMPLIED reset
                 // signal which is named RESET and is activehigh and sync
 
         field {
             resetsignal = reset_l;
-        } field2=0; // This field is now reset by reset_l and the generated
+        } field2 = 0; // This field is now reset by reset_l and the generated
                     // flops will be active low and asynchronously reset.
     } some_reg_inst;
 };
@@ -31,8 +31,8 @@ addrmap top{
 addrmap top2 {
 
     signal {
-        name="PCI Soft Reset";
-        desc="This signal is used to issue a soft reset to the PCI(E) device";
+        name = "PCI Soft Reset";
+        desc = "This signal is used to issue a soft reset to the PCI(E) device";
         activelow;   // Define this signal is active low
         async;       // define this reset type is asynchronous
         field_reset; // define this signal to reset the fields by default
@@ -42,8 +42,8 @@ addrmap top2 {
     } pci_soft_reset;
 
     signal {
-        name="PCI Hard Reset";
-        desc="This signal the primary hard reset signal for the PCI(E) device";
+        name = "PCI Hard Reset";
+        desc = "This signal the primary hard reset signal for the PCI(E) device";
         async;       // define this reset type is asynchronous
         activelow;   // Define this signal as active low
         cpuif_reset; // This signal will be or'd with the PCI Soft Reset Signal

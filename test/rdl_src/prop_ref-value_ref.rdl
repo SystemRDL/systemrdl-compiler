@@ -1,8 +1,8 @@
 
 addrmap prop_value_ref {
     reg {
-        default sw=rw;
-        default hw=rw;
+        default sw = rw;
+        default hw = rw;
         field {} a = 0;
         field {} b;
         field {} c;

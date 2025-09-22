@@ -2,59 +2,59 @@
 addrmap top {
     reg {
         field {
-            sw=rw;hw=r;
+            sw = rw;hw = r;
         } f1 = 0;
 
         field {
-            sw=r;hw=w;
+            sw = r;hw = w;
         } f2 = 0;
         field {
-            sw=r;hw=rw;
+            sw = r;hw = rw;
             we;
         } f3 = 0;
         field {
-            sw=w;hw=r;
+            sw = w; hw = r;
             swwe;
         } f4 = 0;
         field {
-            sw=r;hw=r;
+            sw = r; hw = r;
             onread = rclr;
         } f5 = 1;
         field {
-            sw=r;hw=r;
+            sw = r; hw = r;
             hwclr;
         } f6 = 1;
         field {
-            sw=rw;hw=rw;
+            sw = rw; hw = rw;
             we;
             precedence = hw;
         } f7 = 0;
         field {
-            sw=rw;hw=rw;
+            sw = rw; hw = rw;
             precedence = sw;
             we;
         } f8 = 0;
         field {
-            sw=rw;hw=rw;
+            sw = rw; hw = rw;
             we;
         } f9 = 0;
         field {
-            sw=r;hw=w;
+            sw = r; hw = w;
             we;
         } f10 = 0;
         field {
-            sw=r;hw=w;
+            sw = r; hw = w;
             wel;
         } f11 = 0;
         field {
-            sw=w; hw=na;
+            sw = w; hw = na;
         } f12 = 0;
     } r1;
 
     reg {
-        field {sw=r; hw=w;} f;
+        field {sw = r; hw = w;} f;
     } r2;
     reg {
-        field {sw=w; hw=r;} f;
+        field {sw = w; hw = r;} f;
     } r3;
 };

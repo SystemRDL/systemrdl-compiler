@@ -1,5 +1,5 @@
 addrmap some_bridge { // Define a Bridge Device
-    desc="overlapping address maps with both shared register space and
+    desc = "overlapping address maps with both shared register space and
     orthogonal register space";
     bridge; // This tells the compiler the top level map contains other maps
 
@@ -8,20 +8,20 @@ addrmap some_bridge { // Define a Bridge Device
         // Shared property tells compiler this register
         // will be shared by multiple addrmaps
         field {
-            hw=rw;
-            sw=r;
+            hw = rw;
+            sw = r;
         } stat1 = 1'b0;
     };
 
     reg some_axi_reg {
         field {
-            desc="credits on the AXI interface";
+            desc = "credits on the AXI interface";
         } credits[4] = 4'h7;
     };
 
     reg some_ahb_reg {
         field {
-            desc="credits on the AHB Interface";
+            desc = "credits on the AHB Interface";
         } credits[8] = 8'b00000011;
     };
 

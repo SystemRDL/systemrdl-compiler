@@ -40,7 +40,7 @@ Although not explicitly set, if you were to do the following query:
 .. code-block:: systemrdl
 
     field my_field {
-        sw=rw;
+        sw = rw;
         onread = rclr;
     };
 

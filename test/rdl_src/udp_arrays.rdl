@@ -33,7 +33,7 @@ property struct_array {
 
 
 addrmap top {
-    field my_field {sw=rw; hw=r;};
+    field my_field {sw = rw; hw = r;};
     reg my_reg {
         my_field f1;
         my_field f2;

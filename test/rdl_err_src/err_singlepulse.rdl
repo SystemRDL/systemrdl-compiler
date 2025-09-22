@@ -6,18 +6,18 @@ addrmap top {
         } good1 = 0;
 
         field {
-            singlepulse=false;
+            singlepulse = false;
         } good2 = 0;
 
         field {
             singlepulse;
-            sw=r;
+            sw = r;
         } bad1[8] = 3;
 
         field {
             singlepulse;
-            sw=rw;
-            onwrite=wclr;
+            sw = rw;
+            onwrite = wclr;
         } bad2 = 0;
     } r1;
 };

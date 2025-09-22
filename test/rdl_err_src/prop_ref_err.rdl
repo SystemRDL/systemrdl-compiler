@@ -1,7 +1,7 @@
 addrmap err_missing_reset {
     reg {
-        default sw=rw;
-        default hw=rw;
+        default sw = rw;
+        default hw = rw;
         field {} a;
         field {} b;
         b->next = a->reset; // a's reset was never set
@@ -10,8 +10,8 @@ addrmap err_missing_reset {
 
 addrmap err_circular_ref {
     reg {
-        default sw=rw;
-        default hw=rw;
+        default sw = rw;
+        default hw = rw;
         field {} a;
         field {} b;
         a->next = b->next;
@@ -21,8 +21,8 @@ addrmap err_circular_ref {
 
 addrmap err_self_reset {
     reg {
-        default sw=rw;
-        default hw=rw;
+        default sw = rw;
+        default hw = rw;
         field {} a;
         a->reset = a;
     }y;
@@ -30,8 +30,8 @@ addrmap err_self_reset {
 
 addrmap err_no_inferred {
     reg {
-        default sw=rw;
-        default hw=rw;
+        default sw = rw;
+        default hw = rw;
         field {} a;
         field {} b;
         b->next = a->we;
@@ -40,8 +40,8 @@ addrmap err_no_inferred {
 
 addrmap err_not_a_counter {
     reg {
-        default sw=rw;
-        default hw=rw;
+        default sw = rw;
+        default hw = rw;
         field {} a;
         field {} b;
         b->next = a->incr;
@@ -50,8 +50,8 @@ addrmap err_not_a_counter {
 
 addrmap err_no_counter_threshold {
     reg {
-        default sw=rw;
-        default hw=rw;
+        default sw = rw;
+        default hw = rw;
         field {
             counter;
         } a;

@@ -26,13 +26,13 @@ addrmap alias_basics {
 addrmap mixed_access {
     reg my_reg_t {
         field {
-            hw=r;
-            sw=rw;
+            hw = r;
+            sw = rw;
         } x = 0;
     };
 
     my_reg_t primary;
 
     alias primary my_reg_t alias1;
-    alias1.x->sw=r;
+    alias1.x->sw = r;
 };

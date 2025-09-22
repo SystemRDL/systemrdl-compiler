@@ -3,7 +3,7 @@ addrmap top {
     signal {} decr_signal;
     reg {
         field {
-            sw=r; hw=na;
+            sw = r; hw = na;
             counter;
             incr = incr_signal;
             decr = decr_signal;
@@ -14,7 +14,7 @@ addrmap top {
         } f1[8] = 0;
 
         field {
-            sw=r; hw=na;
+            sw = r; hw = na;
             counter;
             incr = incr_signal;
             decr = decr_signal;

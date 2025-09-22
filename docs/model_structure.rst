@@ -20,7 +20,7 @@ Consider the following snippet of SystemRDL:
         my_reg_t B;
     };
 
-Once compiled, the resulting structureis as follows:
+Once compiled, the resulting structure is as follows:
 
 .. image:: img/compiled-tree.svg
 

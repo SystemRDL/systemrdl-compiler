@@ -14,51 +14,51 @@ addrmap top {
     //--------------------------------------------------------------------------
     reg {
         field {
-            sw=rw;
+            sw = rw;
         } f0;
 
         field {
-            sw=rw;
+            sw = rw;
             rset;
         } f1;
         f1->rclr;
 
         field {
-            sw=rw;
+            sw = rw;
             rclr;
         } f2;
         f2->rset;
 
         field {
-            sw=rw;
+            sw = rw;
             onread = rclr;
         } f3;
 
         field {
-            sw=rw;
+            sw = rw;
             onread = rset;
         } f4;
 
         field {
-            sw=rw;
+            sw = rw;
             onread = rset;
         } f5;
         f5->rclr;
 
         field {
-            sw=rw;
+            sw = rw;
             onread = rclr;
         } f6;
         f6->rset;
 
         field {
-            sw=rw;
+            sw = rw;
             rset;
         } f7;
         f7->onread = rclr;
 
         field {
-            sw=rw;
+            sw = rw;
             rclr;
         } f8;
         f8->onread = rset;
@@ -69,51 +69,51 @@ addrmap top {
     //--------------------------------------------------------------------------
     reg {
         field {
-            sw=rw;
+            sw = rw;
         } f0;
 
         field {
-            sw=rw;
+            sw = rw;
             woset;
         } f1;
         f1->woclr;
 
         field {
-            sw=rw;
+            sw = rw;
             woclr;
         } f2;
         f2->woset;
 
         field {
-            sw=rw;
+            sw = rw;
             onwrite = woclr;
         } f3;
 
         field {
-            sw=rw;
+            sw = rw;
             onwrite = woset;
         } f4;
 
         field {
-            sw=rw;
+            sw = rw;
             onwrite = woset;
         } f5;
         f5->woclr;
 
         field {
-            sw=rw;
+            sw = rw;
             onwrite = woclr;
         } f6;
         f6->woset;
 
         field {
-            sw=rw;
+            sw = rw;
             woset;
         } f7;
         f7->onwrite = woclr;
 
         field {
-            sw=rw;
+            sw = rw;
             woclr;
         } f8;
         f8->onwrite = woset;
@@ -124,13 +124,13 @@ addrmap top {
     //--------------------------------------------------------------------------
     reg {
         field {
-            sw=rw; counter;
+            sw = rw; counter;
             incrthreshold = 1;
             incrsaturate = 3;
         } f1[4];
 
         field {
-            sw=rw; counter;
+            sw = rw; counter;
             threshold = 2;
             saturate = 4;
         } f2[4];

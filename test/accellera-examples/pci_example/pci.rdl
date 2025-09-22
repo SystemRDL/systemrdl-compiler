@@ -842,4 +842,3 @@ addrmap pci_map {                                          // Define the Address
   } PCIE_REG_MAX_LAT @0x3F;
 
 };                                                         // end of Address Map
-

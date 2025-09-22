@@ -51,7 +51,7 @@ addrmap my_map {
      field {
        hw   = na;
        sw   = rw;
-     } value=0;                                            // The value of this field will be used
+     } value = 0;                                          // The value of this field will be used
   } key;                                                   // to control the whether we can write to
                                                            // the lock.data1 field
 
