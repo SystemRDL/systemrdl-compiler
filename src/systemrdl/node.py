@@ -1,7 +1,7 @@
 import re
 import itertools
 from copy import deepcopy, copy
-from collections import deque
+from collections import deque, OrderedDict
 from typing import TYPE_CHECKING, Optional, Iterator, Any, List, Tuple, Dict
 from typing import Sequence, Union, overload, TypeVar, Type
 
@@ -14,8 +14,6 @@ from .core import rdlformatcode, helpers
 if TYPE_CHECKING:
     from .compiler import RDLEnvironment
     from .source_ref import SourceRefBase
-    from .core.parameter import Parameter
-    from collections import OrderedDict
     from markdown import Markdown
 
 T = TypeVar("T")
@@ -857,14 +855,19 @@ class Node:
         return self.inst.property_src_ref
 
     @property
-    def parameters(self) -> 'OrderedDict[str, Parameter]':
+    def parameters(self) -> 'OrderedDict[str, Any]':
         """
-        Parameters of this component
+        Returns a dictionary of the parameters of this component, and their final
+        elaborated values.
+
         These are stored in the order that they were defined
 
         .. versionadded:: 1.30
         """
-        return self.inst.parameters_dict
+        param_values_dict = OrderedDict()
+        for param_name, param in self.inst.parameters_dict.items():
+            param_values_dict[param_name] = param.get_value()
+        return param_values_dict
 
     @property
     def external(self) -> bool:

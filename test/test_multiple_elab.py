@@ -48,9 +48,7 @@ class TestMultipleElab(unittest.TestCase):
         rdlc = RDLCompiler(message_printer=TestPrinter())
         rdlc.compile_file(os.path.join(this_dir, "rdl_src/elab_params.rdl"))
 
-        print("1")
         default_root = rdlc.elaborate("elab_params")
-        print("2")
         W10_root = rdlc.elaborate("elab_params", parameters={
             "STR": "ovr1",
             "INT": 10,
@@ -61,7 +59,6 @@ class TestMultipleElab(unittest.TestCase):
         self.assertEqual(default_root.top.find_by_path("r1.f").width, 1)
         self.assertEqual(W10_root.top.find_by_path("r1.f").width, 10)
 
-        # Test old parameter API - Was not explicitly made a private API!
         expected = {
             "STR": "default",
             "INT": 1,
@@ -70,8 +67,13 @@ class TestMultipleElab(unittest.TestCase):
             "BOOL": True,
             "UNUSED_STR": "asdf",
         }
+        # Test old parameter API - Was not explicitly made a private API!
         for param in default_root.top.inst.parameters:
             self.assertEqual(expected[param.name], param.get_value())
+        # Test new parameter API
+        for name, value in default_root.top.parameters.items():
+            self.assertEqual(expected[name], value)
+
 
         expected = {
             "STR": "ovr1",
@@ -81,8 +83,12 @@ class TestMultipleElab(unittest.TestCase):
             "BOOL": True,
             "UNUSED_STR": "ovr2",
         }
+        # Test old parameter API - Was not explicitly made a private API!
         for param in W10_root.top.inst.parameters:
             self.assertEqual(expected[param.name], param.get_value())
+        # Test new parameter API
+        for name, value in W10_root.top.parameters.items():
+            self.assertEqual(expected[name], value)
 
 
     def test_multi_elab_common_dpa(self):

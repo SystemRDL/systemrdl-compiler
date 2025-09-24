@@ -284,15 +284,12 @@ class TestParameters(RDLSourceTestCase):
             self.assertEqual(r.get_property("udp4"), int("0x" + "A" * X, 0))
             self.assertEqual(r.get_property("udp5"), 0xFFFFFFFF & ((1 << X) - 1))
 
-        print("r1")
         r1 = root.find_by_path("top.r1")
         checkme(r1, 8)
 
-        print("r2")
         r2 = root.find_by_path("top.r2")
         checkme(r2, 4)
 
-        print("r3")
         r3 = root.find_by_path("top.r3")
         checkme(r3, 8)
 

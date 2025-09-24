@@ -1,6 +1,6 @@
 import glob
 import os
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Dict, Any
 import sys
 
 from typing_extensions import Literal, get_overloads, get_type_hints
@@ -10,6 +10,7 @@ import pytest
 from lib.type_hint_utils import value_is_compatible, hint_is
 from systemrdl.node import AddressableNode, FieldNode, MemNode, Node, AddrmapNode, RegNode, RegfileNode, RootNode, SignalNode, VectorNode
 from systemrdl import component as comp
+from systemrdl.source_ref import SourceRefBase
 from unittest_utils import RDLSourceTestCase
 
 from systemrdl.walker import RDLListener, RDLSimpleWalker
@@ -114,19 +115,25 @@ class RDLTestListener(RDLListener):
         self.test_class.assert_attr_type_hint(node, "inst_name", str)
         self.test_class.assert_attr_type_hint(node, "type_name", Optional[str])
         self.test_class.assert_attr_type_hint(node, "orig_type_name", Optional[str])
+        self.test_class.assert_attr_type_hint(node, "inst_src_ref", Optional[SourceRefBase])
+        self.test_class.assert_attr_type_hint(node, "def_src_ref", Optional[SourceRefBase])
+        self.test_class.assert_attr_type_hint(node, "property_src_ref", Dict[str, SourceRefBase])
+        self.test_class.assert_attr_type_hint(node, "parameters", Dict[str, Any])
         self.test_class.assert_attr_type_hint(node, "external", bool)
+        self.test_class.assert_attr_type_hint(node, "cpuif_reset", Optional[SignalNode])
 
     def enter_AddressableComponent(self, node: AddressableNode) -> None:
         self.test_class.assert_attr_type_hint(node, "raw_address_offset", int)
         self.test_class.assert_attr_type_hint(node, "raw_absolute_address", int)
         self.test_class.assert_attr_type_hint(node, "size", int)
         self.test_class.assert_attr_type_hint(node, "total_size", int)
-        if node.is_array:
+        if node.is_array is True:
             self.test_class.assert_attr_type_hint(node, "array_dimensions", List[int])
             self.test_class.assert_attr_type_hint(node, "array_stride", int)
         else:
             self.test_class.assertIsNone(node.array_dimensions)
             self.test_class.assertIsNone(node.array_stride)
+        self.test_class.assert_attr_type_hint(node, "n_elements", int)
 
 
     def enter_VectorComponent(self, node: VectorNode) -> None:
@@ -159,6 +166,7 @@ class RDLTestListener(RDLListener):
         self.test_class.assert_attr_type_hint(node, "parent", Union[AddrmapNode, RegfileNode, MemNode])
         self.test_class.assert_attr_type_hint(node, "inst", comp.Reg)
         self.test_class.assert_attr_type_hint(node, "size", int)
+        self.test_class.assert_attr_type_hint(node, "is_msb0_order", bool)
         self.test_class.assert_attr_type_hint(node, "is_virtual", bool)
         self.test_class.assert_attr_type_hint(node, "has_sw_writable", bool)
         self.test_class.assert_attr_type_hint(node, "has_sw_readable", bool)

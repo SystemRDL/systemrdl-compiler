@@ -66,5 +66,8 @@ def value_is_compatible(value, hint) -> bool:
         else:
             raise RuntimeError(f"Unhandled generic {hint}: {hint.__origin__}")
 
+    if hint is typing.Any:
+        return True
+
     # hint is an actual class
     return isinstance(value, hint)
