@@ -72,10 +72,10 @@ Links
    :caption: API Reference
 
    api/compiler
-   api/udp
-   api/node/index
-   api/walker
    api/types
+   api/node/index
+   api/udp
+   api/walker
    api/messages
    api/source_ref
    api/importer

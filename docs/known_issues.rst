@@ -19,14 +19,14 @@ No support for heterogeneous arrays
 
 RDL spec allows parameters to be overridden via a dynamic property assignment.
 One feature described is the ability to modify a subset of an array of
-instances via dynamic assignment. This would result in an array of instances
-that no longer share the same properties.
+instances via a dynamic property assignment. This would result in an array of
+instances that no longer share the same properties.
 
-Currently, I don't see a convincing reason to support dynamic property
-modifications to sub-ranges of an instance array.
+Currently, assigning sub-ranges of an instance array is not supported.
 Dynamic assignments are only supported when modifying the entire instance
 array, and without using an array subscript (even if the subscript is a range
 that represents the entire array).
+This feature is planned to be supported in the future.
 
 For example:
 
