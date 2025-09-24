@@ -2,6 +2,7 @@ import unittest
 import os
 
 from systemrdl import RDLCompiler
+from systemrdl import rdltypes
 
 from unittest_utils import TestPrinter
 
@@ -47,13 +48,42 @@ class TestMultipleElab(unittest.TestCase):
         rdlc = RDLCompiler(message_printer=TestPrinter())
         rdlc.compile_file(os.path.join(this_dir, "rdl_src/elab_params.rdl"))
 
+        print("1")
         default_root = rdlc.elaborate("elab_params")
+        print("2")
         W10_root = rdlc.elaborate("elab_params", parameters={
+            "STR": "ovr1",
             "INT": 10,
+            "INTARR": [20, 30],
+            "UNUSED_STR": "ovr2",
         })
 
         self.assertEqual(default_root.top.find_by_path("r1.f").width, 1)
         self.assertEqual(W10_root.top.find_by_path("r1.f").width, 10)
+
+        # Test old parameter API - Was not explicitly made a private API!
+        expected = {
+            "STR": "default",
+            "INT": 1,
+            "INTARR": [2, 3],
+            "ONWR": rdltypes.OnWriteType.woset,
+            "BOOL": True,
+            "UNUSED_STR": "asdf",
+        }
+        for param in default_root.top.inst.parameters:
+            self.assertEqual(expected[param.name], param.get_value())
+
+        expected = {
+            "STR": "ovr1",
+            "INT": 10,
+            "INTARR": [20, 30],
+            "ONWR": rdltypes.OnWriteType.woset,
+            "BOOL": True,
+            "UNUSED_STR": "ovr2",
+        }
+        for param in W10_root.top.inst.parameters:
+            self.assertEqual(expected[param.name], param.get_value())
+
 
     def test_multi_elab_common_dpa(self):
         rdlc = RDLCompiler(message_printer=TestPrinter())

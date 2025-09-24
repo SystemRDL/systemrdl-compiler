@@ -31,6 +31,13 @@ class Node:
         self.env = env
 
         #: Reference to :class:`~systemrdl.component.Component` that instantiates this node
+        #:
+        #: .. deprecated:: 1.30.0
+        #:   Querying the internal ``Component`` objects is no longer recommended.
+        #:
+        #:   Equivalents for most concepts have been made available as direct
+        #:   methods or properties of the :class:`Node` objects. It is strongly
+        #:   recommended to use these instead to prevent compatibility issues.
         self.inst = inst
 
         #: Reference to parent :class:`~Node`

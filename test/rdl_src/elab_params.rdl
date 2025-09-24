@@ -4,7 +4,8 @@ addrmap elab_params #(
     longint unsigned INT = 1,
     longint unsigned INTARR[]= '{2, 3},
     onwritetype ONWR = woset,
-    boolean BOOL = true
+    boolean BOOL = true,
+    string UNUSED_STR = "asdf"
 ) {
     reg reg_t #(
         longint unsigned WIDTH = 4
