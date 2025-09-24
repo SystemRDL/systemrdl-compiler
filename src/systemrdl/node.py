@@ -28,13 +28,13 @@ class Node:
         # Do not call directly. Use factory() static method instead
         self.env = env
 
-        #: Reference to :class:`~systemrdl.component.Component` that instantiates this node
+        #: Reference to :class:`~systemrdl.component.Component` data object.
         #:
-        #: .. deprecated:: 1.30.0
+        #: .. deprecated:: 1.30
         #:   Querying the internal ``Component`` objects is no longer recommended.
         #:
         #:   Equivalents for most concepts have been made available as direct
-        #:   methods or properties of the :class:`Node` objects. It is strongly
+        #:   methods or properties of :class:`Node` objects. It is strongly
         #:   recommended to use these instead to prevent compatibility issues.
         self.inst = inst
 
