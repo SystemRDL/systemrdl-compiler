@@ -1,3 +1,4 @@
+absl-py
 pytest
 pytest-cov
 parameterized

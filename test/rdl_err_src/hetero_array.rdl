@@ -1,0 +1,13 @@
+addrmap top {
+  reg reg_t {
+    field{} f;
+  };
+
+  regfile {
+    reg {
+      field {} f;
+    } some_reg;
+  } some_rf[2];
+
+  some_ref[0].some_reg->name = "foobar";
+};

@@ -3,6 +3,8 @@ import os
 import logging
 import re
 
+import systemrdl.flags
+
 from antlr4 import InputStream
 from systemrdl import RDLCompiler
 from systemrdl.parser import sa_systemrdl
