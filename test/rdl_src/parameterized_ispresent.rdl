@@ -1,0 +1,41 @@
+addrmap top {
+
+  regfile regfile_t #(
+    bit REG_A_PRESENT = 1'b0,
+    bit REG_B_PRESENT = 1'b1,
+    longint X_F_RESET = 0
+    ) {
+
+    reg {
+      field {} f[4];
+    } reg_x;
+
+    reg {
+      field {} f;
+    } reg_a;
+
+    reg {
+      field {} f;
+    } reg_b;
+
+    reg_x.f->reset = X_F_RESET + 1;
+    reg_a->ispresent = REG_A_PRESENT;
+    reg_b->ispresent = REG_B_PRESENT;
+  };
+
+  regfile_t f_b_present;
+
+  regfile_t #(
+    .REG_A_PRESENT(1'b1),
+    .REG_B_PRESENT(1'b0),
+    .X_F_RESET(2)
+  ) f_a_present;
+
+  regfile_t #(
+    .REG_A_PRESENT(1'b1)
+  ) f_both_present;
+
+  regfile_t #(
+    .REG_B_PRESENT(1'b0)
+  ) f_none_present;
+};

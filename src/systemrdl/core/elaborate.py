@@ -627,7 +627,11 @@ class LateElabListener(walker.RDLListener):
                 for param_name, inst_parameter in node.inst.parameters_dict.items():
                     orig_param_value = node.inst.original_def.parameters_dict[param_name].get_value(node)
                     new_param_value = inst_parameter.get_value(node)
-                    if new_param_value != orig_param_value:
+                    if (new_param_value != orig_param_value) and not (
+                        isinstance(new_param_value, rdltypes.UserStruct)
+                        and isinstance(orig_param_value, rdltypes.UserStruct)
+                        and new_param_value.members == orig_param_value.members
+                    ):
                         try:
                             segment = inst_parameter.get_normalized_parameter(node)
                             extra_type_name_segments.append(segment)

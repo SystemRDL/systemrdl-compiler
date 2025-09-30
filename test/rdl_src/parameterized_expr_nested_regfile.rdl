@@ -1,0 +1,34 @@
+regfile top_inner_t #(longint FIELD_WIDTH = 2) {
+  reg {
+    field {} f[8+FIELD_WIDTH-1:8] = {FIELD_WIDTH{1'b1}};
+  } reg_x;
+
+  reg {
+    field {} g;
+  } reg_y;
+  reg_y->ispresent = (FIELD_WIDTH > 14);
+};
+
+regfile top_outer_t #(longint FIELD_WIDTH=14) {
+  top_inner_t #(.FIELD_WIDTH(FIELD_WIDTH)) rf_inner;
+};
+
+addrmap top {
+  regfile inner_t #(longint FIELD_WIDTH = 4) {
+    reg {
+      field {} f[8+FIELD_WIDTH-1:8] = {FIELD_WIDTH{1'b1}};
+    } reg_x;
+  };
+
+  regfile outer_t #(longint FIELD_WIDTH=10) {
+    inner_t #(.FIELD_WIDTH(FIELD_WIDTH)) rf_inner;
+  };
+
+  outer_t rf_default;
+  outer_t #(.FIELD_WIDTH(9)) rf_nine;
+  outer_t #(.FIELD_WIDTH(11)) rf_eleven;
+
+  top_outer_t top_rf_default;
+  top_outer_t #(.FIELD_WIDTH(13)) top_rf_thirteen;
+  top_outer_t #(.FIELD_WIDTH(15)) top_rf_fifteen;
+};
