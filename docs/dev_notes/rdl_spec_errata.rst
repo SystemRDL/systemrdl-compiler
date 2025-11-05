@@ -283,6 +283,34 @@ It is considered an error if a signal with undefined active state is referenced 
 For similar reasons, this is also an error for signals defined with ``field_reset`` or ``cpuif_reset`` properties.
 
 
+Byte ordering example of littleendian mode in 17.3.2 is incorrect
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In section 17.3.2, an example that demonstrates byte ordering in big/little
+endian systems is provided. The example of how little-endian
+bytes map to address offsets directly contradicts well-established industry
+standards. The RDL spec points to the popular Bertrand Blanc endianness
+whitepaper (Bibliography reference B2) as an authoritative reference for how to
+interpret endianness in mixed-width systems, but unfortunately the Accellera
+authors misinterpreted the paper which resulted in an incorrect example in the
+RDL text.
+
+**Resolution:**
+
+The cited Betrand Blanc whitepaper indeed does agree with established industry
+practices regarding endianness, so that should still be used as the authoritative
+explanation for byte mapping.
+
+Regarding the SystemRDL spec, the little-endian example should be corrected as follows:
+
+.. pull-quote::
+
+    a **littleendian** bus would address the bytes as:
+
+    .. code::
+
+        800 801 802 803 804 805 806 807
+        EF  CD  AB  89  67  45  23  01
+
 
 --------------------------------------------------------------------------------
 
