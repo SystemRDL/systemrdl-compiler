@@ -293,7 +293,6 @@ class TestParameters(RDLSourceTestCase):
         r3 = root.find_by_path("top.r3")
         checkme(r3, 8)
 
-
     def test_err_ref_in_parameter(self):
         self.assertRDLCompileError(
             ["rdl_err_src/err_ref_in_parameter.rdl"],
@@ -306,3 +305,123 @@ class TestParameters(RDLSourceTestCase):
             "parameters2",
             r"Parameter 'PARAM' contains a reference. SystemRDL does not allow component references inside parameter values."
         )
+
+    def test_struct_param(self):
+        root = self.compile(
+            ["rdl_src/parameters.rdl"],
+            "struct_param"
+        )
+        spr = root.find_by_path("struct_param.spr")
+        self.assertEqual(spr.inst.type_name, "struct_param_reg_STRUCT_3_5d946c5b_STRUCT_4_55dee485")
+
+    def test_ispresent(self):
+        root = self.compile(['rdl_src/parameterized_ispresent.rdl'], 'top')
+
+        reg = root.find_by_path('top.f_b_present')
+        children = list(reg.children())
+        self.assertEqual(len(children), 2)
+        reg_x = children[0]
+        self.assertEqual(reg_x.inst_name, 'reg_x')
+        self.assertEqual(reg_x.get_child_by_name('f').get_property('reset'), 1)
+        self.assertEqual(children[1].inst_name, 'reg_b')
+
+        reg = root.find_by_path('top.f_a_present')
+        children = list(reg.children())
+        self.assertEqual(len(children), 2)
+        reg_x = children[0]
+        self.assertEqual(reg_x.inst_name, 'reg_x')
+        self.assertEqual(reg_x.get_child_by_name('f').get_property('reset'), 3)
+        self.assertEqual(children[1].inst_name, 'reg_a')
+
+        reg = root.find_by_path('top.f_both_present')
+        children = list(reg.children())
+        self.assertEqual(children[0].inst_name, 'reg_x')
+        self.assertEqual(children[1].inst_name, 'reg_a')
+        self.assertEqual(children[2].inst_name, 'reg_b')
+
+        reg = root.find_by_path('top.f_none_present')
+        children = list(reg.children())
+        self.assertEqual(len(children), 1)
+        self.assertEqual(children[0].inst_name, 'reg_x')
+
+    def test_nested_types(self):
+        root = self.compile(['rdl_src/parameterized_nested_types.rdl'], 'top')
+
+        regs = list(root.find_by_path('top.default_a.b.some_reg').unrolled())
+        self.assertEqual(len(regs), 1)
+        reg = regs[0]
+        fields = list(reg.fields())
+        self.assertEqual(len(fields), 1)
+        self.assertEqual(fields[0].inst_name, 'nested_field')
+
+        regs = list(root.find_by_path('top.non_default_a.b.some_reg').unrolled())
+        self.assertEqual(len(regs), 2)
+        reg = regs[0]
+        fields = list(reg.fields())
+        self.assertEqual(len(fields), 1)
+        self.assertEqual(fields[0].inst_name, 'nested_field')
+        reg = regs[1]
+        fields = list(reg.fields())
+        self.assertEqual(len(fields), 1)
+        self.assertEqual(fields[0].inst_name, 'nested_field')
+
+        regs = list(root.find_by_path('top.c.b.some_reg').unrolled())
+        self.assertEqual(len(regs), 1)
+        reg = regs[0]
+        fields = list(reg.fields())
+        self.assertEqual(len(fields), 1)
+        self.assertEqual(fields[0].inst_name, 'nested_field')
+
+    def test_expr_reg(self):
+        root = self.compile(['rdl_src/parameterized_expr_reg.rdl'], 'top')
+
+        field = root.find_by_path('top.r_default.f');
+        self.assertEqual(field.get_property('reset'), 0x1f);
+
+        field = root.find_by_path('top.r_four.f');
+        self.assertEqual(field.get_property('reset'), 0xf);
+
+        field = root.find_by_path('top.r_six.f');
+        self.assertEqual(field.get_property('reset'), 0x3f);
+
+    def test_expr_regfile(self):
+        root = self.compile(['rdl_src/parameterized_expr_regfile.rdl'], 'top')
+
+        field = root.find_by_path('top.rf_default.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x1f);
+
+        field = root.find_by_path('top.rf_four.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0xf);
+
+        field = root.find_by_path('top.rf_six.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x3f);
+
+        # y not present.
+        self.assertEqual(len(root.find_by_path('top.rf_default').registers()), 1)
+
+        # y not present.
+        self.assertEqual(len(root.find_by_path('top.rf_four').registers()), 1)
+
+        # y present.
+        self.assertEqual(len(root.find_by_path('top.rf_six').registers()), 2)
+
+    def test_expr_nested_regfile(self):
+        root = self.compile(['rdl_src/parameterized_expr_nested_regfile.rdl'], 'top')
+
+        field = root.find_by_path('top.rf_default.rf_inner.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x3ff);  # 10 bits.
+
+        field = root.find_by_path('top.rf_nine.rf_inner.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x1ff);  # 9 bits.
+
+        field = root.find_by_path('top.rf_eleven.rf_inner.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x7ff);  # 11 bits.
+
+        field = root.find_by_path('top.top_rf_default.rf_inner.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x3fff);  # 14 bits.
+
+        field = root.find_by_path('top.top_rf_thirteen.rf_inner.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x1fff);  # 13 bits.
+
+        field = root.find_by_path('top.top_rf_fifteen.rf_inner.reg_x.f');
+        self.assertEqual(field.get_property('reset'), 0x7fff);  # 15 bits.

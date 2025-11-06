@@ -261,7 +261,8 @@ class ExprVisitor(BaseVisitor):
 
             values[member_name] = (member_expr, member_name_src_ref)
 
-        missing_members = set(struct_type._members.keys()) - set(values.keys())
+        # To ensure deterministic type names, the order of missing_members must be deterministic.
+        missing_members = sorted(set(struct_type._members.keys()) - set(values.keys()))
         undefined_members = []
         for member_name in missing_members:
             # 6.3.2.3.2-b: When defining struct member values, unassigned members

@@ -1,0 +1,16 @@
+addrmap top {
+  regfile regfile_t #(longint FIELD_WIDTH = 5) {
+    reg {
+      field {} f[8+FIELD_WIDTH-1:8] = {FIELD_WIDTH{1'b1}};
+    } reg_x;
+
+    reg {
+      field {} g;
+    } reg_y;
+    reg_y->ispresent = (FIELD_WIDTH > 5);
+  };
+
+  regfile_t rf_default;
+  regfile_t #(.FIELD_WIDTH(4)) rf_four;
+  regfile_t #(.FIELD_WIDTH(6)) rf_six;
+};

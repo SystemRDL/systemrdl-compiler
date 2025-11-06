@@ -1,0 +1,24 @@
+addrmap top {
+
+  // A parameterized type definition which contains another regfile definition.
+  regfile a #(longint unsigned NUM_REGS = 1){
+    regfile b {
+      reg some_reg { field {} nested_field; } some_reg[NUM_REGS];
+    } b;
+  };
+
+  // An instantiation with default parameters (NUM_REGS=1).
+  a default_a;
+  // Another instantiation with a parameter override. The origin information for
+  // "b" will be uniquified with the parameter value.
+  a #(.NUM_REGS(2)) non_default_a;
+
+  // Another regfile which defines "b" in its scope. The origin should not
+  // collide with the version defined in "a" above.
+  regfile c {
+    regfile b {
+      reg some_reg { field {} nested_field; } some_reg;
+    } b;
+  } c;
+
+};
