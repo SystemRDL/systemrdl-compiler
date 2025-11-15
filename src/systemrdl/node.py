@@ -64,6 +64,17 @@ class Node:
                 setattr(result, k, deepcopy(v, memo))
         return result
 
+    @property
+    def component_type_name(self) -> str:
+        """
+        Returns the component type name that this node represents.
+        For example: "reg", "field", "addrmap", etc...
+
+
+        .. versionadded:: 1.31
+        """
+        raise NotImplementedError
+
     @overload
     @staticmethod
     def _factory(inst: comp.Field, env: 'RDLEnvironment', parent: Optional['Node']) -> 'FieldNode': ...
@@ -1268,6 +1279,10 @@ class RootNode(Node):
             return child
         raise RuntimeError
 
+    @property
+    def component_type_name(self) -> Literal['$root']:
+        return "$root"
+
 #===============================================================================
 class SignalNode(VectorNode):
     """
@@ -1277,6 +1292,10 @@ class SignalNode(VectorNode):
     """
     parent: Node
     inst: comp.Signal
+
+    @property
+    def component_type_name(self) -> Literal['signal']:
+        return "signal"
 
     @overload # type: ignore[override]
     def get_property(self, prop_name: Literal["signalwidth"], *, default: T)-> Union[int, T]: ...
@@ -1356,6 +1375,10 @@ class FieldNode(VectorNode):
     """
     parent: 'RegNode'
     inst: comp.Field
+
+    @property
+    def component_type_name(self) -> Literal['field']:
+        return "field"
 
     @overload # type: ignore[override]
     def get_property(self, prop_name: Literal["dontcompare"], *, default: T)-> Union[Union[int, bool], T]: ...
@@ -2022,6 +2045,9 @@ class FieldNode(VectorNode):
     def overlapping_fields(self) -> List['FieldNode']:
         """
         Returns a list of all other fields that overlap with this field.
+
+
+        .. versionadded:: 1.31
         """
         fields = []
         for field_name in self.inst.overlaps_with_names:
@@ -2040,6 +2066,10 @@ class RegNode(AddressableNode):
     """
     parent: Union['AddrmapNode', 'RegNode', 'MemNode']
     inst: comp.Reg
+
+    @property
+    def component_type_name(self) -> Literal['reg']:
+        return "reg"
 
     @overload # type: ignore[override]
     def get_property(self, prop_name: Literal["dontcompare"], *, default: T)-> Union[bool, T]: ...
@@ -2371,6 +2401,9 @@ class RegNode(AddressableNode):
     def overlapping_regs(self) -> List['RegNode']:
         """
         Returns a list of all other registers that overlap with this register.
+
+
+        .. versionadded:: 1.31
         """
         regs = []
         for reg_name in self.inst.overlaps_with_names:
@@ -2390,6 +2423,10 @@ class RegfileNode(AddressableNode):
     """
     parent: Union['AddrmapNode', 'RegfileNode']
     inst: comp.Regfile
+
+    @property
+    def component_type_name(self) -> Literal['regfile']:
+        return "regfile"
 
     @overload # type: ignore[override]
     def get_property(self, prop_name: Literal["dontcompare"], *, default: T)-> Union[bool, T]: ...
@@ -2473,6 +2510,10 @@ class AddrmapNode(AddressableNode):
     """
     parent: Union['AddrmapNode', RootNode]
     inst: comp.Addrmap
+
+    @property
+    def component_type_name(self) -> Literal['addrmap']:
+        return "addrmap"
 
     @overload # type: ignore[override]
     def get_property(self, prop_name: Literal["dontcompare"], *, default: T)-> Union[bool, T]: ...
@@ -2604,6 +2645,10 @@ class MemNode(AddressableNode):
     """
     parent: AddrmapNode
     inst: comp.Mem
+
+    @property
+    def component_type_name(self) -> Literal['mem']:
+        return "mem"
 
     @overload # type: ignore[override]
     def get_property(self, prop_name: Literal["hdl_path_slice"], *, default: T)-> Union[Optional[List[str]], T]: ...

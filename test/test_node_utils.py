@@ -1,6 +1,6 @@
 from unittest_utils import RDLSourceTestCase
 from systemrdl.rdltypes import PrecedenceType
-from systemrdl.node import RegNode, FieldNode
+from systemrdl.node import RegNode, FieldNode, RegfileNode, AddrmapNode, SignalNode, MemNode
 
 class TestNodeUtils(RDLSourceTestCase):
 
@@ -346,10 +346,10 @@ class TestNodeUtils(RDLSourceTestCase):
             ["rdl_src/nested_params.rdl"],
             "nested_params"
         )
-        r1 = top.find_by_path("nested_params.r1_inst")
-        r1_2 = top.find_by_path("nested_params.r1_inst2")
-        f = top.find_by_path("nested_params.r1_inst.f")
-        f2 = top.find_by_path("nested_params.r1_inst.f2")
+        r1: RegNode = top.find_by_path("nested_params.r1_inst")
+        r1_2: RegNode = top.find_by_path("nested_params.r1_inst2")
+        f: FieldNode = top.find_by_path("nested_params.r1_inst.f")
+        f2: FieldNode = top.find_by_path("nested_params.r1_inst.f2")
 
         self.assertEqual(r1.inst_name, "r1_inst")
         self.assertEqual(r1.type_name, "r1_WIDTH_5")
@@ -373,7 +373,7 @@ class TestNodeUtils(RDLSourceTestCase):
             ["rdl_src/references_default_lhs.rdl"],
             "top"
         )
-        top_addrmap = top.find_by_path("top")
+        top_addrmap: AddrmapNode = top.find_by_path("top")
         self.assertIsNone(top.owning_addrmap)
         self.assertIsNone(top.find_by_path("glbl_sig").owning_addrmap)
         self.assertEqual(top_addrmap.owning_addrmap, top_addrmap)
@@ -386,9 +386,9 @@ class TestNodeUtils(RDLSourceTestCase):
             "hier"
         )
 
-        a = top.find_by_path("hier.x.a")
-        b = top.find_by_path("hier.y.b")
-        ba = top.find_by_path("hier.y.b.a")
+        a: RegNode = top.find_by_path("hier.x.a")
+        b: RegNode = top.find_by_path("hier.y.b")
+        ba: FieldNode = top.find_by_path("hier.y.b.a")
 
         self.assertEqual(top.find_by_path("hier.x.b.^.a"), a)
         self.assertEqual(ba.find_by_path("^"), b)
@@ -400,8 +400,8 @@ class TestNodeUtils(RDLSourceTestCase):
             "hier"
         )
 
-        x = top.find_by_path("hier.x")
-        a = top.find_by_path("hier.x.a")
+        x: RegfileNode = top.find_by_path("hier.x")
+        a: RegNode = top.find_by_path("hier.x.a")
 
         with self.subTest("registers"):
             paths = [n.get_path() for n in top.top.registers()]
@@ -432,22 +432,22 @@ class TestNodeUtils(RDLSourceTestCase):
             "top"
         )
 
-        f1 = root.find_by_path("top.r1.f1")
-        f2 = root.find_by_path("top.r1.f2")
-        f3 = root.find_by_path("top.r1.f3")
-        f4 = root.find_by_path("top.r1.f4")
-        f5 = root.find_by_path("top.r1.f5")
-        f6 = root.find_by_path("top.r1.f6")
-        f7 = root.find_by_path("top.r1.f7")
-        f8 = root.find_by_path("top.r1.f8")
-        f9 = root.find_by_path("top.r1.f9")
-        f10 = root.find_by_path("top.r1.f10")
-        f11 = root.find_by_path("top.r1.f11")
-        f12 = root.find_by_path("top.r1.f12")
+        f1: FieldNode = root.find_by_path("top.r1.f1")
+        f2: FieldNode = root.find_by_path("top.r1.f2")
+        f3: FieldNode = root.find_by_path("top.r1.f3")
+        f4: FieldNode = root.find_by_path("top.r1.f4")
+        f5: FieldNode = root.find_by_path("top.r1.f5")
+        f6: FieldNode = root.find_by_path("top.r1.f6")
+        f7: FieldNode = root.find_by_path("top.r1.f7")
+        f8: FieldNode = root.find_by_path("top.r1.f8")
+        f9: FieldNode = root.find_by_path("top.r1.f9")
+        f10: FieldNode = root.find_by_path("top.r1.f10")
+        f11: FieldNode = root.find_by_path("top.r1.f11")
+        f12: FieldNode = root.find_by_path("top.r1.f12")
 
-        r1 = root.find_by_path("top.r1")
-        r2 = root.find_by_path("top.r2")
-        r3 = root.find_by_path("top.r3")
+        r1: RegNode = root.find_by_path("top.r1")
+        r2: RegNode = root.find_by_path("top.r2")
+        r3: RegNode = root.find_by_path("top.r3")
 
         self.assertFalse(f1.is_volatile)
         self.assertTrue(f2.is_volatile)
@@ -557,3 +557,17 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertEqual(    f[4],  (17, 16))
         self.assertEqual(tup(f[5]), (29, 18))
         self.assertEqual(    f[6],  (31, 30))
+
+
+    def test_component_type_name(self):
+
+        top = self.compile(
+            ["rdl_src/address_packing.rdl"],
+            "hier"
+        )
+        self.assertEqual(top.component_type_name, "$root")
+        self.assertEqual(top.find_by_path("hier").component_type_name, "addrmap")
+        self.assertEqual(top.find_by_path("hier.x").component_type_name, "regfile")
+        self.assertEqual(top.find_by_path("hier.x.a").component_type_name, "reg")
+        self.assertEqual(top.find_by_path("hier.x.a.a").component_type_name, "field")
+        self.assertEqual(top.find_by_path("hier.z_mem").component_type_name, "mem")
