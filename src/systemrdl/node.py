@@ -2005,6 +2005,31 @@ class FieldNode(VectorNode):
             fields.append(alias_field)
         return fields
 
+    @property
+    def has_overlaps(self) -> bool:
+        """
+        Returns True if this field overlaps with any other fields
+        that are present in the same register.
+
+        This is allowed if one is read-only and the other is write-only.
+
+
+        .. versionadded:: 1.31
+        """
+        return bool(self.inst.overlaps_with_names)
+
+    @property
+    def overlapping_fields(self) -> List['FieldNode']:
+        """
+        Returns a list of all other fields that overlap with this field.
+        """
+        fields = []
+        for field_name in self.inst.overlaps_with_names:
+            field = self.parent.get_child_by_name(field_name)
+            assert isinstance(field, FieldNode)
+            fields.append(field)
+        return fields
+
 
 #===============================================================================
 class RegNode(AddressableNode):
@@ -2300,7 +2325,7 @@ class RegNode(AddressableNode):
 
     def aliases(self, skip_not_present: bool = True) -> List['RegNode']:
         """
-        Returns a listof all the registers that are aliases of this primary register
+        Returns a list of all the registers that are aliases of this primary register
 
         Parameters
         ----------
@@ -2329,6 +2354,30 @@ class RegNode(AddressableNode):
             regs.append(alias_reg)
         return regs
 
+    @property
+    def has_overlaps(self) -> bool:
+        """
+        Returns True if this register overlaps with any other registers
+        that are present in the design.
+
+        This is allowed if one is read-only and the other is write-only.
+
+
+        .. versionadded:: 1.31
+        """
+        return bool(self.inst.overlaps_with_names)
+
+    @property
+    def overlapping_regs(self) -> List['RegNode']:
+        """
+        Returns a list of all other registers that overlap with this register.
+        """
+        regs = []
+        for reg_name in self.inst.overlaps_with_names:
+            reg = self.parent.get_child_by_name(reg_name)
+            assert isinstance(reg, RegNode)
+            regs.append(reg)
+        return regs
 
 
 

@@ -387,6 +387,19 @@ class Signal_PreStructuralElab(Signal):
 class Field(VectorComponent):
     original_def: Optional['Field']
 
+    def __init__(self) -> None:
+        super().__init__()
+
+        # List of field inst names that validly overlap (ro + wo) with this
+        # field. This is a list since it is theoretically possible for a wide
+        # field to overlap with multiple narrow fields.
+        self.overlaps_with_names: List[str] = []
+
+    def _copy_for_inst(self: 'Field', memo: Dict[int, Any], recursive: bool = False) -> 'Field':
+        result = super()._copy_for_inst(memo, recursive)
+        result.overlaps_with_names = copy(self.overlaps_with_names)
+        return result
+
 class Field_PreStructuralElab(Field):
     """
     Alternately typed representation for type hinting prior to structural placement
@@ -414,6 +427,11 @@ class Reg(AddressableComponent):
         # so names are unambiguous
         self._alias_names: List[str] = []
 
+        # List of register inst names that validly overlap (ro + wo) with this
+        # register. This is a list since it is theoretically possible for a wide
+        # register to overlap with multiple narrow registers.
+        self.overlaps_with_names: List[str] = []
+
         #------------------------------
         # Alias Register
         #------------------------------
@@ -428,6 +446,7 @@ class Reg(AddressableComponent):
         result = super()._copy_for_inst(memo, recursive)
         result.is_msb0_order = self.is_msb0_order
         result._alias_names = copy(self._alias_names)
+        result.overlaps_with_names = copy(self.overlaps_with_names)
         result.is_alias = self.is_alias
         result.alias_primary_inst = deepcopy(self.alias_primary_inst, memo)
         return result

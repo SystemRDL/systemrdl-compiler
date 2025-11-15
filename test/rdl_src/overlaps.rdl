@@ -1,0 +1,84 @@
+addrmap top {
+    field ro_field {sw = r; hw = w;};
+    field wo_field {sw = w; hw = r;};
+    //--------------------------------------------------------------------------
+    // Overlapping registers
+    //--------------------------------------------------------------------------
+    // Simple overlap
+    reg {
+        ro_field f;
+    } r0_ro @ 0x0;
+    reg {
+        wo_field f;
+    } r0_wo @ 0x0;
+
+    // Offset overlap
+    reg {
+        ro_field f;
+    } r1_ro @ 0x10;
+    reg {
+        wo_field f;
+    } r1_wo @ 0x11;
+
+    // Wide + narrow multiple overlaps
+    reg {
+        regwidth = 32;
+        ro_field f;
+    } r2_ro @ 0x100;
+    reg {
+        regwidth = 8;
+        wo_field f;
+    } r2_wo_a @ 0x100,
+    r2_wo_b @ 0x101,
+    r2_wo_c @ 0x102,
+    r2_wo_d @ 0x103;
+
+    // Narrow + wide multiple overlaps
+    reg {
+        regwidth = 8;
+        ro_field f;
+    } r3_ro_a @ 0x200,
+    r3_ro_b @ 0x201,
+    r3_ro_c @ 0x202,
+    r3_ro_d @ 0x203;
+    reg {
+        regwidth = 32;
+        wo_field f;
+    } r3_wo @ 0x200;
+
+
+    reg {
+        ro_field f1;
+        wo_field f2;
+    } r4 @ 0x300;
+
+    //--------------------------------------------------------------------------
+    // Overlapping fields
+    //--------------------------------------------------------------------------
+
+    reg {
+        ro_field f_ro[7:0];
+        wo_field f_wo[7:0];
+    } simple_overlap;
+
+    reg {
+        ro_field f_ro[7:0];
+        wo_field f_wo[12:4];
+    } offset_overlap;
+
+    reg {
+        ro_field f_ro[31:0];
+        wo_field f_wo_a[7:0];
+        wo_field f_wo_b[15:8];
+        wo_field f_wo_c[23:16];
+        wo_field f_wo_d[31:24];
+    } wide_narrow_overlap;
+
+    reg {
+        ro_field f_ro_a[7:0];
+        ro_field f_ro_b[15:8];
+        ro_field f_ro_c[23:16];
+        ro_field f_ro_d[31:24];
+        wo_field f_wo[31:0];
+    } narrow_wide_overlap;
+};

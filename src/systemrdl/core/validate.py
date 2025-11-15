@@ -96,6 +96,11 @@ class ValidateListener(walker.RDLListener):
                     ):
                         overlap_allowed = True
 
+                        # Stash information about overlaps so that it can be queried in the API
+                        node.inst.overlaps_with_names.append(prev_addressable.inst_name)
+                        prev_addressable.inst.overlaps_with_names.append(node.inst_name)
+
+
                 # Bridge addrmaps allow overlapping children
                 if isinstance(node.parent, AddrmapNode) and node.parent.get_property('bridge'):
                     overlap_allowed = True
@@ -367,14 +372,20 @@ class ValidateListener(walker.RDLListener):
                 # Check if the overlap is allowed
                 prev_f_sw = prev_field.get_property('sw')
 
-                if((prev_f_sw == rdltypes.AccessType.r)
-                    and (this_f_sw in (rdltypes.AccessType.w, rdltypes.AccessType.w1))
+                if(
+                    (
+                        (prev_f_sw == rdltypes.AccessType.r)
+                        and (this_f_sw in {rdltypes.AccessType.w, rdltypes.AccessType.w1})
+                    )
+                    or (
+                        (this_f_sw == rdltypes.AccessType.r)
+                        and (prev_f_sw in {rdltypes.AccessType.w, rdltypes.AccessType.w1})
+                    )
                 ):
-                    pass
-                elif((this_f_sw == rdltypes.AccessType.r)
-                    and (prev_f_sw in (rdltypes.AccessType.w, rdltypes.AccessType.w1))
-                ):
-                    pass
+                    # read-only + write-only overlap is OK
+                    # Stash information about overlaps so that it can be queried in the API
+                    node.inst.overlaps_with_names.append(prev_field.inst_name)
+                    prev_field.inst.overlaps_with_names.append(node.inst_name)
                 else:
                     self.msg.error(
                         "Field '%s[%d:%d]' overlaps with field '%s[%d:%d]'"

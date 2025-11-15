@@ -1,6 +1,6 @@
 from unittest_utils import RDLSourceTestCase
 
-class TestParameters(RDLSourceTestCase):
+class TestSignals(RDLSourceTestCase):
 
     def test_signalwidth(self):
         root = self.compile(
