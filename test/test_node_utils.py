@@ -1,8 +1,24 @@
 from unittest_utils import RDLSourceTestCase
 from systemrdl.rdltypes import PrecedenceType
-from systemrdl.node import RegNode, FieldNode, RegfileNode, AddrmapNode, SignalNode, MemNode
+from systemrdl.node import RegNode, FieldNode, RegfileNode, AddrmapNode
 
 class TestNodeUtils(RDLSourceTestCase):
+
+    def test_find_by_path(self):
+        top = self.compile(
+            ["rdl_src/address_packing.rdl"],
+            "hier"
+        )
+
+
+        node = top.find_by_path("hier.y[2].a[0][1]")
+        self.assertEqual(node.get_path(), "hier.y[2].a[0][1]")
+
+        node = top.find_by_path("hier.y.a")
+        self.assertEqual(node.get_path(), "hier.y[].a[][]")
+
+        node = top.find_by_path("hier.y[].a[][]")
+        self.assertEqual(node.get_path(), "hier.y[].a[][]")
 
     def test_index_tools(self):
         top = self.compile(

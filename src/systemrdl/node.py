@@ -360,11 +360,15 @@ class Node:
                 continue
 
             # .. otherwise continue parsing the path
-            m = re.fullmatch(r'^(\w+)((?:\[(?:\d+|0[xX][\da-fA-F]+)\])*)$', pathpart)
+            m = re.fullmatch(r'(\w+)(.*)', pathpart)
             if not m:
                 raise ValueError("Invalid path")
             inst_name, array_suffix = m.group(1, 2)
-            idx_list = [int(s, 0) for s in re.findall(r'\[(\d+|0[xX][\da-fA-F]+)\]', array_suffix)]
+            if array_suffix == "" or re.fullmatch(r"(\[\])+", array_suffix):
+                # No indexes specified
+                idx_list = []
+            else:
+                idx_list = [int(s, 0) for s in re.findall(r'\[(\d+|0[xX][\da-fA-F]+)\]', array_suffix)]
 
             current_node = current_node.get_child_by_name(inst_name)
             if current_node is None:
