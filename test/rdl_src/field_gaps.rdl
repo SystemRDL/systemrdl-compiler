@@ -20,4 +20,15 @@ addrmap top {
         field {} b[15:10];
         field {} c[29:18];
     } d;
+
+    reg {
+        field ro_field {sw = r; hw = w;};
+        field wo_field {sw = w; hw = r;};
+
+        ro_field a[7:4];
+        wo_field b[7:4];
+
+        ro_field c[20:16];
+        wo_field d[23:18];
+    } e;
 };

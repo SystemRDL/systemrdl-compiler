@@ -540,6 +540,7 @@ class TestNodeUtils(RDLSourceTestCase):
         b: RegNode = top.get_child_by_name("b")
         c: RegNode = top.get_child_by_name("c")
         d: RegNode = top.get_child_by_name("d")
+        e: RegNode = top.get_child_by_name("e")
 
         def tup(field: FieldNode):
             return (field.high, field.low)
@@ -573,6 +574,16 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertEqual(    f[4],  (17, 16))
         self.assertEqual(tup(f[5]), (29, 18))
         self.assertEqual(    f[6],  (31, 30))
+
+        f = e.fields(include_gaps=True)
+        self.assertEqual(len(f), 7)
+        self.assertEqual(    f[0],  (3, 0))
+        self.assertEqual(tup(f[1]), (7, 4))
+        self.assertEqual(tup(f[2]), (7, 4))
+        self.assertEqual(    f[3],  (15, 8))
+        self.assertEqual(tup(f[4]), (20, 16))
+        self.assertEqual(tup(f[5]), (23, 18))
+        self.assertEqual(    f[6],  (31, 24))
 
 
     def test_component_type_name(self):

@@ -2192,11 +2192,11 @@ class RegNode(AddressableNode):
             for child in self.children(skip_not_present=skip_not_present):
                 if not isinstance(child, FieldNode):
                     continue
-                if current_bit != child.low:
+                if current_bit < child.low:
                     # Add gap before this field
                     fields_with_gaps.append((child.low - 1, current_bit))
                 fields_with_gaps.append(child)
-                current_bit = child.high + 1
+                current_bit = max(current_bit, child.high + 1)
             regwidth = self.get_property('regwidth')
             if current_bit != regwidth:
                 # Add gap at end of register
