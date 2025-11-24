@@ -585,6 +585,22 @@ class TestNodeUtils(RDLSourceTestCase):
         self.assertEqual(tup(f[5]), (23, 18))
         self.assertEqual(    f[6],  (31, 24))
 
+        f = e.fields(include_gaps=True, sw_readable_only=True)
+        self.assertEqual(len(f), 5)
+        self.assertEqual(    f[0],  (3, 0))
+        self.assertEqual(tup(f[1]), (7, 4))
+        self.assertEqual(    f[2],  (15, 8))
+        self.assertEqual(tup(f[3]), (20, 16))
+        self.assertEqual(    f[4],  (31, 21))
+
+        f = e.fields(include_gaps=True, sw_writable_only=True)
+        self.assertEqual(len(f), 5)
+        self.assertEqual(    f[0],  (3, 0))
+        self.assertEqual(tup(f[1]), (7, 4))
+        self.assertEqual(    f[2],  (17, 8))
+        self.assertEqual(tup(f[3]), (23, 18))
+        self.assertEqual(    f[4],  (31, 24))
+
 
     def test_component_type_name(self):
 

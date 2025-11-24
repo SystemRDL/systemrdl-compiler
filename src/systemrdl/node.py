@@ -2151,18 +2151,18 @@ class RegNode(AddressableNode):
         return super().get_property(prop_name, **kwargs)
 
     @overload
-    def fields(self, skip_not_present: bool = True, include_gaps: Literal[False] = False) -> Sequence['FieldNode']: ...
+    def fields(self, skip_not_present: bool = True, include_gaps: Literal[False] = False, sw_readable_only: bool = False, sw_writable_only: bool = False) -> Sequence['FieldNode']: ...
 
     @overload
-    def fields(self, skip_not_present: bool, include_gaps: Literal[True]) -> Sequence[Union['FieldNode', Tuple[int, int]]]: ...
+    def fields(self, skip_not_present: bool, include_gaps: Literal[True], sw_readable_only: bool = False, sw_writable_only: bool = False) -> Sequence[Union['FieldNode', Tuple[int, int]]]: ...
 
     @overload
-    def fields(self, skip_not_present: bool = True, *, include_gaps: Literal[True]) -> Sequence[Union['FieldNode', Tuple[int, int]]]: ...
+    def fields(self, skip_not_present: bool = True, *, include_gaps: Literal[True], sw_readable_only: bool = False, sw_writable_only: bool = False) -> Sequence[Union['FieldNode', Tuple[int, int]]]: ...
 
     @overload
-    def fields(self, skip_not_present: bool = True, include_gaps: bool = False) -> Sequence[Union['FieldNode', Tuple[int, int]]]: ...
+    def fields(self, skip_not_present: bool = True, include_gaps: bool = False, sw_readable_only: bool = False, sw_writable_only: bool = False) -> Sequence[Union['FieldNode', Tuple[int, int]]]: ...
 
-    def fields(self, skip_not_present: bool = True, include_gaps: bool = False) -> Sequence[Union['FieldNode', Tuple[int, int]]]:
+    def fields(self, skip_not_present: bool = True, include_gaps: bool = False, sw_readable_only: bool = False, sw_writable_only: bool = False) -> Sequence[Union['FieldNode', Tuple[int, int]]]:
         """
         Returns a list of all fields of this register.
 
@@ -2174,6 +2174,17 @@ class RegNode(AddressableNode):
             If True, returned list also includes information about gaps between
             fields. Gaps are represented as tuples in the form of: ``(high, low)``
 
+            .. important::
+                Beware that SystemRDL allows fields with opposete software access
+                policies to overlap. Consider using this option along with
+                ``sw_readable_only`` or ``sw_writable_only``
+
+        sw_readable_only, sw_writable_only: bool
+            If either is true, only returns fields that are software readable or
+            writable respectively.
+
+            These options are mutually exclusive and cannot be set simultaneously.
+
         Returns
         -------
         :class:`~FieldNode`
@@ -2184,30 +2195,41 @@ class RegNode(AddressableNode):
             Returns list instead of generator.
 
             Added ``include_gaps`` argument
+
+
+        .. versionchanged:: 1.31
+            Added ``sw_readable_only`` and ``sw_writable_only`` arguments
         """
+        if sw_readable_only and sw_writable_only:
+            raise ValueError("sw_readable_only and sw_writable_only args are mutualy exclusive")
+
+        fields = []
+        for child in self.children(skip_not_present=skip_not_present):
+            if not isinstance(child, FieldNode):
+                continue
+            if sw_readable_only and not child.is_sw_readable:
+                continue
+            if sw_writable_only and not child.is_sw_writable:
+                continue
+            fields.append(child)
+
         if include_gaps:
             fields_with_gaps: List[Union['FieldNode', Tuple[int, int]]]
             fields_with_gaps = []
             current_bit = 0
-            for child in self.children(skip_not_present=skip_not_present):
-                if not isinstance(child, FieldNode):
-                    continue
-                if current_bit < child.low:
+            for field in fields:
+                if current_bit < field.low:
                     # Add gap before this field
-                    fields_with_gaps.append((child.low - 1, current_bit))
-                fields_with_gaps.append(child)
-                current_bit = max(current_bit, child.high + 1)
+                    fields_with_gaps.append((field.low - 1, current_bit))
+                fields_with_gaps.append(field)
+                current_bit = max(current_bit, field.high + 1)
             regwidth = self.get_property('regwidth')
             if current_bit != regwidth:
                 # Add gap at end of register
                 fields_with_gaps.append((regwidth - 1, current_bit))
             return fields_with_gaps
-        else:
-            fields = []
-            for child in self.children(skip_not_present=skip_not_present):
-                if isinstance(child, FieldNode):
-                    fields.append(child)
-            return fields
+
+        return fields
 
 
     @property
