@@ -192,7 +192,7 @@ jobs:
       matrix:
         os:
           - windows-2022
-          - macos-14-large # intel-based macos
+          - macos-13 # intel-based macos
           - macos-14 # Apple silicon
           - ubuntu-22.04
           - ubuntu-22.04-arm # aarch64
