@@ -195,6 +195,7 @@ jobs:
           - macos-13 # intel-based macos
           - macos-14 # Apple silicon
           - ubuntu-22.04
+          - ubuntu-22.04-arm # aarch64
         include:
           # Only build CPython 3.x targets
           - cibw_build: "cp3*"
