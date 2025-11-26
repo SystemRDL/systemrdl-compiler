@@ -22,3 +22,31 @@ addrmap myAmap {
     external fixed_mem mem32;
     external fixed_mem #(.word_size(64)) mem64;
 };
+
+//------------------------------------------------------------------------------
+
+struct struct_t {
+    boolean x;
+    boolean a;
+    string b;
+    accesstype c;
+    addressingtype d;
+    longint e[];
+};
+
+reg struct_param_reg #(
+    struct_t STRUCT_1 = struct_t'{},
+    struct_t STRUCT_2 = struct_t'{},
+    struct_t STRUCT_3 = struct_t'{},
+    struct_t STRUCT_4 = struct_t'{}
+){
+    field {} data;
+};
+
+addrmap struct_param {
+    struct_param_reg #(
+        .STRUCT_2(struct_t'{}),
+        .STRUCT_3(struct_t'{x: false}),
+        .STRUCT_4(struct_t'{a: true})
+    ) spr;
+};
