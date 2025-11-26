@@ -191,9 +191,11 @@ jobs:
     strategy:
       matrix:
         os:
+          # List of available: https://github.com/actions/runner-images
+          # Note: "*-large" runners cannot use free GH actions credits
           - windows-2022
-          - macos-13 # intel-based macos
-          - macos-14 # Apple silicon
+          - macos-15-intel # intel silicon
+          - macos-15 # ARM64 silicon
           - ubuntu-22.04
           - ubuntu-22.04-arm # aarch64
         include:
