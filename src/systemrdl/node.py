@@ -1793,6 +1793,7 @@ class FieldNode(VectorNode):
             or self.get_property('counter')
             or bool(self.get_property('hwset'))
             or bool(self.get_property('hwclr'))
+            or self.get_property("singlepulse")
         )
 
     @property
