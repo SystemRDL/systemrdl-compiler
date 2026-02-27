@@ -170,10 +170,8 @@ class RDLImporter:
         """
         assert isinstance(comp_def, comp.Field)
         comp_inst = self._instantiate(comp_def, inst_name, src_ref)
-        comp_inst.low = bit_offset
-        comp_inst.high = bit_offset + bit_width - 1
-        comp_inst.lsb = comp_inst.low
-        comp_inst.msb = comp_inst.high
+        comp_inst.lsb = bit_offset
+        comp_inst.msb = bit_offset + bit_width - 1
         comp_inst.width = bit_width
         return comp_inst
 

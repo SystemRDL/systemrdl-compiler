@@ -330,18 +330,11 @@ class VectorComponent(Component):
         #: Bit position of least significant bit
         self.lsb: int = None # type: ignore
 
-        #: High index of bit range
-        self.high: int = None # type: ignore
-        #: Low index of bit range
-        self.low: int = None # type: ignore
-
     def _copy_for_inst(self: 'VectorComponentClass', memo: Dict[int, Any], recursive: bool = False) -> 'VectorComponentClass':
         result = super()._copy_for_inst(memo, recursive)
         result.width = self.width
         result.msb = self.msb
         result.lsb = self.lsb
-        result.high = self.high
-        result.low = self.low
         return result
 
 
@@ -381,8 +374,6 @@ class Signal_PreStructuralElab(Signal):
     width: Optional[int] # type: ignore
     msb: Optional[int] # type: ignore
     lsb: Optional[int] # type: ignore
-    high: Optional[int] # type: ignore
-    low: Optional[int] # type: ignore
 
 class Field(VectorComponent):
     original_def: Optional['Field']
@@ -408,8 +399,6 @@ class Field_PreStructuralElab(Field):
     width: Optional[int] # type: ignore
     msb: Optional[int] # type: ignore
     lsb: Optional[int] # type: ignore
-    high: Optional[int] # type: ignore
-    low: Optional[int] # type: ignore
 
 class Reg(AddressableComponent):
     original_def: Optional['Reg']

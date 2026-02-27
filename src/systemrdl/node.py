@@ -1242,14 +1242,14 @@ class VectorNode(Node):
         """
         High index of bit range
         """
-        return self.inst.high
+        return max(self.inst.msb, self.inst.lsb)
 
     @property
     def low(self) -> int:
         """
         Low index of bit range
         """
-        return self.inst.low
+        return min(self.inst.msb, self.inst.lsb)
 
 
 #===============================================================================

@@ -299,8 +299,6 @@ class StructuralPlacementListener(walker.RDLListener):
         # Signals do not allow lsb/msb notation. Fill in values
         node.inst.lsb = 0
         node.inst.msb = node.inst.width - 1
-        node.inst.low = 0
-        node.inst.high = node.inst.width - 1
 
         # Test field width again
         signalwidth = node.get_property('signalwidth')
@@ -409,8 +407,6 @@ class StructuralPlacementListener(walker.RDLListener):
 
                     inst.msb = inst.lsb + inst.width - 1
                     assert inst.msb is not None
-            inst.high = max(inst.msb, inst.lsb)
-            inst.low = min(inst.msb, inst.lsb)
             prev_inst = inst
 
         # Sort fields by low-bit.
@@ -419,7 +415,7 @@ class StructuralPlacementListener(walker.RDLListener):
             if not isinstance(inst, comp.Field):
                 return -1
             else:
-                return inst.low
+                return min(inst.lsb, inst.msb)
         node.inst.children.sort(key=get_field_sort_key)
 
 
