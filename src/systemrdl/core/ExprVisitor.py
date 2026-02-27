@@ -234,7 +234,7 @@ class ExprVisitor(BaseVisitor):
             )
 
         # collect member values
-        values = OrderedDict()
+        values = {}
         for kv_ctx in ctx.getTypedRuleContexts(SystemRDLParser.Struct_kvContext):
             member_name, member_expr, member_name_src_ref = self.visit(kv_ctx)
 
@@ -293,11 +293,16 @@ class ExprVisitor(BaseVisitor):
                 src_ref_from_antlr(ctx.ID())
             )
 
+        # Ensure values are sorted in the same order as the original struct definition
+        sorted_values = OrderedDict()
+        for member_name in struct_type._members.keys():
+            sorted_values[member_name] = values[member_name]
+
         expr = ast.StructLiteral(
             self.compiler.env,
             src_ref_from_antlr(ctx.ID()),
             struct_type,
-            values
+            sorted_values
         )
         expr.predict_type()
         return expr
