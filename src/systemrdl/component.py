@@ -264,9 +264,6 @@ class AddressableComponent(Component):
         #------------------------------
         # Array Properties
         #------------------------------
-        #: If true, then ``array_dimensions`` and ``array_stride`` are valid.
-        self.is_array: bool = False
-
         #: List of sizes for each array dimension.
         #: Last item in the list iterates the most frequently.
         self.array_dimensions: Optional[List[int]] = None
@@ -279,7 +276,6 @@ class AddressableComponent(Component):
         result = super()._copy_for_inst(memo, recursive)
         result.addr_offset = self.addr_offset
         result.addr_align = self.addr_align
-        result.is_array = self.is_array
         result.array_dimensions = copy(self.array_dimensions)
         result.array_stride = self.array_stride
         return result

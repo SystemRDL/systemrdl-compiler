@@ -436,7 +436,7 @@ class StructuralPlacementListener(walker.RDLListener):
 
     def exit_AddressableComponent(self, node: AddressableNode) -> None:
         # Resolve array stride if needed
-        if node.inst.is_array and (node.inst.array_stride is None):
+        if node.inst.array_dimensions and (node.inst.array_stride is None):
             node.inst.array_stride = node.size
 
             if node.env.chk_implicit_addr:

@@ -998,7 +998,7 @@ class AddressableNode(Node):
 
         .. versionadded:: 1.7
         """
-        if self.is_array:
+        if self.array_dimensions:
             self.current_idx = None
 
         if isinstance(self.parent, AddressableNode):
@@ -1127,7 +1127,7 @@ class AddressableNode(Node):
         Determine the size (in bytes) of this node.
         If an array, returns size of the entire array
         """
-        if self.is_array:
+        if self.array_dimensions:
             assert self.array_stride is not None
             # RDL spec does not explicitly clarify this, but total size for arrays
             # should include any additional trailing padding implied by the stride.
@@ -1144,7 +1144,7 @@ class AddressableNode(Node):
         """
         Indicates that this node represents an array of instances
         """
-        return self.inst.is_array
+        return bool(self.inst.array_dimensions)
 
 
     @property

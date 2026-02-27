@@ -469,7 +469,6 @@ class ComponentVisitor(BaseVisitor):
             comp_inst.addr_offset = inst_addr_fixed
             comp_inst.addr_align = inst_addr_align
             if array_suffixes:
-                comp_inst.is_array = True
                 comp_inst.array_dimensions = array_suffixes
                 comp_inst.array_stride = inst_addr_stride
         else:
