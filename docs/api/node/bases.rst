@@ -16,9 +16,11 @@ AddressableNode
 .. autoclass:: systemrdl.node.AddressableNode
     :members:
     :undoc-members:
+    :show-inheritance:
 
 VectorNode
 ----------
 .. autoclass:: systemrdl.node.VectorNode
     :members:
     :undoc-members:
+    :show-inheritance:

@@ -928,8 +928,6 @@ class Node:
 #===============================================================================
 class AddressableNode(Node):
     """
-    Inherits: :class:`Node`
-
     Base-class for any kind of node that can have an address
     """
     parent: Union['AddressableNode', 'RootNode']
@@ -1182,8 +1180,6 @@ class AddressableNode(Node):
 #===============================================================================
 class VectorNode(Node):
     """
-    Inherits: :class:`Node`
-
     Base-class for any kind of node that is vector-like.
     """
     parent: Node
@@ -1255,8 +1251,6 @@ class VectorNode(Node):
 #===============================================================================
 class RootNode(Node):
     """
-    Inherits: :class:`Node`
-
     Pseudo-node that represents the root namespace of a compiled design.
 
     This is does not represent any actual design hierarchy. It is merely a
@@ -1290,8 +1284,6 @@ class RootNode(Node):
 #===============================================================================
 class SignalNode(VectorNode):
     """
-    Inherits: :class:`VectorNode`
-
     Represents an RDL ``signal``.
     """
     parent: Node
@@ -1373,8 +1365,6 @@ class SignalNode(VectorNode):
 #===============================================================================
 class FieldNode(VectorNode):
     """
-    Inherits: :class:`VectorNode`
-
     Represents an RDL ``field``
     """
     parent: 'RegNode'
@@ -2065,8 +2055,6 @@ class FieldNode(VectorNode):
 #===============================================================================
 class RegNode(AddressableNode):
     """
-    Inherits: :class:`AddressableNode`
-
     Represents an RDL ``reg``
     """
     parent: Union['AddrmapNode', 'RegNode', 'MemNode']
@@ -2444,8 +2432,6 @@ class RegNode(AddressableNode):
 #===============================================================================
 class RegfileNode(AddressableNode):
     """
-    Inherits: :class:`AddressableNode`
-
     Represents an RDL ``regfile``
     """
     parent: Union['AddrmapNode', 'RegfileNode']
@@ -2531,8 +2517,6 @@ class RegfileNode(AddressableNode):
 #===============================================================================
 class AddrmapNode(AddressableNode):
     """
-    Inherits: :class:`AddressableNode`
-
     Represents an RDL ``addrmap``
     """
     parent: Union['AddrmapNode', RootNode]
@@ -2666,8 +2650,6 @@ class AddrmapNode(AddressableNode):
 #===============================================================================
 class MemNode(AddressableNode):
     """
-    Inherits: :class:`AddressableNode`
-
     Represents an RDL ``mem``
     """
     parent: AddrmapNode
