@@ -312,6 +312,22 @@ Regarding the SystemRDL spec, the little-endian example should be corrected as f
         EF  CD  AB  89  67  45  23  01
 
 
+Semantic Rule 11.3.1-d is impossible to honor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The semantic rule states:
+
+.. pull-quote::
+
+    **memwidth** defaults to **regwidth**.
+
+However **regwidth** is not a valid property of a **mem** component, so this
+describes a default that is impossible to derive.
+
+**Resolution:**
+
+**memwidth** defaults to 32 since the same default is used for **regwidth**.
+
+
 --------------------------------------------------------------------------------
 
 Compilation issues in examples
