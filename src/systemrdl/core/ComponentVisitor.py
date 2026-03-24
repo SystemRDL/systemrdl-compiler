@@ -459,7 +459,7 @@ class ComponentVisitor(BaseVisitor):
                 comp_inst.width = array_suffixes[0]
 
             # directly override field reset property
-            if (field_inst_reset is not None) and (type(comp_inst == comp.Field)):
+            if (field_inst_reset is not None) and isinstance(comp_inst, comp.Field):
                 comp_inst.properties['reset'] = field_inst_reset
 
         elif isinstance(comp_inst, comp.AddressableComponent):
