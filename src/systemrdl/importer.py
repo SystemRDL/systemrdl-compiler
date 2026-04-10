@@ -340,6 +340,7 @@ class RDLImporter:
 
         # Add to root component definition list
         self.compiler.root.comp_defs[definition.type_name] = definition
+        definition.parent_scope = self.compiler.root
 
     def lookup_root_component(self, type_name: str) -> Optional[comp.Component]:
         """

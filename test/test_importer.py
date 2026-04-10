@@ -199,8 +199,10 @@ class TestImporter(unittest.TestCase):
         self.assertListEqual(top.get_property("udp_boolean_array"), [True, False, True])
         self.assertEqual(top.get_property("udp_longint"), 123)
         self.assertListEqual(top.get_property("udp_longint_array"), [12, 34, 56])
+        self.assertEqual(top.get_scope_path(), "")
 
         reg = top.get_child_by_name("r")
         self.assertListEqual(reg.get_property("udp_string_array"), [])
         self.assertListEqual(reg.get_property("udp_boolean_array"), [])
         self.assertListEqual(reg.get_property("udp_longint_array"), [])
+        self.assertIsNone(reg.get_scope_path())
