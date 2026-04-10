@@ -44,7 +44,7 @@ class UserEnumMeta(type):
             raise TypeError(
                 f"unsupported operand type(s) for 'in': '{type(obj).__qualname__}' and '{cls.__class__.__qualname__}'"
             )
-        return isinstance(obj, cls) and obj._name in cls._member_map
+        return isinstance(obj, cls) and obj._name in cls._member_map # type: ignore # mypy doesn't understand metaclasses
 
     def __getitem__(cls, name: str) -> 'UserEnum':
         return cls._member_map[name]
