@@ -1,0 +1,7 @@
+addrmap top #(longint unsigned N = 8) {
+    reg {
+        field {} f[3:0];
+    } my_reg[N];
+
+    my_reg[6].f->reset = 1;
+};

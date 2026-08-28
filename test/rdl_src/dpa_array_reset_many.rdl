@@ -1,0 +1,38 @@
+addrmap top {
+    reg {
+        field {sw=rw; hw=r;} f[7:0];
+    } my_reg[32];
+
+    my_reg[0].f->reset = 0;
+    my_reg[1].f->reset = 1;
+    my_reg[2].f->reset = 2;
+    my_reg[3].f->reset = 3;
+    my_reg[4].f->reset = 4;
+    my_reg[5].f->reset = 5;
+    my_reg[6].f->reset = 6;
+    my_reg[7].f->reset = 7;
+    my_reg[8].f->reset = 8;
+    my_reg[9].f->reset = 9;
+    my_reg[10].f->reset = 10;
+    my_reg[11].f->reset = 11;
+    my_reg[12].f->reset = 12;
+    my_reg[13].f->reset = 13;
+    my_reg[14].f->reset = 14;
+    my_reg[15].f->reset = 15;
+    my_reg[16].f->reset = 16;
+    my_reg[17].f->reset = 17;
+    my_reg[18].f->reset = 18;
+    my_reg[19].f->reset = 19;
+    my_reg[20].f->reset = 20;
+    my_reg[21].f->reset = 21;
+    my_reg[22].f->reset = 22;
+    my_reg[23].f->reset = 23;
+    my_reg[24].f->reset = 24;
+    my_reg[25].f->reset = 25;
+    my_reg[26].f->reset = 26;
+    my_reg[27].f->reset = 27;
+    my_reg[28].f->reset = 28;
+    my_reg[29].f->reset = 29;
+    my_reg[30].f->reset = 30;
+    my_reg[31].f->reset = 31;
+};

@@ -1,0 +1,9 @@
+addrmap top {
+    regfile {
+        reg {
+            field {} f[3:0];
+        } r1[2];
+    } rf[4];
+
+    rf[0].r1[1].f->reset = 0;
+};
