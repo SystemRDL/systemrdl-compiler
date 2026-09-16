@@ -136,6 +136,11 @@ class UserStruct(metaclass=UserStructMeta):
         """
         return self._values
 
+    def __eq__(self, other: Any) -> bool:
+        if type(self) is not type(other):
+            return NotImplemented
+        return self._values == other._values
+
     @classmethod
     def get_parent_scope(cls) -> Optional[comp.Component]:
         """
