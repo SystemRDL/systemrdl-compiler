@@ -14,19 +14,20 @@ SystemRDL ``constraint`` blocks are not implemented yet.
 
 
 
-No support for heterogeneous arrays
------------------------------------
+Limited support for heterogeneous arrays
+----------------------------------------
 
 RDL spec allows parameters to be overridden via a dynamic property assignment.
 One feature described is the ability to modify a subset of an array of
 instances via a dynamic property assignment. This would result in an array of
 instances that no longer share the same properties.
 
-Currently, assigning sub-ranges of an instance array is not supported.
-Dynamic assignments are only supported when modifying the entire instance
-array, and without using an array subscript (even if the subscript is a range
-that represents the entire array).
-This feature is planned to be supported in the future.
+Indexed dynamic property assignments are supported **only** for the ``reset``
+property. This allows per-element reset values without changing the structural
+layout of the array (for example, ``my_inst[2].field->reset = 8'hFF``).
+
+All other properties, array sub-ranges, and references that index more than
+one array in the same path remain unsupported.
 
 For example:
 
@@ -37,7 +38,10 @@ For example:
     // Modifying all instances in the array is supported
     my_inst->some_property = 1234;
 
-    // Modifying a subset is not supported
+    // Modifying a single element's reset is supported
+    my_inst[2].field->reset = 8'hFF;
+
+    // Everything else is not supported
     my_inst[2]->some_property = 1234;
     my_inst[1:4]->some_property = 1234;
     my_inst[0:15]->some_property = 1234;

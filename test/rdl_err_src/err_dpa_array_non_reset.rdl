@@ -1,0 +1,7 @@
+addrmap top {
+    reg {
+        field {} f[3:0];
+    } my_reg[4];
+
+    my_reg[0].f->name = "bad";
+};
