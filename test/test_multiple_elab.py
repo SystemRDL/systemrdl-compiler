@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from systemrdl import RDLCompiler
+from systemrdl import RDLCompiler, RDLCompileError
 from systemrdl import rdltypes
 
 from unittest_utils import TestPrinter
@@ -89,6 +89,24 @@ class TestMultipleElab(unittest.TestCase):
         # Test new parameter API
         for name, value in W10_root.top.parameters.items():
             self.assertEqual(expected[name], value)
+
+
+    def test_inst_name_override(self):
+        rdlc = RDLCompiler(message_printer=TestPrinter())
+        rdlc.compile_file(os.path.join(this_dir, "rdl_src/nested_params.rdl"))
+
+        for inst_name in (None, "a", "_", "Top_09", "reg"):
+            with self.subTest(inst_name=inst_name):
+                root = rdlc.elaborate(inst_name=inst_name)
+                self.assertEqual(root.top.inst_name, inst_name if inst_name is not None else "nested_params")
+
+    def test_invalid_inst_name_override(self):
+        for inst_name in ("", "9top", "top.name", "top-name", "top name", "top\n", "top\u00e9", "\\reg"):
+            with self.subTest(inst_name=inst_name):
+                rdlc = RDLCompiler(message_printer=TestPrinter())
+                rdlc.compile_file(os.path.join(this_dir, "rdl_src/nested_params.rdl"))
+                with self.assertRaisesRegex(RDLCompileError, "Invalid instance name:"):
+                    rdlc.elaborate(inst_name=inst_name)
 
 
     def test_multi_elab_common_dpa(self):

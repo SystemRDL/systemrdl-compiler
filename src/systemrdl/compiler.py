@@ -1,3 +1,4 @@
+import re
 from typing import Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING
 
 from antlr4 import InputStream
@@ -291,6 +292,7 @@ class RDLCompiler:
         inst_name: str
             Overrides the top-component's instantiated name.
             By default, instantiated name is the same as ``top_def_name``
+            Must be an ASCII identifier without an escape prefix (keywords are allowed).
 
         parameters: dict
             Dictionary of parameter overrides for the top component instance.
@@ -357,6 +359,8 @@ class RDLCompiler:
         top_inst.addr_offset = 0
         top_inst.external = True # addrmap is always implied as external
         if inst_name is not None:
+            if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", inst_name):
+                self.msg.fatal(f"Invalid instance name: {inst_name!r}")
             top_inst.inst_name = inst_name
         else:
             top_inst.inst_name = top_def_name
