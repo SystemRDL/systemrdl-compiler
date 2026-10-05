@@ -77,6 +77,11 @@ class VerilogPreprocessor:
     # Main text scanner
     #---------------------------------------------------------------------------
     def main_scanner(self) -> None:
+        if "`" not in self._text:
+            # Optimization: No directives or macros are possible.
+            # Skip scanning and emit all text as-is
+            self.emit_segment(len(self._text))
+            return
 
         queries = [
             # Skip comments
