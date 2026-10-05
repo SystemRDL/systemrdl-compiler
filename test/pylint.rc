@@ -463,8 +463,8 @@ disable=
         protected-access,
         duplicate-code,
         cyclic-import,
-
-        # Can't do until py35 support is dropped
+        consider-using-dict-items,
+        consider-iterating-dictionary,
         consider-using-f-string
 
 # Enable the message, report, category or checker with the given id(s). You can
