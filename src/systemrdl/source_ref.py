@@ -1,4 +1,8 @@
 from typing import Tuple, Union, Dict, Any, Optional
+import bisect
+import functools
+import os
+import re
 
 from antlr4.Token import CommonToken
 from antlr4 import ParserRuleContext
@@ -90,6 +94,20 @@ class DetailedFileSourceRef(FileSourceRef):
         raise NotImplementedError
 
 #-------------------------------------------------------------------------------
+_NEWLINE_RE = re.compile(r"\r\n|\r|\n")
+
+@functools.lru_cache(maxsize=256)
+def _get_file_index(path: str, mtime_ns: int) -> Tuple[str, Tuple[int, ...]]: # pylint: disable=unused-argument
+    """
+    Get a file's text, and the start offset every line in the file.
+    mtime_ns is only provided to influence lru_cache's key
+    """
+    with open(path, 'r', newline='', encoding='utf_8') as fp:
+        text = fp.read()
+    line_starts = [0]
+    line_starts.extend(m.end() for m in _NEWLINE_RE.finditer(text))
+    return text, tuple(line_starts)
+
 class DirectSourceRef(DetailedFileSourceRef):
     """
     Source reference that points directly to a file's coordinates.
@@ -104,36 +122,28 @@ class DirectSourceRef(DetailedFileSourceRef):
         self._line_selection: Optional[Tuple[int, int]] = None
 
     def _extract_line_info(self) -> None:
-        idx = 0
-        lineno = 1
-        line_start_idx = 0
+        text, line_starts = _get_file_index(self.path, os.stat(self.path).st_mtime_ns)
 
-        with open(self.path, 'r', newline='', encoding='utf_8') as fp:
-            while True:
-                line_text = fp.readline()
-                assert line_text != ""
+        # Find the line that contains the start_idx
+        line_idx = bisect.bisect_right(line_starts, self._start_idx) - 1
+        line_start_idx = line_starts[line_idx]
+        if line_idx + 1 < len(line_starts):
+            line_end_idx = line_starts[line_idx + 1]
+        else:
+            line_end_idx = len(text)
+        line_text = text[line_start_idx:line_end_idx].rstrip("\n").rstrip("\r")
 
-                idx += len(line_text)
+        self._line = line_idx + 1
+        self._line_text = line_text
+        start_column = self._start_idx - line_start_idx
 
-                # This line contains the start_idx
-                if self._start_idx < idx:
-                    line_text = line_text.rstrip("\n").rstrip("\r")
-                    self._line = lineno
-                    self._line_text = line_text
-                    start_column = self._start_idx - line_start_idx
+        # Get the end of the selection
+        end_column = self._end_idx - line_start_idx
+        # Clamp it to the end of the current line
+        if end_column >= len(line_text):
+            end_column = len(line_text) - 1
 
-                    # Get the end of the selection
-                    end_column = self._end_idx - line_start_idx
-                    # Clamp it to the end of the current line
-                    if end_column >= len(line_text):
-                        end_column = len(line_text) - 1
-
-                    self._line_selection = (start_column, end_column)
-
-                    break
-
-                lineno += 1
-                line_start_idx = idx
+        self._line_selection = (start_column, end_column)
 
     @property
     def path(self) -> str:
