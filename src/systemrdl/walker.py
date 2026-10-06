@@ -1,4 +1,4 @@
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Callable, Dict, Tuple, Type, Any
 from enum import IntEnum
 
 from .node import AddressableNode, VectorNode, FieldNode, RegNode, RegfileNode
@@ -78,6 +78,54 @@ class RDLListener:
         pass
 
 #===============================================================================
+# Names of the listener callbacks for each node type, in call order.
+_ENTER_CALLBACK_NAMES: Dict[Type[Node], Tuple[str, ...]] = {
+    FieldNode: ("enter_Component", "enter_VectorComponent", "enter_Field"),
+    RegNode: ("enter_Component", "enter_AddressableComponent", "enter_Reg"),
+    RegfileNode: ("enter_Component", "enter_AddressableComponent", "enter_Regfile"),
+    AddrmapNode: ("enter_Component", "enter_AddressableComponent", "enter_Addrmap"),
+    MemNode: ("enter_Component", "enter_AddressableComponent", "enter_Mem"),
+    SignalNode: ("enter_Component", "enter_VectorComponent", "enter_Signal"),
+}
+_EXIT_CALLBACK_NAMES: Dict[Type[Node], Tuple[str, ...]] = {
+    FieldNode: ("exit_Field", "exit_VectorComponent", "exit_Component"),
+    RegNode: ("exit_Reg", "exit_AddressableComponent", "exit_Component"),
+    RegfileNode: ("exit_Regfile", "exit_AddressableComponent", "exit_Component"),
+    AddrmapNode: ("exit_Addrmap", "exit_AddressableComponent", "exit_Component"),
+    MemNode: ("exit_Mem", "exit_AddressableComponent", "exit_Component"),
+    SignalNode: ("exit_Signal", "exit_VectorComponent", "exit_Component"),
+}
+
+_Callbacks = Tuple[Callable[[Node], Any], ...]
+_DispatchTable = Dict[Type[Node], Tuple[_Callbacks, _Callbacks]]
+
+def _get_callbacks(listeners: Iterable[RDLListener], cb_names: Tuple[str, ...]) -> _Callbacks:
+    """
+    Collect all distinct listener callbacks for the given callback names, in call order.
+    """
+    callbacks = []
+    for listener in listeners:
+        for cb_name in cb_names:
+            cb = getattr(listener, cb_name)
+            if getattr(cb, "__func__", None) is getattr(RDLListener, cb_name):
+                # Matches the no-op callback in base class. Safe to skip
+                continue
+            callbacks.append(cb)
+    return tuple(callbacks)
+
+def _build_dispatch_table(listeners: Iterable[RDLListener]) -> _DispatchTable:
+    """
+    Build mapping of node class --> (enter callbacks, exit callbacks)
+    """
+    dispatch: _DispatchTable = {}
+    for node_cls in _ENTER_CALLBACK_NAMES.keys():
+        dispatch[node_cls] = (
+            _get_callbacks(listeners, _ENTER_CALLBACK_NAMES[node_cls]),
+            _get_callbacks(listeners, _EXIT_CALLBACK_NAMES[node_cls]),
+        )
+    return dispatch
+
+#===============================================================================
 class RDLSimpleWalker:
     """
     Implements a walker instance that traverses the elaborated RDL instance tree
@@ -130,67 +178,28 @@ class RDLSimpleWalker:
         skip_top : bool
             Skip callbacks for the top node specified by ``node``
         """
+        # Pre-compute callback dispatch table for this set of listeners
+        dispatch = _build_dispatch_table(listeners)
+
         if skip_top or isinstance(node, RootNode):
             # Do not visit current node. Only visit children
             for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
-                self._walk(child, listeners)
+                self._walk(child, dispatch)
         else:
             # Walk this node normally
-            self._walk(node, listeners)
+            self._walk(node, dispatch)
 
-    def _walk(self, node: Node, listeners: Iterable[RDLListener]) -> None:
-        for listener in listeners:
-            self.do_enter(node, listener)
+    def _walk(self, node: Node, dispatch: _DispatchTable) -> None:
+        enter_callbacks, exit_callbacks = dispatch[type(node)]
+
+        for cb in enter_callbacks:
+            cb(node)
 
         for child in node.children(unroll=self.unroll, skip_not_present=self.skip_not_present):
-            self._walk(child, listeners)
+            self._walk(child, dispatch)
 
-        for listener in listeners:
-            self.do_exit(node, listener)
-
-    def do_enter(self, node: Node, listener: RDLListener) -> None:
-        listener.enter_Component(node)
-
-        if isinstance(node, FieldNode):
-            listener.enter_VectorComponent(node)
-            listener.enter_Field(node)
-        elif isinstance(node, RegNode):
-            listener.enter_AddressableComponent(node)
-            listener.enter_Reg(node)
-        elif isinstance(node, RegfileNode):
-            listener.enter_AddressableComponent(node)
-            listener.enter_Regfile(node)
-        elif isinstance(node, AddrmapNode):
-            listener.enter_AddressableComponent(node)
-            listener.enter_Addrmap(node)
-        elif isinstance(node, MemNode):
-            listener.enter_AddressableComponent(node)
-            listener.enter_Mem(node)
-        elif isinstance(node, SignalNode):
-            listener.enter_VectorComponent(node)
-            listener.enter_Signal(node)
-
-    def do_exit(self, node: Node, listener: RDLListener) -> None:
-        if isinstance(node, FieldNode):
-            listener.exit_Field(node)
-            listener.exit_VectorComponent(node)
-        elif isinstance(node, RegNode):
-            listener.exit_Reg(node)
-            listener.exit_AddressableComponent(node)
-        elif isinstance(node, RegfileNode):
-            listener.exit_Regfile(node)
-            listener.exit_AddressableComponent(node)
-        elif isinstance(node, AddrmapNode):
-            listener.exit_Addrmap(node)
-            listener.exit_AddressableComponent(node)
-        elif isinstance(node, MemNode):
-            listener.exit_Mem(node)
-            listener.exit_AddressableComponent(node)
-        elif isinstance(node, SignalNode):
-            listener.exit_Signal(node)
-            listener.exit_VectorComponent(node)
-
-        listener.exit_Component(node)
+        for cb in exit_callbacks:
+            cb(node)
 
 
 class RDLSteerableWalker:

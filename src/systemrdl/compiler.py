@@ -1,4 +1,5 @@
 import re
+import gc
 from typing import Type, Any, List, Dict, Optional, Iterable, TYPE_CHECKING
 
 from antlr4 import InputStream
@@ -330,17 +331,25 @@ class RDLCompiler:
             else:
                 self.msg.fatal("Could not find any 'addrmap' components to elaborate")
 
-        # Create design instance
-        root_node = self._elab_create_root_inst(top_def, inst_name, top_def_name, parameters)
+        # Elaboration allocates many objects but hardly any are cyclic.
+        # Pausing the cyclic GC avoids repeated, mostly pointless collections.
+        gc_was_enabled = gc.isenabled()
+        gc.disable()
+        try:
+            # Create design instance
+            root_node = self._elab_create_root_inst(top_def, inst_name, top_def_name, parameters)
 
-        # Elaborate the design
-        self._elab_design(root_node)
+            # Elaborate the design
+            self._elab_design(root_node)
 
-        # Validate design
-        self._elab_validate(root_node)
+            # Validate design
+            self._elab_validate(root_node)
 
-        if self.msg.had_error:
-            self.msg.fatal("Elaborate aborted due to previous errors")
+            if self.msg.had_error:
+                self.msg.fatal("Elaborate aborted due to previous errors")
+        finally:
+            if gc_was_enabled:
+                gc.enable()
 
         return root_node
 
