@@ -1,9 +1,0 @@
-pytest
-pytest-cov
-parameterized
-pylint
-types-Markdown
-types-colorama
-#types-antlr4-python3-runtime
-
-mypy

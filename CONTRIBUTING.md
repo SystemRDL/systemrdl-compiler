@@ -50,6 +50,8 @@ How to submit a PR:
 5. Submit the pull request!
 
 ## Run the tests
+Requires [uv](https://docs.astral.sh/uv/).
+
 Run: test/run.sh
 
 If you see an error like:

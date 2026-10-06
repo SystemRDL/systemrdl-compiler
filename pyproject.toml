@@ -35,6 +35,23 @@ classifiers = [
     "Topic :: Software Development :: Code Generators",
 ]
 
+[dependency-groups]
+test = [
+    "pytest",
+    "pytest-cov",
+    "parameterized",
+]
+lint = [
+    "pylint",
+    "mypy",
+    "types-Markdown",
+    "types-colorama",
+]
+dev = [
+    {include-group = "test"},
+    {include-group = "lint"},
+]
+
 [project.urls]
 Source = "https://github.com/SystemRDL/systemrdl-compiler"
 Tracker = "https://github.com/SystemRDL/systemrdl-compiler/issues"
@@ -43,3 +60,15 @@ Documentation = "http://systemrdl-compiler.readthedocs.io"
 
 [tool.setuptools.dynamic]
 version = {attr = "systemrdl.__about__.__version__"}
+
+[tool.uv]
+default-groups = ["dev"]
+# Rebuild the editable install (incl. C++ accelerator) only when these change
+cache-keys = [
+    {file = "pyproject.toml"},
+    {file = "setup.py"},
+    {file = "src/systemrdl/parser/ext/**/*.cpp"},
+    {file = "src/systemrdl/parser/ext/**/*.h"},
+    # Ensures a cached pure-Python fallback build gets redone by test/run.sh
+    {env = "SYSTEMRDL_REQUIRE_BINARY_BUILD"},
+]

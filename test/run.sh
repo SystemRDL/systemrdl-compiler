@@ -1,58 +1,29 @@
 #!/bin/bash
 
-# Usage (from parent dir of this dir):
-#   [PY_VERSION=<python_version>] test/run.sh [optional pytest arg]
-#
-# Examples:
-#   Run all tests:
-#       test/run.sh
-#
-#   Run only tests in test_parameters.py
-#   Include INFO logging messages in the output, i.e. all compilation messages.
-#       test/run.sh --log-cli-level=INFO test_parameters.py
-#
-#   Same but use python 3.13
-#       PY_VERSION=3.13 test/run.sh --log-cli-level=INFO test_parameters.py
+# Usage (from anywhere):
+#   test/run.sh
 
 set -e
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
-exists () {
-    type "$1" >/dev/null 2>/dev/null
-}
-
-# If ccache is installed, use that to cache C++ compilation to speed up re-runs
-if exists ccache; then
-    export CC="ccache gcc"
-    export CXX="ccache g++"
-fi
-
-# Initialize venv
-_PYTHON="python${PY_VERSION:-3.11}"
-"$_PYTHON" -m venv .venv
-source .venv/bin/activate
-
-# Install
+# Fail loudly if the C++ accelerator can't be built
 export SYSTEMRDL_REQUIRE_BINARY_BUILD=1
-python -m pip install -e ..
-python -m pip install -r requirements.txt pytest-parallel
 
-# Run unit tests while collecting coverage
-pytest --cov=systemrdl "$@"
-export SYSTEMRDL_DISABLE_ACCELERATOR=1
-pytest "$@"
+# Run twice. with/without C++ accelerator
+uv run --directory test pytest --cov=systemrdl
+SYSTEMRDL_DISABLE_ACCELERATOR=1 uv run --directory test pytest
 
 # Generate coverage report
-coverage html -i -d htmlcov
+uv run --directory test coverage html -i -d htmlcov
 
 # Also run examples in order to make sure output is up-to-date
-../examples/print_hierarchy.py ../examples/atxmega_spi.rdl > ../docs/examples/print_hierarchy_spi.stdout
-../examples/export_json.py ../examples/tiny.rdl
-mv out.json ../examples/tiny.json
+uv run examples/print_hierarchy.py examples/atxmega_spi.rdl > docs/examples/print_hierarchy_spi.stdout
+uv run --directory examples export_json.py tiny.rdl
+mv examples/out.json examples/tiny.json
 
 # Run lint
-pylint --rcfile pylint.rc -j 0 systemrdl
+uv run pylint --rcfile test/pylint.rc -j 0 src/systemrdl
 
 # Run static type checking
-mypy ../src/systemrdl
+uv run mypy --config-file test/mypy.ini src/systemrdl
