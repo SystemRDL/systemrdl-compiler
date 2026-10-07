@@ -1,0 +1,7 @@
+addrmap top {
+    reg {
+        field {sw=rw; hw=r;} f[3:0];
+    } my_reg[4];
+
+    my_reg[1].f->reset = 0xFFFF;
+};

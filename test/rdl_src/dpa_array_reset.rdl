@@ -1,0 +1,21 @@
+enum gpio_enum {
+    GPIO_DISABLE = 4'h0;
+    PLL_BYPASS   = 4'hA;
+    PLL_LOCK     = 4'hB;
+};
+
+regfile GPIO_INSTANCE {
+    reg {
+        field {
+            encode = gpio_enum;
+        } CFG[4];
+    } CFG;
+};
+
+addrmap top #(
+    longint CFG_DEFAULT_3 = gpio_enum::PLL_LOCK
+) {
+    GPIO_INSTANCE GPIO[4];
+    GPIO[0].CFG.CFG->reset = CFG_DEFAULT_3;
+    GPIO[3].CFG.CFG->reset = gpio_enum::PLL_BYPASS;
+};

@@ -2,7 +2,7 @@ import operator
 import functools
 from copy import deepcopy, copy
 from collections import OrderedDict
-from typing import Optional, List, Dict, TYPE_CHECKING, Any, Union, Set
+from typing import Optional, List, Dict, TYPE_CHECKING, Any, Union, Set, Tuple
 
 if TYPE_CHECKING:
     from typing import TypeVar
@@ -272,12 +272,74 @@ class AddressableComponent(Component):
         #: If left as None, compiler will resolve with inferred value.
         self.array_stride: Optional[int] = None
 
-    def _copy_for_inst(self: 'AddressableComponentClass', memo: Dict[int, Any], recursive: bool = False) -> 'AddressableComponentClass':
+        #: Component overrides for array elements that were targeted by an
+        #: indexed dynamic property assignment, making the array heterogeneous.
+        #: Keys are array index tuples. Values are component trees that
+        #: diverge from this array's component tree.
+        #:
+        #: Elements that do not have an entry in this dict are represented by
+        #: this component, as usual.
+        #:
+        #: Remains ``None`` if all array elements are homogeneous.
+        self.array_element_overrides: Optional[Dict[Tuple[int, ...], 'AddressableComponent']] = None
+
+        #: Indexed dynamic property assignments whose array dimension sizes are
+        #: not yet known. Keys are resolved index tuples. Values are component
+        #: trees that diverge from this array's component tree. Moved into
+        #: :attr:`array_element_overrides` during elaboration once array
+        #: dimensions are evaluated and index bounds are checked.
+        self.array_element_override_pending: Optional[Dict[Tuple[int, ...], 'AddressableComponent']] = None
+
+        #: True if this instance is a single element override copied out of an
+        #: array. Used internally to prevent accidental re-unrolling.
+        self.is_array_element_override: bool = False
+
+    def _copy_for_inst(
+        self: 'AddressableComponentClass',
+        memo: Dict[int, Any],
+        recursive: bool = False,
+        *,
+        with_array_element_overrides: bool = True,
+    ) -> 'AddressableComponentClass':
         result = super()._copy_for_inst(memo, recursive)
         result.addr_offset = self.addr_offset
         result.addr_align = self.addr_align
         result.array_dimensions = copy(self.array_dimensions)
         result.array_stride = self.array_stride
+        result.is_array_element_override = self.is_array_element_override
+
+        if not with_array_element_overrides:
+            # Element overrides are siblings of the element being cloned, not part
+            # of it. Copying them nests every element inside the next one created.
+            result.array_element_overrides = None
+            result.array_element_override_pending = None
+            return result
+
+        if self.array_element_overrides is not None:
+            result.array_element_overrides = {
+                idxs: elem._copy_for_inst(memo, recursive)
+                for idxs, elem in self.array_element_overrides.items()
+            }
+        else:
+            result.array_element_overrides = None
+        if self.array_element_override_pending is not None:
+            result.array_element_override_pending = {
+                idxs: elem._copy_for_inst(memo, recursive)
+                for idxs, elem in self.array_element_override_pending.items()
+            }
+        else:
+            result.array_element_override_pending = None
+        return result
+
+    def _copy_for_array_element(self: 'AddressableComponentClass') -> 'AddressableComponentClass':
+        """
+        Clone this array container to represent a single element that diverges
+        from the rest of the array. The clone keeps the array metadata so the
+        element's path and address still resolve, but does not inherit the
+        container's other element overrides.
+        """
+        result = self._copy_for_inst({}, with_array_element_overrides=False)
+        result.is_array_element_override = True
         return result
 
 
@@ -427,8 +489,14 @@ class Reg(AddressableComponent):
         #: instance
         self.alias_primary_inst: Optional[Reg] = None
 
-    def _copy_for_inst(self: 'Reg', memo: Dict[int, Any], recursive: bool = False) -> 'Reg':
-        result = super()._copy_for_inst(memo, recursive)
+    def _copy_for_inst(
+        self: 'Reg',
+        memo: Dict[int, Any],
+        recursive: bool = False,
+        *,
+        with_array_element_overrides: bool = True,
+    ) -> 'Reg':
+        result = super()._copy_for_inst(memo, recursive, with_array_element_overrides=with_array_element_overrides)
         result.is_msb0_order = self.is_msb0_order
         result._alias_names = copy(self._alias_names)
         result.overlaps_with_names = copy(self.overlaps_with_names)

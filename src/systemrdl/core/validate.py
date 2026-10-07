@@ -1,10 +1,12 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Set
 
 from .helpers import is_pow2, roundup_pow2, roundup_to
+from .elaborate import iter_insts_with_array_overrides
+from .. import component as comp
 from .. import walker
 from .. import rdltypes
 from ..node import Node, AddressableNode, SignalNode
-from ..node import AddrmapNode, RegfileNode, MemNode, RegNode, FieldNode
+from ..node import AddrmapNode, RegfileNode, MemNode, RegNode, FieldNode, RootNode
 
 if TYPE_CHECKING:
     from ..compiler import RDLEnvironment
@@ -30,6 +32,8 @@ class ValidateListener(walker.RDLListener):
         # Signals can exist in Root, so pre-load with one stack entry
         self.has_cpuif_reset_stack: List[bool] = [False]
         self.has_field_reset_stack: List[bool] = [False]
+
+        self.validated_override_insts: Set[int] = set()
 
 
     def enter_Component(self, node: Node) -> None:
@@ -176,6 +180,35 @@ class ValidateListener(walker.RDLListener):
                     % node.inst_name,
                     node.inst_src_ref
                 )
+
+        if isinstance(node.parent, RootNode):
+            self._validate_array_element_override_subtrees(node)
+
+
+    def _validate_array_element_override_subtrees(self, node: Node) -> None:
+        for inst in iter_insts_with_array_overrides(node.inst):
+            assert isinstance(inst, comp.AddressableComponent)
+            for elem_inst in inst.array_element_overrides.values(): # type: ignore[union-attr]
+                self._validate_override_properties(elem_inst, node)
+
+    def _validate_override_properties(self, inst: comp.Component, parent_node: Node) -> None:
+        if id(inst) in self.validated_override_insts:
+            return
+        self.validated_override_insts.add(id(inst))
+
+        override_node = Node._factory(inst, self.env, parent_node)
+        for prop_name in override_node.inst.properties.keys():
+            prop_value = override_node.get_property(prop_name)
+
+            if isinstance(prop_value, rdltypes.PropertyReference):
+                prop_value._validate()
+
+            prop_rule = self.env.property_rules.lookup_property(prop_name)
+            assert prop_rule is not None
+            prop_rule.validate(override_node, prop_value)
+
+        for child_inst in inst.children:
+            self._validate_override_properties(child_inst, override_node)
 
 
     def enter_Reg(self, node: RegNode) -> None:

@@ -29,19 +29,22 @@ If the component is not instantiated as an array, it uses the same class,
 array_dimensions is set to None.
 
 
-No support for heterogeneous arrays
------------------------------------
+Limited support for heterogeneous arrays
+----------------------------------------
 
 RDL spec allows parameters to be overridden via a dynamic property assignment.
 One feature described is the ability to modify a subset of an array of
 instances via dynamic assignment. This would result in an array of instances
 that no longer share the same properties.
 
-For now, I see no convincing reason to support dynamic property modifications
-to sub-ranges of an instance array.
-Dynamic assignments will only be supported when modifying the entire instance
-array, and without using an array subscript (even if the subscript is a range
-that represents the entire array)
+The compiler provides **limited** support for this via indexed dynamic
+property assignments, restricted to the ``reset`` property only. This allows
+per-element reset values (for example, ``my_inst[2].field->reset = 8'hFF``)
+without altering the structural layout of the array.
+
+All other properties, array sub-ranges (``my_inst[1:4]``), and indexed
+assignments targeting more than one array in the same reference path are not
+supported.
 
 For example:
 
@@ -52,17 +55,17 @@ For example:
     // Modifying all instances in the array is supported
     my_inst->property = 1234;
 
-    // Modifying a subset is not supported
+    // Modifying a single element's reset is supported
+    my_inst[2].field->reset = 8'hFF;
+
+    // Everything else is not supported
     my_inst[2]->property = 1234;
     my_inst[1:4]->property = 1234;
     my_inst[0:15]->property = 1234;
+    my_inst[0].other_array[1].field->reset = 8'hFF;
 
-Not only would this add a bunch of complexities to encoding this construct in a
-register model, but it also would make downstream outputs a nightmare.
-Having a heterogeneous array of something would require all kinds of nonsense
-tricks to be done in model outputs (C headers, Verilog RTL).
-
-A heterogeneous array would also end up being pretty conceptually confusing
-to the end-user. It would be fundamentally better for the designer to simply
-break something up into separate sets of instances that have different
-behaviors.
+When an indexed dynamic property assignment targets one array element, the
+compiler stores a per-element override in ``AddressableComponent.array_element_overrides``.
+Elements without an entry continue to share the array's component tree.
+Override instances retain the parent array's ``array_dimensions`` and
+``array_stride`` so that addressing and unrolling behave consistently.

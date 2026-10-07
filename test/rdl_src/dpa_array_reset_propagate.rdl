@@ -1,0 +1,10 @@
+addrmap top {
+    regfile {
+        reg {
+            field {sw=rw; hw=r;} f[3:0];
+        } r1;
+    } rf[4];
+
+    rf[1].r1.f->reset = 3;
+    rf.r1.f->name = "SHARED";
+};
