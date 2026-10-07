@@ -1915,7 +1915,7 @@ class FieldNode(VectorNode):
             # Not a counter!
             return False
 
-        for prop_name in self.list_properties():
+        for prop_name in self.list_properties(include_udp=False):
             if (
                 prop_name.startswith("incr")
                 or (prop_name == "overflow")
@@ -1945,7 +1945,7 @@ class FieldNode(VectorNode):
             # Not a counter!
             return False
 
-        for prop_name in self.list_properties():
+        for prop_name in self.list_properties(include_udp=False):
             if prop_name.startswith("decr") or (prop_name == "underflow"):
                 return True
 
