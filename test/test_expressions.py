@@ -491,11 +491,33 @@ class TestShiftExpOperators(RDLSourceTestCase):
         # negative numbers are converted to unsigned 2's complement
         self.assertEqual((int, 0), self.eval_RDL_expr("0 ** -1"))
 
+        # Result wraps to the evaluation width
+        self.assertEqual((int, 1 << 63), self.eval_RDL_expr("2 ** 63"))
+        self.assertEqual((int, 0), self.eval_RDL_expr("2 ** 64"))
+        self.assertEqual((int, 0xF3), self.eval_RDL_expr("8'h3 ** 5"))
+        self.assertEqual((int, 0xD9), self.eval_RDL_expr("8'h3 ** 6"))
+
+        # Huge exponents must not compute the full-precision result
+        self.assertEqual((int, 0x0B864DA6AAAAAAAB), self.eval_RDL_expr("3 ** 32'hFFFFFFFF"))
+        self.assertEqual((int, 0xAAAAAAAAAAAAAAAB), self.eval_RDL_expr("3 ** 64'hFFFF_FFFF_FFFF_FFFF"))
+
     def test_lshift(self):
         self.assertEqual((int, 0), self.eval_RDL_expr("0 << 0"))
         self.assertEqual((int, 0x123), self.eval_RDL_expr("0x123 << 0"))
         self.assertEqual((int, 0x1230), self.eval_RDL_expr("0x123 << 4"))
         self.assertEqual((int, 0xB0), self.eval_RDL_expr("8'hAB << 4"))
+
+        # Shifting at or beyond the evaluation width
+        self.assertEqual((int, 1 << 63), self.eval_RDL_expr("1 << 63"))
+        self.assertEqual((int, 0), self.eval_RDL_expr("1 << 64"))
+        self.assertEqual((int, 0x80), self.eval_RDL_expr("8'h1 << 7"))
+        self.assertEqual((int, 0), self.eval_RDL_expr("8'h1 << 8"))
+        self.assertEqual((int, 0), self.eval_RDL_expr("8'hFF << 100"))
+        self.assertEqual((int, 0xFFFFFFFFFFFFFFF0), self.eval_RDL_expr("-1 << 4"))
+        self.assertEqual((int, 0), self.eval_RDL_expr("-1 << 64"))
+
+        # Huge shift amounts must not build the full-precision result
+        self.assertEqual((int, 0), self.eval_RDL_expr("1 << 64'hFFFF_FFFF_FFFF_FFFF"))
 
 
     def test_rshift(self):

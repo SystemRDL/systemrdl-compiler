@@ -59,7 +59,9 @@ class NorReduce(_ReductionExpr):
 
 class XorReduce(_ReductionExpr):
     def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
+        eval_width = self.n.get_min_eval_width(assignee_node)
         n = int(self.n.get_value(assignee_node=assignee_node))
+        n = truncate_int(n, eval_width)
         v = 0
         while n:
             if n & 1:
@@ -69,7 +71,9 @@ class XorReduce(_ReductionExpr):
 
 class XnorReduce(_ReductionExpr):
     def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
+        eval_width = self.n.get_min_eval_width(assignee_node)
         n = int(self.n.get_value(assignee_node=assignee_node))
+        n = truncate_int(n, eval_width)
         v = 1
         while n:
             if n & 1:

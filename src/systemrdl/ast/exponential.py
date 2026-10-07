@@ -47,7 +47,7 @@ class Exponent(_ExpShiftExpr):
         # Right operand is self-determined
         l = int(self.l.get_value(eval_width, assignee_node))
         r = int(self.r.get_value(assignee_node=assignee_node))
-        return truncate_int(int(l ** r), eval_width)
+        return pow(l, r, 1 << eval_width)
 
 class LShift(_ExpShiftExpr):
     def get_value(self, eval_width: Optional[int]=None, assignee_node: Optional['Node']=None) -> int:
@@ -56,6 +56,9 @@ class LShift(_ExpShiftExpr):
         # Right operand is self-determined
         l = int(self.l.get_value(eval_width, assignee_node))
         r = int(self.r.get_value(assignee_node=assignee_node))
+        if r >= eval_width:
+            # Shifts beyond eval width
+            return 0
         return truncate_int(l << r, eval_width)
 
 class RShift(_ExpShiftExpr):
