@@ -8,7 +8,7 @@ $antlr4 -Dlanguage=Python3 -visitor -no-listener SystemRDL.g4
 
 # Generate C++ parse accelerator extension
 $antlr4 -Dlanguage=Cpp -visitor -no-listener -o ext SystemRDL.g4
-python3 <<EOF
+uv run python3 <<EOF
 from speedy_antlr_tool import generate
 
 generate(
@@ -19,4 +19,4 @@ generate(
 EOF
 
 # Create stub file for mypy
-stubgen  SystemRDLParser.py -o ../../
+uv run stubgen  SystemRDLParser.py -o ../../

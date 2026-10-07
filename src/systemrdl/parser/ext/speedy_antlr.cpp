@@ -147,6 +147,8 @@ PyObject* Translator::convert_ctx(
                 py_child = tnode_from_token(py_token, py_ctx);
             } catch(PythonException &e) {
                 Py_XDECREF(py_token);
+                Py_XDECREF(start);
+                Py_XDECREF(stop);
                 Py_XDECREF(py_ctx);
                 Py_XDECREF(py_children);
                 throw;
@@ -157,11 +159,15 @@ PyObject* Translator::convert_ctx(
 
             // Get start/stop
             if(!start || start==Py_None){
+                Py_XDECREF(start);
                 start = py_token;
                 Py_INCREF(start);
             }
             if(token->getType() != antlr4::IntStream::EOF) {
-                // Always set stop to current token
+                // Always set stop to current token.
+                // Release the reference held from the previous iteration first,
+                // otherwise every token but the last one leaks a reference.
+                Py_XDECREF(stop);
                 stop = py_token;
                 Py_INCREF(stop);
             }
@@ -172,16 +178,22 @@ PyObject* Translator::convert_ctx(
             try {
                 result = visitor->visit(ctx->children[i]);
             } catch(PythonException &e) {
+                Py_XDECREF(start);
+                Py_XDECREF(stop);
                 Py_XDECREF(py_ctx);
                 Py_XDECREF(py_children);
                 throw;
             }
 
             if(!result.has_value()) {
-                py_child = Py_None;
-            } else {
-                py_child = std::any_cast<PyObject *>(result);
+                Py_XDECREF(start);
+                Py_XDECREF(stop);
+                Py_XDECREF(py_ctx);
+                Py_XDECREF(py_children);
+                PyErr_SetString(PyExc_RuntimeError, "Visitor did not return a translated context");
+                throw PythonException();
             }
+            py_child = std::any_cast<PyObject *>(result);
 
             PyObject_SetAttrString(py_child, "parentCtx", py_ctx);
             py_label_candidate = py_child;
@@ -189,11 +201,26 @@ PyObject* Translator::convert_ctx(
 
             // Get start/stop
             if(!start || start==Py_None) {
+                // start may already own a reference (to None)
+                Py_XDECREF(start);
                 start = PyObject_GetAttrString(py_child, "start");
+                if(!start) PyErr_Clear();
             }
+            // PyObject_GetAttrString returns a new reference, so the previous
+            // stop must be released, and an unused result must not be leaked.
             PyObject *tmp_stop = PyObject_GetAttrString(py_child, "stop");
-            if (tmp_stop && tmp_stop!=Py_None) stop = tmp_stop;
+            if (tmp_stop && tmp_stop!=Py_None) {
+                Py_XDECREF(stop);
+                stop = tmp_stop;
+            } else {
+                Py_XDECREF(tmp_stop);
+                if(!tmp_stop) PyErr_Clear();
+            }
         } else {
+            Py_XDECREF(start);
+            Py_XDECREF(stop);
+            Py_XDECREF(py_ctx);
+            Py_XDECREF(py_children);
             PyErr_SetString(PyExc_RuntimeError, "Unknown child type");
             throw PythonException();
         }

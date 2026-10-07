@@ -50,6 +50,7 @@ lint = [
 dev = [
     {include-group = "test"},
     {include-group = "lint"},
+    "speedy-antlr-tool",
 ]
 
 [project.urls]
