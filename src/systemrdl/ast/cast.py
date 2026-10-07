@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Optional, Type, Any
+import inspect
 
 from .ast_node import ASTNode
 
@@ -165,6 +166,9 @@ def is_castable(src: Any, dst: Any) -> bool:
             # indeterminate array type. Is castable
             return True
         return is_castable(src.element_type, dst.element_type)
+    elif not inspect.isclass(src):
+        # Remaining checks require src to be a class (eg: not an ArrayedType instance)
+        return src == dst
     elif rdltypes.is_user_struct(dst):
         # Structs can be assigned their derived counterparts - aka their subclasses
         return issubclass(src, dst)
