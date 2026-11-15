@@ -28,6 +28,29 @@ class TestBridge(RDLSourceTestCase):
             0x40
         )
 
+    def test_bridge_size_of_largest_child(self):
+        top = self.compile(
+            ["rdl_src/bridge_size_order.rdl"],
+            "bridge_root"
+        )
+
+        # All children of a bridge start at offset 0, so the size of the bridge
+        # is set by the largest child even if it is not the last one
+        self.assertEqual(
+            top.find_by_path("bridge_root").size,
+            0x8
+        )
+
+        self.assertEqual(
+            top.find_by_path("bridge_root.big").size,
+            0x8
+        )
+
+        self.assertEqual(
+            top.find_by_path("bridge_root.small").size,
+            0x4
+        )
+
     def test_bridge_errors(self):
         self.assertRDLCompileError(
             ["rdl_err_src/err_bridge.rdl"],
