@@ -2765,6 +2765,19 @@ def get_group_node_size(node: Union[AddrmapNode, RegfileNode]) -> int:
     # addrmap/regfile is guaranteed to have an addressable child.
     if not node.inst.children:
         return 0
+
+    if isinstance(node, AddrmapNode) and node.get_property('bridge'):
+        # Children of a bridge all resolve to offset 0, so the child that
+        # reaches furthest is not necessarily the last one.
+        size = 0
+        for child in node.inst.children:
+            if not isinstance(child, comp.AddressableComponent):
+                continue
+            child_node = Node._factory(child, node.env, node)
+            assert isinstance(child_node, AddressableNode)
+            size = max(size, child_node.raw_address_offset + child_node.total_size)
+        return size
+
     assert isinstance(node.inst.children[-1], comp.AddressableComponent)
 
     # Current node's size is based on last child

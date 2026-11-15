@@ -1,0 +1,17 @@
+// Bridge root: the larger submap is declared first and the smaller one last.
+// Per the SystemRDL spec all children of a bridge start at offset 0, so the
+// root's size must be the size of the largest child, not of the last one.
+addrmap big_submap {
+    reg { field { sw = rw; hw = r; } f[31:0]; } big_reg;
+    reg { field { sw = rw; hw = r; } f[31:0]; } big_reg2;
+};
+
+addrmap small_submap {
+    reg { field { sw = rw; hw = r; } f[31:0]; } small_reg;
+};
+
+addrmap bridge_root {
+    bridge;
+    big_submap big;
+    small_submap small;
+};
